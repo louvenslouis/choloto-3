@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>934080509989-0n2mklmhc9p71dadr6d6vd1088jdus2f.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.934080509989-0n2mklmhc9p71dadr6d6vd1088jdus2f</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>934080509989-0fj2sn6c8q852b0g8c33gaom09bifiuj.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAGB6F30X2QVHxg1SBrsDzhh3cbMkuh_mA</string>
+	<key>GCM_SENDER_ID</key>
+	<string>934080509989</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.mycompany.choloto</string>
+	<key>PROJECT_ID</key>
+	<string>choloto-6aa5b</string>
+	<key>STORAGE_BUCKET</key>
+	<string>choloto-6aa5b.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:934080509989:ios:650ae81d493198ec4f27cc</string>
+</dict>
+</plist>

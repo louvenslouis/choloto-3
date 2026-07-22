@@ -1,0 +1,53 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editors and IDEs
+.idea/
+*.iml
+.vscode/
+
+# Dart and Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+
+# Generated documentation
+doc/api/
+
+# Android build and signing files
+android/.gradle/
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+
+# iOS and macOS generated files
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/ephemeral/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+macos/Pods/
+macos/.symlinks/
+macos/Flutter/ephemeral/
+
+# Firebase Functions dependencies and local state
+firebase/functions/node_modules/
+firebase/.firebase/
+firebase/firebase-debug.log
+firebase/firestore-debug.log
+
+# Environment and secret files
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+service-account*.json
+serviceAccount*.json

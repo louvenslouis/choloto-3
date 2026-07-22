@@ -1,0 +1,166 @@
+{
+  "project_info": {
+    "project_number": "934080509989",
+    "project_id": "choloto-6aa5b",
+    "storage_bucket": "choloto-6aa5b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934080509989:android:442d088fc6c9ce124f27cc",
+        "android_client_info": {
+          "package_name": "com.choloto.choloto"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "934080509989-923vn04fkqqpllt643thuf2l9ah1gfd8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.choloto.choloto",
+            "certificate_hash": "6043cb0c13c5afc2a99863322844cd09c78f8b54"
+          }
+        },
+        {
+          "client_id": "934080509989-cujsik94ngb0n4fic73lk6mrcdknh5mt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.choloto.choloto",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "934080509989-tuu86uois23qm7vv86rq2t29orn6d949.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZXgrDFvVsT54aamgQWUHJInJpqpP9pz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "934080509989-tuu86uois23qm7vv86rq2t29orn6d949.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "934080509989-0n2mklmhc9p71dadr6d6vd1088jdus2f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mycompany.choloto"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934080509989:android:99f0fac87cf013fb4f27cc",
+        "android_client_info": {
+          "package_name": "com.mycompany.choloto"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "934080509989-0fj2sn6c8q852b0g8c33gaom09bifiuj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mycompany.choloto",
+            "certificate_hash": "d2ea2867b2fe955cbb23ea1ffbb2bd006d5c18ee"
+          }
+        },
+        {
+          "client_id": "934080509989-mhhr8hhll6kiigdjbjni43hg3dua7hfh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mycompany.choloto",
+            "certificate_hash": "6043cb0c13c5afc2a99863322844cd09c78f8b54"
+          }
+        },
+        {
+          "client_id": "934080509989-rv9e3si5muia6e5iafrla1odob0hau2q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mycompany.choloto",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "934080509989-tuu86uois23qm7vv86rq2t29orn6d949.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZXgrDFvVsT54aamgQWUHJInJpqpP9pz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "934080509989-tuu86uois23qm7vv86rq2t29orn6d949.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "934080509989-0n2mklmhc9p71dadr6d6vd1088jdus2f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mycompany.choloto"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934080509989:android:a7f3ef70e87b5e7c4f27cc",
+        "android_client_info": {
+          "package_name": "com.mycompany.cholotodashboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "934080509989-pfi7lkecc69tbop6e30jjtvsmnah5evt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mycompany.cholotodashboard",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "934080509989-tuu86uois23qm7vv86rq2t29orn6d949.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZXgrDFvVsT54aamgQWUHJInJpqpP9pz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "934080509989-tuu86uois23qm7vv86rq2t29orn6d949.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "934080509989-0n2mklmhc9p71dadr6d6vd1088jdus2f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mycompany.choloto"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
