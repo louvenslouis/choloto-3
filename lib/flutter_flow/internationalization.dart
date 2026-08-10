@@ -482,9 +482,9 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // Home
   {
     'covzb0rd': {
-      'fr': 'MEMBERSHIP',
-      'cr': 'MEMBÈCHIP',
-      'en': 'MEMBERSHIP',
+      'fr': 'MEMBERSHIP VIP',
+      'cr': 'MEMBÈCHIP VIP',
+      'en': 'MEMBERSHIP VIP',
     },
     'uvl7vow9': {
       'fr': 'Accède à tous les avantages exclusifs.',
