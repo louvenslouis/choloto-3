@@ -1,17 +1,80 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility that Flutter provides. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:async';
 
+import 'package:choloto/flutter_flow/request_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:choloto/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  group('FutureRequestManager', () {
+    test('deduplicates identical in-flight and cached requests', () async {
+      final manager = FutureRequestManager<int>();
+      var requestCount = 0;
+      final completer = Completer<int>();
+
+      Future<int> request() {
+        requestCount += 1;
+        return completer.future;
+      }
+
+      final first = manager.performRequest(
+        uniqueQueryKey: 'latest-results',
+        requestFn: request,
+      );
+      final second = manager.performRequest(
+        uniqueQueryKey: 'latest-results',
+        requestFn: request,
+      );
+
+      expect(identical(first, second), isTrue);
+      expect(requestCount, 1);
+
+      completer.complete(42);
+      expect(await first, 42);
+      expect(await second, 42);
+    });
+
+    test('refreshes a cached request only when explicitly requested', () async {
+      final manager = FutureRequestManager<int>();
+      var requestCount = 0;
+
+      Future<int> request() async => ++requestCount;
+
+      expect(
+        await manager.performRequest(
+          uniqueQueryKey: 'latest-results',
+          requestFn: request,
+        ),
+        1,
+      );
+      expect(
+        await manager.performRequest(
+          uniqueQueryKey: 'latest-results',
+          requestFn: request,
+        ),
+        1,
+      );
+      expect(
+        await manager.performRequest(
+          uniqueQueryKey: 'latest-results',
+          overrideCache: true,
+          requestFn: request,
+        ),
+        2,
+      );
+      expect(requestCount, 2);
+    });
+
+    test('evicts the oldest entry when the cache limit is reached', () async {
+      final manager = FutureRequestManager<int>(2);
+      var requestCount = 0;
+
+      Future<int> request() async => ++requestCount;
+
+      await manager.performRequest(uniqueQueryKey: 'a', requestFn: request);
+      await manager.performRequest(uniqueQueryKey: 'b', requestFn: request);
+      await manager.performRequest(uniqueQueryKey: 'c', requestFn: request);
+      await manager.performRequest(uniqueQueryKey: 'a', requestFn: request);
+
+      expect(requestCount, 4);
+    });
   });
 }
