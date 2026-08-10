@@ -22,6 +22,7 @@ void main() async {
   usePathUrlStrategy();
 
   await initFirebase();
+  await FFLocalizations.initialize();
 
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
@@ -78,6 +79,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
+    _locale = FFLocalizations.getStoredLocale();
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
     _authenticatedUserSubscription = authenticatedUserStream.listen((_) {});
@@ -101,6 +103,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void setLocale(String language) {
+    FFLocalizations.storeLocale(language);
     safeSetState(() => _locale = createLocale(language));
   }
 
@@ -156,34 +159,51 @@ class NavBarPage extends StatefulWidget {
 
 /// This is the private State class that goes with NavBarPage.
 class _NavBarPageState extends State<NavBarPage> {
+  static const _tabNames = ['Home', 'Tirages', 'VIP', 'Tchala'];
+
   String _currentPageName = 'Home';
   late Widget? _currentPage;
+  late List<Widget?> _tabPages;
 
   @override
   void initState() {
     super.initState();
     _currentPageName = widget.initialPage ?? _currentPageName;
     _currentPage = widget.page;
+    _tabPages = List<Widget?>.filled(_tabNames.length, null);
+    if (_currentPage == null) {
+      final initialIndex = _tabNames.indexOf(_currentPageName);
+      _tabPages[initialIndex] = _createTab(initialIndex);
+    }
   }
+
+  Widget _createTab(int index) => switch (index) {
+        0 => HomeWidget(),
+        1 => TiragesWidget(),
+        2 => VipWidget(),
+        3 => TchalaWidget(),
+        _ => HomeWidget(),
+      };
 
   @override
   Widget build(BuildContext context) {
-    final tabs = {
-      'Home': HomeWidget(),
-      'Tirages': TiragesWidget(),
-      'VIP': VipWidget(),
-      'Tchala': TchalaWidget(),
-    };
-    final currentIndex = tabs.keys.toList().indexOf(_currentPageName);
+    final currentIndex = _tabNames.indexOf(_currentPageName);
 
     return Scaffold(
       resizeToAvoidBottomInset: !widget.disableResizeToAvoidBottomInset,
-      body: _currentPage ?? tabs[_currentPageName],
+      body: _currentPage ??
+          IndexedStack(
+            index: currentIndex,
+            children: _tabPages
+                .map((page) => page ?? const SizedBox.shrink())
+                .toList(),
+          ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (i) => safeSetState(() {
           _currentPage = null;
-          _currentPageName = tabs.keys.toList()[i];
+          _currentPageName = _tabNames[i];
+          _tabPages[i] ??= _createTab(i);
         }),
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         selectedItemColor: FlutterFlowTheme.of(context).primary,

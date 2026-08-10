@@ -1,6 +1,7 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
+import '/components/don_widget.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -189,6 +190,16 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             logFirebaseEvent('VIP_FloatingActionButton_qjsc5kip_ON_TAP');
+            logFirebaseEvent('FloatingActionButton_bottom_sheet');
+            await showModalBottomSheet(
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              context: context,
+              builder: (context) => Padding(
+                padding: MediaQuery.viewInsetsOf(context),
+                child: DonWidget(),
+              ),
+            );
           },
           backgroundColor: FlutterFlowTheme.of(context).primaryText,
           icon: FaIcon(
@@ -413,97 +424,147 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  if ((FFAppState().bingo.date != null) &&
+                  if (FFAppState().bingo.hasDate() &&
+                      FFAppState().bingo.hasExpiration() &&
                       (FFAppState().bingo.expiration! >= getCurrentTimestamp))
                     wrapWithModel(
                       model: _model.bingoCardVIPModel,
                       updateCallback: () => safeSetState(() {}),
                       child: BingoCardVIPWidget(),
                     ),
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        if (currentUserDocument!.endSub! >=
-                            getCurrentTimestamp) {
-                          return StreamBuilder<List<PredictionRecord>>(
-                            stream: queryPredictionRecord(
-                              queryBuilder: (predictionRecord) =>
-                                  predictionRecord.orderBy('date',
-                                      descending: true),
-                              singleRecord: true,
-                            ),
-                            builder: (context, snapshot) {
-                              // Customize what your widget looks like when it's loading.
-                              if (!snapshot.hasData) {
-                                return Center(
-                                  child: SizedBox(
-                                    width: 50.0,
-                                    height: 50.0,
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        FlutterFlowTheme.of(context).primary,
-                                      ),
+                  Builder(
+                    builder: (context) {
+                      if (loggedIn &&
+                          currentUserDocument?.endSub != null &&
+                          currentUserDocument!.endSub! >= getCurrentTimestamp) {
+                        return StreamBuilder<List<PredictionRecord>>(
+                          stream: queryPredictionRecord(
+                            queryBuilder: (predictionRecord) => predictionRecord
+                                .orderBy('date', descending: true),
+                            singleRecord: true,
+                          ),
+                          builder: (context, snapshot) {
+                            // Customize what your widget looks like when it's loading.
+                            if (!snapshot.hasData) {
+                              return Center(
+                                child: SizedBox(
+                                  width: 50.0,
+                                  height: 50.0,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      FlutterFlowTheme.of(context).primary,
                                     ),
                                   ),
-                                );
-                              }
-                              List<PredictionRecord>
-                                  listViewPredictionRecordList = snapshot.data!;
-                              final listViewPredictionRecord =
-                                  listViewPredictionRecordList.isNotEmpty
-                                      ? listViewPredictionRecordList.first
-                                      : null;
+                                ),
+                              );
+                            }
+                            List<PredictionRecord>
+                                listViewPredictionRecordList = snapshot.data!;
+                            if (listViewPredictionRecordList.isEmpty) {
+                              return SizedBox.shrink();
+                            }
+                            final listViewPredictionRecord =
+                                listViewPredictionRecordList.first;
 
-                              return ListView(
-                                padding: EdgeInsets.zero,
-                                primary: false,
-                                shrinkWrap: true,
-                                scrollDirection: Axis.vertical,
-                                children: [
-                                  Card(
-                                    clipBehavior: Clip.antiAliasWithSaveLayer,
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryBackground,
-                                    elevation: 0.0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    child: Align(
-                                      alignment: AlignmentDirectional(0.0, 0.0),
-                                      child: Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            15.0, 8.0, 15.0, 8.0),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Row(
+                            return ListView(
+                              padding: EdgeInsets.zero,
+                              primary: false,
+                              shrinkWrap: true,
+                              scrollDirection: Axis.vertical,
+                              children: [
+                                Card(
+                                  clipBehavior: Clip.antiAliasWithSaveLayer,
+                                  color: FlutterFlowTheme.of(context)
+                                      .primaryBackground,
+                                  elevation: 0.0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: Align(
+                                    alignment: AlignmentDirectional(0.0, 0.0),
+                                    child: Padding(
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          15.0, 8.0, 15.0, 8.0),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisSize: MainAxisSize.max,
+                                            children: [
+                                              Padding(
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(
+                                                        0.0, 0.0, 6.0, 0.0),
+                                                child: Icon(
+                                                  Icons.calendar_today,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .primaryText,
+                                                  size: 24.0,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Probabilité: ${dateTimeFormat(
+                                                  "MMMMEEEEd",
+                                                  listViewPredictionRecord
+                                                      ?.date,
+                                                  locale: FFLocalizations.of(
+                                                          context)
+                                                      .languageCode,
+                                                )} ${listViewPredictionRecord?.periode}',
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                          Container(
+                                            decoration: BoxDecoration(),
+                                            child: Row(
                                               mainAxisSize: MainAxisSize.max,
                                               children: [
-                                                Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 0.0, 6.0, 0.0),
-                                                  child: Icon(
-                                                    Icons.calendar_today,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primaryText,
-                                                    size: 24.0,
-                                                  ),
+                                                Icon(
+                                                  Icons.timeline_sharp,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .alternate,
+                                                  size: 24.0,
                                                 ),
                                                 Text(
-                                                  'Probabilité: ${dateTimeFormat(
-                                                    "MMMMEEEEd",
-                                                    listViewPredictionRecord
-                                                        ?.date,
-                                                    locale: FFLocalizations.of(
-                                                            context)
-                                                        .languageCode,
-                                                  )} ${listViewPredictionRecord?.periode}',
+                                                  '${listViewPredictionRecord?.pourcentage?.toString()}%',
                                                   style: FlutterFlowTheme.of(
                                                           context)
                                                       .bodyMedium
@@ -537,231 +598,174 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                                                 .fontStyle,
                                                       ),
                                                 ),
-                                              ],
+                                              ].divide(SizedBox(width: 5.0)),
                                             ),
-                                            Container(
-                                              decoration: BoxDecoration(),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.max,
-                                                children: [
-                                                  Icon(
-                                                    Icons.timeline_sharp,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .alternate,
-                                                    size: 24.0,
-                                                  ),
-                                                  Text(
-                                                    '${listViewPredictionRecord?.pourcentage?.toString()}%',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .alternate,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                ].divide(SizedBox(width: 5.0)),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ).animateOnPageLoad(animationsMap[
-                                      'cardOnPageLoadAnimation']!),
-                                  GridView(
-                                    padding: EdgeInsets.fromLTRB(
-                                      0,
-                                      0,
-                                      0,
-                                      100.0,
-                                    ),
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      crossAxisSpacing: 0.0,
-                                      mainAxisSpacing: 0.0,
-                                      childAspectRatio: 1.0,
-                                    ),
-                                    primary: false,
-                                    shrinkWrap: true,
-                                    scrollDirection: Axis.vertical,
-                                    children: [
-                                      wrapWithModel(
-                                        model: _model.favoriModel,
-                                        updateCallback: () =>
-                                            safeSetState(() {}),
-                                        child: UniversalVIPWidget(
-                                          name: listViewPredictionRecord!
-                                              .favori.name,
-                                          autre: '',
-                                          chiffre: listViewPredictionRecord
-                                              ?.favori?.boul,
-                                          ref: listViewPredictionRecord
-                                              ?.reference,
-                                          icon: Icon(
-                                            Icons.star,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 20.0,
-                                          ),
-                                        ),
-                                      ).animateOnPageLoad(animationsMap[
-                                          'universalVIPOnPageLoadAnimation1']!),
-                                      wrapWithModel(
-                                        model: _model.soutniModel,
-                                        updateCallback: () =>
-                                            safeSetState(() {}),
-                                        child: UniversalVIPWidget(
-                                          name: listViewPredictionRecord!
-                                              .soutni.name,
-                                          chiffre: listViewPredictionRecord
-                                              ?.soutni?.boul,
-                                          ref: listViewPredictionRecord
-                                              ?.reference,
-                                          icon: FaIcon(
-                                            FontAwesomeIcons.peopleCarry,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 20.0,
-                                          ),
-                                        ),
-                                      ).animateOnPageLoad(animationsMap[
-                                          'universalVIPOnPageLoadAnimation2']!),
-                                      wrapWithModel(
-                                        model: _model.vIPbolotoModel,
-                                        updateCallback: () =>
-                                            safeSetState(() {}),
-                                        child: VIPbolotoWidget(
-                                          name: listViewPredictionRecord!
-                                              .boloto.name,
-                                          chiffre: listViewPredictionRecord
-                                              ?.boloto?.boul,
-                                          ref: listViewPredictionRecord
-                                              ?.reference,
-                                        ),
-                                      ).animateOnPageLoad(animationsMap[
-                                          'vIPbolotoOnPageLoadAnimation']!),
-                                      wrapWithModel(
-                                        model: _model.mariageModel,
-                                        updateCallback: () =>
-                                            safeSetState(() {}),
-                                        child: UniversalVIPWidget(
-                                          name: listViewPredictionRecord!
-                                              .mariage.name,
-                                          chiffre: listViewPredictionRecord
-                                              ?.mariage?.boul,
-                                          ref: listViewPredictionRecord
-                                              ?.reference,
-                                          icon: FaIcon(
-                                            FontAwesomeIcons.link,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 20.0,
-                                          ),
-                                        ),
-                                      ).animateOnPageLoad(animationsMap[
-                                          'universalVIPOnPageLoadAnimation3']!),
-                                      wrapWithModel(
-                                        model: _model.chif3Model,
-                                        updateCallback: () =>
-                                            safeSetState(() {}),
-                                        child: UniversalVIPWidget(
-                                          name: listViewPredictionRecord!
-                                              .chif3.name,
-                                          icon: Icon(
-                                            Icons.looks_3,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 20.0,
-                                          ),
-                                          chiffre: listViewPredictionRecord
-                                              ?.chif3?.boul,
-                                          ref: listViewPredictionRecord
-                                              ?.reference,
-                                        ),
-                                      ).animateOnPageLoad(animationsMap[
-                                          'universalVIPOnPageLoadAnimation4']!),
-                                      wrapWithModel(
-                                        model: _model.chif4Model,
-                                        updateCallback: () =>
-                                            safeSetState(() {}),
-                                        child: UniversalVIPWidget(
-                                          name: listViewPredictionRecord!
-                                              .chif4.name,
-                                          icon: Icon(
-                                            Icons.looks_4,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 20.0,
-                                          ),
-                                          chiffre: listViewPredictionRecord
-                                              ?.chif4?.boul,
-                                          ref: listViewPredictionRecord
-                                              ?.reference,
-                                        ),
-                                      ).animateOnPageLoad(animationsMap[
-                                          'universalVIPOnPageLoadAnimation5']!),
-                                      wrapWithModel(
-                                        model: _model.extraModel,
-                                        updateCallback: () =>
-                                            safeSetState(() {}),
-                                        child: UniversalVIPWidget(
-                                          name: listViewPredictionRecord!
-                                              .extra.name,
-                                          icon: FaIcon(
-                                            FontAwesomeIcons.meteor,
-                                            color: Color(0xFFFF0006),
-                                            size: 20.0,
-                                          ),
-                                          chiffre: listViewPredictionRecord
-                                              ?.extra?.boul,
-                                          ref: listViewPredictionRecord
-                                              ?.reference,
-                                        ),
-                                      ).animateOnPageLoad(animationsMap[
-                                          'universalVIPOnPageLoadAnimation6']!),
-                                    ],
                                   ),
-                                ],
-                              );
-                            },
-                          );
-                        } else {
-                          return wrapWithModel(
-                            model: _model.devenirVIPModel,
-                            updateCallback: () => safeSetState(() {}),
-                            child: DevenirVIPWidget(),
-                          );
-                        }
-                      },
-                    ),
+                                ).animateOnPageLoad(
+                                    animationsMap['cardOnPageLoadAnimation']!),
+                                GridView(
+                                  padding: EdgeInsets.fromLTRB(
+                                    0,
+                                    0,
+                                    0,
+                                    100.0,
+                                  ),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 0.0,
+                                    mainAxisSpacing: 0.0,
+                                    childAspectRatio: 1.0,
+                                  ),
+                                  primary: false,
+                                  shrinkWrap: true,
+                                  scrollDirection: Axis.vertical,
+                                  children: [
+                                    wrapWithModel(
+                                      model: _model.favoriModel,
+                                      updateCallback: () => safeSetState(() {}),
+                                      child: UniversalVIPWidget(
+                                        name: listViewPredictionRecord!
+                                            .favori.name,
+                                        autre: '',
+                                        chiffre: listViewPredictionRecord
+                                            ?.favori?.boul,
+                                        ref:
+                                            listViewPredictionRecord?.reference,
+                                        icon: Icon(
+                                          Icons.star,
+                                          color: FlutterFlowTheme.of(context)
+                                              .primary,
+                                          size: 20.0,
+                                        ),
+                                      ),
+                                    ).animateOnPageLoad(animationsMap[
+                                        'universalVIPOnPageLoadAnimation1']!),
+                                    wrapWithModel(
+                                      model: _model.soutniModel,
+                                      updateCallback: () => safeSetState(() {}),
+                                      child: UniversalVIPWidget(
+                                        name: listViewPredictionRecord!
+                                            .soutni.name,
+                                        chiffre: listViewPredictionRecord
+                                            ?.soutni?.boul,
+                                        ref:
+                                            listViewPredictionRecord?.reference,
+                                        icon: FaIcon(
+                                          FontAwesomeIcons.peopleCarry,
+                                          color: FlutterFlowTheme.of(context)
+                                              .primary,
+                                          size: 20.0,
+                                        ),
+                                      ),
+                                    ).animateOnPageLoad(animationsMap[
+                                        'universalVIPOnPageLoadAnimation2']!),
+                                    wrapWithModel(
+                                      model: _model.vIPbolotoModel,
+                                      updateCallback: () => safeSetState(() {}),
+                                      child: VIPbolotoWidget(
+                                        name: listViewPredictionRecord!
+                                            .boloto.name,
+                                        chiffre: listViewPredictionRecord
+                                            ?.boloto?.boul,
+                                        ref:
+                                            listViewPredictionRecord?.reference,
+                                      ),
+                                    ).animateOnPageLoad(animationsMap[
+                                        'vIPbolotoOnPageLoadAnimation']!),
+                                    wrapWithModel(
+                                      model: _model.mariageModel,
+                                      updateCallback: () => safeSetState(() {}),
+                                      child: UniversalVIPWidget(
+                                        name: listViewPredictionRecord!
+                                            .mariage.name,
+                                        chiffre: listViewPredictionRecord
+                                            ?.mariage?.boul,
+                                        ref:
+                                            listViewPredictionRecord?.reference,
+                                        icon: FaIcon(
+                                          FontAwesomeIcons.link,
+                                          color: FlutterFlowTheme.of(context)
+                                              .primary,
+                                          size: 20.0,
+                                        ),
+                                      ),
+                                    ).animateOnPageLoad(animationsMap[
+                                        'universalVIPOnPageLoadAnimation3']!),
+                                    wrapWithModel(
+                                      model: _model.chif3Model,
+                                      updateCallback: () => safeSetState(() {}),
+                                      child: UniversalVIPWidget(
+                                        name: listViewPredictionRecord!
+                                            .chif3.name,
+                                        icon: Icon(
+                                          Icons.looks_3,
+                                          color: FlutterFlowTheme.of(context)
+                                              .primary,
+                                          size: 20.0,
+                                        ),
+                                        chiffre: listViewPredictionRecord
+                                            ?.chif3?.boul,
+                                        ref:
+                                            listViewPredictionRecord?.reference,
+                                      ),
+                                    ).animateOnPageLoad(animationsMap[
+                                        'universalVIPOnPageLoadAnimation4']!),
+                                    wrapWithModel(
+                                      model: _model.chif4Model,
+                                      updateCallback: () => safeSetState(() {}),
+                                      child: UniversalVIPWidget(
+                                        name: listViewPredictionRecord!
+                                            .chif4.name,
+                                        icon: Icon(
+                                          Icons.looks_4,
+                                          color: FlutterFlowTheme.of(context)
+                                              .primary,
+                                          size: 20.0,
+                                        ),
+                                        chiffre: listViewPredictionRecord
+                                            ?.chif4?.boul,
+                                        ref:
+                                            listViewPredictionRecord?.reference,
+                                      ),
+                                    ).animateOnPageLoad(animationsMap[
+                                        'universalVIPOnPageLoadAnimation5']!),
+                                    wrapWithModel(
+                                      model: _model.extraModel,
+                                      updateCallback: () => safeSetState(() {}),
+                                      child: UniversalVIPWidget(
+                                        name: listViewPredictionRecord!
+                                            .extra.name,
+                                        icon: FaIcon(
+                                          FontAwesomeIcons.meteor,
+                                          color: Color(0xFFFF0006),
+                                          size: 20.0,
+                                        ),
+                                        chiffre: listViewPredictionRecord
+                                            ?.extra?.boul,
+                                        ref:
+                                            listViewPredictionRecord?.reference,
+                                      ),
+                                    ).animateOnPageLoad(animationsMap[
+                                        'universalVIPOnPageLoadAnimation6']!),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      } else {
+                        return wrapWithModel(
+                          model: _model.devenirVIPModel,
+                          updateCallback: () => safeSetState(() {}),
+                          child: DevenirVIPWidget(),
+                        );
+                      }
+                    },
                   ),
                 ],
               ),

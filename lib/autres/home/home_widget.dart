@@ -51,7 +51,7 @@ class _HomeWidgetState extends State<HomeWidget> {
             bingoRecord.orderBy('date', descending: true),
         singleRecord: true,
       ).then((s) => s.firstOrNull);
-      if (_model.bingooutput!.hasDate()) {
+      if (_model.bingooutput?.hasDate() ?? false) {
         if (FFAppState().bingo.date != _model.bingooutput?.date) {
           logFirebaseEvent('Home_update_app_state');
           FFAppState().updateBingoStruct(
@@ -67,6 +67,7 @@ class _HomeWidgetState extends State<HomeWidget> {
           safeSetState(() {});
         }
         if ((FFAppState().bingo.vue == false) &&
+            (_model.bingooutput?.hasExpiration() ?? false) &&
             (_model.bingooutput!.expiration! >= getCurrentTimestamp)) {
           logFirebaseEvent('Home_alert_dialog');
           await showDialog(

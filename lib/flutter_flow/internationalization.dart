@@ -154,58 +154,58 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'nwse7gnu': {
       'fr': 'NEW YORK',
-      'cr': '',
-      'en': '',
+      'cr': 'NEW YORK',
+      'en': 'NEW YORK',
     },
     '688llz6y': {
       'fr': 'Pick 3 officiel',
-      'cr': '',
-      'en': '',
+      'cr': 'Pick 3 ofisyèl',
+      'en': 'Official Pick 3',
     },
     '16bznwfv': {
       'fr': 'Dernier tirage',
-      'cr': '',
-      'en': '',
+      'cr': 'Dènye tiraj',
+      'en': 'Latest draw',
     },
     'xqa3sjic': {
       'fr': 'MIDDAY',
-      'cr': '',
-      'en': '',
+      'cr': 'MIDI',
+      'en': 'MIDDAY',
     },
     '9hcsnfjs': {
       'fr': 'EVENING',
-      'cr': '',
-      'en': '',
+      'cr': 'ASWÈ',
+      'en': 'EVENING',
     },
     'vho2s2ds': {
       'fr': 'FLORIDA',
-      'cr': '',
-      'en': '',
+      'cr': 'FLORIDA',
+      'en': 'FLORIDA',
     },
     'jc5kkpyj': {
       'fr': 'Pick 2, Pick 3 et Pick 4 officiels',
-      'cr': '',
-      'en': '',
+      'cr': 'Pick 2, Pick 3 ak Pick 4 ofisyèl',
+      'en': 'Official Pick 2, Pick 3 and Pick 4',
     },
     'mevtoovb': {
       'fr': 'PICK 2',
-      'cr': '',
-      'en': '',
+      'cr': 'PICK 2',
+      'en': 'PICK 2',
     },
     'ccu2gg3x': {
       'fr': 'PICK 3',
-      'cr': '',
-      'en': '',
+      'cr': 'PICK 3',
+      'en': 'PICK 3',
     },
     'ov51axfz': {
       'fr': 'PICK 4',
-      'cr': '',
-      'en': '',
+      'cr': 'PICK 4',
+      'en': 'PICK 4',
     },
     'cd9jjqv4': {
       'fr': 'Sources: New York State Gaming Commission et Florida Lottery.',
-      'cr': '',
-      'en': '',
+      'cr': 'Sous: New York State Gaming Commission ak Florida Lottery.',
+      'en': 'Sources: New York State Gaming Commission and Florida Lottery.',
     },
     'wakkucok': {
       'fr': 'Tirages',
@@ -246,7 +246,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'eywbwq85': {
       'fr': 'Abonnement',
       'cr': 'Abònman',
-      'en': 'Abonnement',
+      'en': 'Subscription',
     },
     'eq9kt96t': {
       'fr': '',
@@ -255,8 +255,8 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '6ho9r1de': {
       'fr': 'Termes et Conditions',
-      'cr': 'Abònman',
-      'en': 'Abonnement',
+      'cr': 'Tèm ak Kondisyon',
+      'en': 'Terms and Conditions',
     },
     'w56piynt': {
       'fr': '',
@@ -265,13 +265,13 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'i3ozq7ax': {
       'fr': 'Nous contacter',
-      'cr': 'Lang',
-      'en': 'Langue',
+      'cr': 'Kontakte nou',
+      'en': 'Contact us',
     },
     '9w72tojm': {
       'fr': 'Langue',
       'cr': 'Lang',
-      'en': 'Langue',
+      'en': 'Language',
     },
     '3vvyx19f': {
       'fr': 'Version',
@@ -295,8 +295,8 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'z4f6qhpj': {
       'fr': 'Développeur : LOUVENS LOUIS',
-      'cr': '',
-      'en': '',
+      'cr': 'Devlopè : LOUVENS LOUIS',
+      'en': 'Developer: LOUVENS LOUIS',
     },
     'oadu0jrq': {
       'fr': 'Paramètres',
@@ -347,23 +347,23 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'z4scavsi': {
       'fr': 'Termes et Conditions',
-      'cr': 'Termes et Conditions',
-      'en': 'Termes et Conditions',
+      'cr': 'Tèm ak Kondisyon',
+      'en': 'Terms and Conditions',
     },
     'hy9gb3tc': {
-      'fr': 'Header',
-      'cr': '',
-      'en': '',
+      'fr': 'En-tête',
+      'cr': 'Antèt',
+      'en': 'Header',
     },
     'w4g3cm28': {
-      'fr': 'Collapsed body text',
-      'cr': '',
-      'en': '',
+      'fr': 'Texte réduit',
+      'cr': 'Tèks redui',
+      'en': 'Collapsed body text',
     },
     'kpe3u5qv': {
-      'fr': 'Expanded body text',
-      'cr': '',
-      'en': '',
+      'fr': 'Texte développé',
+      'cr': 'Tèks devlope',
+      'en': 'Expanded body text',
     },
     'yai1k57w': {
       'fr': 'Home',
@@ -386,61 +386,63 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'xpn42xty': {
       'fr': 'Modifie ton Profil',
       'cr': 'Modifye pwofil ou',
-      'en': 'Edit your Profil',
+      'en': 'Edit your profile',
     },
   },
   // customerservice
   {
     'xx4qds3f': {
-      'fr': 'Contact Customer Service',
-      'cr': '',
-      'en': '',
+      'fr': 'Contacter le service client',
+      'cr': 'Kontakte sèvis kliyan',
+      'en': 'Contact Customer Service',
     },
     'ujyy941k': {
       'fr':
+          'Nous sommes là pour vous aider ! Envoyez-nous un message et nous vous répondrons dès que possible.',
+      'cr':
+          'Nou la pou ede w! Voye yon mesaj ban nou epi n ap reponn ou pi vit posib.',
+      'en':
           'We\'re here to help! Send us a message and we\'ll get back to you as soon as possible.',
-      'cr': '',
-      'en': '',
     },
     'doxx134q': {
       'fr': 'L\'email qu\'on pourra vous repondre',
-      'cr': '',
-      'en': '',
+      'cr': 'Imèl kote nou ka reponn ou',
+      'en': 'The email address where we can reply to you',
     },
     'fnr6ppen': {
-      'fr': 'Enter your email address',
-      'cr': '',
-      'en': '',
+      'fr': 'Entrez votre adresse e-mail',
+      'cr': 'Antre adrès imèl ou',
+      'en': 'Enter your email address',
     },
     'uio11ou2': {
       'fr': 'Message',
-      'cr': '',
-      'en': '',
+      'cr': 'Mesaj',
+      'en': 'Message',
     },
     'j27u9muy': {
-      'fr': 'Describe your issue or question in detail...',
-      'cr': '',
-      'en': '',
+      'fr': 'Décrivez votre problème ou votre question en détail...',
+      'cr': 'Dekri pwoblèm ou oswa kesyon ou an detay...',
+      'en': 'Describe your issue or question in detail...',
     },
     'qqvtrj3h': {
-      'fr': 'Response Time',
-      'cr': '',
-      'en': '',
+      'fr': 'Délai de réponse',
+      'cr': 'Tan repons',
+      'en': 'Response Time',
     },
     'lvctbl78': {
-      'fr': 'We typically respond within 24 hours during business days.',
-      'cr': '',
-      'en': '',
+      'fr': 'Nous répondons généralement sous 24 heures les jours ouvrables.',
+      'cr': 'Anjeneral, nou reponn nan 24 èdtan pandan jou travay yo.',
+      'en': 'We typically respond within 24 hours during business days.',
     },
     'chi61r9u': {
-      'fr': 'Send Message',
-      'cr': '',
-      'en': '',
+      'fr': 'Envoyer le message',
+      'cr': 'Voye mesaj la',
+      'en': 'Send Message',
     },
     'spzsuvvt': {
-      'fr': 'Customer Service',
-      'cr': '',
-      'en': '',
+      'fr': 'Service client',
+      'cr': 'Sèvis kliyan',
+      'en': 'Customer Service',
     },
   },
   // VIP
@@ -462,8 +464,8 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'isn2t0tf': {
       'fr': 'POURBOIRE',
-      'cr': 'DON',
-      'en': 'DON',
+      'cr': 'POUBWA',
+      'en': 'TIP',
     },
     'xj2saev3': {
       'fr': 'VIP',
@@ -489,17 +491,17 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'uvl7vow9': {
       'fr': 'Accède à tous les avantages exclusifs.',
       'cr': 'Aksede ak tout avantaj esklizif yo',
-      'en': 'Accède à tous les avantages exclusifs.',
+      'en': 'Access all exclusive benefits.',
     },
     'afym167o': {
       'fr': 'CROIX DE LA CHANCE',
       'cr': 'KWA LACHANS',
-      'en': 'CROIX DE LA CHANCE',
+      'en': 'CROSS OF LUCK',
     },
     'pqih1sxe': {
       'fr': 'Tente chaque jour et gagne GROS.',
       'cr': 'Tante chak jou',
-      'en': 'Tente chaque jour et gagne GROS.',
+      'en': 'Try every day and win BIG.',
     },
     'fkwji2m2': {
       'fr': 'YOUTUBE',
@@ -509,7 +511,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'gcjztr88': {
       'fr': 'Regarde, Abonne-toi et reste connecté',
       'cr': 'Gade epi rete konekte',
-      'en': 'Regarde, Abonne-toi et reste connecté',
+      'en': 'Watch, subscribe and stay connected',
     },
     'loh576na': {
       'fr': 'CHOLOTO',
@@ -526,38 +528,38 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'aiyue31r': {
       'fr': 'STATISTIQUES',
-      'cr': '',
-      'en': '',
+      'cr': 'ESTATISTIK',
+      'en': 'STATISTICS',
     },
     'o0ut0uym': {
       'fr': 'Statistiques',
-      'cr': '',
-      'en': '',
+      'cr': 'Estatistik',
+      'en': 'Statistics',
     },
     'exm1ba5v': {
       'fr': 'Accomplissements',
-      'cr': '',
-      'en': '',
+      'cr': 'Reyalizasyon',
+      'en': 'Achievements',
     },
     'safuzdxq': {
       'fr': 'Gains déclarés',
-      'cr': '',
-      'en': '',
+      'cr': 'Gany ki deklare',
+      'en': 'Reported winnings',
     },
     '5baauzd7': {
       'fr': 'Gains ratés déclarés',
-      'cr': '',
-      'en': '',
+      'cr': 'Gany rate ki deklare',
+      'en': 'Reported missed winnings',
     },
     '4z7v1o5y': {
       'fr': 'Hello World',
-      'cr': '',
-      'en': '',
+      'cr': 'Bonjou mond',
+      'en': 'Hello World',
     },
     'xilss3xs': {
       'fr': 'Home',
-      'cr': '',
-      'en': '',
+      'cr': 'Akèy',
+      'en': 'Home',
     },
   },
   // newYorkk
@@ -590,8 +592,8 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'u6drxrnb': {
       'fr': 'Prochain tirage dans:',
-      'cr': 'Prochain tirage dans:',
-      'en': 'Prochain tirage dans:',
+      'cr': 'Pwochen tiraj nan:',
+      'en': 'Next draw in:',
     },
   },
   // language
@@ -631,94 +633,94 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'c8ki06qv': {
       'fr': 'Devenez un membre VIP',
-      'cr': 'Devenez un membre VIP',
-      'en': 'Devenez un membre VIP',
+      'cr': 'Vin yon manm VIP',
+      'en': 'Become a VIP member',
     },
     'imcn98qf': {
-      'fr': 'ak CHOLOTO VIP, miltipliye chans pouw gagner !',
-      'cr': 'ak CHOLOTO VIP, miltipliye chans pouw gagner !',
-      'en': 'ak CHOLOTO VIP, miltipliye chans pouw gagner !',
+      'fr': 'Avec CHOLOTO VIP, multipliez vos chances de gagner !',
+      'cr': 'Avèk CHOLOTO VIP, miltipliye chans ou pou genyen!',
+      'en': 'With CHOLOTO VIP, multiply your chances of winning!',
     },
     '99kfebqb': {
-      'fr': 'WHAT\'S INCLUDED',
-      'cr': 'WHAT\'S INCLUDED',
+      'fr': 'CE QUI EST INCLUS',
+      'cr': 'SA KI LADAN',
       'en': 'WHAT\'S INCLUDED',
     },
     'juufc32a': {
       'fr': 'GRATUIT',
-      'cr': '',
-      'en': '',
+      'cr': 'GRATIS',
+      'en': 'FREE',
     },
     'zpnlwhem': {
       'fr': 'VIP',
-      'cr': '',
-      'en': '',
+      'cr': 'VIP',
+      'en': 'VIP',
     },
     'tv8dp8zl': {
-      'fr': 'Resultats lotteries',
-      'cr': '',
-      'en': '',
+      'fr': 'Résultats des loteries',
+      'cr': 'Rezilta lotri yo',
+      'en': 'Lottery results',
     },
     'jekwx2fb': {
-      'fr': 'Resultats lotteries',
-      'cr': '',
-      'en': '',
+      'fr': 'Résultats des loteries',
+      'cr': 'Rezilta lotri yo',
+      'en': 'Lottery results',
     },
     'j59fr62k': {
-      'fr': 'Resultats lotteries',
-      'cr': '',
-      'en': '',
+      'fr': 'Résultats des loteries',
+      'cr': 'Rezilta lotri yo',
+      'en': 'Lottery results',
     },
     '96ad4c5w': {
-      'fr': 'Resultats lotteries',
-      'cr': '',
-      'en': '',
+      'fr': 'Résultats des loteries',
+      'cr': 'Rezilta lotri yo',
+      'en': 'Lottery results',
     },
     'bl4kupme': {
       'fr': '1 Mois',
-      'cr': '',
-      'en': '',
+      'cr': '1 Mwa',
+      'en': '1 Month',
     },
     'r11k1q8q': {
       'fr': 'USD \$ 40.00 ou GDS 2,000.00',
-      'cr': '',
-      'en': '',
+      'cr': 'USD \$ 40.00 oswa GDS 2,000.00',
+      'en': 'USD \$ 40.00 or GDS 2,000.00',
     },
     'i0zhxntw': {
       'fr': 'Devenir VIP',
-      'cr': '',
-      'en': '',
+      'cr': 'Vin VIP',
+      'en': 'Become VIP',
     },
   },
   // editProfilTexts
   {
     'etl45w0v': {
-      'fr': 'TextField',
-      'cr': '',
-      'en': '',
+      'fr': 'Champ de texte',
+      'cr': 'Chan tèks',
+      'en': 'Text field',
     },
     '640x9dq1': {
-      'fr': 'Button',
-      'cr': '',
-      'en': '',
+      'fr': 'Bouton',
+      'cr': 'Bouton',
+      'en': 'Button',
     },
   },
   // bingoCardVIP
   {
     'ch00aogu': {
-      'fr': 'Ou te gagné ak nou ?',
-      'cr': 'Ou te gagné ak nou ?',
-      'en': 'Ou te gagné ak nou ?',
+      'fr': 'Avez-vous gagné avec nous ?',
+      'cr': 'Èske ou te genyen avèk nou?',
+      'en': 'Did you win with us?',
     },
     'ksh6eozy': {
       'fr': 'WI',
       'cr': 'WI',
-      'en': 'WI',
+      'en': 'YES',
     },
     '7ccuyv05': {
       'fr': 'NON',
       'cr': 'NON',
-      'en': 'NON',
+      'en': 'NO',
     },
   },
   // don
@@ -730,64 +732,66 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '6xxzgm60': {
       'fr':
+          'Votre contribution nous aide à poursuivre notre mission et à avoir un impact positif dans la communauté.',
+      'cr':
+          'Kontribisyon ou ede nou kontinye misyon nou pou pote yon enpak pozitif nan kominote a.',
+      'en':
           'Your contribution helps us continue our mission to make a positive impact in the community.',
-      'cr': '',
-      'en': '',
     },
     's9v0uvn9': {
-      'fr': 'Select Amount',
-      'cr': '',
-      'en': '',
+      'fr': 'Sélectionnez un montant',
+      'cr': 'Chwazi yon montan',
+      'en': 'Select Amount',
     },
     '42ir0fto': {
       'fr': '\$10',
-      'cr': '',
-      'en': '',
+      'cr': '\$10',
+      'en': '\$10',
     },
     '8igtcp6r': {
       'fr': '\$25',
-      'cr': '',
-      'en': '',
+      'cr': '\$25',
+      'en': '\$25',
     },
     'beg6pkjf': {
       'fr': '\$50',
-      'cr': '',
-      'en': '',
+      'cr': '\$50',
+      'en': '\$50',
     },
     'ovxdt2ne': {
       'fr': '\$100',
-      'cr': '',
-      'en': '',
+      'cr': '\$100',
+      'en': '\$100',
     },
     'cwa7j3cs': {
-      'fr': 'Custom Amount',
-      'cr': '',
-      'en': '',
+      'fr': 'Montant personnalisé',
+      'cr': 'Montan pèsonalize',
+      'en': 'Custom Amount',
     },
     '36ocr8q8': {
-      'fr': 'Enter amount',
-      'cr': '',
-      'en': '',
+      'fr': 'Entrez le montant',
+      'cr': 'Antre montan an',
+      'en': 'Enter amount',
     },
     'kmatu0bj': {
-      'fr': 'Payment Method',
-      'cr': '',
-      'en': '',
+      'fr': 'Mode de paiement',
+      'cr': 'Metòd peman',
+      'en': 'Payment Method',
     },
     'zgkhgl88': {
       'fr': '•••• •••• •••• 4242',
-      'cr': '',
-      'en': '',
+      'cr': '•••• •••• •••• 4242',
+      'en': '•••• •••• •••• 4242',
     },
     'r0jtpvwa': {
-      'fr': 'Donate Now',
-      'cr': '',
-      'en': '',
+      'fr': 'Faire un don maintenant',
+      'cr': 'Fè yon don kounye a',
+      'en': 'Donate Now',
     },
     'g2sbccpm': {
-      'fr': 'Your donation is secure and will be processed safely.',
-      'cr': '',
-      'en': '',
+      'fr': 'Votre don est sécurisé et sera traité en toute sécurité.',
+      'cr': 'Don ou an sekirize epi y ap trete li san danje.',
+      'en': 'Your donation is secure and will be processed safely.',
     },
   },
   // Welcome
@@ -798,8 +802,8 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Connect with Google',
     },
     '7p5qctmz': {
-      'fr': 'Connecter en tant qu\'Inviter',
-      'cr': 'Antre an tan ke invite',
+      'fr': 'Continuer en tant qu\'invité',
+      'cr': 'Kontinye kòm envite',
       'en': 'Guest Mode',
     },
     '3vjw7hwm': {
@@ -825,13 +829,13 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'hs9qcniz': {
       'fr': 'TEST 1-2',
-      'cr': '',
-      'en': '',
+      'cr': 'TÈS 1-2',
+      'en': 'TEST 1-2',
     },
     'gbh5c896': {
       'fr': 'Hello World',
-      'cr': '',
-      'en': '',
+      'cr': 'Bonjou mond',
+      'en': 'Hello World',
     },
   },
   // rappelFinAbonnement
@@ -862,21 +866,21 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'lbzfuhpv': {
       'fr': '1',
-      'cr': '',
-      'en': '',
+      'cr': '1',
+      'en': '1',
     },
   },
   // Miscellaneous
   {
     '0ges4wqg': {
-      'fr': 'Title',
-      'cr': '',
-      'en': '',
+      'fr': 'Titre',
+      'cr': 'Tit',
+      'en': 'Title',
     },
     'ymcdwy4s': {
-      'fr': 'Subtitle',
-      'cr': '',
-      'en': '',
+      'fr': 'Sous-titre',
+      'cr': 'Soustit',
+      'en': 'Subtitle',
     },
     'a35mfcuz': {
       'fr': '',
