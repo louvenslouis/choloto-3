@@ -81,7 +81,7 @@ class _CroixWidgetState extends State<CroixWidget> {
             key: scaffoldKey,
             backgroundColor: FlutterFlowTheme.of(context).primary,
             appBar: AppBar(
-              backgroundColor: Color(0xFF1C1B1B),
+              backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
               automaticallyImplyLeading: false,
               leading: FlutterFlowIconButton(
                 borderColor: Colors.transparent,
@@ -90,7 +90,7 @@ class _CroixWidgetState extends State<CroixWidget> {
                 buttonSize: 60.0,
                 icon: Icon(
                   Icons.arrow_back_rounded,
-                  color: Colors.white,
+                  color: FlutterFlowTheme.of(context).primaryText,
                   size: 30.0,
                 ),
                 onPressed: () async {
@@ -108,7 +108,7 @@ class _CroixWidgetState extends State<CroixWidget> {
                   textAlign: TextAlign.center,
                   style: FlutterFlowTheme.of(context).headlineMedium.override(
                         fontFamily: 'Google sans flex',
-                        color: Colors.white,
+                        color: FlutterFlowTheme.of(context).primaryText,
                         fontSize: 22.0,
                         letterSpacing: 0.0,
                       ),

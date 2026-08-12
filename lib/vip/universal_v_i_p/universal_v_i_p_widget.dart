@@ -103,7 +103,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAliasWithSaveLayer,
-      color: Color(0xFF1C1C1E),
+      color: FlutterFlowTheme.of(context).secondaryBackground,
       elevation: 2.0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),

@@ -92,7 +92,7 @@ class _ParametresWidgetState extends State<ParametresWidget> {
             ),
             style: FlutterFlowTheme.of(context).headlineMedium.override(
                   fontFamily: 'Google sans flex',
-                  color: Colors.white,
+                  color: FlutterFlowTheme.of(context).primaryText,
                   fontSize: 22.0,
                   letterSpacing: 0.0,
                 ),
@@ -518,6 +518,43 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.0),
                         ),
+                      ),
+                    ),
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      secondary: Icon(
+                        Icons.light_mode_outlined,
+                        color: FlutterFlowTheme.of(context).alternate,
+                      ),
+                      title: Text(
+                        FFLocalizations.of(context).getVariableText(
+                          frText: 'Thème clair',
+                          enText: 'Light theme',
+                          crText: 'Tèm klè',
+                        ),
+                        style: FlutterFlowTheme.of(context).titleLarge.override(
+                              fontFamily: 'Google sans flex',
+                              letterSpacing: 0.0,
+                            ),
+                      ),
+                      value: Theme.of(context).brightness == Brightness.light,
+                      onChanged: (enabled) => setDarkModeSetting(
+                        context,
+                        enabled ? ThemeMode.light : ThemeMode.dark,
+                      ),
+                      activeColor: FlutterFlowTheme.of(context).primary,
+                      tileColor:
+                          FlutterFlowTheme.of(context).secondaryBackground,
+                      contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                        12.0,
+                        0.0,
+                        12.0,
+                        0.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
                   ),

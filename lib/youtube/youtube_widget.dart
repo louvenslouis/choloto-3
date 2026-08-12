@@ -367,7 +367,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
             text: FFLocalizations.of(context).getText('ytchnbtn'),
             icon: Icon(
               Icons.subscriptions_outlined,
-              color: theme.primaryBackground,
+              color: theme.onPrimary,
               size: 20.0,
             ),
             onPressed: () async {
@@ -378,7 +378,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
               height: 44.0,
               color: theme.primary,
               textStyle: theme.labelLarge.override(
-                color: theme.primaryBackground,
+                color: theme.onPrimary,
                 fontWeight: FontWeight.w600,
               ),
               elevation: 0.0,
@@ -489,7 +489,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            theme.primaryBackground.applyAlpha(0.38),
+                            Colors.black.withValues(alpha: 0.38),
                           ],
                         ),
                       ),
@@ -505,7 +505,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
                         ),
                         child: Icon(
                           Icons.play_arrow_rounded,
-                          color: theme.primaryBackground,
+                          color: theme.onPrimary,
                           size: 32.0,
                         ),
                       ),
@@ -528,7 +528,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
                           child: Text(
                             FFLocalizations.of(context).getText('ytnewest'),
                             style: theme.labelSmall.override(
-                              color: theme.primaryBackground,
+                              color: theme.onPrimary,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -681,7 +681,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
               text: buttonText,
               icon: Icon(
                 Icons.refresh_rounded,
-                color: theme.primaryBackground,
+                color: theme.onPrimary,
                 size: 20.0,
               ),
               onPressed: onPressed,
@@ -692,7 +692,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
                 ),
                 color: theme.primary,
                 textStyle: theme.labelLarge.override(
-                  color: theme.primaryBackground,
+                  color: theme.onPrimary,
                   fontWeight: FontWeight.w600,
                 ),
                 elevation: 0.0,

@@ -152,8 +152,7 @@ class _CrossWidgetState extends State<CrossWidget> {
                               ),
                               color: numbersIndex == 4
                                   ? Colors.transparent
-                                  : FlutterFlowTheme.of(context)
-                                      .primaryBackground,
+                                  : FlutterFlowTheme.of(context).onPrimary,
                               letterSpacing: 1.0,
                               fontWeight: FlutterFlowTheme.of(context)
                                   .headlineMedium

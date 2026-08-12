@@ -130,7 +130,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                     ),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.black,
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       alignment: AlignmentDirectional(0.0, 0.0),
@@ -177,7 +177,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                                                 ),
                                                 color:
                                                     FlutterFlowTheme.of(context)
-                                                        .primaryText,
+                                                        .onDecorative,
                                                 fontSize: 32.0,
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.w900,

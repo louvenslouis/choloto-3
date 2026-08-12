@@ -92,8 +92,7 @@ class _InfosWidgetState extends State<InfosWidget> {
                                   .bodyMedium
                                   .fontStyle,
                             ),
-                            color:
-                                FlutterFlowTheme.of(context).primaryBackground,
+                            color: FlutterFlowTheme.of(context).primaryText,
                             letterSpacing: 0.0,
                             fontWeight: FontWeight.bold,
                             fontStyle: FlutterFlowTheme.of(context)

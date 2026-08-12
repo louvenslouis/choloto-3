@@ -221,7 +221,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                   ),
                 );
               },
-              backgroundColor: FlutterFlowTheme.of(context).primaryText,
+              backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
               icon: FaIcon(
                 FontAwesomeIcons.mugHot,
                 color: FlutterFlowTheme.of(context).primary,
@@ -296,8 +296,8 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
+                                    color:
+                                        FlutterFlowTheme.of(context).onPrimary,
                                   ),
                                 ),
                                 child: AuthUserStreamWidget(
@@ -328,20 +328,20 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                 children: [
                                   Icon(
                                     Icons.stars_sharp,
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
+                                    color:
+                                        FlutterFlowTheme.of(context).onPrimary,
                                     size: 15.0,
                                   ),
                                   Icon(
                                     Icons.stars_sharp,
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
+                                    color:
+                                        FlutterFlowTheme.of(context).onPrimary,
                                     size: 15.0,
                                   ),
                                   Icon(
                                     Icons.stars_sharp,
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
+                                    color:
+                                        FlutterFlowTheme.of(context).onPrimary,
                                     size: 15.0,
                                   ),
                                 ],
@@ -403,6 +403,8 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                         .fontStyle,
                                   ),
                                   letterSpacing: 0.0,
+                                  color:
+                                      FlutterFlowTheme.of(context).onDecorative,
                                   fontWeight: FontWeight.bold,
                                   fontStyle: FlutterFlowTheme.of(context)
                                       .bodyMedium
@@ -427,6 +429,8 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                         .fontStyle,
                                   ),
                                   letterSpacing: 0.0,
+                                  color:
+                                      FlutterFlowTheme.of(context).onDecorative,
                                   fontWeight: FlutterFlowTheme.of(context)
                                       .bodyMedium
                                       .fontWeight,

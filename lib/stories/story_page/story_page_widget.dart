@@ -115,7 +115,8 @@ class _StoryPageWidgetState extends State<StoryPageWidget> {
                                     buttonSize: 40.0,
                                     icon: Icon(
                                       Icons.close_outlined,
-                                      color: FlutterFlowTheme.of(context).info,
+                                      color: FlutterFlowTheme.of(context)
+                                          .onDecorative,
                                       size: 24.0,
                                     ),
                                     onPressed: () async {
@@ -132,7 +133,8 @@ class _StoryPageWidgetState extends State<StoryPageWidget> {
                                     buttonSize: 40.0,
                                     icon: Icon(
                                       Icons.refresh,
-                                      color: FlutterFlowTheme.of(context).info,
+                                      color: FlutterFlowTheme.of(context)
+                                          .onDecorative,
                                       size: 24.0,
                                     ),
                                     onPressed: () async {

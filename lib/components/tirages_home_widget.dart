@@ -49,7 +49,7 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: FlutterFlowTheme.of(context).primaryBackground,
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
           color: FlutterFlowTheme.of(context).secondaryBackground,

@@ -59,7 +59,7 @@ class _ConditionsWidgetState extends State<ConditionsWidget> {
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         appBar: AppBar(
-          backgroundColor: Color(0xFF1C1B1B),
+          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
           automaticallyImplyLeading: false,
           leading: FlutterFlowIconButton(
             borderColor: Colors.transparent,
@@ -68,7 +68,7 @@ class _ConditionsWidgetState extends State<ConditionsWidget> {
             buttonSize: 60.0,
             icon: Icon(
               Icons.close_rounded,
-              color: Colors.white,
+              color: FlutterFlowTheme.of(context).primaryText,
               size: 30.0,
             ),
             onPressed: () async {

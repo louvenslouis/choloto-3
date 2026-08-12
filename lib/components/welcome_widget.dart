@@ -244,8 +244,8 @@ class _WelcomeWidgetState extends State<WelcomeWidget> {
                                         .labelLarge
                                         .fontStyle,
                                   ),
-                                  color: FlutterFlowTheme.of(context)
-                                      .primaryBackground,
+                                  color:
+                                      FlutterFlowTheme.of(context).primaryText,
                                   letterSpacing: 0.0,
                                   fontWeight: FlutterFlowTheme.of(context)
                                       .labelLarge

@@ -80,7 +80,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                         buttonSize: 40.0,
                         icon: Icon(
                           Icons.close_sharp,
-                          color: FlutterFlowTheme.of(context).info,
+                          color: FlutterFlowTheme.of(context).onDecorative,
                           size: 30.0,
                         ),
                         onPressed: () async {
@@ -104,6 +104,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 .fontStyle,
                           ),
                           fontSize: 20.0,
+                          color: FlutterFlowTheme.of(context).onDecorative,
                           letterSpacing: 0.0,
                           fontWeight: FontWeight.bold,
                           fontStyle:
@@ -124,6 +125,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 .fontStyle,
                           ),
                           letterSpacing: 0.0,
+                          color: FlutterFlowTheme.of(context).onDecorative,
                           fontWeight: FlutterFlowTheme.of(context)
                               .bodyMedium
                               .fontWeight,
@@ -237,7 +239,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.request_page,
-                            color: FlutterFlowTheme.of(context).primaryText,
+                            color: FlutterFlowTheme.of(context).onDecorative,
                             size: 24.0,
                           ),
                         ),
@@ -274,7 +276,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.minimize_outlined,
-                            color: FlutterFlowTheme.of(context).primaryText,
+                            color: FlutterFlowTheme.of(context).onDecorative,
                             size: 24.0,
                           ),
                         ),
@@ -300,7 +302,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.request_page,
-                            color: FlutterFlowTheme.of(context).primaryText,
+                            color: FlutterFlowTheme.of(context).onDecorative,
                             size: 24.0,
                           ),
                         ),
@@ -337,7 +339,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.minimize_outlined,
-                            color: FlutterFlowTheme.of(context).primaryText,
+                            color: FlutterFlowTheme.of(context).onDecorative,
                             size: 24.0,
                           ),
                         ),
@@ -363,7 +365,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.request_page,
-                            color: FlutterFlowTheme.of(context).primaryText,
+                            color: FlutterFlowTheme.of(context).onDecorative,
                             size: 24.0,
                           ),
                         ),
@@ -400,7 +402,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.minimize_outlined,
-                            color: FlutterFlowTheme.of(context).primaryText,
+                            color: FlutterFlowTheme.of(context).onDecorative,
                             size: 24.0,
                           ),
                         ),
@@ -426,7 +428,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.request_page,
-                            color: FlutterFlowTheme.of(context).primaryText,
+                            color: FlutterFlowTheme.of(context).onDecorative,
                             size: 24.0,
                           ),
                         ),
@@ -463,7 +465,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.minimize_outlined,
-                            color: FlutterFlowTheme.of(context).primaryText,
+                            color: FlutterFlowTheme.of(context).onDecorative,
                             size: 24.0,
                           ),
                         ),

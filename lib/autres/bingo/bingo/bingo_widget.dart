@@ -88,7 +88,7 @@ class _BingoWidgetState extends State<BingoWidget>
         },
         child: Card(
           clipBehavior: Clip.antiAliasWithSaveLayer,
-          color: FlutterFlowTheme.of(context).primaryText,
+          color: FlutterFlowTheme.of(context).secondaryBackground,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24.0),
@@ -144,7 +144,7 @@ class _BingoWidgetState extends State<BingoWidget>
                       fillColor: Color(0x7FFFFFFF),
                       icon: Icon(
                         Icons.close_outlined,
-                        color: FlutterFlowTheme.of(context).primaryBackground,
+                        color: FlutterFlowTheme.of(context).onPrimary,
                         size: 24.0,
                       ),
                       onPressed: () async {

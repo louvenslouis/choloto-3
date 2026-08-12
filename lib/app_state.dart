@@ -41,6 +41,10 @@ class FFAppState extends ChangeNotifier {
       _user = prefs.getString('ff_user') ?? _user;
     });
     _safeInit(() {
+      _lightThemeEnabled =
+          prefs.getBool('ff_lightThemeEnabled') ?? _lightThemeEnabled;
+    });
+    _safeInit(() {
       if (prefs.containsKey('ff_bingo')) {
         try {
           final serializedData = prefs.getString('ff_bingo') ?? '{}';
@@ -98,6 +102,13 @@ class FFAppState extends ChangeNotifier {
   set user(String value) {
     _user = value;
     prefs.setString('ff_user', value);
+  }
+
+  bool _lightThemeEnabled = false;
+  bool get lightThemeEnabled => _lightThemeEnabled;
+  set lightThemeEnabled(bool value) {
+    _lightThemeEnabled = value;
+    prefs.setBool('ff_lightThemeEnabled', value);
   }
 
   BingoStruct _bingo = BingoStruct();

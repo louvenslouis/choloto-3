@@ -78,7 +78,7 @@ class _AccomplissementsWidgetState extends State<AccomplissementsWidget>
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         appBar: AppBar(
-          backgroundColor: Color(0xFF1C1B1B),
+          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
           automaticallyImplyLeading: false,
           leading: FlutterFlowIconButton(
             borderColor: Colors.transparent,
@@ -87,7 +87,7 @@ class _AccomplissementsWidgetState extends State<AccomplissementsWidget>
             buttonSize: 60.0,
             icon: Icon(
               Icons.arrow_back_rounded,
-              color: Colors.white,
+              color: FlutterFlowTheme.of(context).primaryText,
               size: 30.0,
             ),
             onPressed: () async {
@@ -102,7 +102,7 @@ class _AccomplissementsWidgetState extends State<AccomplissementsWidget>
             ),
             style: FlutterFlowTheme.of(context).headlineMedium.override(
                   fontFamily: 'Google sans flex',
-                  color: Colors.white,
+                  color: FlutterFlowTheme.of(context).primaryText,
                   fontSize: 22.0,
                   letterSpacing: 0.0,
                 ),

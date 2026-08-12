@@ -139,7 +139,7 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
                   final datastacklistItem = datastacklist[datastacklistIndex];
                   return Card(
                     clipBehavior: Clip.antiAliasWithSaveLayer,
-                    color: FlutterFlowTheme.of(context).primaryText,
+                    color: FlutterFlowTheme.of(context).secondaryBackground,
                     elevation: 4.0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20.0),
@@ -237,7 +237,7 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
                                                   .fontStyle,
                                         ),
                                         color: FlutterFlowTheme.of(context)
-                                            .primaryBackground,
+                                            .onPrimary,
                                         fontSize: 16.0,
                                         letterSpacing: 0.0,
                                         fontWeight: FontWeight.normal,
@@ -309,7 +309,7 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
                                                   .fontStyle,
                                         ),
                                         color: FlutterFlowTheme.of(context)
-                                            .primaryBackground,
+                                            .onPrimary,
                                         fontSize: 16.0,
                                         letterSpacing: 0.0,
                                         fontWeight: FontWeight.normal,

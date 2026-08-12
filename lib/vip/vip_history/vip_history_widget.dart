@@ -76,7 +76,7 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
             buttonSize: 60.0,
             icon: Icon(
               Icons.arrow_back_rounded,
-              color: theme.primaryText,
+              color: theme.onDecorative,
               size: 28.0,
             ),
             onPressed: () async {
@@ -88,7 +88,7 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
             FFLocalizations.of(context).getText('viphstttl'),
             style: theme.headlineMedium.override(
               fontFamily: 'Google sans flex',
-              color: theme.primaryText,
+              color: theme.onDecorative,
               fontSize: 22.0,
               letterSpacing: 0.0,
             ),
@@ -107,7 +107,7 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
                   showLoadingIndicator: true,
                   icon: Icon(
                     Icons.refresh_rounded,
-                    color: theme.primaryText.applyAlpha(0.82),
+                    color: theme.onDecorative.applyAlpha(0.82),
                     size: 21.0,
                   ),
                   onPressed: _reloadHistory,
@@ -628,8 +628,7 @@ class _VipCalendarDay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final hasPredictions = publicationCount > 0;
-    final foregroundColor =
-        isSelected ? theme.primaryBackground : theme.primaryText;
+    final foregroundColor = isSelected ? theme.onPrimary : theme.primaryText;
 
     return Semantics(
       button: true,
@@ -686,9 +685,7 @@ class _VipCalendarDay extends StatelessWidget {
                         width: 4.0,
                         height: 4.0,
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? theme.primaryBackground
-                              : theme.primary,
+                          color: isSelected ? theme.onPrimary : theme.primary,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -701,18 +698,14 @@ class _VipCalendarDay extends StatelessWidget {
                         constraints: const BoxConstraints(minWidth: 15.0),
                         padding: const EdgeInsets.symmetric(horizontal: 3.0),
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? theme.primaryBackground
-                              : theme.primary,
+                          color: isSelected ? theme.onPrimary : theme.primary,
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         child: Text(
                           '$publicationCount',
                           textAlign: TextAlign.center,
                           style: theme.labelSmall.override(
-                            color: isSelected
-                                ? theme.primary
-                                : theme.primaryBackground,
+                            color: isSelected ? theme.primary : theme.onPrimary,
                             fontSize: 8.0,
                             fontWeight: FontWeight.w800,
                           ),
@@ -760,7 +753,10 @@ class _VipSelectedDayHeading extends StatelessWidget {
               _formatVipFullDate(context, selectedDate),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.titleSmall.override(fontWeight: FontWeight.w700),
+              style: theme.titleSmall.override(
+                color: theme.onDecorative,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           const SizedBox(width: 8.0),
@@ -887,7 +883,7 @@ class _VipPredictionHistoryCard extends StatelessWidget {
                   child: Text(
                     FFLocalizations.of(context).getText('viphstnew'),
                     style: theme.labelSmall.override(
-                      color: theme.primaryBackground,
+                      color: theme.onPrimary,
                       fontSize: 10.0,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1228,7 +1224,7 @@ class _VipHistoryLoading extends StatelessWidget {
             Text(
               FFLocalizations.of(context).getText('viphstlod'),
               textAlign: TextAlign.center,
-              style: theme.bodyMedium.override(color: theme.primaryText),
+              style: theme.bodyMedium.override(color: theme.onDecorative),
             ),
           ],
         ),
@@ -1386,7 +1382,7 @@ class _VipHistoryMessage extends StatelessWidget {
             text: buttonText,
             icon: Icon(
               buttonIcon,
-              color: theme.primaryBackground,
+              color: theme.onPrimary,
               size: 20.0,
             ),
             onPressed: onPressed,
@@ -1397,7 +1393,7 @@ class _VipHistoryMessage extends StatelessWidget {
               ),
               color: theme.primary,
               textStyle: theme.labelLarge.override(
-                color: theme.primaryBackground,
+                color: theme.onPrimary,
                 fontWeight: FontWeight.w700,
               ),
               elevation: 0.0,

@@ -55,7 +55,7 @@ class MyAppScrollBehavior extends MaterialScrollBehavior {
 class _MyAppState extends State<MyApp> {
   Locale? _locale;
 
-  ThemeMode _themeMode = ThemeMode.system;
+  late ThemeMode _themeMode;
 
   late AppStateNotifier _appStateNotifier;
   late GoRouter _router;
@@ -81,6 +81,8 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     _locale = FFLocalizations.getStoredLocale();
+    _themeMode =
+        FFAppState().lightThemeEnabled ? ThemeMode.light : ThemeMode.dark;
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
     unawaited(
@@ -142,7 +144,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void setThemeMode(ThemeMode mode) => safeSetState(() {
-        _themeMode = mode;
+        _themeMode = mode == ThemeMode.light ? ThemeMode.light : ThemeMode.dark;
+        FFAppState().lightThemeEnabled = _themeMode == ThemeMode.light;
       });
 
   @override
@@ -167,6 +170,26 @@ class _MyAppState extends State<MyApp> {
       ],
       theme: ThemeData(
         brightness: Brightness.light,
+        primaryColor: const Color(0xFFEDB900),
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFFEDB900),
+          onPrimary: Color(0xFF000000),
+          surface: Color(0xFFFFFFFF),
+          onSurface: Color(0xFF14181B),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF7F7F7),
+        useMaterial3: false,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFFEDB900),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFEDB900),
+          onPrimary: Color(0xFF000000),
+          surface: Color(0xFF1C1C1E),
+          onSurface: Color(0xFFFFFFFF),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF000000),
         useMaterial3: false,
       ),
       themeMode: _themeMode,
