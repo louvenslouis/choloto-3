@@ -1,5 +1,5 @@
 import '/backend/api_requests/api_calls.dart';
-import '/backend/schema/structs/index.dart';
+import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -56,7 +56,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
       _model.apiResult = result;
       final response = YoutubeResponseStruct.maybeFromMap(result.jsonBody);
 
-      if (!result.succeeded || response == null) {
+      if (!result.succeeded || response == null || response.items.isEmpty) {
         throw StateError('Unable to load the YouTube feed.');
       }
 
@@ -75,10 +75,46 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
       if (!mounted) {
         return;
       }
-      safeSetState(() {
-        _isLoading = false;
-        _hasError = true;
-      });
+
+      try {
+        final fallbackRecords = await queryYoutubeLinksRecordOnce(
+          queryBuilder: (records) => records.orderBy('date', descending: true),
+          limit: 24,
+        );
+        final fallbackVideos = fallbackRecords
+            .where((record) => record.id.isNotEmpty)
+            .map(
+              (record) => YoutubeItemStruct(
+                title: record.caption.isEmpty
+                    ? 'Vidéo CHOLOTO 509'
+                    : record.caption,
+                link: record.link.isNotEmpty
+                    ? record.link
+                    : 'https://www.youtube.com/watch?v=${record.id}',
+                thumbnail: 'https://i.ytimg.com/vi/${record.id}/hqdefault.jpg',
+                pubDate: record.date?.toIso8601String(),
+              ),
+            )
+            .toList();
+
+        if (!mounted) {
+          return;
+        }
+        safeSetState(() {
+          _model.videos = fallbackVideos;
+          _isLoading = false;
+          _hasError = fallbackVideos.isEmpty;
+        });
+      } catch (fallbackError) {
+        debugPrint('YouTube Firestore fallback error: $fallbackError');
+        if (!mounted) {
+          return;
+        }
+        safeSetState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
+      }
     }
   }
 

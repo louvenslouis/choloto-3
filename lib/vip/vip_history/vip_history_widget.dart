@@ -18,6 +18,8 @@ class VipHistoryWidget extends StatefulWidget {
 
 class _VipHistoryWidgetState extends State<VipHistoryWidget> {
   late Stream<List<PredictionRecord>> _historyStream;
+  final Set<String> _expandedPredictionIds = <String>{};
+  String? _latestPredictionId;
 
   @override
   void initState() {
@@ -89,6 +91,28 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
               letterSpacing: 0.0,
             ),
           ),
+          actions: [
+            Padding(
+              padding: EdgeInsetsDirectional.only(
+                end: theme.designToken.spacing.sm,
+              ),
+              child: Tooltip(
+                message: FFLocalizations.of(context).getText('viphstrty'),
+                child: FlutterFlowIconButton(
+                  borderColor: Colors.transparent,
+                  borderRadius: theme.designToken.radius.full,
+                  buttonSize: 40.0,
+                  showLoadingIndicator: true,
+                  icon: Icon(
+                    Icons.refresh_rounded,
+                    color: theme.primaryText.applyAlpha(0.82),
+                    size: 21.0,
+                  ),
+                  onPressed: _reloadHistory,
+                ),
+              ),
+            ),
+          ],
           centerTitle: false,
           elevation: 0.0,
         ),
@@ -128,42 +152,75 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
                       }
 
                       final predictions = snapshot.data!;
-                      return RefreshIndicator(
-                        color: theme.primary,
-                        backgroundColor: theme.secondaryBackground,
-                        onRefresh: _reloadHistory,
-                        child: ListView.separated(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: EdgeInsets.fromLTRB(
-                            theme.designToken.spacing.md,
-                            theme.designToken.spacing.md,
-                            theme.designToken.spacing.md,
-                            100.0,
-                          ),
-                          itemCount:
-                              predictions.isEmpty ? 2 : predictions.length + 1,
-                          separatorBuilder: (_, __) => SizedBox(
-                            height: theme.designToken.spacing.md,
-                          ),
-                          itemBuilder: (context, index) {
-                            if (index == 0) {
-                              return _VipHistoryHeading(
-                                publicationCount: predictions.length,
-                              );
-                            }
+                      _expandLatestPrediction(predictions);
 
-                            if (predictions.isEmpty) {
-                              return _VipHistoryEmptyState(
-                                onRefresh: _reloadHistory,
-                              );
-                            }
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          final horizontalPadding = constraints.maxWidth < 480
+                              ? 12.0
+                              : theme.designToken.spacing.md;
 
-                            return _VipPredictionHistoryCard(
-                              prediction: predictions[index - 1],
-                              isLatest: index == 1,
-                            );
-                          },
-                        ),
+                          return RefreshIndicator(
+                            color: theme.primary,
+                            backgroundColor: theme.secondaryBackground,
+                            onRefresh: _reloadHistory,
+                            child: ListView.separated(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
+                              padding: EdgeInsets.fromLTRB(
+                                horizontalPadding,
+                                12.0,
+                                horizontalPadding,
+                                80.0,
+                              ),
+                              itemCount: predictions.isEmpty
+                                  ? 2
+                                  : predictions.length + 1,
+                              separatorBuilder: (_, __) => const SizedBox(
+                                height: 10.0,
+                              ),
+                              itemBuilder: (context, index) {
+                                if (index == 0) {
+                                  return _VipHistoryHeading(
+                                    publicationCount: predictions.length,
+                                  );
+                                }
+
+                                if (predictions.isEmpty) {
+                                  return _VipHistoryEmptyState(
+                                    onRefresh: _reloadHistory,
+                                  );
+                                }
+
+                                final prediction = predictions[index - 1];
+                                final predictionId = prediction.reference.path;
+                                final isExpanded = _expandedPredictionIds
+                                    .contains(predictionId);
+
+                                return RepaintBoundary(
+                                  key: ValueKey(predictionId),
+                                  child: _VipPredictionHistoryCard(
+                                    prediction: prediction,
+                                    isLatest: index == 1,
+                                    initiallyExpanded: isExpanded,
+                                    onExpansionChanged: (expanded) {
+                                      safeSetState(() {
+                                        if (expanded) {
+                                          _expandedPredictionIds
+                                              .add(predictionId);
+                                        } else {
+                                          _expandedPredictionIds
+                                              .remove(predictionId);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -174,6 +231,16 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
         ),
       ),
     );
+  }
+
+  void _expandLatestPrediction(List<PredictionRecord> predictions) {
+    if (predictions.isEmpty) return;
+
+    final latestId = predictions.first.reference.path;
+    if (_latestPredictionId == latestId) return;
+
+    _latestPredictionId = latestId;
+    _expandedPredictionIds.add(latestId);
   }
 }
 
@@ -190,7 +257,7 @@ class _VipHistoryHeading extends StatelessWidget {
         : FFLocalizations.of(context).getText('viphstpbs');
 
     return Container(
-      padding: EdgeInsets.all(theme.designToken.spacing.md),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         color: theme.secondaryBackground,
         borderRadius: BorderRadius.circular(theme.designToken.radius.md),
@@ -200,8 +267,8 @@ class _VipHistoryHeading extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 52.0,
-            height: 52.0,
+            width: 42.0,
+            height: 42.0,
             decoration: BoxDecoration(
               color: theme.primary.applyAlpha(0.14),
               borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
@@ -209,48 +276,59 @@ class _VipHistoryHeading extends StatelessWidget {
             child: Icon(
               Icons.history_rounded,
               color: theme.primary,
-              size: 26.0,
+              size: 21.0,
             ),
           ),
-          SizedBox(width: theme.designToken.spacing.md),
+          const SizedBox(width: 12.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  FFLocalizations.of(context).getText('viphsthed'),
-                  style: theme.titleMedium.override(
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        FFLocalizations.of(context).getText('viphsthed'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.titleSmall.override(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 3.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.primary.applyAlpha(0.14),
+                        borderRadius: BorderRadius.circular(
+                            theme.designToken.radius.full),
+                      ),
+                      child: Text(
+                        '$publicationCount $publicationLabel',
+                        style: theme.labelSmall.override(
+                          color: theme.primary,
+                          fontSize: 10.0,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: theme.designToken.spacing.xs),
+                const SizedBox(height: 3.0),
                 Text(
                   FFLocalizations.of(context).getText('viphstdsc'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.bodySmall.override(
                     color: theme.secondaryText,
-                    lineHeight: 1.35,
+                    lineHeight: 1.3,
                   ),
                 ),
               ],
-            ),
-          ),
-          SizedBox(width: theme.designToken.spacing.sm),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: theme.designToken.spacing.sm,
-              vertical: theme.designToken.spacing.xs,
-            ),
-            decoration: BoxDecoration(
-              color: theme.primary.applyAlpha(0.14),
-              borderRadius:
-                  BorderRadius.circular(theme.designToken.radius.full),
-            ),
-            child: Text(
-              '$publicationCount $publicationLabel',
-              style: theme.labelSmall.override(
-                color: theme.primary,
-                fontWeight: FontWeight.w600,
-              ),
             ),
           ),
         ],
@@ -263,20 +341,23 @@ class _VipPredictionHistoryCard extends StatelessWidget {
   const _VipPredictionHistoryCard({
     required this.prediction,
     required this.isLatest,
+    required this.initiallyExpanded,
+    required this.onExpansionChanged,
   });
 
   final PredictionRecord prediction;
   final bool isLatest;
+  final bool initiallyExpanded;
+  final ValueChanged<bool> onExpansionChanged;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final locale = FFLocalizations.of(context).languageCode;
-    final categories = _categoriesFor(context, prediction);
-    final selectionCount = categories.fold<int>(
-      0,
-      (total, category) => total + category.values.length,
-    );
+    final categories = initiallyExpanded
+        ? _categoriesFor(context, prediction)
+        : const <_VipPredictionCategory>[];
+    final selectionCount = _selectionCount(prediction);
     final selectionLabel = selectionCount == 1
         ? FFLocalizations.of(context).getText('viphstsel')
         : FFLocalizations.of(context).getText('viphstses');
@@ -297,23 +378,26 @@ class _VipPredictionHistoryCard extends StatelessWidget {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: EdgeInsets.symmetric(
-            horizontal: theme.designToken.spacing.md,
-            vertical: theme.designToken.spacing.sm,
+          initiallyExpanded: initiallyExpanded,
+          maintainState: false,
+          onExpansionChanged: onExpansionChanged,
+          tilePadding: const EdgeInsets.symmetric(
+            horizontal: 12.0,
+            vertical: 4.0,
           ),
-          childrenPadding: EdgeInsets.fromLTRB(
-            theme.designToken.spacing.md,
+          childrenPadding: const EdgeInsets.fromLTRB(
+            12.0,
             0.0,
-            theme.designToken.spacing.md,
-            theme.designToken.spacing.md,
+            12.0,
+            12.0,
           ),
           iconColor: theme.primary,
           collapsedIconColor: theme.primary,
           backgroundColor: theme.primaryBackground,
           collapsedBackgroundColor: theme.primaryBackground,
           leading: Container(
-            width: 46.0,
-            height: 46.0,
+            width: 40.0,
+            height: 40.0,
             decoration: BoxDecoration(
               color: theme.primary.applyAlpha(0.12),
               borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
@@ -321,7 +405,7 @@ class _VipPredictionHistoryCard extends StatelessWidget {
             child: Icon(
               Icons.insights_rounded,
               color: theme.primary,
-              size: 23.0,
+              size: 20.0,
             ),
           ),
           title: Row(
@@ -331,7 +415,7 @@ class _VipPredictionHistoryCard extends StatelessWidget {
                   prediction.date == null
                       ? FFLocalizations.of(context).getText('viphstnod')
                       : dateTimeFormat(
-                          'd MMMM y',
+                          'd MMM y',
                           prediction.date,
                           locale: locale,
                         ),
@@ -343,10 +427,10 @@ class _VipPredictionHistoryCard extends StatelessWidget {
                 ),
               ),
               if (isLatest) ...[
-                SizedBox(width: theme.designToken.spacing.sm),
+                const SizedBox(width: 6.0),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: theme.designToken.spacing.sm,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7.0,
                     vertical: 3.0,
                   ),
                   decoration: BoxDecoration(
@@ -367,10 +451,10 @@ class _VipPredictionHistoryCard extends StatelessWidget {
             ],
           ),
           subtitle: Padding(
-            padding: EdgeInsets.only(top: theme.designToken.spacing.xs),
+            padding: const EdgeInsets.only(top: 3.0),
             child: Wrap(
-              spacing: theme.designToken.spacing.sm,
-              runSpacing: theme.designToken.spacing.xs,
+              spacing: 8.0,
+              runSpacing: 3.0,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 if (prediction.periode.isNotEmpty)
@@ -392,10 +476,10 @@ class _VipPredictionHistoryCard extends StatelessWidget {
             ),
           ),
           children: [
-            Divider(
-              height: theme.designToken.spacing.md,
+            const Divider(
+              height: 12.0,
               thickness: 1.0,
-              color: const Color(0xFF3E0066),
+              color: Color(0xFF3E0066),
             ),
             if (categories.isEmpty)
               Container(
@@ -413,19 +497,26 @@ class _VipPredictionHistoryCard extends StatelessWidget {
                 ),
               )
             else
-              ...List.generate(categories.length, (index) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    top: index == 0 ? 0.0 : theme.designToken.spacing.sm,
-                  ),
-                  child: _VipPredictionCategoryRow(
-                    category: categories[index],
-                  ),
-                );
-              }),
+              _VipPredictionCategories(categories: categories),
           ],
         ),
       ),
+    );
+  }
+
+  int _selectionCount(PredictionRecord record) {
+    return <List<String>>[
+      record.favori.boul,
+      record.soutni.boul,
+      record.boloto.boul,
+      record.mariage.boul,
+      record.chif3.boul,
+      record.chif4.boul,
+      record.extra.boul,
+    ].fold<int>(
+      0,
+      (total, values) =>
+          total + values.where((value) => value.trim().isNotEmpty).length,
     );
   }
 
@@ -496,6 +587,37 @@ class _VipPredictionHistoryCard extends StatelessWidget {
         )
         .where((category) => category.values.isNotEmpty)
         .toList();
+  }
+}
+
+class _VipPredictionCategories extends StatelessWidget {
+  const _VipPredictionCategories({required this.categories});
+
+  final List<_VipPredictionCategory> categories;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 8.0;
+        final columns = constraints.maxWidth >= 560.0 ? 2 : 1;
+        final itemWidth =
+            (constraints.maxWidth - (spacing * (columns - 1))) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: categories
+              .map(
+                (category) => SizedBox(
+                  width: itemWidth,
+                  child: _VipPredictionCategoryRow(category: category),
+                ),
+              )
+              .toList(),
+        );
+      },
+    );
   }
 }
 

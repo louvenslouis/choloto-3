@@ -13,6 +13,7 @@ import 'backend/firebase/firebase_config.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
+import 'services/push_notification_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'index.dart';
 
@@ -82,6 +83,17 @@ class _MyAppState extends State<MyApp> {
     _locale = FFLocalizations.getStoredLocale();
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
+    unawaited(
+      PushNotificationService.instance.initialize(
+        onOpenPrediction: () {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _router.goNamed(VipWidget.routeName);
+            }
+          });
+        },
+      ),
+    );
     _authenticatedUserSubscription = authenticatedUserStream.listen((_) {});
     _firebaseUserSubscription = cholotoFirebaseUserStream().listen((user) {
       _appStateNotifier.update(user);

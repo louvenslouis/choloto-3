@@ -3,7 +3,6 @@ import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
 import '/components/don_widget.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -188,48 +187,70 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: Color(0xFF3E0066),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            logFirebaseEvent('VIP_FloatingActionButton_qjsc5kip_ON_TAP');
-            logFirebaseEvent('FloatingActionButton_bottom_sheet');
-            await showModalBottomSheet(
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              context: context,
-              builder: (context) => Padding(
-                padding: MediaQuery.viewInsetsOf(context),
-                child: DonWidget(),
+        floatingActionButton: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Tooltip(
+              message: FFLocalizations.of(context).getText('viphsttip'),
+              child: FloatingActionButton.small(
+                heroTag: 'vip_history_fab',
+                onPressed: () async {
+                  logFirebaseEvent('VIP_HISTORY_FAB_ON_TAP');
+                  context.pushNamed(VipHistoryWidget.routeName);
+                },
+                backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+                foregroundColor: FlutterFlowTheme.of(context).primary,
+                elevation: 4.0,
+                child: const Icon(Icons.history_rounded, size: 21.0),
               ),
-            );
-          },
-          backgroundColor: FlutterFlowTheme.of(context).primaryText,
-          icon: FaIcon(
-            FontAwesomeIcons.mugHot,
-            color: FlutterFlowTheme.of(context).primary,
-            size: 18.0,
-          ),
-          elevation: 5.0,
-          label: Visibility(
-            visible: _model.pourboireHide == false,
-            child: Text(
-              FFLocalizations.of(context).getText(
-                'isn2t0tf' /* POURBOIRE */,
-              ),
-              style: FlutterFlowTheme.of(context).labelLarge.override(
-                    font: GoogleFonts.inter(
-                      fontWeight: FontWeight.w900,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                    ),
-                    color: FlutterFlowTheme.of(context).primary,
-                    fontSize: 15.0,
-                    letterSpacing: 0.0,
-                    fontWeight: FontWeight.w900,
-                    fontStyle:
-                        FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                  ),
             ),
-          ),
+            const SizedBox(height: 10.0),
+            FloatingActionButton.extended(
+              heroTag: 'vip_tip_fab',
+              onPressed: () async {
+                logFirebaseEvent('VIP_FloatingActionButton_qjsc5kip_ON_TAP');
+                logFirebaseEvent('FloatingActionButton_bottom_sheet');
+                await showModalBottomSheet(
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  context: context,
+                  builder: (context) => Padding(
+                    padding: MediaQuery.viewInsetsOf(context),
+                    child: DonWidget(),
+                  ),
+                );
+              },
+              backgroundColor: FlutterFlowTheme.of(context).primaryText,
+              icon: FaIcon(
+                FontAwesomeIcons.mugHot,
+                color: FlutterFlowTheme.of(context).primary,
+                size: 18.0,
+              ),
+              elevation: 5.0,
+              label: Visibility(
+                visible: _model.pourboireHide == false,
+                child: Text(
+                  FFLocalizations.of(context).getText(
+                    'isn2t0tf' /* POURBOIRE */,
+                  ),
+                  style: FlutterFlowTheme.of(context).labelLarge.override(
+                        font: GoogleFonts.inter(
+                          fontWeight: FontWeight.w900,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).primary,
+                        fontSize: 15.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w900,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                      ),
+                ),
+              ),
+            ),
+          ],
         ),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(120.0),
@@ -415,33 +436,6 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                 ),
                           ),
                         ],
-                      ),
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 12.0, 0.0),
-                      child: Tooltip(
-                        message:
-                            FFLocalizations.of(context).getText('viphsttip'),
-                        child: FlutterFlowIconButton(
-                          borderColor: Colors.transparent,
-                          borderRadius: 18.0,
-                          borderWidth: 0.0,
-                          buttonSize: 36.0,
-                          fillColor: Colors.transparent,
-                          hoverColor: FlutterFlowTheme.of(context)
-                              .primaryBackground
-                              .applyAlpha(0.12),
-                          icon: Icon(
-                            Icons.history_rounded,
-                            color: Color(0xCCFFFFFF),
-                            size: 21.0,
-                          ),
-                          onPressed: () async {
-                            logFirebaseEvent('VIP_HISTORY_BUTTON_ON_TAP');
-                            context.pushNamed(VipHistoryWidget.routeName);
-                          },
-                        ),
                       ),
                     ),
                   ].divide(SizedBox(width: 10.0)),

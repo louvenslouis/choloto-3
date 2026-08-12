@@ -15,8 +15,7 @@ class GetLatestVideosCall {
   static Future<ApiCallResponse> call() async {
     return ApiManager.instance.makeApiCall(
       callName: 'GetLatestVideos',
-      apiUrl:
-          'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.youtube.com%2Ffeeds%2Fvideos.xml%3Fchannel_id%3DUC6N0qcctRmlaUEYdzhR0-Hw',
+      apiUrl: 'https://louvenslouis.github.io/choloto-3/youtube-feed.json',
       callType: ApiCallType.GET,
       headers: {},
       params: {},

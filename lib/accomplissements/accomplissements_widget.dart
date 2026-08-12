@@ -1,11 +1,8 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/autres/calendrier/calendrier/calendrier_widget.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -157,23 +154,20 @@ class _AccomplissementsWidgetState extends State<AccomplissementsWidget>
                 child: TabBarView(
                   controller: _model.tabBarController,
                   children: [
-                    Visibility(
-                      visible: currentUserEmail == 'louvenslouisl@gmail.com',
-                      child: Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(6.0, 6.0, 6.0, 0.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Expanded(
-                              child: wrapWithModel(
-                                model: _model.calendrierModel,
-                                updateCallback: () => safeSetState(() {}),
-                                child: CalendrierWidget(),
-                              ),
+                    Padding(
+                      padding:
+                          EdgeInsetsDirectional.fromSTEB(6.0, 6.0, 6.0, 0.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Expanded(
+                            child: wrapWithModel(
+                              model: _model.calendrierModel,
+                              updateCallback: () => safeSetState(() {}),
+                              child: CalendrierWidget(),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                     Column(

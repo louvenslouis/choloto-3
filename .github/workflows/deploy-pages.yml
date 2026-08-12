@@ -5,6 +5,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron: "23 */3 * * *"
 
 permissions:
   contents: read
@@ -31,11 +33,16 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Refresh public YouTube feed
+        run: node tools/generate_youtube_feed.mjs web/youtube-feed.json
+
       - name: Build web application
         run: flutter build web --release --base-href "/choloto-3/"
 
       - name: Add GitHub Pages SPA fallback
-        run: cp build/web/index.html build/web/404.html
+        run: |
+          cp build/web/index.html build/web/404.html
+          cp web/youtube-feed.json build/web/youtube-feed.json
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
