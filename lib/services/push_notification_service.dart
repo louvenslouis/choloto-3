@@ -17,8 +17,13 @@ class PushNotificationService extends ChangeNotifier {
   static final PushNotificationService instance = PushNotificationService._();
 
   static const String _predictionType = 'new_prediction';
-  static const String _vapidKey =
-      String.fromEnvironment('CHOLOTO_WEB_PUSH_VAPID_KEY');
+  // Public browser key generated for the Firebase project choloto-6aa5b.
+  // It is intentionally bundled in the Web client and is not a secret.
+  static const String _vapidKey = String.fromEnvironment(
+    'CHOLOTO_WEB_PUSH_VAPID_KEY',
+    defaultValue:
+        'BGuDQSOZ80wL1DkqkIu5UBq0_fuia9ji3RR6HspwG-j0qkgv3Ax9o5hwZr2cWA2KzUljewAgew31DeYM3Mz6IgM',
+  );
 
   StreamSubscription<RemoteMessage>? _foregroundSubscription;
   StreamSubscription<RemoteMessage>? _openedAppSubscription;
@@ -165,7 +170,7 @@ class PushNotificationService extends ChangeNotifier {
     }
 
     final token = await FirebaseMessaging.instance.getToken(
-      vapidKey: _vapidKey.isEmpty ? null : _vapidKey,
+      vapidKey: _vapidKey,
     );
     if (token == null || token.isEmpty) {
       throw StateError('Firebase did not return a web push token.');

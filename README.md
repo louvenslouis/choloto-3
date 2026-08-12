@@ -17,8 +17,7 @@ Depuis la racine du projet :
 
 ```bash
 flutter pub get
-flutter build web --release --base-href "/" \
-  --dart-define=CHOLOTO_WEB_PUSH_VAPID_KEY=VOTRE_CLE_VAPID_PUBLIQUE
+flutter build web --release --base-href "/"
 cp web/manifest.json build/web/
 ```
 
@@ -38,7 +37,6 @@ ces secrets dans GitHub :
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_PAGES_PROJECT_NAME`
-- `FIREBASE_WEB_PUSH_VAPID_KEY` (clé publique Web Push de Firebase)
 
 Le token Cloudflare doit avoir les droits de déploiement Pages sur le compte.
 

@@ -31,7 +31,7 @@ jobs:
         run: flutter pub get
 
       - name: Build web application for Cloudflare Pages
-        run: flutter build web --release --base-href "/" --dart-define=CHOLOTO_WEB_PUSH_VAPID_KEY=${{ secrets.FIREBASE_WEB_PUSH_VAPID_KEY }}
+        run: flutter build web --release --base-href "/"
 
       - name: Add Cloudflare Pages metadata
         run: cp web/manifest.json build/web/
