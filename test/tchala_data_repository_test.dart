@@ -12,8 +12,17 @@ void main() {
 
     expect(data.symbols, hasLength(259));
     expect(data.symbols.first.creoleSymbol, 'Achte');
+    expect(data.symbols.first.englishTranslation, 'Purchase');
+    expect(
+      data.symbols.map((symbol) => symbol.englishTranslation),
+      everyElement(isNotEmpty),
+    );
     expect(data.symbols.first.associatedNumbers, [55, 7, 76, 36]);
     expect(data.saintMonths, hasLength(12));
+    expect(
+      data.saintMonths.map((month) => month.monthNumber),
+      orderedEquals(List.generate(12, (index) => index + 1)),
+    );
     expect(
       data.saintMonths.expand((month) => month.saints),
       hasLength(264),
@@ -39,7 +48,24 @@ void main() {
           {
             'symbole_kreyol': 'Achte',
             'traduction_francais': 'Achat',
+            'traduction_anglais': 'Purchase',
             'numeros_associes': ['55'],
+          },
+        ],
+        'saint_months': <Object>[],
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test('requires an English translation for every symbol', () {
+    expect(
+      () => TchalaData.fromJson(const {
+        'symbols': [
+          {
+            'symbole_kreyol': 'Achte',
+            'traduction_francais': 'Achat',
+            'numeros_associes': [55],
           },
         ],
         'saint_months': <Object>[],
@@ -55,6 +81,7 @@ const _minimalDataset = '''
     {
       "symbole_kreyol": "Achte",
       "traduction_francais": "Achat",
+      "traduction_anglais": "Purchase",
       "numeros_associes": [55]
     }
   ],

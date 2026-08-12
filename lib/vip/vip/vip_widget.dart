@@ -542,7 +542,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                                 ),
                                               ),
                                               Text(
-                                                'Probabilité: ${dateTimeFormat(
+                                                '${FFLocalizations.of(context).getText('vipproblb')}: ${dateTimeFormat(
                                                   "MMMMEEEEd",
                                                   listViewPredictionRecord
                                                       ?.date,

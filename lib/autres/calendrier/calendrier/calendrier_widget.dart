@@ -284,7 +284,11 @@ class _CalendarHeader extends StatelessWidget {
     return Row(
       children: [
         _MonthButton(
-          tooltip: MaterialLocalizations.of(context).previousMonthTooltip,
+          tooltip: FFLocalizations.of(context).getVariableText(
+            frText: 'Mois précédent',
+            enText: 'Previous month',
+            crText: 'Mwa anvan',
+          ),
           icon: Icons.chevron_left_rounded,
           onPressed: onPrevious,
         ),
@@ -325,7 +329,11 @@ class _CalendarHeader extends StatelessWidget {
           ),
         ),
         _MonthButton(
-          tooltip: MaterialLocalizations.of(context).nextMonthTooltip,
+          tooltip: FFLocalizations.of(context).getVariableText(
+            frText: 'Mois suivant',
+            enText: 'Next month',
+            crText: 'Mwa apre',
+          ),
           icon: Icons.chevron_right_rounded,
           onPressed: onNext,
         ),
@@ -636,8 +644,11 @@ class _BingoDaySheet extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip:
-                        MaterialLocalizations.of(context).closeButtonTooltip,
+                    tooltip: FFLocalizations.of(context).getVariableText(
+                      frText: 'Fermer',
+                      enText: 'Close',
+                      crText: 'Fèmen',
+                    ),
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),
                   ),

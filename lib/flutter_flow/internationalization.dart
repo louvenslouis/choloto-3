@@ -34,8 +34,10 @@ class FFLocalizations {
       ? languages().indexOf(languageCode)
       : 0;
 
-  String getText(String key) =>
-      (kTranslationsMap[key] ?? {})[locale.toString()] ?? '';
+  String getText(String key) {
+    final translations = kTranslationsMap[key];
+    return translations?[locale.toString()] ?? translations?['fr'] ?? key;
+  }
 
   String getVariableText({
     String? frText = '',
@@ -150,7 +152,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'hfwdp6xo': {
       'fr': 'Tirages',
       'cr': 'Tiraj',
-      'en': 'Tirages',
+      'en': 'Draws',
     },
     'nwse7gnu': {
       'fr': 'NEW YORK',
@@ -210,7 +212,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'wakkucok': {
       'fr': 'Tirages',
       'cr': 'Tiraj',
-      'en': 'Tirages',
+      'en': 'Draws',
     },
   },
   // Tchala
@@ -248,20 +250,10 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Abònman',
       'en': 'Subscription',
     },
-    'eq9kt96t': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
     '6ho9r1de': {
       'fr': 'Termes et Conditions',
       'cr': 'Tèm ak Kondisyon',
       'en': 'Terms and Conditions',
-    },
-    'w56piynt': {
-      'fr': '',
-      'cr': '',
-      'en': '',
     },
     'i3ozq7ax': {
       'fr': 'Nous contacter',
@@ -275,7 +267,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '3vvyx19f': {
       'fr': 'Version',
-      'cr': 'Vèsion',
+      'cr': 'Vèsyon',
       'en': 'Version',
     },
     'cp8c72u7': {
@@ -321,8 +313,8 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     '63dg2p5g': {
       'fr': 'Croix de la Chance',
-      'cr': 'Kwa chans',
-      'en': 'Cross',
+      'cr': 'Kwa Lachans',
+      'en': 'Lucky Cross',
     },
     '64uxl098': {
       'fr': 'Accueil',
@@ -386,6 +378,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'Chargement des vidéos…',
       'cr': 'Videyo yo ap chaje…',
       'en': 'Loading videos…',
+    },
+    'ytfallback': {
+      'fr': 'Vidéo CHOLOTO 509',
+      'cr': 'Videyo CHOLOTO 509',
+      'en': 'CHOLOTO 509 video',
     },
     'yterrttl': {
       'fr': 'Impossible de charger les vidéos',
@@ -540,8 +537,13 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'pubct0u4': {
       'fr': 'Accès aux prédictions Premium',
-      'cr': 'Aksè ak prediksyon Premyòm yo',
-      'en': 'Premium Access',
+      'cr': 'Aksè nan prediksyon prim yo',
+      'en': 'Access to premium predictions',
+    },
+    'vipproblb': {
+      'fr': 'Probabilité',
+      'cr': 'Pwobabilite',
+      'en': 'Probability',
     },
     'isn2t0tf': {
       'fr': 'POURBOIRE',
@@ -715,23 +717,23 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // Home
   {
     'covzb0rd': {
-      'fr': 'MEMBERSHIP VIP',
-      'cr': 'MEMBÈCHIP VIP',
-      'en': 'MEMBERSHIP VIP',
+      'fr': 'ABONNEMENT VIP',
+      'cr': 'ABÒNMAN VIP',
+      'en': 'VIP MEMBERSHIP',
     },
     'uvl7vow9': {
       'fr': 'Accède à tous les avantages exclusifs.',
-      'cr': 'Aksede ak tout avantaj esklizif yo',
+      'cr': 'Jwenn aksè nan tout avantaj eksklizif yo.',
       'en': 'Access all exclusive benefits.',
     },
     'afym167o': {
       'fr': 'CROIX DE LA CHANCE',
       'cr': 'KWA LACHANS',
-      'en': 'CROSS OF LUCK',
+      'en': 'LUCKY CROSS',
     },
     'pqih1sxe': {
       'fr': 'Tente chaque jour et gagne GROS.',
-      'cr': 'Tante chak jou',
+      'cr': 'Tante chans ou chak jou epi genyen GWO.',
       'en': 'Try every day and win BIG.',
     },
     'fkwji2m2': {
@@ -741,8 +743,8 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'gcjztr88': {
       'fr': 'Regarde, Abonne-toi et reste connecté',
-      'cr': 'Gade epi rete konekte',
-      'en': 'Watch, subscribe and stay connected',
+      'cr': 'Gade, abòne w epi rete konekte',
+      'en': 'Watch, subscribe, and stay connected',
     },
     'loh576na': {
       'fr': 'CHOLOTO',
@@ -805,12 +807,12 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     '0h41wv7v': {
       'fr': 'Bonsoir',
-      'cr': 'Lizay',
-      'en': 'Hello',
+      'cr': 'Bonswa',
+      'en': 'Good evening',
     },
     'kdy8dhng': {
       'fr': 'D\'accord',
-      'cr': 'Kòrèk',
+      'cr': 'Dakò',
       'en': 'Okay',
     },
   },
@@ -834,30 +836,15 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Fransè',
       'en': 'French',
     },
-    'k7jkytyd': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
     'nido8rbi': {
       'fr': 'Anglais',
       'cr': 'Anglè',
       'en': 'English',
     },
-    'mn2wwk29': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
     '687lerxj': {
       'fr': 'Créole',
       'cr': 'Kreyòl',
       'en': 'Creole',
-    },
-    'tifw94xi': {
-      'fr': '',
-      'cr': '',
-      'en': '',
     },
   },
   // devenirVIP
@@ -935,6 +922,26 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Bouton',
       'en': 'Button',
     },
+    'prfnamehint': {
+      'fr': 'Entrez votre nom d\'utilisateur',
+      'cr': 'Antre non itilizatè ou',
+      'en': 'Enter your username',
+    },
+    'prfemlhint': {
+      'fr': 'Entrez votre adresse e-mail',
+      'cr': 'Antre adrès imèl ou',
+      'en': 'Enter your email address',
+    },
+    'prfsavebtn': {
+      'fr': 'Enregistrer',
+      'cr': 'Anrejistre',
+      'en': 'Save',
+    },
+    'prfemailrq': {
+      'fr': 'L\'adresse e-mail est obligatoire.',
+      'cr': 'Adrès imèl la obligatwa.',
+      'en': 'Email is required.',
+    },
   },
   // bingoCardVIP
   {
@@ -952,6 +959,26 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'NON',
       'cr': 'NON',
       'en': 'NO',
+    },
+    'bngreduce': {
+      'fr': 'Réduire',
+      'cr': 'Redui',
+      'en': 'Collapse',
+    },
+    'bngexpand': {
+      'fr': 'Agrandir',
+      'cr': 'Elaji',
+      'en': 'Expand',
+    },
+    'bngsuccess': {
+      'fr': '🎉 FÉLICITATIONS',
+      'cr': '🎉 FELISITASYON',
+      'en': '🎉 CONGRATULATIONS',
+    },
+    'bngtryagain': {
+      'fr': 'RÉESSAYEZ UNE PROCHAINE FOIS',
+      'cr': 'ESEYE YON LÒT FWA',
+      'en': 'TRY AGAIN NEXT TIME',
     },
   },
   // don
@@ -1021,7 +1048,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'g2sbccpm': {
       'fr': 'Votre don est sécurisé et sera traité en toute sécurité.',
-      'cr': 'Don ou an sekirize epi y ap trete li san danje.',
+      'cr': 'Don ou an sekirite epi y ap trete li san danje.',
       'en': 'Your donation is secure and will be processed safely.',
     },
   },
@@ -1029,13 +1056,13 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'ser0033p': {
       'fr': 'Continuer avec Google',
-      'cr': 'Konekte ak Google',
-      'en': 'Connect with Google',
+      'cr': 'Kontinye ak Google',
+      'en': 'Continue with Google',
     },
     '7p5qctmz': {
       'fr': 'Continuer en tant qu\'invité',
       'cr': 'Kontinye kòm envite',
-      'en': 'Guest Mode',
+      'en': 'Continue as guest',
     },
     '3vjw7hwm': {
       'fr': 'VERSION BETA',
@@ -1048,12 +1075,12 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'grf0e1nq': {
       'fr': 'TIRAGES',
       'cr': 'TIRAJ',
-      'en': 'TIRAGES',
+      'en': 'DRAWS',
     },
     'zljfxk4l': {
       'fr': 'VOIR TOUT',
-      'cr': 'TOUT',
-      'en': 'ALL',
+      'cr': 'GADE TOUT',
+      'en': 'VIEW ALL',
     },
   },
   // storyPage
@@ -1075,14 +1102,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr':
           'Votre abonnement CHOLOTO VIP expire bientôt. Contactez-Nous dès maintenant pour le renouveler.',
       'cr':
-          'Abònman CHOLOTO VIP ou a pa lwen ekspire talè. Kontakte nou depi kounye a pou renouvle li epi kontinye jwi tout avantaj yo.',
+          'Abònman CHOLOTO VIP ou a pral ekspire talè. Kontakte nou kounye a pou renouvle li epi kontinye pwofite tout avantaj eksklizif yo.',
       'en':
           'Your CHOLOTO VIP subscription will expire soon. Contact us today to renew your subscription and continue enjoying all the exclusive benefits.',
     },
     'ppbj8s5f': {
-      'fr': 'Contactez-Nous',
+      'fr': 'Contactez-nous',
       'cr': 'Kontakte nou',
-      'en': 'Contact US',
+      'en': 'Contact us',
     },
   },
   // universalVIP
@@ -1110,133 +1137,8 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'ymcdwy4s': {
       'fr': 'Sous-titre',
-      'cr': 'Soustit',
+      'cr': 'Sou-tit',
       'en': 'Subtitle',
-    },
-    'a35mfcuz': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'nmni0qro': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'x4kia2ry': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    '7gc9jck6': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'nvwy6ecy': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    '4zwf23g2': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'avyqijpp': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'ayfvgb4r': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    '513ztq3m': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'dupcuttl': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    '8oak2w6z': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'le2mw2tl': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'h5gpkshg': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'dgzz3vyc': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'pjs4ywum': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'cajjvpk8': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    't1relmez': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'kvsokc1s': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'qsiyeg83': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    '8a0h7zfb': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    '7z86aawz': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'jdlqynmz': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'j2hc2pmp': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'ifxtrgmf': {
-      'fr': '',
-      'cr': '',
-      'en': '',
-    },
-    'whkjsdsh': {
-      'fr': '',
-      'cr': '',
-      'en': '',
     },
   },
 ].reduce((a, b) => a..addAll(b));

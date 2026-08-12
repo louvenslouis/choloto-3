@@ -43,6 +43,89 @@ class _ParametresWidgetState extends State<ParametresWidget> {
     super.dispose();
   }
 
+  String _subscriptionStatusText(DateTime expiration) {
+    final localizations = FFLocalizations.of(context);
+    if (expiration <= getCurrentTimestamp) {
+      return localizations.getVariableText(
+        frText: 'Votre abonnement est expiré',
+        enText: 'Your subscription has expired',
+        crText: 'Abònman ou ekspire',
+      );
+    }
+
+    final formattedDate = dateTimeFormat(
+      'yMMMd',
+      expiration,
+      locale: localizations.languageShortCode ?? localizations.languageCode,
+    );
+    return localizations.getVariableText(
+      frText: 'Votre abonnement expire le $formattedDate',
+      enText: 'Your subscription expires on $formattedDate',
+      crText: 'Abònman ou ap ekspire $formattedDate',
+    );
+  }
+
+  String? _notificationStatusText(PushNotificationStatus? status) {
+    if (status == null) {
+      return null;
+    }
+    final localizations = FFLocalizations.of(context);
+    return switch (status) {
+      PushNotificationStatus.unsupported => localizations.getVariableText(
+          frText:
+              'Ce navigateur ne prend pas en charge les notifications push.',
+          enText: 'This browser does not support push notifications.',
+          crText: 'Navigatè sa a pa sipòte notifikasyon push.',
+        ),
+      PushNotificationStatus.initializationFailed =>
+        localizations.getVariableText(
+          frText: 'Initialisation des notifications impossible.',
+          enText: 'Notifications could not be initialized.',
+          crText: 'Nou pa ka demare notifikasyon yo.',
+        ),
+      PushNotificationStatus.synchronizationFailed =>
+        localizations.getVariableText(
+          frText: 'Synchronisation des notifications impossible.',
+          enText: 'Notifications could not be synchronized.',
+          crText: 'Nou pa ka senkronize notifikasyon yo.',
+        ),
+      PushNotificationStatus.signInRequired => localizations.getVariableText(
+          frText: 'Connectez-vous avant d’activer les notifications.',
+          enText: 'Sign in before enabling notifications.',
+          crText: 'Konekte anvan ou aktive notifikasyon yo.',
+        ),
+      PushNotificationStatus.permissionDenied => localizations.getVariableText(
+          frText:
+              'Autorisation refusée. Modifiez les réglages de votre navigateur.',
+          enText:
+              'Permission denied. Update your browser notification settings.',
+          crText:
+              'Otorizasyon refize. Modifye paramèt notifikasyon navigatè ou a.',
+        ),
+      PushNotificationStatus.enabled => localizations.getVariableText(
+          frText: 'Notifications de prédictions activées.',
+          enText: 'Prediction notifications enabled.',
+          crText: 'Notifikasyon prediksyon yo aktive.',
+        ),
+      PushNotificationStatus.activationFailed => localizations.getVariableText(
+          frText: 'Activation des notifications impossible.',
+          enText: 'Notifications could not be enabled.',
+          crText: 'Nou pa ka aktive notifikasyon yo.',
+        ),
+      PushNotificationStatus.disabled => localizations.getVariableText(
+          frText: 'Notifications de prédictions désactivées.',
+          enText: 'Prediction notifications disabled.',
+          crText: 'Notifikasyon prediksyon yo dezaktive.',
+        ),
+      PushNotificationStatus.deactivationFailed =>
+        localizations.getVariableText(
+          frText: 'Désactivation des notifications impossible.',
+          enText: 'Notifications could not be disabled.',
+          crText: 'Nou pa ka dezaktive notifikasyon yo.',
+        ),
+    };
+  }
+
   Future<void> _toggleWebNotifications(bool enable) async {
     final service = PushNotificationService.instance;
     if (enable) {
@@ -51,11 +134,15 @@ class _ParametresWidgetState extends State<ParametresWidget> {
       await service.disable();
     }
 
-    if (!mounted || service.statusMessage == null) {
+    if (!mounted) {
+      return;
+    }
+    final message = _notificationStatusText(service.status);
+    if (message == null) {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(service.statusMessage!)),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -139,14 +226,9 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                                       19.0, 0.0, 0.0, 0.0),
                                   child: AuthUserStreamWidget(
                                     builder: (context) => Text(
-                                      'Votre abonnement ${currentUserDocument!.endSub! <= getCurrentTimestamp ? 'est expiré' : 'expire le ${dateTimeFormat(
-                                          "yMMMd",
-                                          currentUserDocument?.endSub,
-                                          locale: FFLocalizations.of(context)
-                                                  .languageShortCode ??
-                                              FFLocalizations.of(context)
-                                                  .languageCode,
-                                        )}'}',
+                                      _subscriptionStatusText(
+                                        currentUserDocument!.endSub!,
+                                      ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium
                                           .override(
@@ -199,7 +281,7 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                                     crText:
                                         'W ap resevwa alèt pou chak nouvo prediksyon.',
                                   )
-                                : service.statusMessage ??
+                                : _notificationStatusText(service.status) ??
                                     FFLocalizations.of(context).getVariableText(
                                       frText:
                                           'Activez les alertes dans ce navigateur.',
@@ -544,7 +626,7 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                         context,
                         enabled ? ThemeMode.light : ThemeMode.dark,
                       ),
-                      activeColor: FlutterFlowTheme.of(context).primary,
+                      activeThumbColor: FlutterFlowTheme.of(context).primary,
                       tileColor:
                           FlutterFlowTheme.of(context).secondaryBackground,
                       contentPadding: const EdgeInsetsDirectional.fromSTEB(

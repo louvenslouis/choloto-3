@@ -262,6 +262,7 @@ const webPushTokenPath = `user/${owner.uid}/webPushTokens/browser-token`;
 const webPushTokenFields = {
   token: stringValue('fcm-web-token'),
   userId: stringValue(owner.uid),
+  locale: stringValue('cr'),
   createdAt: timestampValue(),
   updatedAt: timestampValue(),
 };

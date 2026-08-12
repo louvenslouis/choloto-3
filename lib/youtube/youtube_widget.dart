@@ -42,6 +42,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
     if (!mounted) {
       return;
     }
+    final fallbackTitle = FFLocalizations.of(context).getText('ytfallback');
 
     safeSetState(() {
       _isLoading = showLoader || _model.videos.isEmpty;
@@ -85,9 +86,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
             .where((record) => record.id.isNotEmpty)
             .map(
               (record) => YoutubeItemStruct(
-                title: record.caption.isEmpty
-                    ? 'Vidéo CHOLOTO 509'
-                    : record.caption,
+                title: record.caption.isEmpty ? fallbackTitle : record.caption,
                 link: record.link.isNotEmpty
                     ? record.link
                     : 'https://www.youtube.com/watch?v=${record.id}',

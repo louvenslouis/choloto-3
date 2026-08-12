@@ -91,7 +91,9 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                           _model.minimise = !_model.minimise;
                           safeSetState(() {});
                         },
-                        text: _model.minimise == false ? 'Reduire' : 'Agrandir',
+                        text: FFLocalizations.of(context).getText(
+                          _model.minimise == false ? 'bngreduce' : 'bngexpand',
+                        ),
                         icon: FaIcon(
                           FontAwesomeIcons.minusSquare,
                           size: 15.0,
@@ -224,7 +226,8 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            '🎉 FELISITASYON',
+                                            FFLocalizations.of(context)
+                                                .getText('bngsuccess'),
                                             style: TextStyle(
                                               color:
                                                   FlutterFlowTheme.of(context)
@@ -303,7 +306,8 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            '🎉 FELISITASYON',
+                                            FFLocalizations.of(context)
+                                                .getText('bngsuccess'),
                                             style: TextStyle(
                                               color:
                                                   FlutterFlowTheme.of(context)
@@ -417,7 +421,8 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            'ESEYE PWOCHÈNN FWA',
+                                            FFLocalizations.of(context)
+                                                .getText('bngtryagain'),
                                             style: TextStyle(
                                               color:
                                                   FlutterFlowTheme.of(context)
@@ -498,7 +503,8 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            'ESEYE PWOCHÈNN FWA',
+                                            FFLocalizations.of(context)
+                                                .getText('bngtryagain'),
                                             style: TextStyle(
                                               color:
                                                   FlutterFlowTheme.of(context)

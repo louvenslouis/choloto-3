@@ -6,6 +6,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
+enum PushNotificationStatus {
+  unsupported,
+  initializationFailed,
+  synchronizationFailed,
+  signInRequired,
+  permissionDenied,
+  enabled,
+  activationFailed,
+  disabled,
+  deactivationFailed,
+}
+
 /// Manages prediction notifications for the Flutter Web application only.
 ///
 /// Permission is requested only from [enable], which must be called from a
@@ -34,12 +46,25 @@ class PushNotificationService extends ChangeNotifier {
   bool _supported = false;
   bool _enabled = false;
   bool _busy = false;
-  String? _statusMessage;
+  String _languageCode = 'fr';
+  PushNotificationStatus? _status;
 
   bool get supported => _supported;
   bool get enabled => _enabled;
   bool get busy => _busy;
-  String? get statusMessage => _statusMessage;
+  PushNotificationStatus? get status => _status;
+
+  void setLanguageCode(String? languageCode) {
+    final normalized =
+        const {'fr', 'en', 'cr'}.contains(languageCode) ? languageCode! : 'fr';
+    if (_languageCode == normalized) {
+      return;
+    }
+    _languageCode = normalized;
+    if (_tokenDocument != null) {
+      unawaited(_updateRegisteredLanguage());
+    }
+  }
 
   Future<void> initialize({
     required void Function() onOpenPrediction,
@@ -56,8 +81,7 @@ class PushNotificationService extends ChangeNotifier {
     try {
       _supported = await FirebaseMessaging.instance.isSupported();
       if (!_supported) {
-        _statusMessage =
-            'Ce navigateur ne prend pas en charge les notifications push.';
+        _status = PushNotificationStatus.unsupported;
         notifyListeners();
         return;
       }
@@ -75,7 +99,7 @@ class PushNotificationService extends ChangeNotifier {
         _handleRemoteOpen(initialMessage);
       }
     } catch (error) {
-      _statusMessage = 'Initialisation des notifications impossible.';
+      _status = PushNotificationStatus.initializationFailed;
       debugPrint('Web push initialization failed: $error');
       notifyListeners();
     }
@@ -95,7 +119,7 @@ class PushNotificationService extends ChangeNotifier {
         await _registerCurrentBrowser();
       }
     } catch (error) {
-      _statusMessage = 'Synchronisation des notifications impossible.';
+      _status = PushNotificationStatus.synchronizationFailed;
       debugPrint('Web push synchronization failed: $error');
       notifyListeners();
     }
@@ -110,7 +134,7 @@ class PushNotificationService extends ChangeNotifier {
     _setBusy(true);
     try {
       if (FirebaseAuth.instance.currentUser == null) {
-        _statusMessage = 'Connectez-vous avant d’activer les notifications.';
+        _status = PushNotificationStatus.signInRequired;
         return false;
       }
 
@@ -121,17 +145,16 @@ class PushNotificationService extends ChangeNotifier {
       );
       if (!_isAccepted(settings.authorizationStatus)) {
         _enabled = false;
-        _statusMessage =
-            'Autorisation refusée. Modifiez les réglages de votre navigateur.';
+        _status = PushNotificationStatus.permissionDenied;
         return false;
       }
 
       await _registerCurrentBrowser();
-      _statusMessage = 'Notifications de prédictions activées.';
+      _status = PushNotificationStatus.enabled;
       return true;
     } catch (error) {
       _enabled = false;
-      _statusMessage = 'Activation des notifications impossible.';
+      _status = PushNotificationStatus.activationFailed;
       debugPrint('Web push activation failed: $error');
       return false;
     } finally {
@@ -152,10 +175,10 @@ class PushNotificationService extends ChangeNotifier {
       await FirebaseMessaging.instance.deleteToken();
       _tokenDocument = null;
       _enabled = false;
-      _statusMessage = 'Notifications de prédictions désactivées.';
+      _status = PushNotificationStatus.disabled;
       return true;
     } catch (error) {
-      _statusMessage = 'Désactivation des notifications impossible.';
+      _status = PushNotificationStatus.deactivationFailed;
       debugPrint('Web push deactivation failed: $error');
       return false;
     } finally {
@@ -186,12 +209,24 @@ class PushNotificationService extends ChangeNotifier {
     await _tokenDocument!.set({
       'token': token,
       'userId': user.uid,
+      'locale': _languageCode,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
     _enabled = true;
-    _statusMessage = null;
+    _status = null;
     notifyListeners();
+  }
+
+  Future<void> _updateRegisteredLanguage() async {
+    try {
+      await _tokenDocument?.update({
+        'locale': _languageCode,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      debugPrint('Web push locale synchronization failed: $error');
+    }
   }
 
   bool _isAccepted(AuthorizationStatus status) =>
@@ -203,9 +238,8 @@ class PushNotificationService extends ChangeNotifier {
       return;
     }
     _onForegroundPrediction?.call(
-      message.data['title'] ?? 'Nouvelle prédiction disponible',
-      message.data['body'] ??
-          'Touchez pour consulter la nouvelle prédiction VIP.',
+      message.data['title'] ?? '',
+      message.data['body'] ?? '',
     );
   }
 

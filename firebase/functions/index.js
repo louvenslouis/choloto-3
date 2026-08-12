@@ -15,6 +15,21 @@ const invalidWebPushTokenCodes = new Set([
   "messaging/registration-token-not-registered",
 ]);
 
+const predictionMessages = {
+  fr: {
+    title: "Nouvelle prédiction disponible",
+    body: "Touchez pour consulter la nouvelle prédiction VIP.",
+  },
+  en: {
+    title: "New prediction available",
+    body: "Tap to view the new VIP prediction.",
+  },
+  cr: {
+    title: "Nouvo prediksyon disponib",
+    body: "Peze pou w gade nouvo prediksyon VIP la.",
+  },
+};
+
 /** Announces a new prediction to browsers registered by the web app. */
 exports.onPredictionCreated = functions
   .region("northamerica-northeast1")
@@ -32,10 +47,17 @@ exports.onPredictionCreated = functions
         return;
       }
       const existingEntry = tokenEntriesByToken.get(token);
+      const locale = predictionMessages[document.get("locale")]
+        ? document.get("locale")
+        : "fr";
       if (existingEntry) {
         existingEntry.documents.push(document);
       } else {
-        tokenEntriesByToken.set(token, {token, documents: [document]});
+        tokenEntriesByToken.set(token, {
+          token,
+          locale,
+          documents: [document],
+        });
       }
     });
     const tokenEntries = [...tokenEntriesByToken.values()];
@@ -51,37 +73,47 @@ exports.onPredictionCreated = functions
     let failureCount = 0;
     const invalidTokenDocuments = [];
 
-    for (let index = 0; index < tokenEntries.length; index += 500) {
-      const batch = tokenEntries.slice(index, index + 500);
-      const response = await admin.messaging().sendEachForMulticast({
-        tokens: batch.map((entry) => entry.token),
-        data: {
-          type: "new_prediction",
-          route: "vip",
-          predictionId: context.params.predictionId,
-          title: "Nouvelle prédiction disponible",
-          body: "Touchez pour consulter la nouvelle prédiction VIP.",
-        },
-        webpush: {
-          headers: {
-            TTL: "86400",
-            Urgency: "high",
+    for (const [locale, localizedMessage] of Object.entries(
+      predictionMessages,
+    )) {
+      const localizedEntries = tokenEntries.filter(
+        (entry) => entry.locale === locale,
+      );
+      for (let index = 0; index < localizedEntries.length; index += 500) {
+        const batch = localizedEntries.slice(index, index + 500);
+        const response = await admin.messaging().sendEachForMulticast({
+          tokens: batch.map((entry) => entry.token),
+          data: {
+            type: "new_prediction",
+            route: "vip",
+            predictionId: context.params.predictionId,
+            locale,
+            title: localizedMessage.title,
+            body: localizedMessage.body,
           },
-        },
-      });
+          webpush: {
+            headers: {
+              TTL: "86400",
+              Urgency: "high",
+            },
+          },
+        });
 
-      successCount += response.successCount;
-      failureCount += response.failureCount;
-      response.responses.forEach((result, responseIndex) => {
-        if (
-          result.error &&
-          invalidWebPushTokenCodes.has(result.error.code)
-        ) {
-          invalidTokenDocuments.push(
-            ...batch[responseIndex].documents.map((document) => document.ref),
-          );
-        }
-      });
+        successCount += response.successCount;
+        failureCount += response.failureCount;
+        response.responses.forEach((result, responseIndex) => {
+          if (
+            result.error &&
+            invalidWebPushTokenCodes.has(result.error.code)
+          ) {
+            invalidTokenDocuments.push(
+              ...batch[responseIndex].documents.map(
+                (document) => document.ref,
+              ),
+            );
+          }
+        });
+      }
     }
 
     await Promise.all(

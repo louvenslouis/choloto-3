@@ -159,12 +159,14 @@ service cloud.firestore {
 
     function validWebPushToken(data, userId) {
       return data.keys().hasOnly([
-            'token', 'userId', 'createdAt', 'updatedAt'
+            'token', 'userId', 'locale', 'createdAt', 'updatedAt'
           ]) &&
           data.token is string &&
           data.token.size() > 0 &&
           data.token.size() <= 2048 &&
           data.userId == userId &&
+          data.locale is string &&
+          data.locale in ['fr', 'en', 'cr'] &&
           data.createdAt is timestamp &&
           data.updatedAt is timestamp;
     }

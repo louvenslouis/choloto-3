@@ -87,7 +87,7 @@ class _EditProfilTextsWidgetState extends State<EditProfilTextsWidget> {
                           FlutterFlowTheme.of(context).labelMedium.fontStyle,
                     ),
                 hintText: FFLocalizations.of(context).getText(
-                  'etl45w0v' /* TextField */,
+                  widget.champ == 2 ? 'prfemlhint' : 'prfnamehint',
                 ),
                 hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
                       font: GoogleFonts.inter(
@@ -171,7 +171,7 @@ class _EditProfilTextsWidgetState extends State<EditProfilTextsWidget> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Email required!',
+                              FFLocalizations.of(context).getText('prfemailrq'),
                             ),
                           ),
                         );
@@ -188,9 +188,7 @@ class _EditProfilTextsWidgetState extends State<EditProfilTextsWidget> {
                     logFirebaseEvent('Button_bottom_sheet');
                     Navigator.pop(context);
                   },
-            text: FFLocalizations.of(context).getText(
-              '640x9dq1' /* Button */,
-            ),
+            text: FFLocalizations.of(context).getText('prfsavebtn'),
             options: FFButtonOptions(
               height: 40.0,
               padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),

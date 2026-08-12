@@ -20,6 +20,85 @@ import 'github_auth.dart';
 
 export '../base_auth_user_provider.dart';
 
+String _localizedFirebaseAuthError(
+  BuildContext context,
+  FirebaseAuthException error,
+) {
+  final localizations = FFLocalizations.of(context);
+
+  return switch (error.code) {
+    'email-already-in-use' => localizations.getVariableText(
+        frText: 'Cette adresse e-mail est déjà utilisée par un autre compte.',
+        enText: 'This email address is already used by another account.',
+        crText: 'Gen yon lòt kont ki deja sèvi ak adrès imèl sa a.',
+      ),
+    'INVALID_LOGIN_CREDENTIALS' ||
+    'invalid-credential' ||
+    'wrong-password' ||
+    'user-not-found' =>
+      localizations.getVariableText(
+        frText: 'L’adresse e-mail ou le mot de passe est incorrect.',
+        enText: 'The email address or password is incorrect.',
+        crText: 'Adrès imèl la oswa modpas la pa kòrèk.',
+      ),
+    'invalid-email' => localizations.getVariableText(
+        frText: 'Veuillez saisir une adresse e-mail valide.',
+        enText: 'Please enter a valid email address.',
+        crText: 'Tanpri antre yon adrès imèl ki valab.',
+      ),
+    'weak-password' => localizations.getVariableText(
+        frText: 'Ce mot de passe est trop faible.',
+        enText: 'This password is too weak.',
+        crText: 'Modpas sa a twò fèb.',
+      ),
+    'network-request-failed' => localizations.getVariableText(
+        frText: 'Vérifiez votre connexion Internet, puis réessayez.',
+        enText: 'Check your internet connection, then try again.',
+        crText: 'Verifye koneksyon entènèt ou, epi eseye ankò.',
+      ),
+    'too-many-requests' => localizations.getVariableText(
+        frText: 'Trop de tentatives. Veuillez réessayer plus tard.',
+        enText: 'Too many attempts. Please try again later.',
+        crText: 'Gen twòp tantativ. Tanpri eseye ankò pita.',
+      ),
+    'user-disabled' => localizations.getVariableText(
+        frText: 'Ce compte a été désactivé.',
+        enText: 'This account has been disabled.',
+        crText: 'Kont sa a dezaktive.',
+      ),
+    _ => _localizedUnexpectedAuthError(context, error.message),
+  };
+}
+
+String _localizedUnexpectedAuthError(
+  BuildContext context,
+  String? firebaseMessage,
+) {
+  final localizations = FFLocalizations.of(context);
+  final detail = firebaseMessage?.trim();
+  final summary = localizations.getVariableText(
+    frText: 'Une erreur d’authentification est survenue.',
+    enText: 'An authentication error occurred.',
+    crText: 'Yon erè otantifikasyon rive.',
+  );
+  if (detail == null || detail.isEmpty) {
+    return summary;
+  }
+
+  final detailLabel = localizations.getVariableText(
+    frText: 'Détail',
+    enText: 'Details',
+    crText: 'Detay',
+  );
+  return '$summary\n$detailLabel: $detail';
+}
+
+void _showAuthSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message)));
+}
+
 class FirebasePhoneAuthManager extends ChangeNotifier {
   bool? _triggerOnCodeSent;
   FirebaseAuthException? phoneAuthError;
@@ -74,14 +153,17 @@ class FirebaseAuthManager extends AuthManager
       logFirebaseEvent("DELETE_USER");
       await currentUser?.delete();
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login') {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Too long since most recent sign in. Sign in again before deleting your account.')),
-        );
-      }
+      final message = e.code == 'requires-recent-login'
+          ? FFLocalizations.of(context).getVariableText(
+              frText:
+                  'Votre dernière connexion est trop ancienne. Reconnectez-vous avant de supprimer votre compte.',
+              enText:
+                  'Your last sign-in was too long ago. Sign in again before deleting your account.',
+              crText:
+                  'Dènye koneksyon ou a twò ansyen. Konekte ankò anvan ou efase kont ou.',
+            )
+          : _localizedFirebaseAuthError(context, e);
+      _showAuthSnackBar(context, message);
     }
   }
 
@@ -98,14 +180,17 @@ class FirebaseAuthManager extends AuthManager
       await currentUser?.updateEmail(email);
       await updateUserDocument(email: email);
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login') {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Too long since most recent sign in. Sign in again before updating your email.')),
-        );
-      }
+      final message = e.code == 'requires-recent-login'
+          ? FFLocalizations.of(context).getVariableText(
+              frText:
+                  'Votre dernière connexion est trop ancienne. Reconnectez-vous avant de modifier votre adresse e-mail.',
+              enText:
+                  'Your last sign-in was too long ago. Sign in again before updating your email address.',
+              crText:
+                  'Dènye koneksyon ou a twò ansyen. Konekte ankò anvan ou chanje adrès imèl ou.',
+            )
+          : _localizedFirebaseAuthError(context, e);
+      _showAuthSnackBar(context, message);
     }
   }
 
@@ -121,12 +206,17 @@ class FirebaseAuthManager extends AuthManager
       }
       await currentUser?.updatePassword(newPassword);
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login') {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.message!}')),
-        );
-      }
+      final message = e.code == 'requires-recent-login'
+          ? FFLocalizations.of(context).getVariableText(
+              frText:
+                  'Votre dernière connexion est trop ancienne. Reconnectez-vous avant de modifier votre mot de passe.',
+              enText:
+                  'Your last sign-in was too long ago. Sign in again before updating your password.',
+              crText:
+                  'Dènye koneksyon ou a twò ansyen. Konekte ankò anvan ou chanje modpas ou.',
+            )
+          : _localizedFirebaseAuthError(context, e);
+      _showAuthSnackBar(context, message);
     }
   }
 
@@ -138,14 +228,16 @@ class FirebaseAuthManager extends AuthManager
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.message!}')),
-      );
+      _showAuthSnackBar(context, _localizedFirebaseAuthError(context, e));
       return null;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Password reset email sent')),
+    _showAuthSnackBar(
+      context,
+      FFLocalizations.of(context).getVariableText(
+        frText: 'L’e-mail de réinitialisation du mot de passe a été envoyé.',
+        enText: 'The password reset email has been sent.',
+        crText: 'Nou voye imèl pou reyinisyalize modpas la.',
+      ),
     );
   }
 
@@ -210,9 +302,7 @@ class FirebaseAuthManager extends AuthManager
             .update(() => phoneAuthManager.triggerOnCodeSent = false);
       } else if (phoneAuthManager.phoneAuthError != null) {
         final e = phoneAuthManager.phoneAuthError!;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${e.message!}'),
-        ));
+        _showAuthSnackBar(context, _localizedFirebaseAuthError(context, e));
         phoneAuthManager.update(() => phoneAuthManager.phoneAuthError = null);
       }
     });
@@ -317,17 +407,7 @@ class FirebaseAuthManager extends AuthManager
           ? null
           : CholotoFirebaseUser.fromUserCredential(userCredential);
     } on FirebaseAuthException catch (e) {
-      final errorMsg = switch (e.code) {
-        'email-already-in-use' =>
-          'Error: The email is already in use by a different account',
-        'INVALID_LOGIN_CREDENTIALS' =>
-          'Error: The supplied auth credential is incorrect, malformed or has expired',
-        _ => 'Error: ${e.message!}',
-      };
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg)),
-      );
+      _showAuthSnackBar(context, _localizedFirebaseAuthError(context, e));
       return null;
     }
   }

@@ -6,6 +6,64 @@ import 'package:sticky_headers/sticky_headers.dart';
 import 'tchala_data_repository.dart';
 export 'tchala_model.dart';
 
+const _tchalaMonthNames = <String, List<String>>{
+  'fr': [
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre',
+  ],
+  'en': [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ],
+  'cr': [
+    'Janvye',
+    'Fevriye',
+    'Mas',
+    'Avril',
+    'Me',
+    'Jen',
+    'Jiyè',
+    'Out',
+    'Septanm',
+    'Oktòb',
+    'Novanm',
+    'Desanm',
+  ],
+};
+
+String _tchalaLanguageCode(String localeCode) {
+  final languageCode = localeCode.split('_').first;
+  return _tchalaMonthNames.containsKey(languageCode) ? languageCode : 'fr';
+}
+
+String _tchalaMonthName(String languageCode, int monthNumber) {
+  final names = _tchalaMonthNames[languageCode] ?? _tchalaMonthNames['fr']!;
+  if (monthNumber < 1 || monthNumber > names.length) {
+    return '';
+  }
+  return names[monthNumber - 1];
+}
+
 class TchalaWidget extends StatefulWidget {
   const TchalaWidget({super.key});
 
@@ -240,7 +298,11 @@ class _SearchField extends StatelessWidget {
         suffixIcon: controller.text.isEmpty
             ? null
             : IconButton(
-                tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                tooltip: FFLocalizations.of(context).getVariableText(
+                  frText: 'Effacer',
+                  enText: 'Clear',
+                  crText: 'Efase',
+                ),
                 onPressed: onClear,
                 icon: Icon(Icons.close_rounded, color: theme.secondaryText),
               ),
@@ -276,6 +338,7 @@ class _TchalaList extends StatelessWidget {
             final numbers = entry.associatedNumbers.join(' ');
             return entry.creoleSymbol.toLowerCase().contains(query) ||
                 entry.frenchTranslation.toLowerCase().contains(query) ||
+                entry.englishTranslation.toLowerCase().contains(query) ||
                 numbers.contains(query);
           }).toList(growable: false);
 
@@ -313,11 +376,13 @@ class _TchalaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
-    final language = FFLocalizations.of(context).languageCode;
-    final primaryLabel =
-        language == 'cr' ? entry.creoleSymbol : entry.frenchTranslation;
-    final secondaryLabel =
-        language == 'cr' ? entry.frenchTranslation : entry.creoleSymbol;
+    final language =
+        _tchalaLanguageCode(FFLocalizations.of(context).languageCode);
+    final (primaryLabel, secondaryLabel) = switch (language) {
+      'en' => (entry.englishTranslation, entry.creoleSymbol),
+      'cr' => (entry.creoleSymbol, entry.frenchTranslation),
+      _ => (entry.frenchTranslation, entry.creoleSymbol),
+    };
 
     return Semantics(
       container: true,
@@ -409,11 +474,19 @@ class _SaintsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final languageCode =
+        _tchalaLanguageCode(FFLocalizations.of(context).languageCode);
     final visibleMonths = query.isEmpty
         ? months
         : months
             .map((month) {
-              final monthMatches = month.name.toLowerCase().contains(query);
+              final monthMatches = _tchalaMonthNames.keys.any(
+                    (languageCode) =>
+                        _tchalaMonthName(languageCode, month.monthNumber)
+                            .toLowerCase()
+                            .contains(query),
+                  ) ||
+                  month.name.toLowerCase().contains(query);
               final saints = monthMatches
                   ? month.saints
                   : month.saints
@@ -421,7 +494,11 @@ class _SaintsList extends StatelessWidget {
                           saint.name.toLowerCase().contains(query) ||
                           saint.date.contains(query))
                       .toList(growable: false);
-              return SaintMonth(name: month.name, saints: saints);
+              return SaintMonth(
+                name: month.name,
+                monthNumber: month.monthNumber,
+                saints: saints,
+              );
             })
             .where((month) => month.saints.isNotEmpty)
             .toList(growable: false);
@@ -436,16 +513,22 @@ class _SaintsList extends StatelessWidget {
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: EdgeInsets.only(bottom: theme.designToken.spacing.lg),
       itemCount: visibleMonths.length,
-      itemBuilder: (context, index) =>
-          _SaintMonthSection(month: visibleMonths[index]),
+      itemBuilder: (context, index) => _SaintMonthSection(
+        month: visibleMonths[index],
+        languageCode: languageCode,
+      ),
     );
   }
 }
 
 class _SaintMonthSection extends StatelessWidget {
-  const _SaintMonthSection({required this.month});
+  const _SaintMonthSection({
+    required this.month,
+    required this.languageCode,
+  });
 
   final SaintMonth month;
+  final String languageCode;
 
   @override
   Widget build(BuildContext context) {
@@ -463,7 +546,7 @@ class _SaintMonthSection extends StatelessWidget {
         ),
         color: theme.primaryBackground,
         child: Text(
-          month.name,
+          _tchalaMonthName(languageCode, month.monthNumber),
           style: theme.titleSmall.override(
             fontFamily: 'Google sans flex',
             color: theme.secondaryText,
@@ -510,7 +593,7 @@ class _SaintRow extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
     final date = DateTime.tryParse(saint.date);
-    final day = date == null ? saint.date : DateFormat('dd').format(date);
+    final day = date == null ? saint.date : date.day.toString().padLeft(2, '0');
 
     return Container(
       constraints: const BoxConstraints(minHeight: 64.0),

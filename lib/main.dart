@@ -81,6 +81,13 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     _locale = FFLocalizations.getStoredLocale();
+    final deviceLanguage =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    final initialLanguage = _locale?.languageCode ??
+        (FFLocalizations.languages().contains(deviceLanguage)
+            ? deviceLanguage
+            : 'fr');
+    PushNotificationService.instance.setLanguageCode(initialLanguage);
     _themeMode =
         FFAppState().lightThemeEnabled ? ThemeMode.light : ThemeMode.dark;
     _appStateNotifier = AppStateNotifier.instance;
@@ -100,11 +107,31 @@ class _MyAppState extends State<MyApp> {
             if (notificationContext == null) {
               return;
             }
+            final localizations = FFLocalizations.of(notificationContext);
+            final localizedTitle = title.isNotEmpty
+                ? title
+                : localizations.getVariableText(
+                    frText: 'Nouvelle prédiction disponible',
+                    enText: 'New prediction available',
+                    crText: 'Nouvo prediksyon disponib',
+                  );
+            final localizedBody = body.isNotEmpty
+                ? body
+                : localizations.getVariableText(
+                    frText:
+                        'Touchez pour consulter la nouvelle prédiction VIP.',
+                    enText: 'Tap to view the new VIP prediction.',
+                    crText: 'Peze pou w gade nouvo prediksyon VIP la.',
+                  );
             ScaffoldMessenger.of(notificationContext).showSnackBar(
               SnackBar(
-                content: Text('$title\n$body'),
+                content: Text('$localizedTitle\n$localizedBody'),
                 action: SnackBarAction(
-                  label: 'Voir',
+                  label: localizations.getVariableText(
+                    frText: 'Voir',
+                    enText: 'View',
+                    crText: 'Gade',
+                  ),
                   onPressed: () => _router.goNamed(VipWidget.routeName),
                 ),
               ),
@@ -140,6 +167,7 @@ class _MyAppState extends State<MyApp> {
 
   void setLocale(String language) {
     FFLocalizations.storeLocale(language);
+    PushNotificationService.instance.setLanguageCode(language);
     safeSetState(() => _locale = createLocale(language));
   }
 

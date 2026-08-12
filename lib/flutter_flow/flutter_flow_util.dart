@@ -44,13 +44,97 @@ void _setTimeagoLocales() {
   timeago.setLocaleMessages('en_short', timeago.EnShortMessages());
 }
 
+const _haitianCreoleMonths = <String>[
+  'janvye',
+  'fevriye',
+  'mas',
+  'avril',
+  'me',
+  'jen',
+  'jiyè',
+  'out',
+  'septanm',
+  'oktòb',
+  'novanm',
+  'desanm',
+];
+
+const _haitianCreoleShortMonths = <String>[
+  'jan',
+  'fev',
+  'mas',
+  'avr',
+  'me',
+  'jen',
+  'jiy',
+  'out',
+  'sept',
+  'okt',
+  'nov',
+  'des',
+];
+
+const _haitianCreoleWeekdays = <String>[
+  'lendi',
+  'madi',
+  'mèkredi',
+  'jedi',
+  'vandredi',
+  'samdi',
+  'dimanch',
+];
+
+const _haitianCreoleShortWeekdays = <String>[
+  'len',
+  'mad',
+  'mèk',
+  'jed',
+  'van',
+  'sam',
+  'dim',
+];
+
+String _haitianCreoleDateFormat(String format, DateTime dateTime) {
+  final day = dateTime.day;
+  final year = dateTime.year;
+  final month = _haitianCreoleMonths[dateTime.month - 1];
+  final shortMonth = _haitianCreoleShortMonths[dateTime.month - 1];
+  final weekday = _haitianCreoleWeekdays[dateTime.weekday - 1];
+  final shortWeekday = _haitianCreoleShortWeekdays[dateTime.weekday - 1];
+
+  switch (format) {
+    case 'MMMMEEEEd':
+      return '$weekday $day $month';
+    case 'MMMEd':
+      return '$shortWeekday $day $shortMonth';
+    case 'yMMMd':
+    case 'd MMM y':
+      return '$day $shortMonth $year';
+    case 'MMMM y':
+      return '$month $year';
+    case 'EEEE d MMMM y':
+      return '$weekday $day $month $year';
+    default:
+      // `intl` does not ship an `cr` locale. Formatting with French keeps
+      // dates usable for uncommon patterns instead of throwing at runtime.
+      return DateFormat(format, 'fr').format(dateTime);
+  }
+}
+
 String dateTimeFormat(String format, DateTime? dateTime, {String? locale}) {
   if (dateTime == null) {
     return '';
   }
   if (format == 'relative') {
     _setTimeagoLocales();
-    return timeago.format(dateTime, locale: locale, allowFromNow: true);
+    return timeago.format(
+      dateTime,
+      locale: locale == 'cr' ? 'fr' : locale,
+      allowFromNow: true,
+    );
+  }
+  if (locale == 'cr') {
+    return _haitianCreoleDateFormat(format, dateTime);
   }
   return DateFormat(format, locale).format(dateTime);
 }

@@ -39,6 +39,21 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+const predictionMessages = {
+  fr: {
+    title: 'Nouvelle prédiction disponible',
+    body: 'Touchez pour consulter la nouvelle prédiction VIP.',
+  },
+  en: {
+    title: 'New prediction available',
+    body: 'Tap to view the new VIP prediction.',
+  },
+  cr: {
+    title: 'Nouvo prediksyon disponib',
+    body: 'Peze pou w gade nouvo prediksyon VIP la.',
+  },
+};
+
 messaging.onBackgroundMessage((message) => {
   if (message.data?.type !== 'new_prediction') {
     return;
@@ -49,13 +64,15 @@ messaging.onBackgroundMessage((message) => {
     '../icons/Icon-192.png',
     self.registration.scope,
   ).href;
+  const locale = predictionMessages[message.data?.locale]
+    ? message.data.locale
+    : 'fr';
+  const fallback = predictionMessages[locale];
 
   return self.registration.showNotification(
-    message.data.title ?? 'Nouvelle prédiction disponible',
+    message.data.title ?? fallback.title,
     {
-      body:
-        message.data.body ??
-        'Touchez pour consulter la nouvelle prédiction VIP.',
+      body: message.data.body ?? fallback.body,
       icon: iconUrl,
       badge: iconUrl,
       tag: `prediction-${message.data.predictionId ?? 'latest'}`,

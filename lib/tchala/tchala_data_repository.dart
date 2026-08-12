@@ -39,12 +39,19 @@ class TchalaData {
 
   factory TchalaData.fromJson(Object? json) {
     final map = _asMap(json, 'tchala');
+    final saintMonthsJson = _asList(map['saint_months'], 'saint_months');
     return TchalaData(
       symbols: List.unmodifiable(
         _asList(map['symbols'], 'symbols').map(TchalaEntry.fromJson),
       ),
       saintMonths: List.unmodifiable(
-        _asList(map['saint_months'], 'saint_months').map(SaintMonth.fromJson),
+        List.generate(
+          saintMonthsJson.length,
+          (index) => SaintMonth.fromJson(
+            saintMonthsJson[index],
+            fallbackMonthNumber: index + 1,
+          ),
+        ),
       ),
     );
   }
@@ -55,11 +62,13 @@ class TchalaEntry {
   const TchalaEntry({
     required this.creoleSymbol,
     required this.frenchTranslation,
+    required this.englishTranslation,
     required this.associatedNumbers,
   });
 
   final String creoleSymbol;
   final String frenchTranslation;
+  final String englishTranslation;
   final List<int> associatedNumbers;
 
   factory TchalaEntry.fromJson(Object? json) {
@@ -68,6 +77,8 @@ class TchalaEntry {
       creoleSymbol: _asString(map['symbole_kreyol'], 'symbole_kreyol'),
       frenchTranslation:
           _asString(map['traduction_francais'], 'traduction_francais'),
+      englishTranslation:
+          _asString(map['traduction_anglais'], 'traduction_anglais'),
       associatedNumbers: List.unmodifiable(
         _asList(map['numeros_associes'], 'numeros_associes')
             .map((value) => _asInt(value, 'numeros_associes')),
@@ -78,18 +89,28 @@ class TchalaEntry {
 
 @immutable
 class SaintMonth {
-  const SaintMonth({required this.name, required this.saints});
+  const SaintMonth({
+    required this.name,
+    required this.monthNumber,
+    required this.saints,
+  });
 
   final String name;
+  final int monthNumber;
   final List<SaintEntry> saints;
 
-  factory SaintMonth.fromJson(Object? json) {
+  factory SaintMonth.fromJson(
+    Object? json, {
+    required int fallbackMonthNumber,
+  }) {
     final map = _asMap(json, 'saint_month');
+    final saints = List<SaintEntry>.unmodifiable(
+      _asList(map['saints'], 'saints').map(SaintEntry.fromJson),
+    );
     return SaintMonth(
       name: _asString(map['mois'], 'mois'),
-      saints: List.unmodifiable(
-        _asList(map['saints'], 'saints').map(SaintEntry.fromJson),
-      ),
+      monthNumber: _monthNumberFromSaints(saints) ?? fallbackMonthNumber,
+      saints: saints,
     );
   }
 }
@@ -136,4 +157,14 @@ int _asInt(Object? value, String field) {
     return value;
   }
   throw FormatException('$field must be an integer.');
+}
+
+int? _monthNumberFromSaints(List<SaintEntry> saints) {
+  for (final saint in saints) {
+    final date = DateTime.tryParse(saint.date);
+    if (date != null) {
+      return date.month;
+    }
+  }
+  return null;
 }
