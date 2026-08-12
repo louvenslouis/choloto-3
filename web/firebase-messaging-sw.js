@@ -50,7 +50,7 @@ messaging.onBackgroundMessage((message) => {
     self.registration.scope,
   ).href;
 
-  self.registration.showNotification(
+  return self.registration.showNotification(
     message.data.title ?? 'Nouvelle prédiction disponible',
     {
       body:

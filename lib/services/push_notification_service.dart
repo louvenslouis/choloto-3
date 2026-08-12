@@ -82,10 +82,17 @@ class PushNotificationService extends ChangeNotifier {
       return;
     }
 
-    final settings = await FirebaseMessaging.instance.getNotificationSettings();
-    if (_isAccepted(settings.authorizationStatus) &&
-        FirebaseAuth.instance.currentUser != null) {
-      await _registerCurrentBrowser();
+    try {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      if (_isAccepted(settings.authorizationStatus) &&
+          FirebaseAuth.instance.currentUser != null) {
+        await _registerCurrentBrowser();
+      }
+    } catch (error) {
+      _statusMessage = 'Synchronisation des notifications impossible.';
+      debugPrint('Web push synchronization failed: $error');
+      notifyListeners();
     }
   }
 
