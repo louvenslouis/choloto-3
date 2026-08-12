@@ -157,6 +157,18 @@ service cloud.firestore {
           optionalString(data, 'link', 2048);
     }
 
+    function validWebPushToken(data, userId) {
+      return data.keys().hasOnly([
+            'token', 'userId', 'createdAt', 'updatedAt'
+          ]) &&
+          data.token is string &&
+          data.token.size() > 0 &&
+          data.token.size() <= 2048 &&
+          data.userId == userId &&
+          data.createdAt is timestamp &&
+          data.updatedAt is timestamp;
+    }
+
     match /croix/{document} {
       allow read: if true;
       allow create: if isAdmin() && createsOwn('created_by') &&
@@ -176,6 +188,15 @@ service cloud.firestore {
           (request.auth.uid == resource.data.uid || isAdmin()) &&
           request.resource.data.uid == resource.data.uid;
       allow delete: if signedIn() && request.auth.uid == resource.data.uid;
+    }
+
+    match /user/{userId}/webPushTokens/{tokenId} {
+      allow read: if signedIn() &&
+          (request.auth.uid == userId || isAdmin());
+      allow create, update: if signedIn() &&
+          request.auth.uid == userId &&
+          validWebPushToken(request.resource.data, userId);
+      allow delete: if signedIn() && request.auth.uid == userId;
     }
 
     match /prediction/{document} {

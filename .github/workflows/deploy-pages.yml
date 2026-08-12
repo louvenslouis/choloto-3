@@ -37,7 +37,7 @@ jobs:
         run: node tools/generate_youtube_feed.mjs web/youtube-feed.json
 
       - name: Build web application
-        run: flutter build web --release --base-href "/choloto-3/"
+        run: flutter build web --release --base-href "/choloto-3/" --dart-define=CHOLOTO_WEB_PUSH_VAPID_KEY=${{ secrets.FIREBASE_WEB_PUSH_VAPID_KEY }}
 
       - name: Add GitHub Pages SPA fallback
         run: |

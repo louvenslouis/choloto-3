@@ -92,11 +92,33 @@ class _MyAppState extends State<MyApp> {
             }
           });
         },
+        onForegroundPrediction: (title, body) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final notificationContext = appNavigatorKey.currentContext;
+            if (notificationContext == null) {
+              return;
+            }
+            ScaffoldMessenger.of(notificationContext).showSnackBar(
+              SnackBar(
+                content: Text('$title\n$body'),
+                action: SnackBarAction(
+                  label: 'Voir',
+                  onPressed: () => _router.goNamed(VipWidget.routeName),
+                ),
+              ),
+            );
+          });
+        },
       ),
     );
     _authenticatedUserSubscription = authenticatedUserStream.listen((_) {});
     _firebaseUserSubscription = cholotoFirebaseUserStream().listen((user) {
       _appStateNotifier.update(user);
+      if (user.loggedIn) {
+        unawaited(
+          PushNotificationService.instance.syncAuthorizedSubscription(),
+        );
+      }
     });
     _jwtTokenSubscription = jwtTokenStream.listen((_) {});
     Future.delayed(

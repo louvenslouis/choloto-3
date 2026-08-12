@@ -20,6 +20,8 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
   late Stream<List<PredictionRecord>> _historyStream;
   final Set<String> _expandedPredictionIds = <String>{};
   String? _latestPredictionId;
+  DateTime? _selectedDate;
+  DateTime? _displayedMonth;
 
   @override
   void initState() {
@@ -152,13 +154,29 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
                       }
 
                       final predictions = snapshot.data!;
+                      final predictionsByDay =
+                          _groupPredictionsByDay(predictions);
                       _expandLatestPrediction(predictions);
+                      _initializeCalendar(predictionsByDay);
 
                       return LayoutBuilder(
                         builder: (context, constraints) {
                           final horizontalPadding = constraints.maxWidth < 480
                               ? 12.0
                               : theme.designToken.spacing.md;
+                          final availableDates = predictionsByDay.keys.toList()
+                            ..sort();
+                          final selectedPredictions = _selectedDate == null
+                              ? const <PredictionRecord>[]
+                              : predictionsByDay[_selectedDate] ??
+                                  const <PredictionRecord>[];
+                          final hasDatedPredictions =
+                              predictionsByDay.isNotEmpty;
+                          final itemCount = !hasDatedPredictions
+                              ? 2
+                              : selectedPredictions.isEmpty
+                                  ? 4
+                                  : selectedPredictions.length + 3;
 
                           return RefreshIndicator(
                             color: theme.primary,
@@ -174,9 +192,7 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
                                 horizontalPadding,
                                 80.0,
                               ),
-                              itemCount: predictions.isEmpty
-                                  ? 2
-                                  : predictions.length + 1,
+                              itemCount: itemCount,
                               separatorBuilder: (_, __) => const SizedBox(
                                 height: 10.0,
                               ),
@@ -187,13 +203,46 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
                                   );
                                 }
 
-                                if (predictions.isEmpty) {
+                                if (!hasDatedPredictions) {
                                   return _VipHistoryEmptyState(
                                     onRefresh: _reloadHistory,
                                   );
                                 }
 
-                                final prediction = predictions[index - 1];
+                                if (index == 1) {
+                                  return _VipPredictionCalendar(
+                                    displayedMonth: _displayedMonth!,
+                                    selectedDate: _selectedDate!,
+                                    predictionsByDay: predictionsByDay,
+                                    firstMonth: _monthOf(availableDates.first),
+                                    lastMonth: _monthOf(availableDates.last),
+                                    onPreviousMonth: () => _changeMonth(
+                                      -1,
+                                      predictionsByDay,
+                                    ),
+                                    onNextMonth: () => _changeMonth(
+                                      1,
+                                      predictionsByDay,
+                                    ),
+                                    onDateSelected: (date) =>
+                                        _selectDate(date, predictionsByDay),
+                                  );
+                                }
+
+                                if (index == 2) {
+                                  return _VipSelectedDayHeading(
+                                    selectedDate: _selectedDate!,
+                                    publicationCount:
+                                        selectedPredictions.length,
+                                  );
+                                }
+
+                                if (selectedPredictions.isEmpty) {
+                                  return const _VipHistoryDayEmptyState();
+                                }
+
+                                final prediction =
+                                    selectedPredictions[index - 3];
                                 final predictionId = prediction.reference.path;
                                 final isExpanded = _expandedPredictionIds
                                     .contains(predictionId);
@@ -202,7 +251,8 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
                                   key: ValueKey(predictionId),
                                   child: _VipPredictionHistoryCard(
                                     prediction: prediction,
-                                    isLatest: index == 1,
+                                    isLatest: prediction.reference ==
+                                        predictions.first.reference,
                                     initiallyExpanded: isExpanded,
                                     onExpansionChanged: (expanded) {
                                       safeSetState(() {
@@ -242,6 +292,79 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
     _latestPredictionId = latestId;
     _expandedPredictionIds.add(latestId);
   }
+
+  Map<DateTime, List<PredictionRecord>> _groupPredictionsByDay(
+    List<PredictionRecord> predictions,
+  ) {
+    final grouped = <DateTime, List<PredictionRecord>>{};
+
+    for (final prediction in predictions) {
+      final date = prediction.date;
+      if (date == null) continue;
+
+      final day = _dateOnly(date);
+      grouped.putIfAbsent(day, () => <PredictionRecord>[]).add(prediction);
+    }
+
+    return grouped;
+  }
+
+  void _initializeCalendar(
+    Map<DateTime, List<PredictionRecord>> predictionsByDay,
+  ) {
+    if (predictionsByDay.isEmpty || _selectedDate != null) return;
+
+    final dates = predictionsByDay.keys.toList()..sort();
+    final latestDate = dates.last;
+    _selectedDate = latestDate;
+    _displayedMonth = _monthOf(latestDate);
+  }
+
+  void _selectDate(
+    DateTime date,
+    Map<DateTime, List<PredictionRecord>> predictionsByDay,
+  ) {
+    final selectedDay = _dateOnly(date);
+    safeSetState(() {
+      _selectedDate = selectedDay;
+      final publications = predictionsByDay[selectedDay];
+      if (publications != null && publications.isNotEmpty) {
+        _expandedPredictionIds.add(publications.first.reference.path);
+      }
+    });
+  }
+
+  void _changeMonth(
+    int offset,
+    Map<DateTime, List<PredictionRecord>> predictionsByDay,
+  ) {
+    final currentMonth = _displayedMonth!;
+    final nextMonth = DateTime(
+      currentMonth.year,
+      currentMonth.month + offset,
+    );
+    final datesInMonth = predictionsByDay.keys
+        .where(
+          (date) =>
+              date.year == nextMonth.year && date.month == nextMonth.month,
+        )
+        .toList()
+      ..sort();
+
+    safeSetState(() {
+      _displayedMonth = nextMonth;
+      _selectedDate = datesInMonth.isEmpty ? nextMonth : datesInMonth.last;
+      final publications = predictionsByDay[_selectedDate];
+      if (publications != null && publications.isNotEmpty) {
+        _expandedPredictionIds.add(publications.first.reference.path);
+      }
+    });
+  }
+
+  DateTime _dateOnly(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  DateTime _monthOf(DateTime date) => DateTime(date.year, date.month);
 }
 
 class _VipHistoryHeading extends StatelessWidget {
@@ -337,6 +460,334 @@ class _VipHistoryHeading extends StatelessWidget {
   }
 }
 
+class _VipPredictionCalendar extends StatelessWidget {
+  const _VipPredictionCalendar({
+    required this.displayedMonth,
+    required this.selectedDate,
+    required this.predictionsByDay,
+    required this.firstMonth,
+    required this.lastMonth,
+    required this.onPreviousMonth,
+    required this.onNextMonth,
+    required this.onDateSelected,
+  });
+
+  final DateTime displayedMonth;
+  final DateTime selectedDate;
+  final Map<DateTime, List<PredictionRecord>> predictionsByDay;
+  final DateTime firstMonth;
+  final DateTime lastMonth;
+  final VoidCallback onPreviousMonth;
+  final VoidCallback onNextMonth;
+  final ValueChanged<DateTime> onDateSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final localizations = MaterialLocalizations.of(context);
+    final firstDay = DateTime(displayedMonth.year, displayedMonth.month);
+    final daysInMonth =
+        DateTime(displayedMonth.year, displayedMonth.month + 1, 0).day;
+    final firstWeekdayFromSunday = firstDay.weekday % 7;
+    final languageCode = FFLocalizations.of(context).languageCode;
+    final firstDayOfWeekIndex =
+        languageCode == 'cr' ? 1 : localizations.firstDayOfWeekIndex;
+    final weekdayLabels = languageCode == 'cr'
+        ? const <String>['D', 'L', 'M', 'M', 'J', 'V', 'S']
+        : localizations.narrowWeekdays;
+    final leadingDays = (firstWeekdayFromSunday - firstDayOfWeekIndex + 7) % 7;
+    final cellCount = ((leadingDays + daysInMonth + 6) ~/ 7) * 7;
+    final canGoBack = displayedMonth.isAfter(firstMonth);
+    final canGoForward = displayedMonth.isBefore(lastMonth);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12.0, 10.0, 12.0, 12.0),
+      decoration: BoxDecoration(
+        color: theme.secondaryBackground,
+        borderRadius: BorderRadius.circular(theme.designToken.radius.md),
+        border: Border.all(color: theme.alternate.applyAlpha(0.14)),
+        boxShadow: [theme.designToken.shadow.md],
+      ),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  FlutterFlowIconButton(
+                    borderColor: Colors.transparent,
+                    borderRadius: theme.designToken.radius.full,
+                    buttonSize: 38.0,
+                    disabledIconColor: theme.secondaryText.applyAlpha(0.35),
+                    icon: Icon(
+                      Icons.chevron_left_rounded,
+                      color: theme.primaryText,
+                      size: 24.0,
+                    ),
+                    onPressed: canGoBack ? onPreviousMonth : null,
+                  ),
+                  Expanded(
+                    child: Text(
+                      _formatVipMonth(context, displayedMonth),
+                      textAlign: TextAlign.center,
+                      style: theme.titleMedium.override(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  FlutterFlowIconButton(
+                    borderColor: Colors.transparent,
+                    borderRadius: theme.designToken.radius.full,
+                    buttonSize: 38.0,
+                    disabledIconColor: theme.secondaryText.applyAlpha(0.35),
+                    icon: Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.primaryText,
+                      size: 24.0,
+                    ),
+                    onPressed: canGoForward ? onNextMonth : null,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6.0),
+              Row(
+                children: List.generate(7, (index) {
+                  final weekdayIndex = (firstDayOfWeekIndex + index) % 7;
+                  return Expanded(
+                    child: Text(
+                      weekdayLabels[weekdayIndex],
+                      textAlign: TextAlign.center,
+                      style: theme.labelSmall.override(
+                        color: theme.secondaryText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 6.0),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: cellCount,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7,
+                  childAspectRatio: 1.0,
+                ),
+                itemBuilder: (context, index) {
+                  final dayNumber = index - leadingDays + 1;
+                  if (dayNumber < 1 || dayNumber > daysInMonth) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final date = DateTime(
+                    displayedMonth.year,
+                    displayedMonth.month,
+                    dayNumber,
+                  );
+                  return _VipCalendarDay(
+                    date: date,
+                    isSelected: _sameDay(date, selectedDate),
+                    isToday: _sameDay(date, DateTime.now()),
+                    publicationCount: predictionsByDay[date]?.length ?? 0,
+                    onTap: () => onDateSelected(date),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _sameDay(DateTime first, DateTime second) =>
+      first.year == second.year &&
+      first.month == second.month &&
+      first.day == second.day;
+}
+
+class _VipCalendarDay extends StatelessWidget {
+  const _VipCalendarDay({
+    required this.date,
+    required this.isSelected,
+    required this.isToday,
+    required this.publicationCount,
+    required this.onTap,
+  });
+
+  final DateTime date;
+  final bool isSelected;
+  final bool isToday;
+  final int publicationCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final hasPredictions = publicationCount > 0;
+    final foregroundColor =
+        isSelected ? theme.primaryBackground : theme.primaryText;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: _formatVipFullDate(context, date),
+      value: '$publicationCount',
+      child: Padding(
+        padding: const EdgeInsets.all(2.0),
+        child: Material(
+          color: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            splashColor: theme.primary.applyAlpha(0.16),
+            highlightColor: theme.primary.applyAlpha(0.08),
+            child: Ink(
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? theme.primary
+                    : hasPredictions
+                        ? theme.primaryBackground
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(
+                  color: isSelected
+                      ? theme.primary
+                      : hasPredictions
+                          ? theme.primary.applyAlpha(0.48)
+                          : isToday
+                              ? theme.primaryText.applyAlpha(0.38)
+                              : Colors.transparent,
+                  width: isToday && !isSelected ? 1.2 : 1.0,
+                ),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text(
+                    '${date.day}',
+                    style: theme.labelMedium.override(
+                      color: foregroundColor,
+                      fontWeight: isSelected || hasPredictions
+                          ? FontWeight.w800
+                          : FontWeight.w500,
+                    ),
+                  ),
+                  if (hasPredictions)
+                    Positioned(
+                      bottom: 4.0,
+                      child: Container(
+                        width: 4.0,
+                        height: 4.0,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? theme.primaryBackground
+                              : theme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  if (publicationCount > 1)
+                    Positioned(
+                      top: 2.0,
+                      right: 2.0,
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 15.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? theme.primaryBackground
+                              : theme.primary,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Text(
+                          '$publicationCount',
+                          textAlign: TextAlign.center,
+                          style: theme.labelSmall.override(
+                            color: isSelected
+                                ? theme.primary
+                                : theme.primaryBackground,
+                            fontSize: 8.0,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VipSelectedDayHeading extends StatelessWidget {
+  const _VipSelectedDayHeading({
+    required this.selectedDate,
+    required this.publicationCount,
+  });
+
+  final DateTime selectedDate;
+  final int publicationCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final publicationLabel = publicationCount == 1
+        ? FFLocalizations.of(context).getText('viphstpub')
+        : FFLocalizations.of(context).getText('viphstpbs');
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4.0, 4.0, 4.0, 0.0),
+      child: Row(
+        children: [
+          Icon(
+            Icons.event_available_rounded,
+            color: theme.primary,
+            size: 20.0,
+          ),
+          const SizedBox(width: 8.0),
+          Expanded(
+            child: Text(
+              _formatVipFullDate(context, selectedDate),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.titleSmall.override(fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8.0,
+              vertical: 4.0,
+            ),
+            decoration: BoxDecoration(
+              color: theme.primary.applyAlpha(0.14),
+              borderRadius:
+                  BorderRadius.circular(theme.designToken.radius.full),
+            ),
+            child: Text(
+              '$publicationCount $publicationLabel',
+              style: theme.labelSmall.override(
+                color: theme.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _VipPredictionHistoryCard extends StatelessWidget {
   const _VipPredictionHistoryCard({
     required this.prediction,
@@ -353,7 +804,6 @@ class _VipPredictionHistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final locale = FFLocalizations.of(context).languageCode;
     final categories = initiallyExpanded
         ? _categoriesFor(context, prediction)
         : const <_VipPredictionCategory>[];
@@ -414,11 +864,7 @@ class _VipPredictionHistoryCard extends StatelessWidget {
                 child: Text(
                   prediction.date == null
                       ? FFLocalizations.of(context).getText('viphstnod')
-                      : dateTimeFormat(
-                          'd MMM y',
-                          prediction.date,
-                          locale: locale,
-                        ),
+                      : _formatVipCompactDate(context, prediction.date!),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.titleSmall.override(
@@ -809,6 +1255,58 @@ class _VipHistoryEmptyState extends StatelessWidget {
   }
 }
 
+class _VipHistoryDayEmptyState extends StatelessWidget {
+  const _VipHistoryDayEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 28.0),
+      decoration: BoxDecoration(
+        color: theme.secondaryBackground,
+        borderRadius: BorderRadius.circular(theme.designToken.radius.md),
+        border: Border.all(color: theme.alternate.applyAlpha(0.14)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48.0,
+            height: 48.0,
+            decoration: BoxDecoration(
+              color: theme.primary.applyAlpha(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.event_busy_rounded,
+              color: theme.primary,
+              size: 23.0,
+            ),
+          ),
+          const SizedBox(height: 12.0),
+          Text(
+            FFLocalizations.of(context).getText('viphstndy'),
+            textAlign: TextAlign.center,
+            style: theme.titleSmall.override(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 5.0),
+          Text(
+            FFLocalizations.of(context).getText('viphstndd'),
+            textAlign: TextAlign.center,
+            style: theme.bodySmall.override(
+              color: theme.secondaryText,
+              lineHeight: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _VipHistoryAccessDenied extends StatelessWidget {
   const _VipHistoryAccessDenied();
 
@@ -924,4 +1422,69 @@ class _VipHistoryMessage extends StatelessWidget {
       ),
     );
   }
+}
+
+const _creoleMonths = <String>[
+  'janvye',
+  'fevriye',
+  'mas',
+  'avril',
+  'me',
+  'jen',
+  'jiyè',
+  'out',
+  'septanm',
+  'oktòb',
+  'novanm',
+  'desanm',
+];
+
+const _creoleShortMonths = <String>[
+  'jan',
+  'fev',
+  'mas',
+  'avr',
+  'me',
+  'jen',
+  'jiy',
+  'out',
+  'sep',
+  'okt',
+  'nov',
+  'des',
+];
+
+const _creoleWeekdays = <String>[
+  'lendi',
+  'madi',
+  'mèkredi',
+  'jedi',
+  'vandredi',
+  'samdi',
+  'dimanch',
+];
+
+String _formatVipMonth(BuildContext context, DateTime date) {
+  final languageCode = FFLocalizations.of(context).languageCode;
+  if (languageCode == 'cr') {
+    return '${_creoleMonths[date.month - 1]} ${date.year}';
+  }
+  return dateTimeFormat('MMMM y', date, locale: languageCode);
+}
+
+String _formatVipFullDate(BuildContext context, DateTime date) {
+  final languageCode = FFLocalizations.of(context).languageCode;
+  if (languageCode == 'cr') {
+    return '${_creoleWeekdays[date.weekday - 1]} ${date.day} '
+        '${_creoleMonths[date.month - 1]} ${date.year}';
+  }
+  return dateTimeFormat('EEEE d MMMM y', date, locale: languageCode);
+}
+
+String _formatVipCompactDate(BuildContext context, DateTime date) {
+  final languageCode = FFLocalizations.of(context).languageCode;
+  if (languageCode == 'cr') {
+    return '${date.day} ${_creoleShortMonths[date.month - 1]} ${date.year}';
+  }
+  return dateTimeFormat('d MMM y', date, locale: languageCode);
 }

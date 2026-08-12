@@ -567,16 +567,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'View VIP history',
     },
     'viphsthed': {
-      'fr': 'Prédictions précédentes',
-      'cr': 'Prediksyon anvan yo',
-      'en': 'Previous predictions',
+      'fr': 'Calendrier des prédictions',
+      'cr': 'Kalandriye prediksyon yo',
+      'en': 'Prediction calendar',
     },
     'viphstdsc': {
-      'fr':
-          'Les 20 dernières publications, de la plus récente à la plus ancienne.',
-      'cr':
-          '20 dènye piblikasyon yo, soti nan sa ki pi resan rive nan sa ki pi ansyen.',
-      'en': 'The 20 latest publications, from newest to oldest.',
+      'fr': 'Sélectionnez une date marquée pour consulter ses prédictions.',
+      'cr': 'Chwazi yon dat ki make pou w gade prediksyon li yo.',
+      'en': 'Select a marked date to view its predictions.',
     },
     'viphstpub': {
       'fr': 'publication',
@@ -678,6 +676,16 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Les anciennes prédictions apparaîtront ici après leur publication.',
       'cr': 'Ansyen prediksyon yo ap parèt isit la apre yo fin pibliye.',
       'en': 'Previous predictions will appear here after publication.',
+    },
+    'viphstndy': {
+      'fr': 'Aucune prédiction ce jour',
+      'cr': 'Pa gen prediksyon jou sa a',
+      'en': 'No predictions on this day',
+    },
+    'viphstndd': {
+      'fr': 'Choisissez une date marquée dans le calendrier.',
+      'cr': 'Chwazi yon dat ki make nan kalandriye a.',
+      'en': 'Choose a marked date in the calendar.',
     },
     'viphstacc': {
       'fr': 'Accès VIP requis',

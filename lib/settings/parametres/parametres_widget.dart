@@ -5,9 +5,11 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/settings/language/language_widget.dart';
+import '/services/push_notification_service.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +45,22 @@ class _ParametresWidgetState extends State<ParametresWidget> {
     _model.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _toggleWebNotifications(bool enable) async {
+    final service = PushNotificationService.instance;
+    if (enable) {
+      await service.enable();
+    } else {
+      await service.disable();
+    }
+
+    if (!mounted || service.statusMessage == null) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(service.statusMessage!)),
+    );
   }
 
   @override
@@ -164,6 +182,84 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                           ),
                         ),
                       ),
+                    ),
+                  if (kIsWeb)
+                    AnimatedBuilder(
+                      animation: PushNotificationService.instance,
+                      builder: (context, _) {
+                        final service = PushNotificationService.instance;
+                        final subtitle = service.busy
+                            ? FFLocalizations.of(context).getVariableText(
+                                frText: 'Mise à jour en cours…',
+                                enText: 'Updating…',
+                                crText: 'Mizajou ap fèt…',
+                              )
+                            : service.enabled
+                                ? FFLocalizations.of(context).getVariableText(
+                                    frText:
+                                        'Vous serez alerté à chaque nouvelle prédiction.',
+                                    enText:
+                                        'You will be alerted for every new prediction.',
+                                    crText:
+                                        'W ap resevwa alèt pou chak nouvo prediksyon.',
+                                  )
+                                : service.statusMessage ??
+                                    FFLocalizations.of(context).getVariableText(
+                                      frText:
+                                          'Activez les alertes dans ce navigateur.',
+                                      enText: 'Enable alerts in this browser.',
+                                      crText: 'Aktive alèt nan navigatè sa a.',
+                                    );
+
+                        return Material(
+                          color: Colors.transparent,
+                          child: SwitchListTile(
+                            secondary: Icon(
+                              Icons.notifications_active_outlined,
+                              color: FlutterFlowTheme.of(context).alternate,
+                            ),
+                            title: Text(
+                              FFLocalizations.of(context).getVariableText(
+                                frText: 'Nouvelles prédictions',
+                                enText: 'New predictions',
+                                crText: 'Nouvo prediksyon',
+                              ),
+                              style: FlutterFlowTheme.of(context)
+                                  .titleLarge
+                                  .override(
+                                    fontFamily: 'Google sans flex',
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                            subtitle: Text(
+                              subtitle,
+                              style: FlutterFlowTheme.of(context)
+                                  .labelMedium
+                                  .override(
+                                    color:
+                                        FlutterFlowTheme.of(context).alternate,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                            value: service.enabled,
+                            onChanged: service.supported && !service.busy
+                                ? _toggleWebNotifications
+                                : null,
+                            tileColor: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
+                            contentPadding:
+                                const EdgeInsetsDirectional.fromSTEB(
+                              12.0,
+                              0.0,
+                              12.0,
+                              0.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   if (currentUserEmail != null && currentUserEmail != '')
                     InkWell(

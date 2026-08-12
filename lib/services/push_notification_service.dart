@@ -1,165 +1,199 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-/// Configures push notifications announcing newly published predictions.
+/// Manages prediction notifications for the Flutter Web application only.
 ///
-/// The topic payload intentionally contains no prediction numbers so VIP
-/// content is never exposed on a locked device. Firestore remains responsible
-/// for checking access when the user opens the VIP page.
-class PushNotificationService {
+/// Permission is requested only from [enable], which must be called from a
+/// user action. On later visits an already-authorized browser is synchronized
+/// automatically without showing another permission prompt.
+class PushNotificationService extends ChangeNotifier {
   PushNotificationService._();
 
   static final PushNotificationService instance = PushNotificationService._();
 
-  static const String predictionTopic = 'new_predictions';
   static const String _predictionType = 'new_prediction';
-  static const String _localPayload = 'open_vip_prediction';
-  static const AndroidNotificationChannel _androidChannel =
-      AndroidNotificationChannel(
-    'choloto_predictions',
-    'Nouvelles prédictions',
-    description: 'Alertes lors de la publication de nouvelles prédictions.',
-    importance: Importance.high,
-  );
-
-  final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
+  static const String _vapidKey =
+      String.fromEnvironment('CHOLOTO_WEB_PUSH_VAPID_KEY');
 
   StreamSubscription<RemoteMessage>? _foregroundSubscription;
   StreamSubscription<RemoteMessage>? _openedAppSubscription;
-  StreamSubscription<String>? _tokenRefreshSubscription;
+  DocumentReference<Map<String, dynamic>>? _tokenDocument;
   void Function()? _onOpenPrediction;
+  void Function(String title, String body)? _onForegroundPrediction;
   bool _initialized = false;
+  bool _supported = false;
+  bool _enabled = false;
+  bool _busy = false;
+  String? _statusMessage;
 
-  Future<void> initialize({required void Function() onOpenPrediction}) async {
+  bool get supported => _supported;
+  bool get enabled => _enabled;
+  bool get busy => _busy;
+  String? get statusMessage => _statusMessage;
+
+  Future<void> initialize({
+    required void Function() onOpenPrediction,
+    required void Function(String title, String body) onForegroundPrediction,
+  }) async {
     _onOpenPrediction = onOpenPrediction;
+    _onForegroundPrediction = onForegroundPrediction;
 
-    if (_initialized || kIsWeb || !_isSupportedMobilePlatform) {
+    if (_initialized || !kIsWeb) {
       return;
     }
     _initialized = true;
 
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      await _initializeAndroidNotifications();
-    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      await FirebaseMessaging.instance
-          .setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
-
-    _foregroundSubscription =
-        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    _openedAppSubscription =
-        FirebaseMessaging.onMessageOpenedApp.listen(_handleRemoteOpen);
-
-    await _requestPermissionAndSubscribe();
-
-    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      _handleRemoteOpen(initialMessage);
-    }
-  }
-
-  bool get _isSupportedMobilePlatform =>
-      defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS;
-
-  Future<void> _initializeAndroidNotifications() async {
-    const initializationSettings = InitializationSettings(
-      android: AndroidInitializationSettings('ic_stat_prediction'),
-    );
-
-    await _localNotifications.initialize(
-      settings: initializationSettings,
-      onDidReceiveNotificationResponse: (response) {
-        if (response.payload == _localPayload) {
-          _onOpenPrediction?.call();
-        }
-      },
-    );
-
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_androidChannel);
-  }
-
-  Future<void> _requestPermissionAndSubscribe() async {
     try {
+      _supported = await FirebaseMessaging.instance.isSupported();
+      if (!_supported) {
+        _statusMessage =
+            'Ce navigateur ne prend pas en charge les notifications push.';
+        notifyListeners();
+        return;
+      }
+
+      _foregroundSubscription =
+          FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      _openedAppSubscription =
+          FirebaseMessaging.onMessageOpenedApp.listen(_handleRemoteOpen);
+
+      await syncAuthorizedSubscription();
+
+      final initialMessage =
+          await FirebaseMessaging.instance.getInitialMessage();
+      if (initialMessage != null) {
+        _handleRemoteOpen(initialMessage);
+      }
+    } catch (error) {
+      _statusMessage = 'Initialisation des notifications impossible.';
+      debugPrint('Web push initialization failed: $error');
+      notifyListeners();
+    }
+  }
+
+  /// Registers the current browser when permission was already granted.
+  Future<void> syncAuthorizedSubscription() async {
+    if (!kIsWeb || !_initialized || !_supported || _busy) {
+      return;
+    }
+
+    final settings = await FirebaseMessaging.instance.getNotificationSettings();
+    if (_isAccepted(settings.authorizationStatus) &&
+        FirebaseAuth.instance.currentUser != null) {
+      await _registerCurrentBrowser();
+    }
+  }
+
+  /// Requests browser permission and subscribes this signed-in browser.
+  Future<bool> enable() async {
+    if (!kIsWeb || !_supported || _busy) {
+      return false;
+    }
+
+    _setBusy(true);
+    try {
+      if (FirebaseAuth.instance.currentUser == null) {
+        _statusMessage = 'Connectez-vous avant d’activer les notifications.';
+        return false;
+      }
+
       final settings = await FirebaseMessaging.instance.requestPermission(
         alert: true,
         badge: true,
         sound: true,
       );
-      final accepted =
-          settings.authorizationStatus == AuthorizationStatus.authorized ||
-              settings.authorizationStatus == AuthorizationStatus.provisional;
-      if (accepted) {
-        _tokenRefreshSubscription ??=
-            FirebaseMessaging.instance.onTokenRefresh.listen((_) {
-          unawaited(_subscribeToPredictionTopic());
-        });
-        await _subscribeToPredictionTopic();
+      if (!_isAccepted(settings.authorizationStatus)) {
+        _enabled = false;
+        _statusMessage =
+            'Autorisation refusée. Modifiez les réglages de votre navigateur.';
+        return false;
       }
+
+      await _registerCurrentBrowser();
+      _statusMessage = 'Notifications de prédictions activées.';
+      return true;
     } catch (error) {
-      debugPrint('Push notification registration failed: $error');
+      _enabled = false;
+      _statusMessage = 'Activation des notifications impossible.';
+      debugPrint('Web push activation failed: $error');
+      return false;
+    } finally {
+      _setBusy(false);
     }
   }
 
-  Future<void> _subscribeToPredictionTopic() async {
+  /// Stops FCM delivery for this browser. Browser permission remains under the
+  /// user's control and can still be revoked in the browser settings.
+  Future<bool> disable() async {
+    if (!kIsWeb || _busy) {
+      return false;
+    }
+
+    _setBusy(true);
     try {
-      if (defaultTargetPlatform == TargetPlatform.iOS &&
-          !await _waitForApplePushToken()) {
-        debugPrint('Push registration deferred: APNs token is not ready.');
-        return;
-      }
-      await FirebaseMessaging.instance.subscribeToTopic(predictionTopic);
+      await _tokenDocument?.delete();
+      await FirebaseMessaging.instance.deleteToken();
+      _tokenDocument = null;
+      _enabled = false;
+      _statusMessage = 'Notifications de prédictions désactivées.';
+      return true;
     } catch (error) {
-      debugPrint('Prediction topic subscription failed: $error');
+      _statusMessage = 'Désactivation des notifications impossible.';
+      debugPrint('Web push deactivation failed: $error');
+      return false;
+    } finally {
+      _setBusy(false);
     }
   }
 
-  Future<bool> _waitForApplePushToken() async {
-    for (var attempt = 0; attempt < 10; attempt++) {
-      if (await FirebaseMessaging.instance.getAPNSToken() != null) {
-        return true;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 500));
-    }
-    return false;
-  }
-
-  Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    if (message.data['type'] != _predictionType ||
-        defaultTargetPlatform != TargetPlatform.android) {
+  Future<void> _registerCurrentBrowser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
       return;
     }
 
-    final remoteNotification = message.notification;
-    await _localNotifications.show(
-      id: message.messageId?.hashCode ??
-          DateTime.now().millisecondsSinceEpoch.remainder(1 << 31),
-      title: remoteNotification?.title ?? 'Nouvelle prédiction disponible',
-      body: remoteNotification?.body ??
+    final token = await FirebaseMessaging.instance.getToken(
+      vapidKey: _vapidKey.isEmpty ? null : _vapidKey,
+    );
+    if (token == null || token.isEmpty) {
+      throw StateError('Firebase did not return a web push token.');
+    }
+
+    final tokenId = base64Url.encode(utf8.encode(token)).replaceAll('=', '');
+    _tokenDocument = FirebaseFirestore.instance
+        .collection('user')
+        .doc(user.uid)
+        .collection('webPushTokens')
+        .doc(tokenId);
+
+    await _tokenDocument!.set({
+      'token': token,
+      'userId': user.uid,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    _enabled = true;
+    _statusMessage = null;
+    notifyListeners();
+  }
+
+  bool _isAccepted(AuthorizationStatus status) =>
+      status == AuthorizationStatus.authorized ||
+      status == AuthorizationStatus.provisional;
+
+  void _handleForegroundMessage(RemoteMessage message) {
+    if (message.data['type'] != _predictionType) {
+      return;
+    }
+    _onForegroundPrediction?.call(
+      message.data['title'] ?? 'Nouvelle prédiction disponible',
+      message.data['body'] ??
           'Touchez pour consulter la nouvelle prédiction VIP.',
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'choloto_predictions',
-          'Nouvelles prédictions',
-          channelDescription:
-              'Alertes lors de la publication de nouvelles prédictions.',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: 'ic_stat_prediction',
-        ),
-      ),
-      payload: _localPayload,
     );
   }
 
@@ -169,13 +203,15 @@ class PushNotificationService {
     }
   }
 
-  Future<void> dispose() async {
-    await _foregroundSubscription?.cancel();
-    await _openedAppSubscription?.cancel();
-    await _tokenRefreshSubscription?.cancel();
-    _foregroundSubscription = null;
-    _openedAppSubscription = null;
-    _tokenRefreshSubscription = null;
-    _initialized = false;
+  void _setBusy(bool value) {
+    _busy = value;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_foregroundSubscription?.cancel());
+    unawaited(_openedAppSubscription?.cancel());
+    super.dispose();
   }
 }

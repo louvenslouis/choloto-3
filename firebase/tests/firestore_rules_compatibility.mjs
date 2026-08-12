@@ -257,6 +257,49 @@ expectStatus(
   'active VIP prediction read',
 );
 
+// Web push tokens are private and can only be managed by their owner.
+const webPushTokenPath = `user/${owner.uid}/webPushTokens/browser-token`;
+const webPushTokenFields = {
+  token: stringValue('fcm-web-token'),
+  userId: stringValue(owner.uid),
+  createdAt: timestampValue(),
+  updatedAt: timestampValue(),
+};
+expectStatus(
+  await firestoreRequest(webPushTokenPath, {
+    method: 'PATCH',
+    fields: webPushTokenFields,
+  }),
+  403,
+  'unauthenticated web push registration',
+);
+expectStatus(
+  await firestoreRequest(webPushTokenPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: webPushTokenFields,
+  }),
+  200,
+  'owner web push registration',
+);
+expectStatus(
+  await firestoreRequest(webPushTokenPath, {token: other.token}),
+  403,
+  'foreign web push token read',
+);
+expectStatus(
+  await firestoreRequest(`user/${owner.uid}/webPushTokens/spoofed-token`, {
+    method: 'PATCH',
+    token: other.token,
+    fields: {
+      ...webPushTokenFields,
+      userId: stringValue(other.uid),
+    },
+  }),
+  403,
+  'foreign web push registration',
+);
+
 expectStatus(
   await firestoreRequest(`user/${other.uid}`, {
     method: 'PATCH',
@@ -309,6 +352,14 @@ expectStatus(
   await firestoreRequest(votePath, {method: 'DELETE', token: owner.token}),
   200,
   'owner bingo vote deletion',
+);
+expectStatus(
+  await firestoreRequest(webPushTokenPath, {
+    method: 'DELETE',
+    token: owner.token,
+  }),
+  200,
+  'owner web push token deletion',
 );
 
 console.log('Firestore compatibility rules: all checks passed.');

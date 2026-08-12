@@ -10,50 +10,89 @@ exports.onUserDeleted = functions
     let userRef = firestore.doc("user/" + user.uid);
   });
 
-/**
- * Announces a new prediction without including any VIP-only numbers in the
- * lock-screen payload. Access to the prediction is still enforced by
- * Firestore when the user opens the app.
- */
+const invalidWebPushTokenCodes = new Set([
+  "messaging/invalid-registration-token",
+  "messaging/registration-token-not-registered",
+]);
+
+/** Announces a new prediction to browsers registered by the web app. */
 exports.onPredictionCreated = functions
   .region("northamerica-northeast1")
+  .runWith({memory: "256MB", timeoutSeconds: 120})
   .firestore.document("prediction/{predictionId}")
   .onCreate(async (_snapshot, context) => {
-    const messageId = await admin.messaging().send({
-      topic: "new_predictions",
-      notification: {
-        title: "Nouvelle prédiction disponible",
-        body: "Touchez pour consulter la nouvelle prédiction VIP.",
-      },
-      data: {
-        type: "new_prediction",
-        route: "vip",
+    const tokenSnapshot = await admin
+      .firestore()
+      .collectionGroup("webPushTokens")
+      .get();
+    const tokenEntriesByToken = new Map();
+    tokenSnapshot.docs.forEach((document) => {
+      const token = document.get("token");
+      if (typeof token !== "string" || !token) {
+        return;
+      }
+      const existingEntry = tokenEntriesByToken.get(token);
+      if (existingEntry) {
+        existingEntry.documents.push(document);
+      } else {
+        tokenEntriesByToken.set(token, {token, documents: [document]});
+      }
+    });
+    const tokenEntries = [...tokenEntriesByToken.values()];
+
+    if (tokenEntries.length === 0) {
+      functions.logger.info("Prediction push skipped: no web subscribers", {
         predictionId: context.params.predictionId,
-      },
-      android: {
-        priority: "high",
-        notification: {
-          channelId: "choloto_predictions",
-          icon: "ic_stat_prediction",
-          color: "#EDB900",
-          sound: "default",
+      });
+      return;
+    }
+
+    let successCount = 0;
+    let failureCount = 0;
+    const invalidTokenDocuments = [];
+
+    for (let index = 0; index < tokenEntries.length; index += 500) {
+      const batch = tokenEntries.slice(index, index + 500);
+      const response = await admin.messaging().sendEachForMulticast({
+        tokens: batch.map((entry) => entry.token),
+        data: {
+          type: "new_prediction",
+          route: "vip",
+          predictionId: context.params.predictionId,
+          title: "Nouvelle prédiction disponible",
+          body: "Touchez pour consulter la nouvelle prédiction VIP.",
         },
-      },
-      apns: {
-        headers: {
-          "apns-priority": "10",
-        },
-        payload: {
-          aps: {
-            badge: 1,
-            sound: "default",
+        webpush: {
+          headers: {
+            TTL: "86400",
+            Urgency: "high",
           },
         },
-      },
-    });
+      });
+
+      successCount += response.successCount;
+      failureCount += response.failureCount;
+      response.responses.forEach((result, responseIndex) => {
+        if (
+          result.error &&
+          invalidWebPushTokenCodes.has(result.error.code)
+        ) {
+          invalidTokenDocuments.push(
+            ...batch[responseIndex].documents.map((document) => document.ref),
+          );
+        }
+      });
+    }
+
+    await Promise.all(
+      invalidTokenDocuments.map((document) => document.delete()),
+    );
 
     functions.logger.info("Prediction push sent", {
       predictionId: context.params.predictionId,
-      messageId,
+      subscriberCount: tokenEntries.length,
+      successCount,
+      failureCount,
+      removedInvalidTokens: invalidTokenDocuments.length,
     });
   });
