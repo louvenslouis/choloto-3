@@ -236,39 +236,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
           child: AppBar(
             backgroundColor: Color(0xFF650BB0),
             automaticallyImplyLeading: false,
-            actions: [
-              AuthUserStreamWidget(
-                builder: (context) => Visibility(
-                  visible: loggedIn &&
-                      currentUserDocument?.endSub != null &&
-                      currentUserDocument!.endSub! >= getCurrentTimestamp,
-                  child: Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 6.0, 12.0, 6.0),
-                    child: Tooltip(
-                      message: FFLocalizations.of(context).getText('viphsttip'),
-                      child: FlutterFlowIconButton(
-                        borderColor: FlutterFlowTheme.of(context).primary,
-                        borderRadius: 12.0,
-                        borderWidth: 1.0,
-                        buttonSize: 44.0,
-                        fillColor:
-                            FlutterFlowTheme.of(context).primaryBackground,
-                        icon: Icon(
-                          Icons.history_rounded,
-                          color: FlutterFlowTheme.of(context).primary,
-                          size: 24.0,
-                        ),
-                        onPressed: () async {
-                          logFirebaseEvent('VIP_HISTORY_BUTTON_ON_TAP');
-                          context.pushNamed(VipHistoryWidget.routeName);
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            actions: [],
             bottom: PreferredSize(
               preferredSize: Size.fromHeight(70.0),
               child: Padding(
@@ -393,44 +361,43 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          FFLocalizations.of(context).getText(
-                            'gfj3b9xn' /* Compte VIP */,
-                          ),
-                          style:
-                              FlutterFlowTheme.of(context).bodyMedium.override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FontWeight.bold,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    letterSpacing: 0.0,
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.max,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            FFLocalizations.of(context).getText(
+                              'gfj3b9xn' /* Compte VIP */,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.inter(
                                     fontWeight: FontWeight.bold,
                                     fontStyle: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .fontStyle,
                                   ),
-                        ),
-                        Text(
-                          FFLocalizations.of(context).getText(
-                            'pubct0u4' /* Accès aux prédictions Premium */,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FontWeight.bold,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
                           ),
-                          style:
-                              FlutterFlowTheme.of(context).bodyMedium.override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    letterSpacing: 0.0,
+                          Text(
+                            FFLocalizations.of(context).getText(
+                              'pubct0u4' /* Accès aux prédictions Premium */,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.inter(
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .fontWeight,
@@ -438,8 +405,44 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                         .bodyMedium
                                         .fontStyle,
                                   ),
+                                  letterSpacing: 0.0,
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 12.0, 0.0),
+                      child: Tooltip(
+                        message:
+                            FFLocalizations.of(context).getText('viphsttip'),
+                        child: FlutterFlowIconButton(
+                          borderColor: Colors.transparent,
+                          borderRadius: 18.0,
+                          borderWidth: 0.0,
+                          buttonSize: 36.0,
+                          fillColor: Colors.transparent,
+                          hoverColor: FlutterFlowTheme.of(context)
+                              .primaryBackground
+                              .applyAlpha(0.12),
+                          icon: Icon(
+                            Icons.history_rounded,
+                            color: Color(0xCCFFFFFF),
+                            size: 21.0,
+                          ),
+                          onPressed: () async {
+                            logFirebaseEvent('VIP_HISTORY_BUTTON_ON_TAP');
+                            context.pushNamed(VipHistoryWidget.routeName);
+                          },
                         ),
-                      ],
+                      ),
                     ),
                   ].divide(SizedBox(width: 10.0)),
                 ),
