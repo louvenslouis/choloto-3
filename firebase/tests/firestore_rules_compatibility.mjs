@@ -193,7 +193,7 @@ expectStatus(
   'foreign result deletion',
 );
 
-// Predictions remain private to signed-in clients, as in the released app.
+// Predictions are reserved for administrators and users with an active VIP plan.
 const predictionFields = {
   date: timestampValue(),
   periode: stringValue('soir'),
@@ -217,14 +217,20 @@ expectStatus(
 );
 expectStatus(
   await firestoreRequest('prediction/owner-prediction', {token: other.token}),
+  403,
+  'non-VIP prediction read',
+);
+expectStatus(
+  await firestoreRequest('prediction/owner-prediction', {token: admin.token}),
   200,
-  'authenticated prediction read',
+  'admin prediction read',
 );
 
 // User documents keep the existing self-only access model.
 const userFields = {
   uid: stringValue(owner.uid),
   email: stringValue('owner@compatibility.test'),
+  end_sub: timestampValue('2099-12-31T23:59:59Z'),
 };
 expectStatus(
   await firestoreRequest(`user/${owner.uid}`, {
@@ -244,6 +250,30 @@ expectStatus(
   await firestoreRequest(`user/${owner.uid}`, {token: admin.token}),
   200,
   'legacy admin user document read',
+);
+expectStatus(
+  await firestoreRequest('prediction/owner-prediction', {token: owner.token}),
+  200,
+  'active VIP prediction read',
+);
+
+expectStatus(
+  await firestoreRequest(`user/${other.uid}`, {
+    method: 'PATCH',
+    token: other.token,
+    fields: {
+      uid: stringValue(other.uid),
+      email: stringValue('other@compatibility.test'),
+      end_sub: timestampValue('2020-01-01T00:00:00Z'),
+    },
+  }),
+  200,
+  'expired VIP user document creation',
+);
+expectStatus(
+  await firestoreRequest('prediction/owner-prediction', {token: other.token}),
+  403,
+  'expired VIP prediction read',
 );
 
 // Public configuration stays readable but can no longer be injected anonymously.

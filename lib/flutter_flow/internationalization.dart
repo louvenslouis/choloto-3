@@ -337,6 +337,87 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'YOUTUBE',
       'en': 'YOUTUBE',
     },
+    'ytch4nel': {
+      'fr': 'CHOLOTO sur YouTube',
+      'cr': 'CHOLOTO sou YouTube',
+      'en': 'CHOLOTO on YouTube',
+    },
+    'ytintr01': {
+      'fr': 'Retrouve les dernières vidéos de la chaîne officielle.',
+      'cr': 'Jwenn dènye videyo chanèl ofisyèl la.',
+      'en': 'Catch up on the latest videos from the official channel.',
+    },
+    'ytchnbtn': {
+      'fr': 'Voir la chaîne',
+      'cr': 'Gade chanèl la',
+      'en': 'View channel',
+    },
+    'ytlatest': {
+      'fr': 'Dernières vidéos',
+      'cr': 'Dènye videyo yo',
+      'en': 'Latest videos',
+    },
+    'ytvidone': {
+      'fr': 'vidéo',
+      'cr': 'videyo',
+      'en': 'video',
+    },
+    'ytvidmul': {
+      'fr': 'vidéos',
+      'cr': 'videyo',
+      'en': 'videos',
+    },
+    'ytd7pub1': {
+      'fr': 'Publié le',
+      'cr': 'Pibliye',
+      'en': 'Published',
+    },
+    'ytwatch1': {
+      'fr': 'Regarder sur YouTube',
+      'cr': 'Gade sou YouTube',
+      'en': 'Watch on YouTube',
+    },
+    'ytnewest': {
+      'fr': 'NOUVEAU',
+      'cr': 'NOUVO',
+      'en': 'NEW',
+    },
+    'ytloading': {
+      'fr': 'Chargement des vidéos…',
+      'cr': 'Videyo yo ap chaje…',
+      'en': 'Loading videos…',
+    },
+    'yterrttl': {
+      'fr': 'Impossible de charger les vidéos',
+      'cr': 'Nou pa ka chaje videyo yo',
+      'en': 'Unable to load videos',
+    },
+    'yterrdsc': {
+      'fr': 'Vérifie ta connexion, puis réessaie.',
+      'cr': 'Verifye koneksyon ou, epi eseye ankò.',
+      'en': 'Check your connection, then try again.',
+    },
+    'ytretry1': {
+      'fr': 'Réessayer',
+      'cr': 'Eseye ankò',
+      'en': 'Try again',
+    },
+    'ytemptyt': {
+      'fr': 'Aucune vidéo disponible',
+      'cr': 'Pa gen videyo disponib',
+      'en': 'No videos available',
+    },
+    'ytemptyd': {
+      'fr': 'Reviens bientôt pour découvrir les nouveautés.',
+      'cr': 'Retounen byento pou wè sa ki nouvo.',
+      'en': 'Come back soon to see what’s new.',
+    },
+    'ytrefrer': {
+      'fr':
+          'Actualisation impossible. Les dernières vidéos chargées restent affichées.',
+      'cr': 'Nou pa ka aktyalize. Dènye videyo ki te chaje yo toujou la.',
+      'en': 'Refresh failed. The last loaded videos are still displayed.',
+    },
     'coytq3hn': {
       'fr': 'Home',
       'cr': 'Akèy',
@@ -471,6 +552,148 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'VIP',
       'cr': 'VIP',
       'en': 'VIP',
+    },
+  },
+  // VIP history
+  {
+    'viphstttl': {
+      'fr': 'Historique VIP',
+      'cr': 'Istorik VIP',
+      'en': 'VIP History',
+    },
+    'viphsttip': {
+      'fr': 'Voir l\'historique VIP',
+      'cr': 'Gade istorik VIP la',
+      'en': 'View VIP history',
+    },
+    'viphsthed': {
+      'fr': 'Prédictions précédentes',
+      'cr': 'Prediksyon anvan yo',
+      'en': 'Previous predictions',
+    },
+    'viphstdsc': {
+      'fr':
+          'Les 20 dernières publications, de la plus récente à la plus ancienne.',
+      'cr':
+          '20 dènye piblikasyon yo, soti nan sa ki pi resan rive nan sa ki pi ansyen.',
+      'en': 'The 20 latest publications, from newest to oldest.',
+    },
+    'viphstpub': {
+      'fr': 'publication',
+      'cr': 'piblikasyon',
+      'en': 'publication',
+    },
+    'viphstpbs': {
+      'fr': 'publications',
+      'cr': 'piblikasyon',
+      'en': 'publications',
+    },
+    'viphstsel': {
+      'fr': 'sélection',
+      'cr': 'seleksyon',
+      'en': 'selection',
+    },
+    'viphstses': {
+      'fr': 'sélections',
+      'cr': 'seleksyon',
+      'en': 'selections',
+    },
+    'viphstnew': {
+      'fr': 'RÉCENTE',
+      'cr': 'RESAN',
+      'en': 'LATEST',
+    },
+    'viphstnod': {
+      'fr': 'Date non disponible',
+      'cr': 'Dat la pa disponib',
+      'en': 'Date unavailable',
+    },
+    'viphstnos': {
+      'fr': 'Aucune sélection enregistrée.',
+      'cr': 'Pa gen seleksyon ki anrejistre.',
+      'en': 'No selections saved.',
+    },
+    'viphstfav': {
+      'fr': 'FAVORI',
+      'cr': 'FAVORI',
+      'en': 'FAVORITE',
+    },
+    'viphstsou': {
+      'fr': 'SOUTNI',
+      'cr': 'SOUTNI',
+      'en': 'SOUTNI',
+    },
+    'viphstbol': {
+      'fr': 'BOLOTO',
+      'cr': 'BOLOTO',
+      'en': 'BOLOTO',
+    },
+    'viphstmar': {
+      'fr': 'MARIAGE',
+      'cr': 'MARYAJ',
+      'en': 'MARRIAGE',
+    },
+    'viphstc3f': {
+      'fr': '3 CHIFFRES',
+      'cr': '3 CHIF',
+      'en': '3 DIGITS',
+    },
+    'viphstc4f': {
+      'fr': '4 CHIFFRES',
+      'cr': '4 CHIF',
+      'en': '4 DIGITS',
+    },
+    'viphstext': {
+      'fr': 'EXTRA',
+      'cr': 'EKSTRA',
+      'en': 'EXTRA',
+    },
+    'viphstlod': {
+      'fr': 'Chargement de l\'historique...',
+      'cr': 'Istorik la ap chaje...',
+      'en': 'Loading history...',
+    },
+    'viphsterr': {
+      'fr': 'Historique indisponible',
+      'cr': 'Istorik la pa disponib',
+      'en': 'History unavailable',
+    },
+    'viphsterd': {
+      'fr': 'Impossible de charger les prédictions pour le moment.',
+      'cr': 'Nou pa kapab chaje prediksyon yo kounye a.',
+      'en': 'Predictions cannot be loaded right now.',
+    },
+    'viphstrty': {
+      'fr': 'Réessayer',
+      'cr': 'Eseye ankò',
+      'en': 'Try again',
+    },
+    'viphstemp': {
+      'fr': 'Aucune prédiction dans l\'historique',
+      'cr': 'Pa gen prediksyon nan istorik la',
+      'en': 'No predictions in history',
+    },
+    'viphstemd': {
+      'fr':
+          'Les anciennes prédictions apparaîtront ici après leur publication.',
+      'cr': 'Ansyen prediksyon yo ap parèt isit la apre yo fin pibliye.',
+      'en': 'Previous predictions will appear here after publication.',
+    },
+    'viphstacc': {
+      'fr': 'Accès VIP requis',
+      'cr': 'Aksè VIP obligatwa',
+      'en': 'VIP access required',
+    },
+    'viphstacd': {
+      'fr':
+          'Votre abonnement VIP doit être actif pour consulter cet historique.',
+      'cr': 'Abònman VIP ou dwe aktif pou w gade istorik sa a.',
+      'en': 'Your VIP subscription must be active to view this history.',
+    },
+    'viphstbak': {
+      'fr': 'Retour à VIP',
+      'cr': 'Retounen nan VIP',
+      'en': 'Back to VIP',
     },
   },
   // upgrade

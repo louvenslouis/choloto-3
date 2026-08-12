@@ -3,6 +3,7 @@ import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
 import '/components/don_widget.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -235,7 +236,39 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
           child: AppBar(
             backgroundColor: Color(0xFF650BB0),
             automaticallyImplyLeading: false,
-            actions: [],
+            actions: [
+              AuthUserStreamWidget(
+                builder: (context) => Visibility(
+                  visible: loggedIn &&
+                      currentUserDocument?.endSub != null &&
+                      currentUserDocument!.endSub! >= getCurrentTimestamp,
+                  child: Padding(
+                    padding:
+                        EdgeInsetsDirectional.fromSTEB(0.0, 6.0, 12.0, 6.0),
+                    child: Tooltip(
+                      message: FFLocalizations.of(context).getText('viphsttip'),
+                      child: FlutterFlowIconButton(
+                        borderColor: FlutterFlowTheme.of(context).primary,
+                        borderRadius: 12.0,
+                        borderWidth: 1.0,
+                        buttonSize: 44.0,
+                        fillColor:
+                            FlutterFlowTheme.of(context).primaryBackground,
+                        icon: Icon(
+                          Icons.history_rounded,
+                          color: FlutterFlowTheme.of(context).primary,
+                          size: 24.0,
+                        ),
+                        onPressed: () async {
+                          logFirebaseEvent('VIP_HISTORY_BUTTON_ON_TAP');
+                          context.pushNamed(VipHistoryWidget.routeName);
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             bottom: PreferredSize(
               preferredSize: Size.fromHeight(70.0),
               child: Padding(

@@ -159,6 +159,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                     page: VipWidget(),
                   )),
         FFRoute(
+          name: VipHistoryWidget.routeName,
+          path: VipHistoryWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const VipHistoryWidget(),
+        ),
+        FFRoute(
           name: UpgradeWidget.routeName,
           path: UpgradeWidget.routePath,
           builder: (context, params) => UpgradeWidget(),

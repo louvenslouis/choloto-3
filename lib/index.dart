@@ -12,6 +12,7 @@ export '/settings/profil/profil/profil_widget.dart' show ProfilWidget;
 export '/settings/customerservice/customerservice_widget.dart'
     show CustomerserviceWidget;
 export '/vip/vip/vip_widget.dart' show VipWidget;
+export '/vip/vip_history/vip_history_widget.dart' show VipHistoryWidget;
 export '/settings/upgrade/upgrade_widget.dart' show UpgradeWidget;
 export '/autres/home/home_widget.dart' show HomeWidget;
 export '/accomplissements/accomplissements_widget.dart'
