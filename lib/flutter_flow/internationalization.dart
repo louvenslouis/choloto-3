@@ -316,6 +316,16 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Kwa Lachans',
       'en': 'Lucky Cross',
     },
+    'croixsharetitle': {
+      'fr': 'Partager la Croix de la Chance',
+      'cr': 'Pataje Kwa Lachans',
+      'en': 'Share the Lucky Cross',
+    },
+    'croixshareerror': {
+      'fr': 'Impossible de partager la Croix de la Chance pour le moment.',
+      'cr': 'Nou pa kapab pataje Kwa Lachans la kounye a.',
+      'en': 'The Lucky Cross could not be shared right now.',
+    },
     '64uxl098': {
       'fr': 'Accueil',
       'cr': 'Akèy',

@@ -60,6 +60,7 @@ const mapArray = (values) => ({
 const admin = await createTestUser('admin', 'sanonmaeva064@gmail.com');
 const owner = await createTestUser('owner');
 const other = await createTestUser('other');
+const legacy = await createTestUser('legacy');
 
 // Public content stays readable, while unauthenticated publication is blocked.
 const bingoFields = {
@@ -193,7 +194,8 @@ expectStatus(
   'foreign result deletion',
 );
 
-// Predictions are reserved for administrators and users with an active VIP plan.
+// Prediction reads keep the released authenticated-client contract. The VIP
+// screen still decides whether to query them from the user's subscription.
 const predictionFields = {
   date: timestampValue(),
   periode: stringValue('soir'),
@@ -217,8 +219,8 @@ expectStatus(
 );
 expectStatus(
   await firestoreRequest('prediction/owner-prediction', {token: other.token}),
-  403,
-  'non-VIP prediction read',
+  200,
+  'authenticated prediction read',
 );
 expectStatus(
   await firestoreRequest('prediction/owner-prediction', {token: admin.token}),
@@ -226,7 +228,15 @@ expectStatus(
   'admin prediction read',
 );
 
-// User documents keep the existing self-only access model.
+// User documents keep the existing self-only access model. The first read of a
+// missing profile must be allowed and return not-found: released clients use
+// this read to decide whether they need to create the profile after Google Auth.
+expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {token: owner.token}),
+  404,
+  'first-login missing user document read',
+);
+
 const userFields = {
   uid: stringValue(owner.uid),
   email: stringValue('owner@compatibility.test'),
@@ -255,6 +265,45 @@ expectStatus(
   await firestoreRequest('prediction/owner-prediction', {token: owner.token}),
   200,
   'active VIP prediction read',
+);
+
+// Older released clients can use the uid document path without storing a uid
+// field. Ownership remains tied to the authenticated path, so they cannot
+// create or access another user's profile.
+expectStatus(
+  await firestoreRequest(`user/${legacy.uid}`, {
+    method: 'PATCH',
+    token: legacy.token,
+    fields: {email: stringValue('legacy@compatibility.test')},
+  }),
+  200,
+  'legacy uid-less user document creation',
+);
+expectStatus(
+  await firestoreRequest(`user/${legacy.uid}`, {token: legacy.token}),
+  200,
+  'legacy uid-less user document read',
+);
+expectStatus(
+  await firestoreRequest(`user/${legacy.uid}`, {
+    method: 'PATCH',
+    token: legacy.token,
+    fields: {
+      email: stringValue('legacy@compatibility.test'),
+      device: stringValue('Android'),
+    },
+  }),
+  200,
+  'legacy uid-less user document update',
+);
+expectStatus(
+  await firestoreRequest(`user/${other.uid}`, {
+    method: 'PATCH',
+    token: legacy.token,
+    fields: {uid: stringValue(legacy.uid)},
+  }),
+  403,
+  'foreign user document creation through spoofed uid field',
 );
 
 // Web push tokens are private and can only be managed by their owner.
@@ -316,8 +365,8 @@ expectStatus(
 );
 expectStatus(
   await firestoreRequest('prediction/owner-prediction', {token: other.token}),
-  403,
-  'expired VIP prediction read',
+  200,
+  'expired VIP authenticated prediction read',
 );
 
 // Public configuration stays readable but can no longer be injected anonymously.

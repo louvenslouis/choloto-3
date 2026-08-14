@@ -180,16 +180,23 @@ service cloud.firestore {
       allow delete: if isAdmin() && owns('created_by');
     }
 
-    match /user/{document} {
-      // Keep the released-client ownership contract unchanged, while guarding
-      // the uid access so unauthenticated requests fail cleanly.
-      allow create: if signedIn() && request.auth.uid == request.resource.data.uid;
+    match /user/{userId} {
+      // User ownership is derived from the document path, not resource.data.
+      // This is important for first sign-in: released clients read /user/{uid}
+      // before creating it, so there is no resource.data to inspect yet.
+      // Some older clients omitted the uid field; accept that legacy shape while
+      // still rejecting a uid that conflicts with the authenticated path owner.
+      allow create: if signedIn() &&
+          request.auth.uid == userId &&
+          (!('uid' in request.resource.data) ||
+            request.resource.data.uid == userId);
       allow read: if signedIn() &&
-          (request.auth.uid == resource.data.uid || isAdmin());
+          (request.auth.uid == userId || isAdmin());
       allow update: if signedIn() &&
-          (request.auth.uid == resource.data.uid || isAdmin()) &&
-          request.resource.data.uid == resource.data.uid;
-      allow delete: if signedIn() && request.auth.uid == resource.data.uid;
+          (request.auth.uid == userId || isAdmin()) &&
+          (!('uid' in request.resource.data) ||
+            request.resource.data.uid == userId);
+      allow delete: if signedIn() && request.auth.uid == userId;
     }
 
     match /user/{userId}/webPushTokens/{tokenId} {
@@ -202,7 +209,11 @@ service cloud.firestore {
     }
 
     match /prediction/{document} {
-      allow read: if hasActiveVipAccess();
+      // Released clients already gate the VIP screen locally using end_sub.
+      // Keep authenticated prediction reads compatible with those clients;
+      // this also avoids hiding the VIP content when a legacy profile does not
+      // yet expose a normalized end_sub timestamp to rules.
+      allow read: if signedIn();
       allow create: if isAdmin() && createsOwn('created_by') &&
           validPrediction(request.resource.data);
       allow update: if isAdmin() && owns('created_by') && keepsOwner('created_by') &&

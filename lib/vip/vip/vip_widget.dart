@@ -466,8 +466,23 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                       updateCallback: () => safeSetState(() {}),
                       child: BingoCardVIPWidget(),
                     ),
-                  Builder(
+                  AuthUserStreamWidget(
                     builder: (context) {
+                      if (loggedIn && currentUserDocument == null) {
+                        return Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(
+                              FlutterFlowTheme.of(context)
+                                  .designToken
+                                  .spacing.lg,
+                            ),
+                            child: CircularProgressIndicator(
+                              color: FlutterFlowTheme.of(context).primary,
+                            ),
+                          ),
+                        );
+                      }
+
                       if (loggedIn &&
                           currentUserDocument?.endSub != null &&
                           currentUserDocument!.endSub! >= getCurrentTimestamp) {
@@ -478,7 +493,27 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                             singleRecord: true,
                           ),
                           builder: (context, snapshot) {
-                            // Customize what your widget looks like when it's loading.
+                            if (snapshot.hasError) {
+                              return Padding(
+                                padding: EdgeInsets.all(
+                                  FlutterFlowTheme.of(context)
+                                      .designToken
+                                      .spacing.lg,
+                                ),
+                                child: Text(
+                                  FFLocalizations.of(context)
+                                      .getText('viphsterd'),
+                                  textAlign: TextAlign.center,
+                                  style: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .override(
+                                        color: FlutterFlowTheme.of(context)
+                                            .onDecorative,
+                                      ),
+                                ),
+                              );
+                            }
+
                             if (!snapshot.hasData) {
                               return Center(
                                 child: SizedBox(
