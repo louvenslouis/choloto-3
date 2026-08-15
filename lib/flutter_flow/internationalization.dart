@@ -1355,6 +1355,49 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // Welcome
   {
+    'onboarding_eyebrow': {
+      'fr': 'Bienvenue dans CHOLOTO',
+      'cr': 'Byenvini nan CHOLOTO',
+      'en': 'Welcome to CHOLOTO',
+    },
+    'onboarding_title': {
+      'fr': 'Vos tirages. Vos numéros. Votre CHOLOTO.',
+      'cr': 'Tiraj ou. Nimewo ou. CHOLOTO pa ou.',
+      'en': 'Your draws. Your numbers. Your CHOLOTO.',
+    },
+    'onboarding_description': {
+      'fr':
+          'Consultez les résultats, explorez le Tchala et profitez de l’expérience VIP au même endroit.',
+      'cr':
+          'Gade rezilta yo, dekouvri Tchala a epi pwofite eksperyans VIP la yon sèl kote.',
+      'en':
+          'Check results, explore Tchala, and enjoy the VIP experience in one place.',
+    },
+    'onboarding_feature_results': {
+      'fr': 'Résultats rapides',
+      'cr': 'Rezilta rapid',
+      'en': 'Fast results',
+    },
+    'onboarding_feature_tchala': {
+      'fr': 'Tchala',
+      'cr': 'Tchala',
+      'en': 'Tchala',
+    },
+    'onboarding_feature_vip': {
+      'fr': 'Avantages VIP',
+      'cr': 'Avantaj VIP',
+      'en': 'VIP benefits',
+    },
+    'onboarding_continue_title': {
+      'fr': 'Choisissez comment continuer',
+      'cr': 'Chwazi kijan pou kontinye',
+      'en': 'Choose how to continue',
+    },
+    'onboarding_logo_label': {
+      'fr': 'Logo CHOLOTO',
+      'cr': 'Logo CHOLOTO',
+      'en': 'CHOLOTO logo',
+    },
     'ser0033p': {
       'fr': 'Continuer avec Google',
       'cr': 'Kontinye ak Google',
