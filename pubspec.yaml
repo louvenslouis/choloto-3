@@ -118,6 +118,7 @@ dependencies:
   url_launcher_web: 2.4.1
   url_launcher_windows: 3.1.4
   uuid: ^4.0.0
+  web: 1.1.1
   webview_flutter: 4.13.0
   webview_flutter_android: 4.7.0
   webview_flutter_platform_interface: 2.13.1

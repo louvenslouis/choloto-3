@@ -4,9 +4,11 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
+import 'croix_download.dart';
 import 'croix_share.dart';
 import 'croix_model.dart';
 export 'croix_model.dart';
@@ -41,6 +43,7 @@ class _CroixWidgetState extends State<CroixWidget> {
         : shareBox.localToGlobal(Offset.zero) & shareBox.size;
     final shareSubject = localizations.getText('croixsharetitle');
     final shareErrorMessage = localizations.getText('croixshareerror');
+    final downloadMessage = localizations.getText('croixsharedownload');
 
     setState(() => _isSharing = true);
     try {
@@ -67,17 +70,32 @@ class _CroixWidgetState extends State<CroixWidget> {
         );
         final jpegBytes = pngToJpeg(pngBytes);
 
-        await Share.shareXFiles(
-          [
-            XFile.fromData(
-              jpegBytes,
-              mimeType: 'image/jpeg',
-            ),
-          ],
-          subject: shareSubject,
-          fileNameOverrides: ['croix-de-la-chance.jpg'],
-          sharePositionOrigin: sharePositionOrigin,
+        const fileName = 'croix-de-la-chance.jpg';
+        final delivery = await deliverCroixJpeg(
+          share: () async {
+            await Share.shareXFiles(
+              [
+                XFile.fromData(
+                  jpegBytes,
+                  mimeType: 'image/jpeg',
+                ),
+              ],
+              subject: shareSubject,
+              fileNameOverrides: [fileName],
+              sharePositionOrigin: sharePositionOrigin,
+            );
+          },
+          download: () => downloadCroixJpeg(
+            jpegBytes,
+            fileName: fileName,
+          ),
+          isWeb: kIsWeb,
         );
+        if (delivery == CroixShareDelivery.downloaded && mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(downloadMessage)),
+          );
+        }
       } finally {
         capturedImage.dispose();
       }

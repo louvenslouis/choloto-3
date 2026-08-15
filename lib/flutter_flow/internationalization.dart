@@ -326,6 +326,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Nou pa kapab pataje Kwa Lachans la kounye a.',
       'en': 'The Lucky Cross could not be shared right now.',
     },
+    'croixsharedownload': {
+      'fr': 'Le visuel JPEG a été téléchargé. Vous pouvez maintenant le partager.',
+      'cr': 'Imaj JPEG la telechaje. Kounye a ou ka pataje li.',
+      'en': 'The JPEG was downloaded. You can now share it.',
+    },
     '64uxl098': {
       'fr': 'Accueil',
       'cr': 'Akèy',
