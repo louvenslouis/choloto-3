@@ -1360,78 +1360,105 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Kontinye ak Google',
       'en': 'Continue with Google',
     },
-    'phone_continue': {
-      'fr': 'Continuer avec un téléphone',
-      'cr': 'Kontinye ak yon telefòn',
-      'en': 'Continue with phone',
+    'email_continue': {
+      'fr': 'Continuer avec un e-mail',
+      'cr': 'Kontinye ak yon imèl',
+      'en': 'Continue with email',
     },
-    'phone_sign_in_title': {
-      'fr': 'Connexion par téléphone',
-      'cr': 'Konekte ak telefòn',
-      'en': 'Phone sign-in',
+    'email_sign_in_title': {
+      'fr': 'Connexion par e-mail',
+      'cr': 'Konekte ak imèl',
+      'en': 'Email sign-in',
     },
-    'phone_number_description': {
-      'fr':
-          'Saisissez votre numéro avec l’indicatif du pays. Un numéro haïtien à 8 chiffres recevra automatiquement +509.',
-      'cr':
-          'Antre nimewo a ak kòd peyi a. Yon nimewo Ayiti ki gen 8 chif ap resevwa +509 otomatikman.',
-      'en':
-          'Enter your number with the country code. An 8-digit Haitian number will automatically use +509.',
+    'email_sign_in_description': {
+      'fr': 'Saisissez l’adresse e-mail et le mot de passe de votre compte.',
+      'cr': 'Antre adrès imèl ak modpas kont ou.',
+      'en': 'Enter the email address and password for your account.',
     },
-    'phone_number_label': {
-      'fr': 'Numéro de téléphone',
-      'cr': 'Nimewo telefòn',
-      'en': 'Phone number',
+    'email_create_title': {
+      'fr': 'Créer un compte',
+      'cr': 'Kreye yon kont',
+      'en': 'Create an account',
     },
-    'phone_send_code': {
-      'fr': 'Envoyer le code',
-      'cr': 'Voye kòd la',
-      'en': 'Send code',
+    'email_create_description': {
+      'fr': 'Créez votre compte avec une adresse e-mail et un mot de passe.',
+      'cr': 'Kreye kont ou ak yon adrès imèl ak yon modpas.',
+      'en': 'Create your account with an email address and password.',
     },
-    'phone_code_description': {
-      'fr': 'Saisissez le code à 6 chiffres envoyé au {phoneNumber}.',
-      'cr': 'Antre kòd 6 chif nou voye nan {phoneNumber}.',
-      'en': 'Enter the 6-digit code sent to {phoneNumber}.',
+    'email_label': {
+      'fr': 'Adresse e-mail',
+      'cr': 'Adrès imèl',
+      'en': 'Email address',
     },
-    'phone_code_label': {
-      'fr': 'Code de vérification',
-      'cr': 'Kòd verifikasyon',
-      'en': 'Verification code',
+    'email_password_label': {
+      'fr': 'Mot de passe',
+      'cr': 'Modpas',
+      'en': 'Password',
     },
-    'phone_verify_code': {
-      'fr': 'Vérifier et continuer',
-      'cr': 'Verifye epi kontinye',
-      'en': 'Verify and continue',
+    'email_confirm_password_label': {
+      'fr': 'Confirmer le mot de passe',
+      'cr': 'Konfime modpas la',
+      'en': 'Confirm password',
     },
-    'phone_change_number': {
-      'fr': 'Modifier le numéro',
-      'cr': 'Chanje nimewo a',
-      'en': 'Change number',
+    'email_sign_in': {
+      'fr': 'Se connecter',
+      'cr': 'Konekte',
+      'en': 'Sign in',
     },
-    'phone_resend_code': {
-      'fr': 'Renvoyer le code',
-      'cr': 'Voye kòd la ankò',
-      'en': 'Resend code',
+    'email_create_account': {
+      'fr': 'Créer mon compte',
+      'cr': 'Kreye kont mwen',
+      'en': 'Create my account',
     },
-    'phone_invalid_number': {
-      'fr': 'Saisissez un numéro de téléphone valide.',
-      'cr': 'Antre yon nimewo telefòn ki valab.',
-      'en': 'Enter a valid phone number.',
+    'email_forgot_password': {
+      'fr': 'Mot de passe oublié ?',
+      'cr': 'Ou bliye modpas ou?',
+      'en': 'Forgot password?',
     },
-    'phone_invalid_code': {
-      'fr': 'Saisissez les 6 chiffres du code reçu.',
-      'cr': 'Antre 6 chif kòd ou resevwa a.',
-      'en': 'Enter all 6 digits from the code you received.',
+    'email_no_account': {
+      'fr': 'Pas encore de compte ? Créer un compte',
+      'cr': 'Ou poko gen kont? Kreye yon kont',
+      'en': 'No account yet? Create one',
     },
-    'phone_close': {
+    'email_have_account': {
+      'fr': 'Vous avez déjà un compte ? Se connecter',
+      'cr': 'Ou deja gen yon kont? Konekte',
+      'en': 'Already have an account? Sign in',
+    },
+    'email_invalid': {
+      'fr': 'Saisissez une adresse e-mail valide.',
+      'cr': 'Antre yon adrès imèl ki valab.',
+      'en': 'Enter a valid email address.',
+    },
+    'email_password_too_short': {
+      'fr': 'Le mot de passe doit contenir au moins 6 caractères.',
+      'cr': 'Modpas la dwe gen omwen 6 karaktè.',
+      'en': 'The password must contain at least 6 characters.',
+    },
+    'email_password_mismatch': {
+      'fr': 'Les mots de passe ne correspondent pas.',
+      'cr': 'Modpas yo pa menm.',
+      'en': 'The passwords do not match.',
+    },
+    'email_show_password': {
+      'fr': 'Afficher le mot de passe',
+      'cr': 'Montre modpas la',
+      'en': 'Show password',
+    },
+    'email_hide_password': {
+      'fr': 'Masquer le mot de passe',
+      'cr': 'Kache modpas la',
+      'en': 'Hide password',
+    },
+    'email_loading': {
+      'fr': 'Veuillez patienter…',
+      'cr': 'Tanpri tann…',
+      'en': 'Please wait…',
+    },
+    'email_close': {
       'fr': 'Fermer',
       'cr': 'Fèmen',
       'en': 'Close',
-    },
-    'phone_sms_notice': {
-      'fr': 'Des frais de SMS peuvent s’appliquer.',
-      'cr': 'Frè SMS ka aplike.',
-      'en': 'SMS charges may apply.',
     },
     '7p5qctmz': {
       'fr': 'Continuer en tant qu\'invité',

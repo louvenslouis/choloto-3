@@ -21,50 +21,28 @@ async function createTestUser(label, email = `${label}@compatibility.test`) {
   );
   const body = await response.json();
   assert.equal(response.status, 200, JSON.stringify(body));
-  return {uid: body.localId, token: body.idToken};
+  return {uid: body.localId, token: body.idToken, email};
 }
 
-async function createPhoneTestUser(phoneNumber = '+50937000000') {
-  const sendResponse = await fetch(
-    `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=fake-api-key`,
-    {
-      method: 'POST',
-      headers: {'content-type': 'application/json'},
-      body: JSON.stringify({phoneNumber}),
-    },
-  );
-  const sendBody = await sendResponse.json();
-  assert.equal(sendResponse.status, 200, JSON.stringify(sendBody));
-
-  const codesResponse = await fetch(
-    `http://${authHost}/emulator/v1/projects/${projectId}/verificationCodes`,
-  );
-  const codesBody = await codesResponse.json();
-  assert.equal(codesResponse.status, 200, JSON.stringify(codesBody));
-  const verification = codesBody.verificationCodes?.find(
-    (entry) =>
-      entry.phoneNumber === phoneNumber &&
-      entry.sessionInfo === sendBody.sessionInfo,
-  );
-  assert.ok(verification, `missing emulator SMS code for ${phoneNumber}`);
-
-  const signInResponse = await fetch(
-    `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=fake-api-key`,
+async function signInTestUser(email) {
+  const response = await fetch(
+    `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`,
     {
       method: 'POST',
       headers: {'content-type': 'application/json'},
       body: JSON.stringify({
-        sessionInfo: verification.sessionInfo,
-        code: verification.code,
+        email,
+        password: 'compatibility-test-password',
+        returnSecureToken: true,
       }),
     },
   );
-  const signInBody = await signInResponse.json();
-  assert.equal(signInResponse.status, 200, JSON.stringify(signInBody));
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
   return {
-    uid: signInBody.localId,
-    token: signInBody.idToken,
-    phoneNumber,
+    uid: body.localId,
+    token: body.idToken,
+    email,
   };
 }
 
@@ -114,7 +92,9 @@ const admin = await createTestUser('admin', 'sanonmaeva064@gmail.com');
 const owner = await createTestUser('owner');
 const other = await createTestUser('other');
 const legacy = await createTestUser('legacy');
-const phoneOwner = await createPhoneTestUser();
+const emailAccount = await createTestUser('email-owner');
+const emailOwner = await signInTestUser(emailAccount.email);
+assert.equal(emailOwner.uid, emailAccount.uid);
 
 // Public content stays readable, while unauthenticated publication is blocked.
 const bingoFields = {
@@ -463,76 +443,76 @@ expectStatus(
   'foreign user document creation through spoofed uid field',
 );
 
-// Phone authentication follows the same released-client profile sequence:
-// authenticate, read the missing canonical document, create it with the phone
-// number, then complete end_sub and device before navigating home.
+// Email authentication follows the same released-client profile sequence:
+// authenticate, read the missing canonical document, create it with the email,
+// then complete end_sub and device before navigating home.
 expectStatus(
-  await firestoreRequest(`user/${phoneOwner.uid}`, {token: phoneOwner.token}),
+  await firestoreRequest(`user/${emailOwner.uid}`, {token: emailOwner.token}),
   404,
-  'phone first-login missing user document read',
+  'email first-login missing user document read',
 );
-const phoneUserFields = {
-  uid: stringValue(phoneOwner.uid),
-  phone_number: stringValue(phoneOwner.phoneNumber),
+const emailUserFields = {
+  uid: stringValue(emailOwner.uid),
+  email: stringValue(emailOwner.email),
   created_time: timestampValue(),
 };
 expectStatus(
-  await firestoreRequest(`user/${phoneOwner.uid}`, {
+  await firestoreRequest(`user/${emailOwner.uid}`, {
     method: 'PATCH',
-    token: phoneOwner.token,
-    fields: phoneUserFields,
+    token: emailOwner.token,
+    fields: emailUserFields,
   }),
   200,
-  'phone user document creation',
+  'email user document creation',
 );
 expectStatus(
-  await firestoreRequest(`user/${phoneOwner.uid}`, {
+  await firestoreRequest(`user/${emailOwner.uid}`, {
     method: 'PATCH',
-    token: phoneOwner.token,
+    token: emailOwner.token,
     fields: {
-      ...phoneUserFields,
+      ...emailUserFields,
       end_sub: timestampValue('2026-08-14T12:00:00Z'),
     },
   }),
   200,
-  'phone user end_sub completion',
+  'email user end_sub completion',
 );
 expectStatus(
-  await firestoreRequest(`user/${phoneOwner.uid}`, {
+  await firestoreRequest(`user/${emailOwner.uid}`, {
     method: 'PATCH',
-    token: phoneOwner.token,
+    token: emailOwner.token,
     fields: {
-      ...phoneUserFields,
+      ...emailUserFields,
       end_sub: timestampValue('2026-08-14T12:00:00Z'),
       device: stringValue('Android'),
     },
   }),
   200,
-  'phone user device completion',
+  'email user device completion',
 );
-const phoneProfileRead = await firestoreRequest(`user/${phoneOwner.uid}`, {
-  token: phoneOwner.token,
+const emailProfileRead = await firestoreRequest(`user/${emailOwner.uid}`, {
+  token: emailOwner.token,
 });
 expectStatus(
-  phoneProfileRead,
+  emailProfileRead,
   200,
-  'phone user document read',
+  'email user document read',
 );
-const phoneProfileBody = JSON.parse(phoneProfileRead.body);
-assert.equal(phoneProfileBody.fields.uid.stringValue, phoneOwner.uid);
+const emailProfileBody = JSON.parse(emailProfileRead.body);
+assert.equal(emailProfileBody.fields.uid.stringValue, emailOwner.uid);
 assert.equal(
-  phoneProfileBody.fields.phone_number.stringValue,
-  phoneOwner.phoneNumber,
+  emailProfileBody.fields.email.stringValue,
+  emailOwner.email,
 );
 expectStatus(
-  await firestoreRequest(`user/${phoneOwner.uid}`, {token: other.token}),
+  await firestoreRequest(`user/${emailOwner.uid}`, {token: other.token}),
   403,
-  'foreign phone user document read',
+  'foreign email user document read',
 );
 expectStatus(
-  await firestoreRequest(`user/${phoneOwner.uid}`),
+  await firestoreRequest(`user/${emailOwner.uid}`),
   403,
-  'unauthenticated phone user document read',
+  'unauthenticated email user document read',
 );
 
 // Web push tokens are private and can only be managed by their owner.

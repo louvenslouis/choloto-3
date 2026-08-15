@@ -71,9 +71,9 @@ String _localizedFirebaseAuthError(
         crText: 'Limit voye SMS la rive. Tanpri eseye ankò pita.',
       ),
     'operation-not-allowed' => localizations.getVariableText(
-        frText: 'La connexion par téléphone n’est pas encore disponible.',
-        enText: 'Phone sign-in is not available yet.',
-        crText: 'Koneksyon ak telefòn poko disponib.',
+        frText: 'Ce mode de connexion n’est pas encore disponible.',
+        enText: 'This sign-in method is not available yet.',
+        crText: 'Metòd koneksyon sa a poko disponib.',
       ),
     'weak-password' => localizations.getVariableText(
         frText: 'Ce mot de passe est trop faible.',

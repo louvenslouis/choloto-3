@@ -1,5 +1,5 @@
 import '/auth/firebase_auth/auth_util.dart';
-import '/auth/phone_number.dart';
+import '/auth/email_address.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -8,7 +8,7 @@ import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'phone_auth_sheet.dart';
+import 'email_auth_sheet.dart';
 import 'welcome_model.dart';
 export 'welcome_model.dart';
 
@@ -74,7 +74,7 @@ class _WelcomeWidgetState extends State<WelcomeWidget> {
     await _completeAuthenticatedSignIn(user);
   }
 
-  Future<void> _signInWithPhone() async {
+  Future<void> _signInWithEmail() async {
     GoRouter.of(context).prepareAuthEvent();
     final user = await showModalBottomSheet<BaseAuthUser>(
       isScrollControlled: true,
@@ -83,7 +83,25 @@ class _WelcomeWidgetState extends State<WelcomeWidget> {
       context: context,
       builder: (sheetContext) => Padding(
         padding: MediaQuery.viewInsetsOf(sheetContext),
-        child: const PhoneAuthSheet(),
+        child: EmailAuthSheet(
+          onSignIn: (email, password) => authManager.signInWithEmail(
+            sheetContext,
+            email,
+            password,
+          ),
+          onCreateAccount: (email, password) =>
+              authManager.createAccountWithEmail(
+            sheetContext,
+            email,
+            password,
+          ),
+          onResetPassword: (email) async {
+            await authManager.resetPassword(
+              email: email,
+              context: sheetContext,
+            );
+          },
+        ),
       ),
     );
     if (user == null && mounted) {
@@ -197,14 +215,14 @@ class _WelcomeWidgetState extends State<WelcomeWidget> {
                       ),
                       FFButtonWidget(
                         onPressed: () async {
-                          logFirebaseEvent(phoneAuthButtonAnalyticsEvent);
-                          await _signInWithPhone();
+                          logFirebaseEvent(emailAuthButtonAnalyticsEvent);
+                          await _signInWithEmail();
                         },
                         text: FFLocalizations.of(context).getText(
-                          'phone_continue',
+                          'email_continue',
                         ),
                         icon: const Icon(
-                          Icons.phone_outlined,
+                          Icons.email_outlined,
                           size: 24.0,
                         ),
                         options: FFButtonOptions(
