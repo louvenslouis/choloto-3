@@ -1,16 +1,15 @@
+import 'dart:async';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo/bingo_widget.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/components/rappel_fin_abonnement_widget.dart';
 import '/components/tirages_home_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import '/index.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '/services/engagement_service.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -30,7 +29,7 @@ class HomeWidget extends StatefulWidget {
   State<HomeWidget> createState() => _HomeWidgetState();
 }
 
-class _HomeWidgetState extends State<HomeWidget> {
+class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   late HomeModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
@@ -38,7 +37,9 @@ class _HomeWidgetState extends State<HomeWidget> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _model = createModel(context, () => HomeModel());
+    unawaited(recordDailyEngagement(userReference: currentUserReference));
 
     logFirebaseEvent('screen_view', parameters: {'screen_name': 'Home'});
     // On page load action.
@@ -146,9 +147,17 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _model.dispose();
 
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(recordDailyEngagement(userReference: currentUserReference));
+    }
   }
 
   @override
@@ -209,31 +218,21 @@ class _HomeWidgetState extends State<HomeWidget> {
                           (currentUserEmail == 'louvenslouisl@gmail.com'))
                         Align(
                           alignment: AlignmentDirectional(0.0, 0.0),
-                          child: InkWell(
-                            splashColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            onLongPress: () async {
+                          child: FlutterFlowIconButton(
+                            borderRadius: 8.0,
+                            buttonSize: 40.0,
+                            icon: Icon(
+                              Icons.query_stats,
+                              color: FlutterFlowTheme.of(context).info,
+                              size: 24.0,
+                            ),
+                            onPressed: () async {
                               logFirebaseEvent(
-                                  'HOME_PAGE_query_stats_ICN_ON_LONG_PRESS');
+                                  'HOME_PAGE_query_stats_ICN_ON_TAP');
                               logFirebaseEvent('IconButton_navigate_to');
-
                               context
                                   .pushNamed(AccomplissementsWidget.routeName);
                             },
-                            child: FlutterFlowIconButton(
-                              borderRadius: 8.0,
-                              buttonSize: 40.0,
-                              icon: Icon(
-                                Icons.query_stats,
-                                color: FlutterFlowTheme.of(context).info,
-                                size: 24.0,
-                              ),
-                              onPressed: () {
-                                print('IconButton pressed ...');
-                              },
-                            ),
                           ),
                         ),
                       Align(

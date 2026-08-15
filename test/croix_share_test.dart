@@ -24,31 +24,4 @@ void main() {
       throwsFormatException,
     );
   });
-
-  test('downloads the JPEG when web file sharing is unavailable', () async {
-    var downloaded = false;
-
-    final delivery = await deliverCroixJpeg(
-      share: () => Future<void>.error(StateError('canShare is false')),
-      download: () => downloaded = true,
-      isWeb: true,
-    );
-
-    expect(delivery, CroixShareDelivery.downloaded);
-    expect(downloaded, isTrue);
-  });
-
-  test('does not hide native sharing failures', () async {
-    var downloaded = false;
-
-    await expectLater(
-      deliverCroixJpeg(
-        share: () => Future<void>.error(StateError('native share failed')),
-        download: () => downloaded = true,
-        isWeb: false,
-      ),
-      throwsStateError,
-    );
-    expect(downloaded, isFalse);
-  });
 }

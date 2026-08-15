@@ -124,6 +124,7 @@ class _TiragesWidgetState extends State<TiragesWidget> {
               }
 
               final tirages = snapshot.data ?? const <ResultatsRecord>[];
+              final theme = FlutterFlowTheme.of(context);
               if (tirages.isEmpty) {
                 return _TiragesMessage(
                   icon: Icons.inbox_outlined,
@@ -136,20 +137,55 @@ class _TiragesWidgetState extends State<TiragesWidget> {
                 );
               }
 
+              final tiragesByDay = _groupTiragesByDay(tirages);
+
               return RefreshIndicator(
-                color: FlutterFlowTheme.of(context).primary,
+                color: theme.primary,
                 onRefresh: _refreshTirages,
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(12.0, 16.0, 12.0, 24.0),
+                child: ListView.builder(
+                  padding: EdgeInsets.fromLTRB(
+                    theme.designToken.spacing.sm,
+                    theme.designToken.spacing.md,
+                    theme.designToken.spacing.sm,
+                    theme.designToken.spacing.lg,
+                  ),
                   physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: tirages.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12.0),
+                  itemCount: tiragesByDay.length,
                   itemBuilder: (context, index) {
-                    final tirage = tirages[index];
-                    if (tirage.tirage == 'ny') {
-                      return NewYorkkWidget(infos: tirage);
-                    }
-                    return FlWidget(infos: tirage);
+                    final dayGroup = tiragesByDay[index];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index == tiragesByDay.length - 1
+                            ? 0.0
+                            : theme.designToken.spacing.md,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _TiragesDateSeparator(date: dayGroup.date),
+                          SizedBox(height: theme.designToken.spacing.sm),
+                          for (var resultIndex = 0;
+                              resultIndex < dayGroup.results.length;
+                              resultIndex++)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom:
+                                    resultIndex == dayGroup.results.length - 1
+                                        ? 0.0
+                                        : theme.designToken.spacing.sm,
+                              ),
+                              child:
+                                  dayGroup.results[resultIndex].tirage == 'ny'
+                                      ? NewYorkkWidget(
+                                          infos: dayGroup.results[resultIndex],
+                                        )
+                                      : FlWidget(
+                                          infos: dayGroup.results[resultIndex],
+                                        ),
+                            ),
+                        ],
+                      ),
+                    );
                   },
                 ),
               );
@@ -157,6 +193,93 @@ class _TiragesWidgetState extends State<TiragesWidget> {
           ),
         ),
       ),
+    );
+  }
+}
+
+List<_TiragesDayGroup> _groupTiragesByDay(
+  List<ResultatsRecord> tirages,
+) {
+  final groups = <_TiragesDayGroup>[];
+
+  for (final tirage in tirages) {
+    if (groups.isEmpty || !_isSameCalendarDay(groups.last.date, tirage.date)) {
+      groups.add(_TiragesDayGroup(tirage.date));
+    }
+    groups.last.results.add(tirage);
+  }
+
+  return groups;
+}
+
+bool _isSameCalendarDay(DateTime? first, DateTime? second) {
+  if (first == null || second == null) {
+    return first == second;
+  }
+
+  return first.year == second.year &&
+      first.month == second.month &&
+      first.day == second.day;
+}
+
+class _TiragesDayGroup {
+  _TiragesDayGroup(this.date);
+
+  final DateTime? date;
+  final List<ResultatsRecord> results = [];
+}
+
+class _TiragesDateSeparator extends StatelessWidget {
+  const _TiragesDateSeparator({required this.date});
+
+  final DateTime? date;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final localizations = FFLocalizations.of(context);
+    final dateText = date == null
+        ? localizations.getVariableText(
+            frText: 'Date inconnue',
+            enText: 'Unknown date',
+            crText: 'Dat enkoni',
+          )
+        : dateTimeFormat(
+            'd MMM y',
+            date,
+            locale: localizations.languageCode,
+          );
+
+    return Row(
+      children: [
+        Expanded(
+          child: Divider(
+            height: 1.0,
+            thickness: 0.7,
+            color: theme.secondaryText.withValues(alpha: 0.35),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: theme.designToken.spacing.sm,
+          ),
+          child: Text(
+            dateText,
+            style: theme.labelSmall.override(
+              color: theme.secondaryText,
+              fontSize: 11.0,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Divider(
+            height: 1.0,
+            thickness: 0.7,
+            color: theme.secondaryText.withValues(alpha: 0.35),
+          ),
+        ),
+      ],
     );
   }
 }

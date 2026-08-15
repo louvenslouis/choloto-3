@@ -15,6 +15,7 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
+import 'bingo_value_icon.dart';
 import 'stackbingo_model.dart';
 export 'stackbingo_model.dart';
 
@@ -201,25 +202,22 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
                                     datastacklistItem.periode != '')
                                   Builder(
                                     builder: (context) {
-                                      if (datastacklistItem.valeur ==
-                                          '1er lot') {
+                                      final iconAsset = bingoValueIconAsset(
+                                          datastacklistItem.valeur);
+
+                                      if (iconAsset != null) {
                                         return ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(0.0),
                                           child: Image.asset(
-                                            'assets/images/game-2.png',
+                                            iconAsset,
                                             height: 24.0,
-                                            fit: BoxFit.cover,
+                                            fit: BoxFit.contain,
                                           ),
                                         );
-                                      } else {
-                                        return Icon(
-                                          Icons.arrow_back,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          size: 0.0,
-                                        );
                                       }
+
+                                      return const SizedBox.shrink();
                                     },
                                   ),
                                 AutoSizeText(

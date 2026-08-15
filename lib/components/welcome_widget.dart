@@ -1,16 +1,14 @@
 import '/auth/firebase_auth/auth_util.dart';
+import '/auth/phone_number.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import '/index.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
+import 'phone_auth_sheet.dart';
 import 'welcome_model.dart';
 export 'welcome_model.dart';
 
@@ -23,6 +21,77 @@ class WelcomeWidget extends StatefulWidget {
 
 class _WelcomeWidgetState extends State<WelcomeWidget> {
   late WelcomeModel _model;
+
+  Future<void> _completeAuthenticatedSignIn(BaseAuthUser? user) async {
+    if (user == null) {
+      return;
+    }
+
+    final userReference = currentUserReference;
+    if (userReference == null) {
+      return;
+    }
+
+    if (currentUserDocument?.endSub == null) {
+      logFirebaseEvent('Button_backend_call');
+      await userReference.update({
+        ...mapToFirestore(
+          {'end_sub': FieldValue.serverTimestamp()},
+        ),
+      });
+    }
+
+    logFirebaseEvent('Button_backend_call');
+    await userReference.update(
+      createUserRecordData(device: _currentDeviceName()),
+    );
+
+    if (mounted) {
+      context.goNamedAuth(HomeWidget.routeName, true);
+    }
+  }
+
+  String _currentDeviceName() {
+    if (isAndroid) {
+      return 'Android';
+    }
+    if (isiOS) {
+      return 'IOS';
+    }
+    if (isWeb) {
+      return 'Web';
+    }
+    return '';
+  }
+
+  Future<void> _signInWithGoogle() async {
+    GoRouter.of(context).prepareAuthEvent();
+    final user = await authManager.signInWithGoogle(context);
+    if (user == null && mounted) {
+      GoRouter.of(context).appState.updateNotifyOnAuthChange(true);
+      return;
+    }
+    await _completeAuthenticatedSignIn(user);
+  }
+
+  Future<void> _signInWithPhone() async {
+    GoRouter.of(context).prepareAuthEvent();
+    final user = await showModalBottomSheet<BaseAuthUser>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      context: context,
+      builder: (sheetContext) => Padding(
+        padding: MediaQuery.viewInsetsOf(sheetContext),
+        child: const PhoneAuthSheet(),
+      ),
+    );
+    if (user == null && mounted) {
+      GoRouter.of(context).appState.updateNotifyOnAuthChange(true);
+      return;
+    }
+    await _completeAuthenticatedSignIn(user);
+  }
 
   @override
   void setState(VoidCallback callback) {
@@ -91,45 +160,8 @@ class _WelcomeWidgetState extends State<WelcomeWidget> {
                         onPressed: () async {
                           logFirebaseEvent(
                               'WELCOME_CONTINUER_AVEC_GOOGLE_BTN_ON_TAP');
-                          Function() _navigate = () {};
                           logFirebaseEvent('Button_auth');
-                          GoRouter.of(context).prepareAuthEvent();
-                          final user =
-                              await authManager.signInWithGoogle(context);
-                          if (user == null) {
-                            return;
-                          }
-                          _navigate = () => context.goNamedAuth(
-                              HomeWidget.routeName, context.mounted);
-                          if (currentUserDocument?.endSub == null) {
-                            logFirebaseEvent('Button_backend_call');
-
-                            await currentUserReference!.update({
-                              ...mapToFirestore(
-                                {
-                                  'end_sub': FieldValue.serverTimestamp(),
-                                },
-                              ),
-                            });
-                          }
-                          logFirebaseEvent('Button_backend_call');
-
-                          await currentUserReference!
-                              .update(createUserRecordData(
-                            device: () {
-                              if (isAndroid) {
-                                return 'Android';
-                              } else if (isiOS) {
-                                return 'IOS';
-                              } else if (isWeb) {
-                                return 'Web';
-                              } else {
-                                return '';
-                              }
-                            }(),
-                          ));
-
-                          _navigate();
+                          await _signInWithGoogle();
                         },
                         text: FFLocalizations.of(context).getText(
                           'ser0033p' /* Continuer avec Google */,
@@ -144,6 +176,42 @@ class _WelcomeWidgetState extends State<WelcomeWidget> {
                           padding: EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
                           iconPadding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 12.0, 0.0),
+                          iconColor: FlutterFlowTheme.of(context).primaryText,
+                          color:
+                              FlutterFlowTheme.of(context).secondaryBackground,
+                          textStyle:
+                              FlutterFlowTheme.of(context).titleLarge.override(
+                                    fontFamily: 'Google sans flex',
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                          elevation: 2.0,
+                          borderSide: BorderSide(
+                            color: FlutterFlowTheme.of(context).alternate,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(50.0),
+                          hoverColor: FlutterFlowTheme.of(context).alternate,
+                        ),
+                      ),
+                      FFButtonWidget(
+                        onPressed: () async {
+                          logFirebaseEvent(phoneAuthButtonAnalyticsEvent);
+                          await _signInWithPhone();
+                        },
+                        text: FFLocalizations.of(context).getText(
+                          'phone_continue',
+                        ),
+                        icon: const Icon(
+                          Icons.phone_outlined,
+                          size: 24.0,
+                        ),
+                        options: FFButtonOptions(
+                          width: double.infinity,
+                          height: 60.0,
+                          padding: EdgeInsetsDirectional.zero,
+                          iconPadding: const EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 12.0, 0.0),
                           iconColor: FlutterFlowTheme.of(context).primaryText,
                           color:

@@ -3,13 +3,12 @@ import '/components/cross_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import 'dart:async';
 import 'dart:ui' as ui;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:share_plus/share_plus.dart';
-import 'croix_download.dart';
 import 'croix_share.dart';
+import 'croix_share_platform.dart';
 import 'croix_model.dart';
 export 'croix_model.dart';
 
@@ -29,6 +28,89 @@ class _CroixWidgetState extends State<CroixWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final _crossCaptureKey = GlobalKey();
   bool _isSharing = false;
+  Uint8List? _preparedJpegBytes;
+  String? _preparedVisualSignature;
+  String? _scheduledVisualSignature;
+  String? _currentVisualSignature;
+
+  void _scheduleVisualPreparation(String signature) {
+    _currentVisualSignature = signature;
+    if (_preparedVisualSignature == signature ||
+        _scheduledVisualSignature == signature) {
+      return;
+    }
+
+    _preparedJpegBytes = null;
+    _scheduledVisualSignature = signature;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scheduledVisualSignature == signature) {
+        _prepareCroixVisual(signature);
+      }
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  Future<void> _prepareCroixVisual(String signature) async {
+    try {
+      await precacheImage(
+        const AssetImage('assets/images/xxx.jpg'),
+        context,
+      );
+      if (!mounted || _scheduledVisualSignature != signature) {
+        return;
+      }
+
+      final nextFrame = Completer<void>();
+      WidgetsBinding.instance.addPostFrameCallback((_) => nextFrame.complete());
+      WidgetsBinding.instance.scheduleFrame();
+      await nextFrame.future;
+
+      if (!mounted || _scheduledVisualSignature != signature) {
+        return;
+      }
+      final jpegBytes = await _captureCroixJpeg();
+      if (!mounted || _scheduledVisualSignature != signature) {
+        return;
+      }
+
+      setState(() {
+        _preparedJpegBytes = jpegBytes;
+        _preparedVisualSignature = signature;
+        _scheduledVisualSignature = null;
+      });
+    } catch (error, stackTrace) {
+      debugPrint('Croix preparation failed: $error\n$stackTrace');
+      if (mounted && _scheduledVisualSignature == signature) {
+        _scheduledVisualSignature = null;
+      }
+    }
+  }
+
+  Future<Uint8List> _captureCroixJpeg() async {
+    final boundary = _crossCaptureKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
+    if (boundary == null || boundary.debugNeedsPaint) {
+      throw StateError('The cross visual is not ready to share.');
+    }
+
+    final capturedImage = await boundary.toImage(pixelRatio: 3.0);
+    try {
+      final byteData = await capturedImage.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+      if (byteData == null) {
+        throw StateError('The cross visual could not be captured.');
+      }
+
+      final pngBytes = byteData.buffer.asUint8List(
+        byteData.offsetInBytes,
+        byteData.lengthInBytes,
+      );
+      return pngToJpeg(pngBytes);
+    } finally {
+      capturedImage.dispose();
+    }
+  }
 
   Future<void> _shareCroix(BuildContext shareContext) async {
     if (_isSharing) {
@@ -44,60 +126,33 @@ class _CroixWidgetState extends State<CroixWidget> {
     final shareSubject = localizations.getText('croixsharetitle');
     final shareErrorMessage = localizations.getText('croixshareerror');
     final downloadMessage = localizations.getText('croixsharedownload');
+    final preparingMessage = localizations.getText('croixsharepreparing');
+    final jpegBytes = _preparedJpegBytes;
+
+    if (jpegBytes == null) {
+      final signature = _currentVisualSignature;
+      if (signature != null) {
+        _scheduleVisualPreparation(signature);
+      }
+      messenger.showSnackBar(
+        SnackBar(content: Text(preparingMessage)),
+      );
+      return;
+    }
 
     setState(() => _isSharing = true);
     try {
-      await WidgetsBinding.instance.endOfFrame;
-
-      final boundary = _crossCaptureKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
-      if (boundary == null || boundary.debugNeedsPaint) {
-        throw StateError('The cross visual is not ready to share.');
-      }
-
-      final capturedImage = await boundary.toImage(pixelRatio: 3.0);
-      try {
-        final byteData = await capturedImage.toByteData(
-          format: ui.ImageByteFormat.png,
+      const fileName = 'croix-de-la-chance.jpg';
+      final downloaded = await deliverPreparedCroixJpeg(
+        jpegBytes,
+        fileName: fileName,
+        subject: shareSubject,
+        sharePositionOrigin: sharePositionOrigin,
+      );
+      if (downloaded && mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(downloadMessage)),
         );
-        if (byteData == null) {
-          throw StateError('The cross visual could not be captured.');
-        }
-
-        final pngBytes = byteData.buffer.asUint8List(
-          byteData.offsetInBytes,
-          byteData.lengthInBytes,
-        );
-        final jpegBytes = pngToJpeg(pngBytes);
-
-        const fileName = 'croix-de-la-chance.jpg';
-        final delivery = await deliverCroixJpeg(
-          share: () async {
-            await Share.shareXFiles(
-              [
-                XFile.fromData(
-                  jpegBytes,
-                  mimeType: 'image/jpeg',
-                ),
-              ],
-              subject: shareSubject,
-              fileNameOverrides: [fileName],
-              sharePositionOrigin: sharePositionOrigin,
-            );
-          },
-          download: () => downloadCroixJpeg(
-            jpegBytes,
-            fileName: fileName,
-          ),
-          isWeb: kIsWeb,
-        );
-        if (delivery == CroixShareDelivery.downloaded && mounted) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(downloadMessage)),
-          );
-        }
-      } finally {
-        capturedImage.dispose();
       }
     } catch (error, stackTrace) {
       debugPrint('Croix sharing failed: $error\n$stackTrace');
@@ -160,6 +215,17 @@ class _CroixWidgetState extends State<CroixWidget> {
         List<CroixRecord> croixCroixRecordList = snapshot.data!;
         final croixCroixRecord =
             croixCroixRecordList.isNotEmpty ? croixCroixRecordList.first : null;
+
+        if (croixCroixRecord != null) {
+          final visualSignature = [
+            croixCroixRecord.reference.path,
+            croixCroixRecord.date?.millisecondsSinceEpoch,
+            croixCroixRecord.numeros.join(','),
+            FFLocalizations.of(context).languageCode,
+            Theme.of(context).brightness.name,
+          ].join('|');
+          _scheduleVisualPreparation(visualSignature);
+        }
 
         return GestureDetector(
           onTap: () {

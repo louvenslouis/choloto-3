@@ -1,11 +1,9 @@
-import '/auth/firebase_auth/auth_util.dart';
+import '/accomplissements/achievements_tab_widget.dart';
 import '/autres/calendrier/calendrier/calendrier_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'accomplissements_model.dart';
 export 'accomplissements_model.dart';
 
@@ -32,22 +30,6 @@ class _AccomplissementsWidgetState extends State<AccomplissementsWidget>
 
     logFirebaseEvent('screen_view',
         parameters: {'screen_name': 'Accomplissements'});
-    // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      logFirebaseEvent('ACCOMPLISSEMENTS_Accomplissements_ON_INI');
-      logFirebaseEvent('Accomplissements_update_page_state');
-      _model.secondes = currentUserDocument?.endSub?.secondsSinceEpoch;
-      logFirebaseEvent('Accomplissements_update_page_state');
-      _model.secondes = _model.secondes! + 86400;
-      safeSetState(() {});
-      logFirebaseEvent('Accomplissements_update_page_state');
-      _model.expiration = dateTimeFromSecondsSinceEpoch(valueOrDefault<int>(
-        _model.secondes,
-        0,
-      ));
-      safeSetState(() {});
-    });
-
     _model.tabBarController = TabController(
       vsync: this,
       length: 2,
@@ -167,111 +149,7 @@ class _AccomplissementsWidgetState extends State<AccomplissementsWidget>
                         ],
                       ),
                     ),
-                    Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        AuthUserStreamWidget(
-                          builder: (context) => Material(
-                            color: Colors.transparent,
-                            child: ListTile(
-                              title: Text(
-                                FFLocalizations.of(context).getText(
-                                  'safuzdxq' /* Gains déclarés */,
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .titleLarge
-                                    .override(
-                                      fontFamily: 'Google sans flex',
-                                      letterSpacing: 0.0,
-                                    ),
-                              ),
-                              subtitle: Text(
-                                currentUserDocument!.userStats.bingoGain
-                                    .toString(),
-                                style: FlutterFlowTheme.of(context)
-                                    .labelMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .labelMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .labelMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                              tileColor: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              dense: false,
-                              contentPadding: EdgeInsetsDirectional.fromSTEB(
-                                  12.0, 0.0, 12.0, 0.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                          ),
-                        ),
-                        AuthUserStreamWidget(
-                          builder: (context) => Material(
-                            color: Colors.transparent,
-                            child: ListTile(
-                              title: Text(
-                                FFLocalizations.of(context).getText(
-                                  '5baauzd7' /* Gains ratés déclarés */,
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .titleLarge
-                                    .override(
-                                      fontFamily: 'Google sans flex',
-                                      letterSpacing: 0.0,
-                                    ),
-                              ),
-                              subtitle: Text(
-                                currentUserDocument!.userStats.bingoRater
-                                    .toString(),
-                                style: FlutterFlowTheme.of(context)
-                                    .labelMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .labelMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .labelMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                              tileColor: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              dense: false,
-                              contentPadding: EdgeInsetsDirectional.fromSTEB(
-                                  12.0, 0.0, 12.0, 0.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]
-                          .divide(SizedBox(height: 6.0))
-                          .addToStart(SizedBox(height: 8.0)),
-                    ),
+                    const AchievementsTabWidget(),
                   ],
                 ),
               ),

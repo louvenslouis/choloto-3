@@ -59,9 +59,9 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
     final theme = FlutterFlowTheme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.primaryBackground,
+      backgroundColor: const Color(0xFF3E0066),
       appBar: AppBar(
-        backgroundColor: theme.secondaryBackground,
+        backgroundColor: const Color(0xFF650BB0),
         automaticallyImplyLeading: false,
         leading: FlutterFlowIconButton(
           borderColor: theme.primaryText.withValues(alpha: 0.0),
@@ -69,7 +69,7 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
           buttonSize: 60.0,
           icon: Icon(
             Icons.arrow_back_rounded,
-            color: theme.primaryText,
+            color: theme.onDecorative,
             size: 28.0,
           ),
           onPressed: () async {
@@ -80,7 +80,7 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
         title: Text(
           FFLocalizations.of(context).getText('viphstttl'),
           style: theme.headlineMedium.override(
-            color: theme.primaryText,
+            color: theme.onDecorative,
             fontSize: 22.0,
           ),
         ),
@@ -98,7 +98,7 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
                 showLoadingIndicator: true,
                 icon: Icon(
                   Icons.refresh_rounded,
-                  color: theme.primaryText,
+                  color: theme.onDecorative,
                   size: 22.0,
                 ),
                 onPressed: _reloadHistory,

@@ -4,12 +4,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../auth_manager.dart';
-import '../base_auth_user_provider.dart';
 import '../../flutter_flow/flutter_flow_util.dart';
 
 import '/backend/backend.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:stream_transform/stream_transform.dart';
 import 'anonymous_auth.dart';
 import 'apple_auth.dart';
 import 'email_auth.dart';
@@ -17,6 +14,7 @@ import 'firebase_user_provider.dart';
 import 'google_auth.dart';
 import 'jwt_token_auth.dart';
 import 'github_auth.dart';
+import 'sign_in_profile.dart';
 
 export '../base_auth_user_provider.dart';
 
@@ -45,6 +43,37 @@ String _localizedFirebaseAuthError(
         frText: 'Veuillez saisir une adresse e-mail valide.',
         enText: 'Please enter a valid email address.',
         crText: 'Tanpri antre yon adrès imèl ki valab.',
+      ),
+    'invalid-phone-number' ||
+    'missing-phone-number' =>
+      localizations.getVariableText(
+        frText: 'Veuillez saisir un numéro de téléphone valide.',
+        enText: 'Please enter a valid phone number.',
+        crText: 'Tanpri antre yon nimewo telefòn ki valab.',
+      ),
+    'invalid-verification-code' => localizations.getVariableText(
+        frText: 'Le code de vérification est incorrect.',
+        enText: 'The verification code is incorrect.',
+        crText: 'Kòd verifikasyon an pa kòrèk.',
+      ),
+    'session-expired' ||
+    'missing-verification-id' =>
+      localizations.getVariableText(
+        frText: 'Ce code a expiré. Demandez un nouveau code.',
+        enText: 'This code has expired. Request a new code.',
+        crText: 'Kòd sa a ekspire. Mande yon nouvo kòd.',
+      ),
+    'quota-exceeded' => localizations.getVariableText(
+        frText:
+            'La limite d’envoi de SMS est atteinte. Veuillez réessayer plus tard.',
+        enText:
+            'The SMS sending limit has been reached. Please try again later.',
+        crText: 'Limit voye SMS la rive. Tanpri eseye ankò pita.',
+      ),
+    'operation-not-allowed' => localizations.getVariableText(
+        frText: 'La connexion par téléphone n’est pas encore disponible.',
+        enText: 'Phone sign-in is not available yet.',
+        crText: 'Koneksyon ak telefòn poko disponib.',
       ),
     'weak-password' => localizations.getVariableText(
         frText: 'Ce mot de passe est trop faible.',
@@ -131,10 +160,6 @@ class FirebaseAuthManager extends AuthManager
         JwtSignInManager,
         GithubSignInManager,
         PhoneSignInManager {
-  // Set when using phone verification (after phone number is provided).
-  String? _phoneAuthVerificationCode;
-  // Set when using phone sign in in web mode (ignored otherwise).
-  ConfirmationResult? _webPhoneAuthConfirmationResult;
   FirebasePhoneAuthManager phoneAuthManager = FirebasePhoneAuthManager();
 
   @override
@@ -309,77 +334,108 @@ class FirebaseAuthManager extends AuthManager
   }
 
   @override
-  Future beginPhoneAuth({
+  Future<bool> beginPhoneAuth({
     required BuildContext context,
     required String phoneNumber,
     required void Function(BuildContext) onCodeSent,
+    void Function(BuildContext, BaseAuthUser)? onAutoVerified,
   }) async {
-    phoneAuthManager.update(() => phoneAuthManager.onCodeSent = onCodeSent);
-    if (kIsWeb) {
-      phoneAuthManager.webPhoneAuthConfirmationResult =
-          await FirebaseAuth.instance.signInWithPhoneNumber(phoneNumber);
-      phoneAuthManager.update(() => phoneAuthManager.triggerOnCodeSent = true);
-      return;
-    }
-    final completer = Completer<bool>();
-    // If you'd like auto-verification, without the user having to enter the SMS
-    // code manually. Follow these instructions:
-    // * For Android: https://firebase.google.com/docs/auth/android/phone-auth?authuser=0#enable-app-verification (SafetyNet set up)
-    // * For iOS: https://firebase.google.com/docs/auth/ios/phone-auth?authuser=0#start-receiving-silent-notifications
-    // * Finally modify verificationCompleted below as instructed.
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      timeout:
-          Duration(seconds: 0), // Skips Android's default auto-verification
-      verificationCompleted: (phoneAuthCredential) async {
-        await FirebaseAuth.instance.signInWithCredential(phoneAuthCredential);
-        phoneAuthManager.update(() {
-          phoneAuthManager.triggerOnCodeSent = false;
-          phoneAuthManager.phoneAuthError = null;
-        });
-        // If you've implemented auto-verification, navigate to home page or
-        // onboarding page here manually. Uncomment the lines below and replace
-        // DestinationPage() with the desired widget.
-        // await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => DestinationPage()),
-        // );
-      },
-      verificationFailed: (e) {
-        phoneAuthManager.update(() {
-          phoneAuthManager.triggerOnCodeSent = false;
-          phoneAuthManager.phoneAuthError = e;
-        });
-        completer.complete(false);
-      },
-      codeSent: (verificationId, _) {
-        phoneAuthManager.update(() {
-          phoneAuthManager.phoneAuthVerificationCode = verificationId;
-          phoneAuthManager.triggerOnCodeSent = true;
-          phoneAuthManager.phoneAuthError = null;
-        });
-        completer.complete(true);
-      },
-      codeAutoRetrievalTimeout: (_) {},
-    );
+    try {
+      if (kIsWeb) {
+        phoneAuthManager.webPhoneAuthConfirmationResult =
+            await FirebaseAuth.instance.signInWithPhoneNumber(phoneNumber);
+        if (context.mounted) {
+          onCodeSent(context);
+        }
+        return true;
+      }
 
-    return completer.future;
+      final completer = Completer<bool>();
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        timeout: const Duration(seconds: 60),
+        verificationCompleted: (phoneAuthCredential) async {
+          final user = await _signInOrCreateAccount(
+            context,
+            () =>
+                FirebaseAuth.instance.signInWithCredential(phoneAuthCredential),
+            'PHONE',
+          );
+          if (!completer.isCompleted) {
+            completer.complete(user != null);
+          }
+          if (user != null && context.mounted) {
+            onAutoVerified?.call(context, user);
+          }
+        },
+        verificationFailed: (e) {
+          if (context.mounted) {
+            _showAuthSnackBar(context, _localizedFirebaseAuthError(context, e));
+          }
+          if (!completer.isCompleted) {
+            completer.complete(false);
+          }
+        },
+        codeSent: (verificationId, _) {
+          phoneAuthManager.phoneAuthVerificationCode = verificationId;
+          if (context.mounted) {
+            onCodeSent(context);
+          }
+          if (!completer.isCompleted) {
+            completer.complete(true);
+          }
+        },
+        codeAutoRetrievalTimeout: (verificationId) {
+          phoneAuthManager.phoneAuthVerificationCode = verificationId;
+        },
+      );
+
+      return completer.future;
+    } on FirebaseAuthException catch (e) {
+      if (context.mounted) {
+        _showAuthSnackBar(context, _localizedFirebaseAuthError(context, e));
+      }
+      return false;
+    }
   }
 
   @override
-  Future verifySmsCode({
+  Future<BaseAuthUser?> verifySmsCode({
     required BuildContext context,
     required String smsCode,
-  }) {
+  }) async {
     if (kIsWeb) {
+      final confirmationResult =
+          phoneAuthManager.webPhoneAuthConfirmationResult;
+      if (confirmationResult == null) {
+        _showAuthSnackBar(
+          context,
+          _localizedFirebaseAuthError(
+            context,
+            FirebaseAuthException(code: 'missing-verification-id'),
+          ),
+        );
+        return null;
+      }
       return _signInOrCreateAccount(
         context,
-        () => phoneAuthManager.webPhoneAuthConfirmationResult!.confirm(smsCode),
+        () => confirmationResult.confirm(smsCode),
         'PHONE',
       );
     } else {
+      final verificationId = phoneAuthManager.phoneAuthVerificationCode;
+      if (verificationId == null) {
+        _showAuthSnackBar(
+          context,
+          _localizedFirebaseAuthError(
+            context,
+            FirebaseAuthException(code: 'missing-verification-id'),
+          ),
+        );
+        return null;
+      }
       final authCredential = PhoneAuthProvider.credential(
-        verificationId: phoneAuthManager.phoneAuthVerificationCode!,
+        verificationId: verificationId,
         smsCode: smsCode,
       );
       return _signInOrCreateAccount(
@@ -398,16 +454,20 @@ class FirebaseAuthManager extends AuthManager
     String authProvider,
   ) async {
     try {
-      final userCredential = await signInFunc();
+      final userCredential =
+          await signInAndEnsureUserProfile<UserCredential, User>(
+        authenticate: signInFunc,
+        userFromCredential: (credential) => credential.user,
+        ensureUserProfile: maybeCreateUser,
+      );
       logFirebaseAuthEvent(userCredential?.user, authProvider);
-      if (userCredential?.user != null) {
-        await maybeCreateUser(userCredential!.user!);
-      }
       return userCredential == null
           ? null
           : CholotoFirebaseUser.fromUserCredential(userCredential);
     } on FirebaseAuthException catch (e) {
-      _showAuthSnackBar(context, _localizedFirebaseAuthError(context, e));
+      if (context.mounted) {
+        _showAuthSnackBar(context, _localizedFirebaseAuthError(context, e));
+      }
       return null;
     }
   }

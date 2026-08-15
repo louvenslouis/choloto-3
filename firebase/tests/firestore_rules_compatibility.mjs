@@ -24,8 +24,59 @@ async function createTestUser(label, email = `${label}@compatibility.test`) {
   return {uid: body.localId, token: body.idToken};
 }
 
-async function firestoreRequest(path, {method = 'GET', token, fields} = {}) {
-  const response = await fetch(`${documentsUrl}/${path}`, {
+async function createPhoneTestUser(phoneNumber = '+50937000000') {
+  const sendResponse = await fetch(
+    `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=fake-api-key`,
+    {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({phoneNumber}),
+    },
+  );
+  const sendBody = await sendResponse.json();
+  assert.equal(sendResponse.status, 200, JSON.stringify(sendBody));
+
+  const codesResponse = await fetch(
+    `http://${authHost}/emulator/v1/projects/${projectId}/verificationCodes`,
+  );
+  const codesBody = await codesResponse.json();
+  assert.equal(codesResponse.status, 200, JSON.stringify(codesBody));
+  const verification = codesBody.verificationCodes?.find(
+    (entry) =>
+      entry.phoneNumber === phoneNumber &&
+      entry.sessionInfo === sendBody.sessionInfo,
+  );
+  assert.ok(verification, `missing emulator SMS code for ${phoneNumber}`);
+
+  const signInResponse = await fetch(
+    `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=fake-api-key`,
+    {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({
+        sessionInfo: verification.sessionInfo,
+        code: verification.code,
+      }),
+    },
+  );
+  const signInBody = await signInResponse.json();
+  assert.equal(signInResponse.status, 200, JSON.stringify(signInBody));
+  return {
+    uid: signInBody.localId,
+    token: signInBody.idToken,
+    phoneNumber,
+  };
+}
+
+async function firestoreRequest(
+  path,
+  {method = 'GET', token, fields, updateMaskFields = []} = {},
+) {
+  const url = new URL(`${documentsUrl}/${path}`);
+  for (const field of updateMaskFields) {
+    url.searchParams.append('updateMask.fieldPaths', field);
+  }
+  const response = await fetch(url, {
     method,
     headers: {
       'content-type': 'application/json',
@@ -47,7 +98,9 @@ function expectStatus(result, expected, label) {
 
 const stringValue = (value) => ({stringValue: value});
 const boolValue = (value) => ({booleanValue: value});
+const integerValue = (value) => ({integerValue: String(value)});
 const timestampValue = (value = '2026-08-10T12:00:00Z') => ({timestampValue: value});
+const mapValue = (fields) => ({mapValue: {fields}});
 const stringArray = (values) => ({
   arrayValue: {values: values.map(stringValue)},
 });
@@ -61,6 +114,7 @@ const admin = await createTestUser('admin', 'sanonmaeva064@gmail.com');
 const owner = await createTestUser('owner');
 const other = await createTestUser('other');
 const legacy = await createTestUser('legacy');
+const phoneOwner = await createPhoneTestUser();
 
 // Public content stays readable, while unauthenticated publication is blocked.
 const bingoFields = {
@@ -241,6 +295,11 @@ const userFields = {
   uid: stringValue(owner.uid),
   email: stringValue('owner@compatibility.test'),
   end_sub: timestampValue('2099-12-31T23:59:59Z'),
+  device: stringValue('Web'),
+  userStats: mapValue({
+    bingoGain: integerValue(2),
+    bingoRater: integerValue(1),
+  }),
 };
 expectStatus(
   await firestoreRequest(`user/${owner.uid}`, {
@@ -265,6 +324,86 @@ expectStatus(
   await firestoreRequest('prediction/owner-prediction', {token: owner.token}),
   200,
   'active VIP prediction read',
+);
+
+// The new optional engagement aggregate is written as a partial, idempotent
+// profile update. It must preserve all released-client fields and remain
+// private to the path owner.
+const engagementFields = mapValue({
+  currentStreak: integerValue(1),
+  longestStreak: integerValue(1),
+  totalActiveDays: integerValue(1),
+  lastActiveDay: stringValue('2026-08-14'),
+  lastActiveAt: timestampValue('2026-08-14T12:00:00Z'),
+  recentActiveDays: stringArray(['2026-08-14']),
+  timeZoneOffsetMinutes: integerValue(-240),
+});
+expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {
+    method: 'PATCH',
+    fields: {engagement: engagementFields},
+    updateMaskFields: ['engagement'],
+  }),
+  403,
+  'unauthenticated engagement update',
+);
+expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {
+    method: 'PATCH',
+    token: other.token,
+    fields: {engagement: engagementFields},
+    updateMaskFields: ['engagement'],
+  }),
+  403,
+  'foreign engagement update',
+);
+expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {engagement: engagementFields},
+    updateMaskFields: ['engagement'],
+  }),
+  200,
+  'owner engagement update',
+);
+const ownerAfterEngagement = await firestoreRequest(`user/${owner.uid}`, {
+  token: owner.token,
+});
+expectStatus(ownerAfterEngagement, 200, 'owner profile after engagement update');
+const ownerAfterEngagementFields = JSON.parse(ownerAfterEngagement.body).fields;
+assert.equal(ownerAfterEngagementFields.uid.stringValue, owner.uid);
+assert.equal(ownerAfterEngagementFields.device.stringValue, 'Web');
+assert.equal(
+  ownerAfterEngagementFields.userStats.mapValue.fields.bingoGain.integerValue,
+  '2',
+);
+assert.equal(
+  ownerAfterEngagementFields.engagement.mapValue.fields.currentStreak.integerValue,
+  '1',
+);
+expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {userStats: mapValue({bingoGain: integerValue(3)})},
+    updateMaskFields: ['userStats.bingoGain'],
+  }),
+  200,
+  'released bingo counter update after engagement tracking',
+);
+const ownerAfterBingoUpdate = await firestoreRequest(`user/${owner.uid}`, {
+  token: owner.token,
+});
+expectStatus(ownerAfterBingoUpdate, 200, 'owner profile after bingo counter update');
+const ownerAfterBingoFields = JSON.parse(ownerAfterBingoUpdate.body).fields;
+assert.equal(
+  ownerAfterBingoFields.engagement.mapValue.fields.currentStreak.integerValue,
+  '1',
+);
+assert.equal(
+  ownerAfterBingoFields.userStats.mapValue.fields.bingoGain.integerValue,
+  '3',
 );
 
 // Older released clients can use the uid document path without storing a uid
@@ -297,6 +436,24 @@ expectStatus(
   'legacy uid-less user document update',
 );
 expectStatus(
+  await firestoreRequest(`user/${legacy.uid}`, {
+    method: 'PATCH',
+    token: legacy.token,
+    fields: {engagement: engagementFields},
+    updateMaskFields: ['engagement'],
+  }),
+  200,
+  'legacy uid-less engagement update',
+);
+const legacyAfterEngagement = await firestoreRequest(`user/${legacy.uid}`, {
+  token: legacy.token,
+});
+expectStatus(legacyAfterEngagement, 200, 'legacy profile after engagement update');
+const legacyAfterEngagementFields = JSON.parse(legacyAfterEngagement.body).fields;
+assert.equal(legacyAfterEngagementFields.uid, undefined);
+assert.equal(legacyAfterEngagementFields.email.stringValue, 'legacy@compatibility.test');
+assert.equal(legacyAfterEngagementFields.device.stringValue, 'Android');
+expectStatus(
   await firestoreRequest(`user/${other.uid}`, {
     method: 'PATCH',
     token: legacy.token,
@@ -304,6 +461,78 @@ expectStatus(
   }),
   403,
   'foreign user document creation through spoofed uid field',
+);
+
+// Phone authentication follows the same released-client profile sequence:
+// authenticate, read the missing canonical document, create it with the phone
+// number, then complete end_sub and device before navigating home.
+expectStatus(
+  await firestoreRequest(`user/${phoneOwner.uid}`, {token: phoneOwner.token}),
+  404,
+  'phone first-login missing user document read',
+);
+const phoneUserFields = {
+  uid: stringValue(phoneOwner.uid),
+  phone_number: stringValue(phoneOwner.phoneNumber),
+  created_time: timestampValue(),
+};
+expectStatus(
+  await firestoreRequest(`user/${phoneOwner.uid}`, {
+    method: 'PATCH',
+    token: phoneOwner.token,
+    fields: phoneUserFields,
+  }),
+  200,
+  'phone user document creation',
+);
+expectStatus(
+  await firestoreRequest(`user/${phoneOwner.uid}`, {
+    method: 'PATCH',
+    token: phoneOwner.token,
+    fields: {
+      ...phoneUserFields,
+      end_sub: timestampValue('2026-08-14T12:00:00Z'),
+    },
+  }),
+  200,
+  'phone user end_sub completion',
+);
+expectStatus(
+  await firestoreRequest(`user/${phoneOwner.uid}`, {
+    method: 'PATCH',
+    token: phoneOwner.token,
+    fields: {
+      ...phoneUserFields,
+      end_sub: timestampValue('2026-08-14T12:00:00Z'),
+      device: stringValue('Android'),
+    },
+  }),
+  200,
+  'phone user device completion',
+);
+const phoneProfileRead = await firestoreRequest(`user/${phoneOwner.uid}`, {
+  token: phoneOwner.token,
+});
+expectStatus(
+  phoneProfileRead,
+  200,
+  'phone user document read',
+);
+const phoneProfileBody = JSON.parse(phoneProfileRead.body);
+assert.equal(phoneProfileBody.fields.uid.stringValue, phoneOwner.uid);
+assert.equal(
+  phoneProfileBody.fields.phone_number.stringValue,
+  phoneOwner.phoneNumber,
+);
+expectStatus(
+  await firestoreRequest(`user/${phoneOwner.uid}`, {token: other.token}),
+  403,
+  'foreign phone user document read',
+);
+expectStatus(
+  await firestoreRequest(`user/${phoneOwner.uid}`),
+  403,
+  'unauthenticated phone user document read',
 );
 
 // Web push tokens are private and can only be managed by their owner.

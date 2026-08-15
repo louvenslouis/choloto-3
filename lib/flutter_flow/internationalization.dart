@@ -327,9 +327,15 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'The Lucky Cross could not be shared right now.',
     },
     'croixsharedownload': {
-      'fr': 'Le visuel JPEG a été téléchargé. Vous pouvez maintenant le partager.',
+      'fr':
+          'Le visuel JPEG a été téléchargé. Vous pouvez maintenant le partager.',
       'cr': 'Imaj JPEG la telechaje. Kounye a ou ka pataje li.',
       'en': 'The JPEG was downloaded. You can now share it.',
+    },
+    'croixsharepreparing': {
+      'fr': 'Le visuel se prépare. Réessayez dans un instant.',
+      'cr': 'Imaj la ap prepare. Eseye ankò nan yon ti moman.',
+      'en': 'The image is being prepared. Try again in a moment.',
     },
     '64uxl098': {
       'fr': 'Accueil',
@@ -799,6 +805,264 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Gany rate ki deklare',
       'en': 'Reported missed winnings',
     },
+    'ach_guest_title': {
+      'fr': 'Connectez-vous pour collectionner vos badges',
+      'cr': 'Konekte pou w koleksyone badj ou yo',
+      'en': 'Sign in to collect your badges',
+    },
+    'ach_guest_desc': {
+      'fr':
+          'Votre série quotidienne et vos récompenses seront synchronisées sur tous vos appareils.',
+      'cr':
+          'Seri chak jou ak rekonpans ou yo ap senkronize sou tout aparèy ou yo.',
+      'en': 'Your daily streak and rewards will sync across all your devices.',
+    },
+    'ach_sign_in': {
+      'fr': 'Se connecter',
+      'cr': 'Konekte',
+      'en': 'Sign in',
+    },
+    'ach_error_title': {
+      'fr': 'Vos accomplissements sont indisponibles',
+      'cr': 'Reyalizasyon ou yo pa disponib',
+      'en': 'Your achievements are unavailable',
+    },
+    'ach_error_desc': {
+      'fr':
+          'Vérifiez votre connexion puis réessayez. Votre progression reste enregistrée.',
+      'cr': 'Verifye koneksyon ou epi eseye ankò. Pwogrè ou rete anrejistre.',
+      'en': 'Check your connection and try again. Your progress remains saved.',
+    },
+    'ach_retry': {
+      'fr': 'Réessayer',
+      'cr': 'Eseye ankò',
+      'en': 'Try again',
+    },
+    'ach_profile_missing_title': {
+      'fr': 'Profil en cours de préparation',
+      'cr': 'Pwofil la ap prepare',
+      'en': 'Profile being prepared',
+    },
+    'ach_profile_missing_desc': {
+      'fr':
+          'Votre progression apparaîtra dès que votre profil CHOLOTO sera prêt.',
+      'cr': 'Pwogrè ou ap parèt depi pwofil CHOLOTO ou pare.',
+      'en':
+          'Your progress will appear as soon as your CHOLOTO profile is ready.',
+    },
+    'ach_streak_semantics': {
+      'fr': 'Série de connexion quotidienne',
+      'cr': 'Seri koneksyon chak jou',
+      'en': 'Daily login streak',
+    },
+    'ach_streak_title': {
+      'fr': 'Votre série actuelle',
+      'cr': 'Seri ou genyen kounye a',
+      'en': 'Your current streak',
+    },
+    'ach_days_in_a_row': {
+      'fr': 'jours d’affilée',
+      'cr': 'jou youn apre lòt',
+      'en': 'days in a row',
+    },
+    'ach_best_streak': {
+      'fr': 'Meilleur record :',
+      'cr': 'Pi bon rekò :',
+      'en': 'Best streak:',
+    },
+    'ach_days_until_badge': {
+      'fr': 'jours avant le badge de',
+      'cr': 'jou anvan badj',
+      'en': 'days until the',
+    },
+    'ach_all_streak_unlocked': {
+      'fr': 'Tous les badges de série sont débloqués !',
+      'cr': 'Tout badj seri yo debloke !',
+      'en': 'All streak badges are unlocked!',
+    },
+    'ach_day_mon': {'fr': 'L', 'cr': 'L', 'en': 'M'},
+    'ach_day_tue': {'fr': 'M', 'cr': 'M', 'en': 'T'},
+    'ach_day_wed': {'fr': 'M', 'cr': 'M', 'en': 'W'},
+    'ach_day_thu': {'fr': 'J', 'cr': 'J', 'en': 'T'},
+    'ach_day_fri': {'fr': 'V', 'cr': 'V', 'en': 'F'},
+    'ach_day_sat': {'fr': 'S', 'cr': 'S', 'en': 'S'},
+    'ach_day_sun': {'fr': 'D', 'cr': 'D', 'en': 'S'},
+    'ach_tracking_started': {
+      'fr':
+          'Le suivi de votre série commence aujourd’hui. Aucun historique antérieur n’a été inventé.',
+      'cr': 'Swivi seri ou kòmanse jodi a. Nou pa envante okenn ansyen istwa.',
+      'en':
+          'Your streak tracking starts today. No earlier history has been invented.',
+    },
+    'ach_overview_title': {
+      'fr': 'Votre progression',
+      'cr': 'Pwogrè ou',
+      'en': 'Your progress',
+    },
+    'ach_overview_desc': {
+      'fr': 'Un résumé de vos déclarations Bingo et de votre activité.',
+      'cr': 'Yon rezime deklarasyon Bingo ak aktivite ou.',
+      'en': 'A summary of your Bingo reports and activity.',
+    },
+    'ach_stat_declarations': {
+      'fr': 'Participations déclarées',
+      'cr': 'Patisipasyon deklare',
+      'en': 'Reported entries',
+    },
+    'ach_stat_wins': {
+      'fr': 'Gains déclarés',
+      'cr': 'Gany ki deklare',
+      'en': 'Reported wins',
+    },
+    'ach_stat_rate': {
+      'fr': 'Taux de réussite déclaré',
+      'cr': 'To reyisit ki deklare',
+      'en': 'Reported success rate',
+    },
+    'ach_badges_title': {
+      'fr': 'Collection de badges',
+      'cr': 'Koleksyon badj',
+      'en': 'Badge collection',
+    },
+    'ach_badges_desc': {
+      'fr': 'Revenez chaque jour et participez aux Bingos pour tout débloquer.',
+      'cr':
+          'Retounen chak jou epi patisipe nan Bingo yo pou debloke tout bagay.',
+      'en': 'Come back daily and join Bingos to unlock everything.',
+    },
+    'ach_unlocked': {'fr': 'Débloqué', 'cr': 'Debloke', 'en': 'Unlocked'},
+    'ach_locked': {'fr': 'Verrouillé', 'cr': 'Bloke', 'en': 'Locked'},
+    'ach_progress_of': {'fr': 'sur', 'cr': 'sou', 'en': 'of'},
+    'ach_streak_3_title': {
+      'fr': 'Étincelle',
+      'cr': 'Etensèl',
+      'en': 'Spark',
+    },
+    'ach_streak_3_desc': {
+      'fr': '3 jours connectés d’affilée',
+      'cr': '3 jou konekte youn apre lòt',
+      'en': 'Log in 3 days in a row',
+    },
+    'ach_streak_7_title': {
+      'fr': 'Semaine en feu',
+      'cr': 'Semèn an dife',
+      'en': 'Week on fire',
+    },
+    'ach_streak_7_desc': {
+      'fr': '7 jours connectés d’affilée',
+      'cr': '7 jou konekte youn apre lòt',
+      'en': 'Log in 7 days in a row',
+    },
+    'ach_streak_14_title': {
+      'fr': 'Inarrêtable',
+      'cr': 'San rete',
+      'en': 'Unstoppable',
+    },
+    'ach_streak_14_desc': {
+      'fr': '14 jours connectés d’affilée',
+      'cr': '14 jou konekte youn apre lòt',
+      'en': 'Log in 14 days in a row',
+    },
+    'ach_streak_30_title': {
+      'fr': 'Légende du mois',
+      'cr': 'Lejand mwa a',
+      'en': 'Monthly legend',
+    },
+    'ach_streak_30_desc': {
+      'fr': '30 jours connectés d’affilée',
+      'cr': '30 jou konekte youn apre lòt',
+      'en': 'Log in 30 days in a row',
+    },
+    'ach_winner_1_title': {
+      'fr': 'Premier gain',
+      'cr': 'Premye gany',
+      'en': 'First win',
+    },
+    'ach_winner_1_desc': {
+      'fr': 'Déclarer un premier Bingo gagnant',
+      'cr': 'Deklare premye Bingo ki genyen',
+      'en': 'Report your first winning Bingo',
+    },
+    'ach_winner_5_title': {
+      'fr': 'Œil de lynx',
+      'cr': 'Je file',
+      'en': 'Sharp eye',
+    },
+    'ach_winner_5_desc': {
+      'fr': 'Déclarer 5 Bingos gagnants',
+      'cr': 'Deklare 5 Bingo ki genyen',
+      'en': 'Report 5 winning Bingos',
+    },
+    'ach_winner_10_title': {
+      'fr': 'Maître Bingo',
+      'cr': 'Mèt Bingo',
+      'en': 'Bingo master',
+    },
+    'ach_winner_10_desc': {
+      'fr': 'Déclarer 10 Bingos gagnants',
+      'cr': 'Deklare 10 Bingo ki genyen',
+      'en': 'Report 10 winning Bingos',
+    },
+    'ach_participation_1_title': {
+      'fr': 'Premier pas',
+      'cr': 'Premye pa',
+      'en': 'First step',
+    },
+    'ach_participation_1_desc': {
+      'fr': 'Faire une première déclaration',
+      'cr': 'Fè premye deklarasyon ou',
+      'en': 'Make your first report',
+    },
+    'ach_participation_10_title': {
+      'fr': 'Habitué',
+      'cr': 'Abitye',
+      'en': 'Regular',
+    },
+    'ach_participation_10_desc': {
+      'fr': 'Atteindre 10 déclarations',
+      'cr': 'Rive nan 10 deklarasyon',
+      'en': 'Reach 10 reports',
+    },
+    'ach_participation_50_title': {
+      'fr': 'Passionné',
+      'cr': 'Pasyone',
+      'en': 'Enthusiast',
+    },
+    'ach_participation_50_desc': {
+      'fr': 'Atteindre 50 déclarations',
+      'cr': 'Rive nan 50 deklarasyon',
+      'en': 'Reach 50 reports',
+    },
+    'ach_loyalty_30_title': {
+      'fr': 'Membre fidèle',
+      'cr': 'Manm fidèl',
+      'en': 'Loyal member',
+    },
+    'ach_loyalty_30_desc': {
+      'fr': 'Être membre depuis 30 jours',
+      'cr': 'Manm depi 30 jou',
+      'en': 'Be a member for 30 days',
+    },
+    'ach_loyalty_180_title': {
+      'fr': 'Pilier CHOLOTO',
+      'cr': 'Pilye CHOLOTO',
+      'en': 'CHOLOTO pillar',
+    },
+    'ach_loyalty_180_desc': {
+      'fr': 'Être membre depuis 180 jours',
+      'cr': 'Manm depi 180 jou',
+      'en': 'Be a member for 180 days',
+    },
+    'ach_profile_title': {
+      'fr': 'Profil rayonnant',
+      'cr': 'Pwofil briyan',
+      'en': 'Shining profile',
+    },
+    'ach_profile_desc': {
+      'fr': 'Ajouter votre nom et votre photo',
+      'cr': 'Ajoute non ak foto ou',
+      'en': 'Add your name and photo',
+    },
     '4z7v1o5y': {
       'fr': 'Hello World',
       'cr': 'Bonjou mond',
@@ -998,6 +1262,28 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // don
   {
+    'don_moncash_title': {
+      'fr': 'Pourboire avec MonCash',
+      'cr': 'Fè yon pourboire ak MonCash',
+      'en': 'Tip with MonCash',
+    },
+    'don_moncash_instruction': {
+      'fr':
+          'Pour soutenir CHOLOTO, envoyez directement votre pourboire au numéro ci-dessous.',
+      'cr':
+          'Pou soutni CHOLOTO, voye pourboire ou dirèkteman nan nimewo ki anba a.',
+      'en': 'To support CHOLOTO, send your tip directly to the number below.',
+    },
+    'don_moncash_label': {
+      'fr': 'Numéro MonCash de CHOLOTO',
+      'cr': 'Nimewo MonCash CHOLOTO',
+      'en': 'CHOLOTO MonCash number',
+    },
+    'don_moncash_thanks': {
+      'fr': 'Merci pour votre soutien !',
+      'cr': 'Mèsi pou sipò ou !',
+      'en': 'Thank you for your support!',
+    },
     'wydszs2w': {
       'fr': 'Faire un don',
       'cr': 'Fè nou yon don',
@@ -1073,6 +1359,79 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'Continuer avec Google',
       'cr': 'Kontinye ak Google',
       'en': 'Continue with Google',
+    },
+    'phone_continue': {
+      'fr': 'Continuer avec un téléphone',
+      'cr': 'Kontinye ak yon telefòn',
+      'en': 'Continue with phone',
+    },
+    'phone_sign_in_title': {
+      'fr': 'Connexion par téléphone',
+      'cr': 'Konekte ak telefòn',
+      'en': 'Phone sign-in',
+    },
+    'phone_number_description': {
+      'fr':
+          'Saisissez votre numéro avec l’indicatif du pays. Un numéro haïtien à 8 chiffres recevra automatiquement +509.',
+      'cr':
+          'Antre nimewo a ak kòd peyi a. Yon nimewo Ayiti ki gen 8 chif ap resevwa +509 otomatikman.',
+      'en':
+          'Enter your number with the country code. An 8-digit Haitian number will automatically use +509.',
+    },
+    'phone_number_label': {
+      'fr': 'Numéro de téléphone',
+      'cr': 'Nimewo telefòn',
+      'en': 'Phone number',
+    },
+    'phone_send_code': {
+      'fr': 'Envoyer le code',
+      'cr': 'Voye kòd la',
+      'en': 'Send code',
+    },
+    'phone_code_description': {
+      'fr': 'Saisissez le code à 6 chiffres envoyé au {phoneNumber}.',
+      'cr': 'Antre kòd 6 chif nou voye nan {phoneNumber}.',
+      'en': 'Enter the 6-digit code sent to {phoneNumber}.',
+    },
+    'phone_code_label': {
+      'fr': 'Code de vérification',
+      'cr': 'Kòd verifikasyon',
+      'en': 'Verification code',
+    },
+    'phone_verify_code': {
+      'fr': 'Vérifier et continuer',
+      'cr': 'Verifye epi kontinye',
+      'en': 'Verify and continue',
+    },
+    'phone_change_number': {
+      'fr': 'Modifier le numéro',
+      'cr': 'Chanje nimewo a',
+      'en': 'Change number',
+    },
+    'phone_resend_code': {
+      'fr': 'Renvoyer le code',
+      'cr': 'Voye kòd la ankò',
+      'en': 'Resend code',
+    },
+    'phone_invalid_number': {
+      'fr': 'Saisissez un numéro de téléphone valide.',
+      'cr': 'Antre yon nimewo telefòn ki valab.',
+      'en': 'Enter a valid phone number.',
+    },
+    'phone_invalid_code': {
+      'fr': 'Saisissez les 6 chiffres du code reçu.',
+      'cr': 'Antre 6 chif kòd ou resevwa a.',
+      'en': 'Enter all 6 digits from the code you received.',
+    },
+    'phone_close': {
+      'fr': 'Fermer',
+      'cr': 'Fèmen',
+      'en': 'Close',
+    },
+    'phone_sms_notice': {
+      'fr': 'Des frais de SMS peuvent s’appliquer.',
+      'cr': 'Frè SMS ka aplike.',
+      'en': 'SMS charges may apply.',
     },
     '7p5qctmz': {
       'fr': 'Continuer en tant qu\'invité',

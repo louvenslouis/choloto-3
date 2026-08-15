@@ -87,6 +87,11 @@ class UserRecord extends FirestoreRecord {
   String get photoUrl => _photoUrl ?? '';
   bool hasPhotoUrl() => _photoUrl != null;
 
+  // "engagement" field. Optional for compatibility with historical profiles.
+  EngagementStruct? _engagement;
+  EngagementStruct get engagement => _engagement ?? EngagementStruct();
+  bool hasEngagement() => _engagement != null;
+
   void _initializeFields() {
     _email = snapshotData['email'] as String?;
     _displayName = snapshotData['display_name'] as String?;
@@ -106,6 +111,9 @@ class UserRecord extends FirestoreRecord {
         : UserStatsStruct.maybeFromMap(snapshotData['userStats']);
     _device = snapshotData['device'] as String?;
     _photoUrl = snapshotData['photo_url'] as String?;
+    _engagement = snapshotData['engagement'] is EngagementStruct
+        ? snapshotData['engagement']
+        : EngagementStruct.maybeFromMap(snapshotData['engagement']);
   }
 
   static CollectionReference get collection =>
@@ -156,6 +164,7 @@ Map<String, dynamic> createUserRecordData({
   UserStatsStruct? userStats,
   String? device,
   String? photoUrl,
+  EngagementStruct? engagement,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -173,11 +182,13 @@ Map<String, dynamic> createUserRecordData({
       'userStats': UserStatsStruct().toMap(),
       'device': device,
       'photo_url': photoUrl,
+      if (engagement != null) 'engagement': EngagementStruct().toMap(),
     }.withoutNulls,
   );
 
   // Handle nested data for "userStats" field.
   addUserStatsStructData(firestoreData, userStats, 'userStats');
+  addEngagementStructData(firestoreData, engagement, 'engagement');
 
   return firestoreData;
 }
@@ -200,7 +211,8 @@ class UserRecordDocumentEquality implements Equality<UserRecord> {
         e1?.profile == e2?.profile &&
         e1?.userStats == e2?.userStats &&
         e1?.device == e2?.device &&
-        e1?.photoUrl == e2?.photoUrl;
+        e1?.photoUrl == e2?.photoUrl &&
+        e1?.engagement == e2?.engagement;
   }
 
   @override
@@ -218,7 +230,8 @@ class UserRecordDocumentEquality implements Equality<UserRecord> {
         e?.profile,
         e?.userStats,
         e?.device,
-        e?.photoUrl
+        e?.photoUrl,
+        e?.engagement,
       ]);
 
   @override
