@@ -23,31 +23,53 @@ class _WelcomeWidgetState extends State<WelcomeWidget> {
   late WelcomeModel _model;
 
   Future<void> _completeAuthenticatedSignIn(BaseAuthUser? user) async {
-    if (user == null) {
+    final userId = user?.uid;
+    if (userId == null || userId.isEmpty) {
       return;
     }
 
-    final userReference = currentUserReference;
-    if (userReference == null) {
-      return;
-    }
+    final userReference = UserRecord.collection.doc(userId);
 
-    if (currentUserDocument?.endSub == null) {
+    try {
+      final userDocument = await UserRecord.getDocumentOnce(userReference);
+      currentUserDocument = userDocument;
+
+      if (userDocument.onboardingPending) {
+        if (mounted) {
+          context.goNamedAuth(RegistrationCompletionWidget.routeName, true);
+        }
+        return;
+      }
+
+      if (userDocument.endSub == null) {
+        logFirebaseEvent('Button_backend_call');
+        await userReference.update({
+          ...mapToFirestore(
+            {'end_sub': FieldValue.serverTimestamp()},
+          ),
+        });
+      }
+
       logFirebaseEvent('Button_backend_call');
-      await userReference.update({
-        ...mapToFirestore(
-          {'end_sub': FieldValue.serverTimestamp()},
-        ),
-      });
-    }
+      await userReference.update(
+        mapToFirestore({'device': _currentDeviceName()}),
+      );
 
-    logFirebaseEvent('Button_backend_call');
-    await userReference.update(
-      createUserRecordData(device: _currentDeviceName()),
-    );
-
-    if (mounted) {
-      context.goNamedAuth(HomeWidget.routeName, true);
+      if (mounted) {
+        context.goNamedAuth(HomeWidget.routeName, true);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                FFLocalizations.of(context).getText('registration_save_error'),
+              ),
+            ),
+          );
+      }
     }
   }
 

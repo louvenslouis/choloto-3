@@ -469,6 +469,15 @@ class FirebaseAuthManager extends AuthManager
         _showAuthSnackBar(context, _localizedFirebaseAuthError(context, e));
       }
       return null;
+    } on FirebaseException {
+      await FirebaseAuth.instance.signOut();
+      if (context.mounted) {
+        _showAuthSnackBar(
+          context,
+          FFLocalizations.of(context).getText('registration_save_error'),
+        );
+      }
+      return null;
     }
   }
 }

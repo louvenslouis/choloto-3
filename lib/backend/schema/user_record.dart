@@ -42,6 +42,21 @@ class UserRecord extends FirestoreRecord {
   String get phoneNumber => _phoneNumber ?? '';
   bool hasPhoneNumber() => _phoneNumber != null;
 
+  // "preferred_language" field.
+  String? _preferredLanguage;
+  String get preferredLanguage => _preferredLanguage ?? '';
+  bool hasPreferredLanguage() => _preferredLanguage != null;
+
+  // "onboarding_pending" field.
+  bool? _onboardingPending;
+  bool get onboardingPending => _onboardingPending ?? false;
+  bool hasOnboardingPending() => _onboardingPending != null;
+
+  // "onboarding_completed_at" field.
+  DateTime? _onboardingCompletedAt;
+  DateTime? get onboardingCompletedAt => _onboardingCompletedAt;
+  bool hasOnboardingCompletedAt() => _onboardingCompletedAt != null;
+
   // "end_sub" field.
   DateTime? _endSub;
   DateTime? get endSub => _endSub;
@@ -98,6 +113,10 @@ class UserRecord extends FirestoreRecord {
     _uid = snapshotData['uid'] as String?;
     _createdTime = snapshotData['created_time'] as DateTime?;
     _phoneNumber = snapshotData['phone_number'] as String?;
+    _preferredLanguage = snapshotData['preferred_language'] as String?;
+    _onboardingPending = snapshotData['onboarding_pending'] as bool?;
+    _onboardingCompletedAt =
+        snapshotData['onboarding_completed_at'] as DateTime?;
     _endSub = snapshotData['end_sub'] as DateTime?;
     _lastPaimentMethod = snapshotData['last_paiment_method'] is Paiement
         ? snapshotData['last_paiment_method']
@@ -155,6 +174,9 @@ Map<String, dynamic> createUserRecordData({
   String? uid,
   DateTime? createdTime,
   String? phoneNumber,
+  String? preferredLanguage,
+  bool? onboardingPending,
+  DateTime? onboardingCompletedAt,
   DateTime? endSub,
   Paiement? lastPaimentMethod,
   String? codePersonnel,
@@ -173,6 +195,9 @@ Map<String, dynamic> createUserRecordData({
       'uid': uid,
       'created_time': createdTime,
       'phone_number': phoneNumber,
+      'preferred_language': preferredLanguage,
+      'onboarding_pending': onboardingPending,
+      'onboarding_completed_at': onboardingCompletedAt,
       'end_sub': endSub,
       'last_paiment_method': lastPaimentMethod,
       'code_personnel': codePersonnel,
@@ -203,6 +228,9 @@ class UserRecordDocumentEquality implements Equality<UserRecord> {
         e1?.uid == e2?.uid &&
         e1?.createdTime == e2?.createdTime &&
         e1?.phoneNumber == e2?.phoneNumber &&
+        e1?.preferredLanguage == e2?.preferredLanguage &&
+        e1?.onboardingPending == e2?.onboardingPending &&
+        e1?.onboardingCompletedAt == e2?.onboardingCompletedAt &&
         e1?.endSub == e2?.endSub &&
         e1?.lastPaimentMethod == e2?.lastPaimentMethod &&
         e1?.codePersonnel == e2?.codePersonnel &&
@@ -222,6 +250,9 @@ class UserRecordDocumentEquality implements Equality<UserRecord> {
         e?.uid,
         e?.createdTime,
         e?.phoneNumber,
+        e?.preferredLanguage,
+        e?.onboardingPending,
+        e?.onboardingCompletedAt,
         e?.endSub,
         e?.lastPaimentMethod,
         e?.codePersonnel,

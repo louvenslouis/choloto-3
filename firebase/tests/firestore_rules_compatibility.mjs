@@ -306,6 +306,44 @@ expectStatus(
   'active VIP prediction read',
 );
 
+const registrationFields = {
+  phone_number: stringValue('+50937000000'),
+  preferred_language: stringValue('cr'),
+  onboarding_pending: boolValue(false),
+  onboarding_completed_at: timestampValue('2026-08-16T12:00:00Z'),
+};
+expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: registrationFields,
+    updateMaskFields: [
+      'phone_number',
+      'preferred_language',
+      'onboarding_pending',
+      'onboarding_completed_at',
+    ],
+  }),
+  200,
+  'owner registration completion update',
+);
+const ownerAfterRegistration = await firestoreRequest(`user/${owner.uid}`, {
+  token: owner.token,
+});
+expectStatus(
+  ownerAfterRegistration,
+  200,
+  'owner profile after registration completion',
+);
+const ownerAfterRegistrationFields = JSON.parse(
+  ownerAfterRegistration.body,
+).fields;
+assert.equal(ownerAfterRegistrationFields.uid.stringValue, owner.uid);
+assert.equal(ownerAfterRegistrationFields.phone_number.stringValue, '+50937000000');
+assert.equal(ownerAfterRegistrationFields.preferred_language.stringValue, 'cr');
+assert.equal(ownerAfterRegistrationFields.onboarding_pending.booleanValue, false);
+assert.ok(ownerAfterRegistrationFields.onboarding_completed_at.timestampValue);
+
 // The new optional engagement aggregate is written as a partial, idempotent
 // profile update. It must preserve all released-client fields and remain
 // private to the path owner.

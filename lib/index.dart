@@ -17,3 +17,5 @@ export '/settings/upgrade/upgrade_widget.dart' show UpgradeWidget;
 export '/autres/home/home_widget.dart' show HomeWidget;
 export '/accomplissements/accomplissements_widget.dart'
     show AccomplissementsWidget;
+export '/components/registration_completion_widget.dart'
+    show RegistrationCompletionWidget;

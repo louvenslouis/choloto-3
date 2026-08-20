@@ -124,6 +124,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => AuthentificationWidget(),
         ),
         FFRoute(
+          name: RegistrationCompletionWidget.routeName,
+          path: RegistrationCompletionWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const RegistrationCompletionWidget(),
+        ),
+        FFRoute(
           name: CroixWidget.routeName,
           path: CroixWidget.routePath,
           builder: (context, params) => CroixWidget(),

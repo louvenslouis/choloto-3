@@ -214,27 +214,25 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      if ((FFAppState().betaFeatures.statsBingo == true) ||
-                          (currentUserEmail == 'louvenslouisl@gmail.com'))
-                        Align(
-                          alignment: AlignmentDirectional(0.0, 0.0),
-                          child: FlutterFlowIconButton(
-                            borderRadius: 8.0,
-                            buttonSize: 40.0,
-                            icon: Icon(
-                              Icons.query_stats,
-                              color: FlutterFlowTheme.of(context).info,
-                              size: 24.0,
-                            ),
-                            onPressed: () async {
-                              logFirebaseEvent(
-                                  'HOME_PAGE_query_stats_ICN_ON_TAP');
-                              logFirebaseEvent('IconButton_navigate_to');
-                              context
-                                  .pushNamed(AccomplissementsWidget.routeName);
-                            },
+                      Align(
+                        alignment: AlignmentDirectional(0.0, 0.0),
+                        child: FlutterFlowIconButton(
+                          borderRadius: 8.0,
+                          buttonSize: 40.0,
+                          icon: Icon(
+                            Icons.query_stats,
+                            color: FlutterFlowTheme.of(context).info,
+                            size: 24.0,
                           ),
+                          onPressed: () async {
+                            logFirebaseEvent(
+                                'HOME_PAGE_query_stats_ICN_ON_TAP');
+                            logFirebaseEvent('IconButton_navigate_to');
+                            context
+                                .pushNamed(AccomplissementsWidget.routeName);
+                          },
                         ),
+                      ),
                       Align(
                         alignment: AlignmentDirectional(0.0, 0.0),
                         child: FlutterFlowIconButton(

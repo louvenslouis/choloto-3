@@ -36,7 +36,7 @@ class _EmailAuthSheetState extends State<EmailAuthSheet> {
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
 
-  bool _isCreatingAccount = false;
+  bool _isCreatingAccount = true;
   bool _isSubmitting = false;
   bool _showPassword = false;
   bool _showConfirmation = false;
@@ -129,12 +129,12 @@ class _EmailAuthSheetState extends State<EmailAuthSheet> {
     }
   }
 
-  void _toggleMode() {
-    if (_isSubmitting) {
+  void _setMode({required bool createAccount}) {
+    if (_isSubmitting || _isCreatingAccount == createAccount) {
       return;
     }
     setState(() {
-      _isCreatingAccount = !_isCreatingAccount;
+      _isCreatingAccount = createAccount;
       _validationMessage = null;
       _confirmPasswordController.clear();
     });
@@ -200,6 +200,38 @@ class _EmailAuthSheetState extends State<EmailAuthSheet> {
                   ],
                 ),
                 SizedBox(height: tokens.spacing.sm),
+                Material(
+                  color: theme.primaryBackground,
+                  borderRadius: BorderRadius.circular(tokens.radius.full),
+                  child: Container(
+                    padding: EdgeInsets.all(tokens.spacing.xs),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: theme.alternate.withValues(alpha: 0.45),
+                      ),
+                      borderRadius: BorderRadius.circular(tokens.radius.full),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildModeButton(
+                          theme,
+                          key: const ValueKey('email-create-mode'),
+                          label: localizations.getText('email_create_mode'),
+                          selected: _isCreatingAccount,
+                          onTap: () => _setMode(createAccount: true),
+                        ),
+                        _buildModeButton(
+                          theme,
+                          key: const ValueKey('email-sign-in-mode'),
+                          label: localizations.getText('email_sign_in_mode'),
+                          selected: !_isCreatingAccount,
+                          onTap: () => _setMode(createAccount: false),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: tokens.spacing.md),
                 Text(
                   localizations.getText(
                     _isCreatingAccount
@@ -359,21 +391,50 @@ class _EmailAuthSheetState extends State<EmailAuthSheet> {
                     hoverColor: theme.warning,
                   ),
                 ),
-                SizedBox(height: tokens.spacing.sm),
-                TextButton(
-                  key: const ValueKey('email-mode-toggle'),
-                  onPressed: _isSubmitting ? null : _toggleMode,
-                  child: Text(
-                    localizations.getText(
-                      _isCreatingAccount
-                          ? 'email_have_account'
-                          : 'email_no_account',
-                    ),
-                    textAlign: TextAlign.center,
-                    style: theme.labelLarge.copyWith(color: theme.primaryText),
-                  ),
-                ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModeButton(
+    FlutterFlowTheme theme, {
+    required Key key,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final tokens = theme.designToken;
+
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: selected,
+        child: InkWell(
+          key: key,
+          onTap: _isSubmitting ? null : onTap,
+          borderRadius: BorderRadius.circular(tokens.radius.full),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: EdgeInsets.symmetric(
+              horizontal: tokens.spacing.sm,
+              vertical: tokens.spacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: selected ? theme.primary : theme.primaryBackground,
+              borderRadius: BorderRadius.circular(tokens.radius.full),
+            ),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: theme.labelLarge.copyWith(
+                color: selected ? theme.onPrimary : theme.primaryText,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
             ),
           ),
         ),

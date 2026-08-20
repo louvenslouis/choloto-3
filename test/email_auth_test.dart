@@ -96,9 +96,9 @@ void main() {
       'email_confirm_password_label',
       'email_sign_in',
       'email_create_account',
+      'email_create_mode',
+      'email_sign_in_mode',
       'email_forgot_password',
-      'email_no_account',
-      'email_have_account',
       'email_invalid',
       'email_password_too_short',
       'email_password_mismatch',
@@ -134,13 +134,17 @@ void main() {
             find.byKey(const ValueKey('email-password-field')),
             findsOneWidget,
           );
+          expect(
+            find.byKey(const ValueKey('email-confirm-password-field')),
+            findsOneWidget,
+          );
           expect(tester.takeException(), isNull);
         },
       );
     }
   }
 
-  testWidgets('account creation exposes password confirmation without overflow',
+  testWidgets('mode selector switches simply between creation and sign-in',
       (tester) async {
     tester.view.physicalSize = const Size(320, 568);
     tester.view.devicePixelRatio = 1;
@@ -150,9 +154,26 @@ void main() {
     await tester.pumpWidget(
       _app(locale: const Locale('fr'), themeMode: ThemeMode.dark),
     );
-    await tester.tap(find.byKey(const ValueKey('email-mode-toggle')));
     await tester.pumpAndSettle();
 
+    expect(
+      find.byKey(const ValueKey('email-confirm-password-field')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('email-sign-in-mode')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('email-confirm-password-field')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('email-reset-password-button')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('email-create-mode')));
+    await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('email-confirm-password-field')),
       findsOneWidget,

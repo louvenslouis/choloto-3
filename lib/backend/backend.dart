@@ -564,10 +564,62 @@ Future maybeCreateUser(User user) async {
     uid: user.uid,
     phoneNumber: user.phoneNumber,
     createdTime: getCurrentTimestamp,
+    onboardingPending: true,
   );
 
-  await userRecord.set(userData);
+  await userRecord.set(userData, SetOptions(merge: true));
   currentUserDocument = UserRecord.getDocumentFromData(userData, userRecord);
+}
+
+const supportedRegistrationLanguages = {'fr', 'en', 'cr'};
+
+String normalizeRegistrationPhoneNumber(String value) =>
+    value.trim().replaceAll(RegExp(r'[\s().-]'), '');
+
+bool isValidRegistrationPhoneNumber(String value) => RegExp(r'^\+?[0-9]{7,15}$')
+    .hasMatch(normalizeRegistrationPhoneNumber(value));
+
+Future<void> completeUserRegistration({
+  required String phoneNumber,
+  required String preferredLanguage,
+  required String device,
+}) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    throw StateError('No authenticated user is available.');
+  }
+
+  final normalizedPhoneNumber = normalizeRegistrationPhoneNumber(phoneNumber);
+  if (!isValidRegistrationPhoneNumber(normalizedPhoneNumber)) {
+    throw ArgumentError.value(phoneNumber, 'phoneNumber');
+  }
+  if (!supportedRegistrationLanguages.contains(preferredLanguage)) {
+    throw ArgumentError.value(preferredLanguage, 'preferredLanguage');
+  }
+
+  final userRecord = UserRecord.collection.doc(user.uid);
+  final existingProfile = await userRecord.get();
+  final existingProfileData = existingProfile.data() as Map<String, dynamic>?;
+  final userData = createUserRecordData(
+    email: user.email ?? user.providerData.firstOrNull?.email,
+    displayName: user.displayName,
+    photoUrl: user.photoURL,
+    uid: user.uid,
+    createdTime: existingProfile.exists ? null : getCurrentTimestamp,
+    phoneNumber: normalizedPhoneNumber,
+    preferredLanguage: preferredLanguage,
+    onboardingPending: false,
+    device: device,
+  );
+  userData['onboarding_completed_at'] = FieldValue.serverTimestamp();
+
+  if (!existingProfile.exists ||
+      existingProfileData == null ||
+      !existingProfileData.containsKey('end_sub')) {
+    userData['end_sub'] = FieldValue.serverTimestamp();
+  }
+
+  await userRecord.set(userData, SetOptions(merge: true));
 }
 
 Future updateUserDocument({String? email}) async {

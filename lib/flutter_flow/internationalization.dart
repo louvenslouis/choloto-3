@@ -1398,15 +1398,86 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Logo CHOLOTO',
       'en': 'CHOLOTO logo',
     },
+    'registration_eyebrow': {
+      'fr': 'Finalisons votre compte',
+      'cr': 'Ann fini kont ou',
+      'en': 'Let’s finish your account',
+    },
+    'registration_title': {
+      'fr': 'Encore une petite étape',
+      'cr': 'Gen yon ti etap ankò',
+      'en': 'One quick final step',
+    },
+    'registration_description': {
+      'fr':
+          'Choisissez votre langue et ajoutez votre numéro pour finaliser votre profil CHOLOTO.',
+      'cr':
+          'Chwazi lang ou epi ajoute nimewo telefòn ou pou n fini pwofil CHOLOTO ou.',
+      'en':
+          'Choose your language and add your phone number to finish your CHOLOTO profile.',
+    },
+    'registration_language_label': {
+      'fr': 'Votre langue',
+      'cr': 'Lang ou',
+      'en': 'Your language',
+    },
+    'registration_language_fr': {
+      'fr': 'Français',
+      'cr': 'Fransè',
+      'en': 'French',
+    },
+    'registration_language_en': {
+      'fr': 'Anglais',
+      'cr': 'Anglè',
+      'en': 'English',
+    },
+    'registration_language_cr': {
+      'fr': 'Créole',
+      'cr': 'Kreyòl',
+      'en': 'Haitian Creole',
+    },
+    'registration_phone_label': {
+      'fr': 'Numéro de téléphone',
+      'cr': 'Nimewo telefòn',
+      'en': 'Phone number',
+    },
+    'registration_phone_hint': {
+      'fr': 'Ex. +509 37 00 00 00',
+      'cr': 'Eg. +509 37 00 00 00',
+      'en': 'E.g. +509 37 00 00 00',
+    },
+    'registration_validate': {
+      'fr': 'Valider et continuer',
+      'cr': 'Valide epi kontinye',
+      'en': 'Confirm and continue',
+    },
+    'registration_phone_invalid': {
+      'fr': 'Saisissez un numéro de téléphone valide.',
+      'cr': 'Antre yon nimewo telefòn ki valab.',
+      'en': 'Enter a valid phone number.',
+    },
+    'registration_language_required': {
+      'fr': 'Choisissez votre langue.',
+      'cr': 'Chwazi lang ou.',
+      'en': 'Choose your language.',
+    },
+    'registration_save_error': {
+      'fr':
+          'Impossible de finaliser votre profil pour le moment. Vérifiez votre connexion et réessayez.',
+      'cr':
+          'Nou pa ka fini pwofil ou pou kounye a. Verifye koneksyon ou epi eseye ankò.',
+      'en':
+          'We cannot finish your profile right now. Check your connection and try again.',
+    },
     'ser0033p': {
       'fr': 'Continuer avec Google',
       'cr': 'Kontinye ak Google',
       'en': 'Continue with Google',
     },
     'email_continue': {
-      'fr': 'Continuer avec un e-mail',
-      'cr': 'Kontinye ak yon imèl',
-      'en': 'Continue with email',
+      'fr': 'Créer un compte avec un e-mail',
+      'cr': 'Kreye yon kont ak yon imèl',
+      'en': 'Create an account with email',
     },
     'email_sign_in_title': {
       'fr': 'Connexion par e-mail',
@@ -1453,20 +1524,20 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Kreye kont mwen',
       'en': 'Create my account',
     },
+    'email_create_mode': {
+      'fr': 'Créer un compte',
+      'cr': 'Kreye kont',
+      'en': 'Create account',
+    },
+    'email_sign_in_mode': {
+      'fr': 'Se connecter',
+      'cr': 'Konekte',
+      'en': 'Sign in',
+    },
     'email_forgot_password': {
       'fr': 'Mot de passe oublié ?',
       'cr': 'Ou bliye modpas ou?',
       'en': 'Forgot password?',
-    },
-    'email_no_account': {
-      'fr': 'Pas encore de compte ? Créer un compte',
-      'cr': 'Ou poko gen kont? Kreye yon kont',
-      'en': 'No account yet? Create one',
-    },
-    'email_have_account': {
-      'fr': 'Vous avez déjà un compte ? Se connecter',
-      'cr': 'Ou deja gen yon kont? Konekte',
-      'en': 'Already have an account? Sign in',
     },
     'email_invalid': {
       'fr': 'Saisissez une adresse e-mail valide.',
