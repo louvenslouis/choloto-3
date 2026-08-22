@@ -42,6 +42,42 @@ void _setTimeagoLocales() {
   timeago.setLocaleMessages('fr_short', timeago.FrShortMessages());
   timeago.setLocaleMessages('en', timeago.EnMessages());
   timeago.setLocaleMessages('en_short', timeago.EnShortMessages());
+  timeago.setLocaleMessages('cr', _HaitianCreoleTimeagoMessages());
+}
+
+class _HaitianCreoleTimeagoMessages implements timeago.LookupMessages {
+  @override
+  String prefixAgo() => 'sa gen';
+  @override
+  String prefixFromNow() => 'nan';
+  @override
+  String suffixAgo() => '';
+  @override
+  String suffixFromNow() => '';
+  @override
+  String lessThanOneMinute(int seconds) => 'mwens pase yon minit';
+  @override
+  String aboutAMinute(int minutes) => 'anviwon yon minit';
+  @override
+  String minutes(int minutes) => 'anviwon $minutes minit';
+  @override
+  String aboutAnHour(int minutes) => 'anviwon inèdtan';
+  @override
+  String hours(int hours) => '$hours èdtan';
+  @override
+  String aDay(int hours) => 'anviwon yon jou';
+  @override
+  String days(int days) => 'anviwon $days jou';
+  @override
+  String aboutAMonth(int days) => 'anviwon yon mwa';
+  @override
+  String months(int months) => 'anviwon $months mwa';
+  @override
+  String aboutAYear(int year) => 'anviwon yon ane';
+  @override
+  String years(int years) => '$years ane';
+  @override
+  String wordSeparator() => ' ';
 }
 
 const _haitianCreoleMonths = <String>[
@@ -129,7 +165,7 @@ String dateTimeFormat(String format, DateTime? dateTime, {String? locale}) {
     _setTimeagoLocales();
     return timeago.format(
       dateTime,
-      locale: locale == 'cr' ? 'fr' : locale,
+      locale: locale,
       allowFromNow: true,
     );
   }

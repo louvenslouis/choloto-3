@@ -1,5 +1,8 @@
 import 'package:choloto/autres/bingo/bingo/bingo_dialog.dart';
+import 'package:choloto/autres/bingo/bingo/bingo_reaction_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
+import 'package:choloto/flutter_flow/flutter_flow_icon_button.dart';
+import 'package:choloto/flutter_flow/flutter_flow_util.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -81,7 +84,49 @@ void main() {
       final localizations = FFLocalizations(Locale(language));
       expect(localizations.getText('bingo_story_label').trim(), isNotEmpty);
       expect(localizations.getText('bingo_story_open').trim(), isNotEmpty);
+      expect(localizations.getText('bingo_story_like').trim(), isNotEmpty);
+      expect(localizations.getText('bingo_story_dislike').trim(), isNotEmpty);
+      expect(
+        localizations.getText('bingo_story_reaction_error').trim(),
+        isNotEmpty,
+      );
     }
+  });
+
+  test('Bingo reaction counter changes preserve the existing fields', () {
+    expect(
+      bingoReactionCounterDeltas(
+        previous: null,
+        next: BingoReaction.positive,
+      ),
+      {'bingoGain': 1},
+    );
+    expect(
+      bingoReactionCounterDeltas(
+        previous: BingoReaction.positive,
+        next: BingoReaction.negative,
+      ),
+      {'bingoGain': -1, 'bingoRater': 1},
+    );
+    expect(
+      bingoReactionCounterDeltas(
+        previous: BingoReaction.negative,
+        next: null,
+      ),
+      {'bingoRater': -1},
+    );
+  });
+
+  test('relative publication time is localized in Haitian Creole', () {
+    final now = DateTime.now();
+    final label = dateTimeFormat(
+      'relative',
+      now.subtract(const Duration(hours: 2)),
+      locale: 'cr',
+    );
+
+    expect(label, startsWith('sa gen'));
+    expect(label, contains('èdtan'));
   });
 
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
@@ -109,6 +154,105 @@ void main() {
             ),
             findsOneWidget,
           );
+          final circleRect = tester.getRect(
+            find.byKey(const ValueKey('bingo-story-circle')),
+          );
+          final labelFinder = find.byKey(const ValueKey('bingo-story-label'));
+          final labelRect = tester.getRect(labelFinder);
+          final label = tester.widget<Text>(labelFinder);
+
+          expect(circleRect.contains(labelRect.center), isTrue);
+          expect(label.style?.fontWeight, FontWeight.bold);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
+    for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
+      testWidgets(
+        'Bingo status chrome renders ${locale.languageCode} in ${themeMode.name} mode',
+        (tester) async {
+          tester.view.physicalSize = const Size(360, 800);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          BingoReaction? tappedReaction;
+
+          await tester.pumpWidget(
+            MaterialApp(
+              locale: locale,
+              supportedLocales: const [
+                Locale('fr'),
+                Locale('en'),
+                Locale('cr'),
+              ],
+              localizationsDelegates: const [
+                FFLocalizationsDelegate(),
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+                FallbackMaterialLocalizationDelegate(),
+                FallbackCupertinoLocalizationDelegate(),
+              ],
+              theme: ThemeData(brightness: Brightness.light),
+              darkTheme: ThemeData(brightness: Brightness.dark),
+              themeMode: themeMode,
+              home: Scaffold(
+                body: BingoStatusFrame(
+                  publishedAt:
+                      DateTime.now().subtract(const Duration(hours: 2)),
+                  selectedReaction: BingoReaction.positive,
+                  onReaction: (reaction) => tappedReaction = reaction,
+                  child: const SizedBox(
+                    key: ValueKey('status-chrome-bingo-content'),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(
+            find.byKey(const ValueKey('bingo-story-header')),
+            findsOneWidget,
+          );
+          expect(
+            find.text(
+              FFLocalizations(locale).getText('bingo_story_label'),
+            ),
+            findsOneWidget,
+          );
+          final publicationAge = tester.widget<Text>(
+            find.byKey(const ValueKey('bingo-story-published-age')),
+          );
+          expect(publicationAge.data, isNotEmpty);
+          expect(
+            find.byKey(const ValueKey('bingo-story-like')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('bingo-story-dislike')),
+            findsOneWidget,
+          );
+
+          final reactionRect = tester.getRect(
+            find.byKey(const ValueKey('bingo-story-reactions')),
+          );
+          expect(reactionRect.center.dx, greaterThan(180.0));
+          expect(reactionRect.center.dy, greaterThan(400.0));
+
+          final likeButton = tester.widget<FlutterFlowIconButton>(
+            find.byKey(const ValueKey('bingo-story-like')),
+          );
+          expect(likeButton.fillColor, isNot(likeButton.disabledColor));
+
+          await tester.tap(
+            find.byKey(const ValueKey('bingo-story-dislike')),
+          );
+          await tester.pump();
+          expect(tappedReaction, BingoReaction.negative);
           expect(tester.takeException(), isNull);
         },
       );
@@ -187,6 +331,16 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('fr'),
+        supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+        localizationsDelegates: const [
+          FFLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          FallbackMaterialLocalizationDelegate(),
+          FallbackCupertinoLocalizationDelegate(),
+        ],
         home: Builder(
           builder: (context) => Scaffold(
             body: TextButton(

@@ -42,38 +42,44 @@ class BingoStoryButton extends StatelessWidget {
           ),
           child: SizedBox(
             width: 80.0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  key: const ValueKey('bingo-story-circle'),
-                  width: 72.0,
-                  height: 72.0,
-                  padding: EdgeInsets.all(spacing.xs),
-                  decoration: BoxDecoration(
-                    color: theme.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [theme.designToken.shadow.sm],
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/bg_bingo_-_Moyenne.jpeg',
-                      fit: BoxFit.cover,
-                      excludeFromSemantics: true,
-                    ),
+            child: Center(
+              child: Container(
+                key: const ValueKey('bingo-story-circle'),
+                width: 72.0,
+                height: 72.0,
+                padding: EdgeInsets.all(spacing.xs),
+                decoration: BoxDecoration(
+                  color: theme.primary,
+                  shape: BoxShape.circle,
+                  boxShadow: [theme.designToken.shadow.sm],
+                ),
+                child: ClipOval(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/images/bg_bingo_-_Moyenne.jpeg',
+                        fit: BoxFit.cover,
+                        excludeFromSemantics: true,
+                      ),
+                      Center(
+                        child: Text(
+                          FFLocalizations.of(context)
+                              .getText('bingo_story_label'),
+                          key: const ValueKey('bingo-story-label'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: theme.labelMedium.copyWith(
+                            color: theme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: spacing.xs),
-                Text(
-                  FFLocalizations.of(context).getText('bingo_story_label'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: theme.labelMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
