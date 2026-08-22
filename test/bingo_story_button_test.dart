@@ -279,12 +279,23 @@ void main() {
             commentField.decoration?.hintText,
             FFLocalizations(locale).getText('bingo_story_comment_hint'),
           );
+          expect(
+            find.byKey(const ValueKey('bingo-story-comment-send')),
+            findsNothing,
+          );
 
           final reactionRect = tester.getRect(
             find.byKey(const ValueKey('bingo-story-reactions')),
           );
+          final commentFieldRect = tester.getRect(
+            find.byKey(const ValueKey('bingo-story-comment-field')),
+          );
           expect(reactionRect.center.dx, greaterThan(180.0));
           expect(reactionRect.center.dy, greaterThan(400.0));
+          expect(
+            (reactionRect.center.dy - commentFieldRect.center.dy).abs(),
+            lessThan(1.0),
+          );
 
           final likeButton = tester.widget<FlutterFlowIconButton>(
             find.byKey(const ValueKey('bingo-story-like')),
@@ -305,6 +316,10 @@ void main() {
             'Mwen genyen',
           );
           await tester.pump();
+          expect(
+            find.byKey(const ValueKey('bingo-story-comment-send')),
+            findsOneWidget,
+          );
           await tester.tap(
             find.byKey(const ValueKey('bingo-story-comment-send')),
           );

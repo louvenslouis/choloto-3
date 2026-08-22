@@ -231,18 +231,18 @@ class _BingoStoryEngagementBar extends StatelessWidget {
         alignment: AlignmentDirectional.bottomEnd,
         child: Padding(
           padding: EdgeInsets.all(tokens.spacing.md),
-          child: Column(
+          child: Row(
             key: const ValueKey('bingo-story-engagement-bar'),
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (commentController != null && onCommentSubmitted != null) ...[
-                _BingoStoryCommentField(
-                  controller: commentController!,
-                  enabled: commentEnabled,
-                  onSubmitted: onCommentSubmitted!,
+                Expanded(
+                  child: _BingoStoryCommentField(
+                    controller: commentController!,
+                    enabled: commentEnabled,
+                    onSubmitted: onCommentSubmitted!,
+                  ),
                 ),
-                if (onReaction != null) SizedBox(height: tokens.spacing.sm),
+                if (onReaction != null) SizedBox(width: tokens.spacing.sm),
               ],
               if (onReaction != null)
                 Row(
@@ -324,8 +324,8 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final localizations = FFLocalizations.of(context);
-    final canSubmit =
-        widget.enabled && widget.controller.text.trim().isNotEmpty;
+    final hasComment = widget.controller.text.trim().isNotEmpty;
+    final canSubmit = widget.enabled && hasComment;
 
     return SizedBox(
       height: 48.0,
@@ -364,20 +364,22 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
               width: 2.0,
             ),
           ),
-          suffixIcon: Semantics(
-            label: localizations.getText('bingo_story_comment_send'),
-            button: true,
-            enabled: canSubmit,
-            child: IconButton(
-              key: const ValueKey('bingo-story-comment-send'),
-              onPressed: canSubmit ? _submit : null,
-              icon: Icon(
-                Icons.send_rounded,
-                color: canSubmit ? theme.primary : theme.secondaryText,
-                size: 20.0,
-              ),
-            ),
-          ),
+          suffixIcon: hasComment
+              ? Semantics(
+                  label: localizations.getText('bingo_story_comment_send'),
+                  button: true,
+                  enabled: canSubmit,
+                  child: IconButton(
+                    key: const ValueKey('bingo-story-comment-send'),
+                    onPressed: canSubmit ? _submit : null,
+                    icon: Icon(
+                      Icons.send_rounded,
+                      color: canSubmit ? theme.primary : theme.secondaryText,
+                      size: 20.0,
+                    ),
+                  ),
+                )
+              : null,
         ),
       ),
     );
