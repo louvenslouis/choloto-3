@@ -1,5 +1,4 @@
 import '/autres/bingo/stackbingo/stackbingo_widget.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -131,29 +130,6 @@ class _BingoWidgetState extends State<BingoWidget>
                     height: 170.0,
                     fit: BoxFit.contain,
                     animate: true,
-                  ),
-                ),
-                Align(
-                  alignment: AlignmentDirectional(1.0, -1.0),
-                  child: Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 15.0, 0.0),
-                    child: FlutterFlowIconButton(
-                      borderRadius: 15.0,
-                      buttonSize: 40.0,
-                      fillColor: Color(0x7FFFFFFF),
-                      icon: Icon(
-                        Icons.close_outlined,
-                        color: FlutterFlowTheme.of(context).onPrimary,
-                        size: 24.0,
-                      ),
-                      onPressed: () async {
-                        logFirebaseEvent(
-                            'BINGO_COMP_close_outlined_ICN_ON_TAP');
-                        logFirebaseEvent('IconButton_close_dialog_drawer_etc');
-                        Navigator.pop(context);
-                      },
-                    ),
                   ),
                 ),
                 Align(

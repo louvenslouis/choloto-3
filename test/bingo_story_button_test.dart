@@ -399,6 +399,14 @@ void main() {
     );
     expect(contentArea.width, bingoCardPresentationSize.width);
     expect(contentArea.height, bingoCardPresentationSize.height);
+
+    expect(
+      find.byKey(const ValueKey('bingo-story-close-button')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('bingo-status-dialog')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

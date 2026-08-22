@@ -17,6 +17,7 @@ class BingoStatusFrame extends StatelessWidget {
   const BingoStatusFrame({
     super.key,
     required this.child,
+    this.onClose,
     this.publishedAt,
     this.selectedReaction,
     this.onReaction,
@@ -27,6 +28,7 @@ class BingoStatusFrame extends StatelessWidget {
   });
 
   final Widget child;
+  final VoidCallback? onClose;
   final DateTime? publishedAt;
   final BingoReaction? selectedReaction;
   final ValueChanged<BingoReaction>? onReaction;
@@ -63,6 +65,7 @@ class BingoStatusFrame extends StatelessWidget {
               ),
               if (publishedAt != null)
                 _BingoStoryHeader(publishedAt: publishedAt!),
+              if (onClose != null) _BingoStoryCloseButton(onClose: onClose!),
               if (onReaction != null || onCommentSubmitted != null)
                 _BingoStoryEngagementBar(
                   selectedReaction: selectedReaction,
@@ -99,6 +102,45 @@ class BingoStatusFrame extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _BingoStoryCloseButton extends StatelessWidget {
+  const _BingoStoryCloseButton({required this.onClose});
+
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final localizations = FFLocalizations.of(context);
+
+    return SafeArea(
+      child: Align(
+        alignment: AlignmentDirectional.topEnd,
+        child: Padding(
+          padding: EdgeInsets.all(theme.designToken.spacing.md),
+          child: Tooltip(
+            message: localizations.getVariableText(
+              frText: 'Fermer',
+              enText: 'Close',
+              crText: 'Fèmen',
+            ),
+            child: FlutterFlowIconButton(
+              key: const ValueKey('bingo-story-close-button'),
+              borderRadius: theme.designToken.radius.sm,
+              buttonSize: 40.0,
+              icon: Icon(
+                Icons.close_outlined,
+                color: theme.onDecorative,
+                size: 24.0,
+              ),
+              onPressed: onClose,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -487,6 +529,7 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody> {
   @override
   Widget build(BuildContext context) {
     return BingoStatusFrame(
+      onClose: () => Navigator.of(context).pop(),
       publishedAt: widget.publishedAt,
       selectedReaction: _selectedReaction,
       reactionPending: _reactionPending,

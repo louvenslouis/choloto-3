@@ -166,20 +166,6 @@ class _StoryPageWidgetState extends State<StoryPageWidget> {
               ),
             ),
           ),
-          FlutterFlowIconButton(
-            borderRadius: 8.0,
-            buttonSize: 40.0,
-            icon: Icon(
-              Icons.close_outlined,
-              color: FlutterFlowTheme.of(context).onDecorative,
-              size: 24.0,
-            ),
-            onPressed: () {
-              logFirebaseEvent('STORY_close_outlined_ICN_ON_TAP');
-              logFirebaseEvent('IconButton_navigate_to');
-              context.pushNamed(HomeWidget.routeName);
-            },
-          ),
           Tooltip(
             message: localizations.getVariableText(
               frText: 'Actualiser',
@@ -201,6 +187,21 @@ class _StoryPageWidgetState extends State<StoryPageWidget> {
                 safeSetState(() {});
               },
             ),
+          ),
+          FlutterFlowIconButton(
+            key: const ValueKey('story-close-button'),
+            borderRadius: 8.0,
+            buttonSize: 40.0,
+            icon: Icon(
+              Icons.close_outlined,
+              color: FlutterFlowTheme.of(context).onDecorative,
+              size: 24.0,
+            ),
+            onPressed: () {
+              logFirebaseEvent('STORY_close_outlined_ICN_ON_TAP');
+              logFirebaseEvent('IconButton_navigate_to');
+              context.pushNamed(HomeWidget.routeName);
+            },
           ),
         ],
       ),
