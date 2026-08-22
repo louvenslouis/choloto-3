@@ -97,7 +97,8 @@ class _RegistrationCompletionWidgetState
 
     final localizations = FFLocalizations.of(context);
     final phoneNumber = normalizeRegistrationPhoneNumber(_phoneController.text);
-    if (!isValidRegistrationPhoneNumber(phoneNumber)) {
+    if (phoneNumber.isNotEmpty &&
+        !isValidRegistrationPhoneNumber(phoneNumber)) {
       setState(() {
         _validationMessage =
             localizations.getText('registration_phone_invalid');

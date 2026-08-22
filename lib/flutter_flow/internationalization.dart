@@ -1224,6 +1224,16 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // bingoCardVIP
   {
+    'bingo_story_label': {
+      'fr': 'Bingo',
+      'cr': 'Bingo',
+      'en': 'Bingo',
+    },
+    'bingo_story_open': {
+      'fr': 'Ouvrir le Bingo',
+      'cr': 'Ouvri Bingo a',
+      'en': 'Open Bingo',
+    },
     'ch00aogu': {
       'fr': 'Avez-vous gagné avec nous ?',
       'cr': 'Èske ou te genyen avèk nou?',
@@ -1437,14 +1447,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Haitian Creole',
     },
     'registration_phone_label': {
-      'fr': 'Numéro de téléphone',
-      'cr': 'Nimewo telefòn',
-      'en': 'Phone number',
+      'fr': 'Numéro de téléphone (facultatif)',
+      'cr': 'Nimewo telefòn (si ou vle)',
+      'en': 'Phone number (optional)',
     },
     'registration_phone_hint': {
-      'fr': 'Ex. +509 37 00 00 00',
-      'cr': 'Eg. +509 37 00 00 00',
-      'en': 'E.g. +509 37 00 00 00',
+      'fr': 'Laissez vide ou saisissez : +509 37 00 00 00',
+      'cr': 'Kite l vid oswa antre : +509 37 00 00 00',
+      'en': 'Leave blank or enter: +509 37 00 00 00',
     },
     'registration_validate': {
       'fr': 'Valider et continuer',

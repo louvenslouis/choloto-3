@@ -60,6 +60,7 @@ void main() {
     );
     expect(isValidRegistrationPhoneNumber('+50937000000'), isTrue);
     expect(isValidRegistrationPhoneNumber('37000000'), isTrue);
+    expect(isValidRegistrationPhoneNumber(''), isTrue);
     expect(isValidRegistrationPhoneNumber('123'), isFalse);
     expect(isValidRegistrationPhoneNumber('phone-number'), isFalse);
   });
@@ -132,6 +133,10 @@ void main() {
     await tester.pumpWidget(
       _app(locale: const Locale('fr'), themeMode: ThemeMode.dark),
     );
+    await tester.enterText(
+      find.byKey(const ValueKey('registration-phone-field')),
+      '123',
+    );
     await tester.tap(find.byKey(const ValueKey('registration-submit-button')));
     await tester.pump();
 
@@ -141,6 +146,36 @@ void main() {
             .getText('registration_phone_invalid'),
       ),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('validation can continue without a phone number', (tester) async {
+    String? savedPhoneNumber;
+    var completed = false;
+
+    await tester.pumpWidget(
+      _app(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        onSubmit: ({
+          required phoneNumber,
+          required preferredLanguage,
+          required device,
+        }) async {
+          savedPhoneNumber = phoneNumber;
+        },
+        onCompleted: () => completed = true,
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('registration-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(savedPhoneNumber, isEmpty);
+    expect(completed, isTrue);
+    expect(
+      find.byKey(const ValueKey('registration-validation-message')),
+      findsNothing,
     );
   });
 

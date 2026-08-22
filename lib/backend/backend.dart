@@ -576,8 +576,11 @@ const supportedRegistrationLanguages = {'fr', 'en', 'cr'};
 String normalizeRegistrationPhoneNumber(String value) =>
     value.trim().replaceAll(RegExp(r'[\s().-]'), '');
 
-bool isValidRegistrationPhoneNumber(String value) => RegExp(r'^\+?[0-9]{7,15}$')
-    .hasMatch(normalizeRegistrationPhoneNumber(value));
+bool isValidRegistrationPhoneNumber(String value) {
+  final normalizedValue = normalizeRegistrationPhoneNumber(value);
+  return normalizedValue.isEmpty ||
+      RegExp(r'^\+?[0-9]{7,15}$').hasMatch(normalizedValue);
+}
 
 Future<void> completeUserRegistration({
   required String phoneNumber,
@@ -590,7 +593,8 @@ Future<void> completeUserRegistration({
   }
 
   final normalizedPhoneNumber = normalizeRegistrationPhoneNumber(phoneNumber);
-  if (!isValidRegistrationPhoneNumber(normalizedPhoneNumber)) {
+  if (normalizedPhoneNumber.isNotEmpty &&
+      !isValidRegistrationPhoneNumber(normalizedPhoneNumber)) {
     throw ArgumentError.value(phoneNumber, 'phoneNumber');
   }
   if (!supportedRegistrationLanguages.contains(preferredLanguage)) {
@@ -606,7 +610,7 @@ Future<void> completeUserRegistration({
     photoUrl: user.photoURL,
     uid: user.uid,
     createdTime: existingProfile.exists ? null : getCurrentTimestamp,
-    phoneNumber: normalizedPhoneNumber,
+    phoneNumber: normalizedPhoneNumber.isEmpty ? null : normalizedPhoneNumber,
     preferredLanguage: preferredLanguage,
     onboardingPending: false,
     device: device,

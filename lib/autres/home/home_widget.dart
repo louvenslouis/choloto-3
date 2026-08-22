@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import '/auth/firebase_auth/auth_util.dart';
-import '/autres/bingo/bingo/bingo_widget.dart';
+import '/autres/bingo/bingo/bingo_dialog.dart';
+import '/autres/bingo/bingo/bingo_story_button.dart';
 import '/backend/backend.dart';
 import '/components/rappel_fin_abonnement_widget.dart';
 import '/components/tirages_home_widget.dart';
@@ -15,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:webviewx_plus/webviewx_plus.dart';
 import 'home_model.dart';
 export 'home_model.dart';
 
@@ -52,6 +52,9 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
             bingoRecord.orderBy('date', descending: true),
         singleRecord: true,
       ).then((s) => s.firstOrNull);
+      if (!mounted) {
+        return;
+      }
       if (_model.bingooutput?.hasDate() ?? false) {
         if (FFAppState().bingo.date != _model.bingooutput?.date) {
           logFirebaseEvent('Home_update_app_state');
@@ -71,29 +74,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
             (_model.bingooutput?.hasExpiration() ?? false) &&
             (_model.bingooutput!.expiration! >= getCurrentTimestamp)) {
           logFirebaseEvent('Home_alert_dialog');
-          await showDialog(
+          await showBingoDialog(
             context: context,
-            builder: (dialogContext) {
-              return Dialog(
-                elevation: 0,
-                insetPadding: EdgeInsets.zero,
-                backgroundColor: Colors.transparent,
-                alignment: AlignmentDirectional(0.0, 0.0)
-                    .resolve(Directionality.of(context)),
-                child: WebViewAware(
-                  child: GestureDetector(
-                    onTap: () {
-                      FocusScope.of(dialogContext).unfocus();
-                      FocusManager.instance.primaryFocus?.unfocus();
-                    },
-                    child: Container(
-                      width: MediaQuery.sizeOf(context).width * 0.92,
-                      child: BingoWidget(),
-                    ),
-                  ),
-                ),
-              );
-            },
           );
 
           logFirebaseEvent('Home_update_app_state');
@@ -228,8 +210,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                             logFirebaseEvent(
                                 'HOME_PAGE_query_stats_ICN_ON_TAP');
                             logFirebaseEvent('IconButton_navigate_to');
-                            context
-                                .pushNamed(AccomplissementsWidget.routeName);
+                            context.pushNamed(AccomplissementsWidget.routeName);
                           },
                         ),
                       ),
@@ -274,6 +255,23 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                               model: _model.rappelFinAbonnementModel,
                               updateCallback: () => safeSetState(() {}),
                               child: RappelFinAbonnementWidget(),
+                            ),
+                          if (isBingoStoryAvailable(
+                            viewed: FFAppState().bingo.vue,
+                            bingoDate: FFAppState().bingo.date,
+                            expiration: FFAppState().bingo.expiration,
+                            now: getCurrentTimestamp,
+                          ))
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: BingoStoryButton(
+                                onTap: () async {
+                                  logFirebaseEvent(
+                                    'HOME_PAGE_bingo_story_ON_TAP',
+                                  );
+                                  await showBingoDialog(context: context);
+                                },
+                              ),
                             ),
                           InkWell(
                             splashColor: Colors.transparent,

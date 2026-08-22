@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class DonWidget extends StatelessWidget {
   const DonWidget({super.key});
 
-  static const String _moncashNumber = '+509 43 56 06 33';
+  static const String _moncashNumber = '+509 3662 3281';
 
   @override
   Widget build(BuildContext context) {
