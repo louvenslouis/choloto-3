@@ -1249,6 +1249,26 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Nou pa ka anrejistre reyaksyon ou an kounye a.',
       'en': 'Your reaction could not be saved right now.',
     },
+    'bingo_story_comment_hint': {
+      'fr': 'Avez-vous gagné avec nous ? Commentez…',
+      'cr': 'Èske ou te genyen avèk nou? Ekri yon kòmantè…',
+      'en': 'Did you win with us? Add a comment…',
+    },
+    'bingo_story_comment_send': {
+      'fr': 'Envoyer le commentaire',
+      'cr': 'Voye kòmantè a',
+      'en': 'Send comment',
+    },
+    'bingo_story_comment_success': {
+      'fr': 'Votre commentaire a été envoyé.',
+      'cr': 'Kòmantè ou a anrejistre.',
+      'en': 'Your comment was sent.',
+    },
+    'bingo_story_comment_error': {
+      'fr': 'Impossible d’envoyer votre commentaire pour le moment.',
+      'cr': 'Nou pa ka voye kòmantè ou an kounye a.',
+      'en': 'Your comment could not be sent right now.',
+    },
     'ch00aogu': {
       'fr': 'Avez-vous gagné avec nous ?',
       'cr': 'Èske ou te genyen avèk nou?',

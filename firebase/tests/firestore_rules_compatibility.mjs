@@ -188,6 +188,111 @@ expectStatus(
   'owner bingo vote update',
 );
 
+// Story comments use an additive owner-only path and do not alter the released
+// bingostats vote contract above.
+const commentPath = `bingo/public-bingo/comments/${owner.uid}`;
+const commentFields = {
+  user: stringValue(owner.uid),
+  text: stringValue('Mwen te genyen avèk CHOLOTO.'),
+  createdAt: timestampValue('2026-08-21T12:00:00Z'),
+  updatedAt: timestampValue('2026-08-21T12:00:00Z'),
+};
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'PATCH',
+    fields: commentFields,
+  }),
+  403,
+  'unauthenticated Bingo comment creation',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'PATCH',
+    token: other.token,
+    fields: commentFields,
+  }),
+  403,
+  'foreign Bingo comment creation',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: commentFields,
+  }),
+  200,
+  'owner Bingo comment creation',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {token: owner.token}),
+  200,
+  'owner Bingo comment read',
+);
+expectStatus(
+  await firestoreRequest(commentPath),
+  403,
+  'unauthenticated Bingo comment read',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {token: other.token}),
+  403,
+  'foreign Bingo comment read',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {token: admin.token}),
+  200,
+  'admin Bingo comment read',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'PATCH',
+    token: other.token,
+    fields: {
+      ...commentFields,
+      text: stringValue('Tentative étrangère.'),
+    },
+  }),
+  403,
+  'foreign Bingo comment update',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {
+      ...commentFields,
+      text: stringValue('Mwen te genyen de fwa.'),
+      updatedAt: timestampValue('2026-08-21T12:05:00Z'),
+    },
+  }),
+  200,
+  'owner Bingo comment update',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {
+      ...commentFields,
+      text: stringValue('x'.repeat(501)),
+    },
+  }),
+  403,
+  'oversized Bingo comment',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {
+      ...commentFields,
+      createdAt: timestampValue('2026-08-21T13:00:00Z'),
+    },
+  }),
+  403,
+  'Bingo comment creation date rewrite',
+);
+
 // Public lottery results preserve their old read contract and owner writes.
 const resultFields = {
   date: timestampValue(),

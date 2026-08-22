@@ -1,4 +1,5 @@
 import 'package:choloto/autres/bingo/bingo/bingo_dialog.dart';
+import 'package:choloto/autres/bingo/bingo/bingo_comment_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_reaction_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
 import 'package:choloto/flutter_flow/flutter_flow_icon_button.dart';
@@ -90,7 +91,37 @@ void main() {
         localizations.getText('bingo_story_reaction_error').trim(),
         isNotEmpty,
       );
+      expect(
+        localizations.getText('bingo_story_comment_hint').trim(),
+        isNotEmpty,
+      );
+      expect(
+        localizations.getText('bingo_story_comment_send').trim(),
+        isNotEmpty,
+      );
+      expect(
+        localizations.getText('bingo_story_comment_success').trim(),
+        isNotEmpty,
+      );
+      expect(
+        localizations.getText('bingo_story_comment_error').trim(),
+        isNotEmpty,
+      );
     }
+  });
+
+  test('Bingo comments are trimmed and constrained before upload', () {
+    expect(normalizeBingoComment('  Bravo CHOLOTO !  '), 'Bravo CHOLOTO !');
+    expect(
+      () => normalizeBingoComment('   '),
+      throwsA(isA<BingoCommentValidationException>()),
+    );
+    expect(
+      () => normalizeBingoComment(
+        List.filled(bingoCommentMaxLength + 1, 'x').join(),
+      ),
+      throwsA(isA<BingoCommentValidationException>()),
+    );
   });
 
   test('Bingo reaction counter changes preserve the existing fields', () {
@@ -179,6 +210,9 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
           BingoReaction? tappedReaction;
+          String? submittedComment;
+          final commentController = TextEditingController();
+          addTearDown(commentController.dispose);
 
           await tester.pumpWidget(
             MaterialApp(
@@ -205,6 +239,8 @@ void main() {
                       DateTime.now().subtract(const Duration(hours: 2)),
                   selectedReaction: BingoReaction.positive,
                   onReaction: (reaction) => tappedReaction = reaction,
+                  commentController: commentController,
+                  onCommentSubmitted: (comment) => submittedComment = comment,
                   child: const SizedBox(
                     key: ValueKey('status-chrome-bingo-content'),
                   ),
@@ -236,6 +272,13 @@ void main() {
             find.byKey(const ValueKey('bingo-story-dislike')),
             findsOneWidget,
           );
+          final commentField = tester.widget<TextField>(
+            find.byKey(const ValueKey('bingo-story-comment-field')),
+          );
+          expect(
+            commentField.decoration?.hintText,
+            FFLocalizations(locale).getText('bingo_story_comment_hint'),
+          );
 
           final reactionRect = tester.getRect(
             find.byKey(const ValueKey('bingo-story-reactions')),
@@ -253,6 +296,20 @@ void main() {
           );
           await tester.pump();
           expect(tappedReaction, BingoReaction.negative);
+
+          await tester.tap(
+            find.byKey(const ValueKey('bingo-story-comment-field')),
+          );
+          await tester.enterText(
+            find.byKey(const ValueKey('bingo-story-comment-field')),
+            'Mwen genyen',
+          );
+          await tester.pump();
+          await tester.tap(
+            find.byKey(const ValueKey('bingo-story-comment-send')),
+          );
+          await tester.pump();
+          expect(submittedComment, 'Mwen genyen');
           expect(tester.takeException(), isNull);
         },
       );
@@ -301,6 +358,14 @@ void main() {
 
     expect(
       find.byKey(const ValueKey('reopened-bingo-content')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('bingo-story-reactions')),
       findsOneWidget,
     );
     expect(
