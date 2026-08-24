@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 
 import 'bingo_comment_service.dart';
@@ -385,6 +386,11 @@ class _BingoStoryEngagementBar extends StatelessWidget {
     final tokens = theme.designToken;
     final localizations = FFLocalizations.of(context);
     final feedbackColor = commentFeedbackIsError ? theme.error : theme.success;
+    final engagementButtonColor =
+        theme.secondaryBackground.withValues(alpha: 0.48);
+    final engagementButtonHoverColor =
+        theme.secondaryBackground.withValues(alpha: 0.72);
+    final selectedReactionColor = theme.primary.withValues(alpha: 0.16);
 
     Widget reactionButton({
       required BingoReaction reaction,
@@ -402,13 +408,17 @@ class _BingoStoryEngagementBar extends StatelessWidget {
           key: key,
           borderRadius: tokens.radius.full,
           buttonSize: 48.0,
-          fillColor: selected ? theme.primary : theme.secondaryBackground,
-          disabledColor: theme.secondaryBackground,
+          fillColor: selected ? selectedReactionColor : engagementButtonColor,
+          disabledColor: engagementButtonColor,
           disabledIconColor: theme.secondaryText,
+          hoverColor: selected
+              ? theme.primary.withValues(alpha: 0.24)
+              : engagementButtonHoverColor,
+          hoverIconColor: theme.primaryText,
           icon: Icon(
             icon,
-            color: selected ? theme.onPrimary : theme.primaryText,
-            size: 24.0,
+            color: selected ? theme.primaryText : theme.secondaryText,
+            size: 20.0,
           ),
           onPressed: reactionEnabled && onReaction != null
               ? () => onReaction!(reaction)
@@ -513,16 +523,18 @@ class _BingoStoryEngagementBar extends StatelessWidget {
                               ),
                               borderRadius: tokens.radius.full,
                               buttonSize: 48.0,
-                              fillColor: theme.secondaryBackground,
+                              fillColor: engagementButtonColor,
+                              hoverColor: engagementButtonHoverColor,
+                              hoverIconColor: theme.primaryText,
                               icon: Icon(
                                 Icons.forum_outlined,
-                                color: theme.primaryText,
-                                size: 23.0,
+                                color: theme.secondaryText,
+                                size: 20.0,
                               ),
                               onPressed: onViewComments,
                             ),
                           ),
-                          SizedBox(width: tokens.spacing.sm),
+                          SizedBox(width: tokens.spacing.xs),
                         ],
                         if (onReaction != null) ...[
                           reactionButton(
@@ -531,7 +543,7 @@ class _BingoStoryEngagementBar extends StatelessWidget {
                             labelKey: 'bingo_story_like',
                             key: const ValueKey('bingo-story-like'),
                           ),
-                          SizedBox(width: tokens.spacing.sm),
+                          SizedBox(width: tokens.spacing.xs),
                           reactionButton(
                             reaction: BingoReaction.negative,
                             icon: Icons.thumb_down_alt_outlined,
@@ -680,6 +692,12 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
     widget.onFocusChanged?.call(_focusNode.hasFocus);
   }
 
+  void _openKeyboard() {
+    if (!widget.enabled) return;
+    _focusNode.requestFocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.show'));
+  }
+
   void _submit() {
     if (!widget.enabled || widget.controller.text.trim().isEmpty) {
       return;
@@ -704,13 +722,11 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
         readOnly: !widget.enabled,
         maxLength: bingoCommentMaxLength,
         maxLines: 1,
+        keyboardType: TextInputType.text,
         textInputAction: TextInputAction.send,
         style: theme.bodyMedium,
-        onTap: () {
-          if (widget.enabled) {
-            _focusNode.requestFocus();
-          }
-        },
+        onTap: _openKeyboard,
+        onTapAlwaysCalled: true,
         onTapOutside: (_) => _focusNode.unfocus(),
         onSubmitted: (_) => _submit(),
         decoration: InputDecoration(

@@ -3,6 +3,7 @@ import 'package:choloto/autres/bingo/bingo/bingo_comment_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_reaction_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
 import 'package:choloto/flutter_flow/flutter_flow_icon_button.dart';
+import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/flutter_flow_util.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/material.dart';
@@ -306,6 +307,7 @@ void main() {
                       DateTime.now().subtract(const Duration(hours: 2)),
                   selectedReaction: BingoReaction.positive,
                   onReaction: (reaction) => tappedReaction = reaction,
+                  onViewComments: () {},
                   commentController: commentController,
                   onCommentSubmitted: (comment) => submittedComment = comment,
                   commentFeedback: FFLocalizations(locale)
@@ -413,7 +415,29 @@ void main() {
           final likeButton = tester.widget<FlutterFlowIconButton>(
             find.byKey(const ValueKey('bingo-story-like')),
           );
-          expect(likeButton.fillColor, isNot(likeButton.disabledColor));
+          final commentsButton = tester.widget<FlutterFlowIconButton>(
+            find.byKey(const ValueKey('bingo-story-comments-open')),
+          );
+          final dislikeButton = tester.widget<FlutterFlowIconButton>(
+            find.byKey(const ValueKey('bingo-story-dislike')),
+          );
+          final storyTheme = FlutterFlowTheme.of(
+            tester.element(find.byKey(const ValueKey('bingo-story-like'))),
+          );
+          expect(likeButton.buttonSize, 48.0);
+          expect(commentsButton.buttonSize, 48.0);
+          expect(dislikeButton.buttonSize, 48.0);
+          expect(
+            likeButton.fillColor,
+            storyTheme.primary.withValues(alpha: 0.16),
+          );
+          expect(
+            commentsButton.fillColor,
+            storyTheme.secondaryBackground.withValues(alpha: 0.48),
+          );
+          expect((likeButton.icon as Icon).size, 20.0);
+          expect((commentsButton.icon as Icon).size, 20.0);
+          expect((dislikeButton.icon as Icon).size, 20.0);
 
           await tester.tap(
             find.byKey(const ValueKey('bingo-story-dislike')),
@@ -859,6 +883,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -897,6 +922,26 @@ void main() {
     await tester.pump();
 
     expect(tester.testTextInput.isVisible, isTrue);
+
+    tester.testTextInput.hide();
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isFalse);
+
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+    );
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300.0);
+    await tester.pump();
+    expect(
+      tester
+          .getRect(find.byKey(const ValueKey('bingo-story-comment-field')))
+          .bottom,
+      lessThanOrEqualTo(500.0),
+    );
+
     await tester.pump(const Duration(seconds: 2));
 
     expect(
