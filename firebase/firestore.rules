@@ -136,13 +136,45 @@ service cloud.firestore {
     }
 
     function validBingoComment(data) {
-      return data.keys().hasOnly(['user', 'text', 'createdAt', 'updatedAt']) &&
+      return data.keys().hasOnly([
+            'user', 'text', 'createdAt', 'updatedAt',
+            'adminLiked', 'adminLikedAt', 'adminLikedBy',
+            'adminReply', 'adminReplyAt', 'adminReplyBy'
+          ]) &&
           data.keys().hasAll(['user', 'text', 'createdAt', 'updatedAt']) &&
           data.user is string && data.user.size() <= 128 &&
           data.text is string && data.text.size() > 0 &&
           data.text.size() <= 500 &&
           data.createdAt is timestamp &&
-          data.updatedAt is timestamp;
+          data.updatedAt is timestamp &&
+          (
+            (!('adminLiked' in data) &&
+              !('adminLikedAt' in data) &&
+              !('adminLikedBy' in data)) ||
+            (data.adminLiked == true &&
+              data.adminLikedAt is timestamp &&
+              data.adminLikedBy is string &&
+              data.adminLikedBy.size() > 0 &&
+              data.adminLikedBy.size() <= 128)
+          ) &&
+          (
+            (!('adminReply' in data) &&
+              !('adminReplyAt' in data) &&
+              !('adminReplyBy' in data)) ||
+            (data.adminReply is string &&
+              data.adminReply.size() > 0 &&
+              data.adminReply.size() <= 500 &&
+              data.adminReplyAt is timestamp &&
+              data.adminReplyBy is string &&
+              data.adminReplyBy.size() > 0 &&
+              data.adminReplyBy.size() <= 128)
+          );
+    }
+
+    function validBingoCommentLike(data) {
+      return data.keys().hasOnly(['createdAt']) &&
+          data.keys().hasAll(['createdAt']) &&
+          data.createdAt is timestamp;
     }
 
     function validYoutubeLink(data) {
@@ -272,18 +304,37 @@ service cloud.firestore {
     }
 
     match /bingo/{parent}/comments/{document} {
-      allow read: if signedIn() &&
-          (document == request.auth.uid || isAdmin());
+      allow read: if true;
       allow create: if signedIn() && document == request.auth.uid &&
           validBingoComment(request.resource.data) &&
+          request.resource.data.keys().hasOnly([
+            'user', 'text', 'createdAt', 'updatedAt'
+          ]) &&
           request.resource.data.user == request.auth.uid;
       allow update: if signedIn() && document == request.auth.uid &&
           validBingoComment(request.resource.data) &&
           resource.data.user == request.auth.uid &&
           request.resource.data.user == resource.data.user &&
-          request.resource.data.createdAt == resource.data.createdAt;
+          request.resource.data.createdAt == resource.data.createdAt &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'text', 'updatedAt'
+          ]);
+      allow update: if isAdmin() &&
+          validBingoComment(request.resource.data) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'adminLiked', 'adminLikedAt', 'adminLikedBy',
+            'adminReply', 'adminReplyAt', 'adminReplyBy'
+          ]);
       allow delete: if signedIn() &&
           (document == request.auth.uid || isAdmin());
+    }
+
+    match /bingo/{parent}/comments/{comment}/likes/{userId} {
+      allow read: if true;
+      allow create: if signedIn() && userId == request.auth.uid &&
+          validBingoCommentLike(request.resource.data);
+      allow update: if false;
+      allow delete: if signedIn() && userId == request.auth.uid;
     }
 
     match /{path=**}/bingostats/{document} {

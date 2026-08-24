@@ -1309,6 +1309,16 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Nou pa ka voye kòmantè ou an kounye a.',
       'en': 'Your comment could not be sent right now.',
     },
+    'bingo_story_comment_liked': {
+      'fr': 'CHOLOTO aime votre commentaire',
+      'cr': 'CHOLOTO renmen kòmantè ou a',
+      'en': 'CHOLOTO likes your comment',
+    },
+    'bingo_story_comment_reply_label': {
+      'fr': 'Réponse CHOLOTO',
+      'cr': 'Repons CHOLOTO',
+      'en': 'CHOLOTO reply',
+    },
     'ch00aogu': {
       'fr': 'Avez-vous gagné avec nous ?',
       'cr': 'Èske ou te genyen avèk nou?',

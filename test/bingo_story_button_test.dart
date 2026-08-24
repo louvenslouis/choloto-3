@@ -129,7 +129,52 @@ void main() {
         localizations.getText('bingo_story_comment_error').trim(),
         isNotEmpty,
       );
+      expect(
+        localizations.getText('bingo_story_comment_liked').trim(),
+        isNotEmpty,
+      );
+      expect(
+        localizations.getText('bingo_story_comment_reply_label').trim(),
+        isNotEmpty,
+      );
     }
+  });
+
+  test('Bingo comment status maps the CHOLOTO like and reply', () {
+    final repliedAt = DateTime(2026, 8, 24, 10, 30);
+    final status = parseBingoCommentStatus({
+      'adminLiked': true,
+      'adminLikedAt': repliedAt,
+      'adminReply': '  Merci pour votre message !  ',
+      'adminReplyAt': repliedAt,
+    });
+
+    expect(status.adminLiked, isTrue);
+    expect(status.adminLikedAt, repliedAt);
+    expect(status.adminReply, 'Merci pour votre message !');
+    expect(status.adminReplyAt, repliedAt);
+    expect(status.hasAdminReply, isTrue);
+    expect(status.hasAdminInteraction, isTrue);
+  });
+
+  test('public Bingo comments expose content without an author profile', () {
+    final comment = parseBingoPublicComment(
+      id: 'private-user-id',
+      data: {
+        'user': 'private-user-id',
+        'text': '  Bravo CHOLOTO !  ',
+        'adminReply': 'Merci !',
+      },
+      likeCount: 4,
+      likedByCurrentUser: true,
+    );
+
+    expect(comment, isNotNull);
+    expect(comment!.id, 'private-user-id');
+    expect(comment.text, 'Bravo CHOLOTO !');
+    expect(comment.adminReply, 'Merci !');
+    expect(comment.likeCount, 4);
+    expect(comment.likedByCurrentUser, isTrue);
   });
 
   test('Bingo comments are trimmed and constrained before upload', () {
@@ -263,10 +308,17 @@ void main() {
                   onReaction: (reaction) => tappedReaction = reaction,
                   commentController: commentController,
                   onCommentSubmitted: (comment) => submittedComment = comment,
+                  commentFeedback: FFLocalizations(locale)
+                      .getText('bingo_story_comment_success'),
+                  commentStatus: const BingoCommentStatus(
+                    adminLiked: true,
+                    adminLikedAt: null,
+                    adminReply: 'Merci pour votre message !',
+                    adminReplyAt: null,
+                  ),
                   storyCount: 3,
                   currentStoryIndex: 1,
-                  progressAnimation:
-                      const AlwaysStoppedAnimation<double>(0.5),
+                  progressAnimation: const AlwaysStoppedAnimation<double>(0.5),
                   onPreviousStory: () {},
                   onNextStory: () {},
                   child: const SizedBox(
@@ -322,6 +374,27 @@ void main() {
           expect(
             find.byKey(const ValueKey('bingo-story-comment-send')),
             findsNothing,
+          );
+          expect(
+            find.byKey(const ValueKey('bingo-story-comment-success')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('bingo-story-admin-interaction')),
+            findsOneWidget,
+          );
+          expect(
+            find.text(
+              FFLocalizations(locale).getText('bingo_story_comment_liked'),
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.text(
+              FFLocalizations(locale)
+                  .getText('bingo_story_comment_reply_label'),
+            ),
+            findsOneWidget,
           );
 
           final reactionRect = tester.getRect(
@@ -629,5 +702,210 @@ void main() {
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'a successful Story comment is confirmed inline and clears the field',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    String? submittedComment;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fr'),
+        supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+        localizationsDelegates: const [
+          FFLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          FallbackMaterialLocalizationDelegate(),
+          FallbackCupertinoLocalizationDelegate(),
+        ],
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showBingoDialog<void>(
+                context: context,
+                content: const SizedBox(
+                  key: ValueKey('comment-feedback-bingo-content'),
+                ),
+                storyDuration: const Duration(minutes: 1),
+                commentSubmitter: (comment, _) async {
+                  submittedComment = comment;
+                },
+              ),
+              child: const Text('Commenter le Bingo'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Commenter le Bingo'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      find.byKey(const ValueKey('bingo-story-comments-open')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+      'Mwen te genyen avèk nou',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-comment-send')),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(submittedComment, 'Mwen te genyen avèk nou');
+    final commentField = tester.widget<TextField>(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+    );
+    expect(commentField.controller?.text, isEmpty);
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-success')),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        FFLocalizations(const Locale('fr'))
+            .getText('bingo_story_comment_success'),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a failed Story comment remains editable and shows its error',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fr'),
+        supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+        localizationsDelegates: const [
+          FFLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          FallbackMaterialLocalizationDelegate(),
+          FallbackCupertinoLocalizationDelegate(),
+        ],
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showBingoDialog<void>(
+                context: context,
+                content: const SizedBox(),
+                storyDuration: const Duration(minutes: 1),
+                commentSubmitter: (_, __) async {
+                  throw StateError('Firebase unavailable');
+                },
+              ),
+              child: const Text('Ouvrir le commentaire'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Ouvrir le commentaire'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+      'Gardez mon commentaire',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-comment-send')),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    final commentField = tester.widget<TextField>(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+    );
+    expect(commentField.controller?.text, 'Gardez mon commentaire');
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-error')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('tapping a Story comment opens input and pauses progression',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fr'),
+        supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+        localizationsDelegates: const [
+          FFLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          FallbackMaterialLocalizationDelegate(),
+          FallbackCupertinoLocalizationDelegate(),
+        ],
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showBingoDialog<void>(
+                context: context,
+                content: const SizedBox(),
+                storyDuration: const Duration(seconds: 1),
+                commentSubmitter: (_, __) async {},
+              ),
+              child: const Text('Saisir un commentaire'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Saisir un commentaire'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+    );
+    await tester.pump();
+
+    expect(tester.testTextInput.isVisible, isTrue);
+    await tester.pump(const Duration(seconds: 2));
+
+    expect(
+      find.byKey(const ValueKey('bingo-status-dialog')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
+    await tester.pumpAndSettle();
   });
 }
