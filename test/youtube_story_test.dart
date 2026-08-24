@@ -1,0 +1,265 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:choloto/backend/schema/structs/youtube_item_struct.dart';
+import 'package:choloto/flutter_flow/internationalization.dart';
+import 'package:choloto/youtube/youtube_feed_service.dart';
+import 'package:choloto/youtube/youtube_story.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+YoutubeItemStruct _video({
+  required String title,
+  required DateTime publishedAt,
+}) {
+  final id = title.toLowerCase().replaceAll(' ', '-');
+  return YoutubeItemStruct(
+    title: title,
+    link: 'https://www.youtube.com/watch?v=$id',
+    thumbnail: 'https://i.ytimg.com/vi/$id/hqdefault.jpg',
+    pubDate: publishedAt.toIso8601String(),
+  );
+}
+
+Widget _app({
+  required Locale locale,
+  required ThemeMode themeMode,
+  required Widget child,
+}) {
+  return MaterialApp(
+    locale: locale,
+    supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+    localizationsDelegates: const [
+      FFLocalizationsDelegate(),
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      FallbackMaterialLocalizationDelegate(),
+      FallbackCupertinoLocalizationDelegate(),
+    ],
+    theme: ThemeData(brightness: Brightness.light),
+    darkTheme: ThemeData(brightness: Brightness.dark),
+    themeMode: themeMode,
+    home: Scaffold(body: child),
+  );
+}
+
+void main() {
+  test('YouTube stories contain only publications from the last 24 hours', () {
+    final now = DateTime.utc(2026, 8, 23, 18);
+    final mostRecent = _video(
+      title: 'Most recent',
+      publishedAt: now.subtract(const Duration(minutes: 5)),
+    );
+    final lessRecent = _video(
+      title: 'Less recent',
+      publishedAt: now.subtract(const Duration(hours: 12)),
+    );
+    final boundary = _video(
+      title: 'Boundary',
+      publishedAt: now.subtract(youtubeStoryWindow),
+    );
+    final tooOld = _video(
+      title: 'Too old',
+      publishedAt: now.subtract(
+        youtubeStoryWindow + const Duration(milliseconds: 1),
+      ),
+    );
+    final future = _video(
+      title: 'Future',
+      publishedAt: now.add(const Duration(seconds: 1)),
+    );
+    final invalid = YoutubeItemStruct(
+      title: 'Invalid',
+      link: 'https://www.youtube.com/watch?v=invalid',
+      thumbnail: 'https://i.ytimg.com/vi/invalid/hqdefault.jpg',
+      pubDate: 'not-a-date',
+    );
+
+    final result = youtubeVideosPublishedWithin(
+      [lessRecent, future, tooOld, boundary, invalid, mostRecent],
+      now: now,
+    );
+
+    expect(
+      result.map((video) => video.title),
+      ['Most recent', 'Less recent', 'Boundary'],
+    );
+  });
+
+  test('YouTube story copy is available in every supported language', () {
+    const keys = [
+      'youtube_story_label',
+      'youtube_story_open',
+      'youtube_story_previous',
+      'youtube_story_next',
+      'youtube_story_close',
+      'youtube_story_thumbnail',
+      'ytwatch1',
+    ];
+
+    for (final language in FFLocalizations.languages()) {
+      final localizations = FFLocalizations(Locale(language));
+      for (final key in keys) {
+        expect(localizations.getText(key).trim(), isNotEmpty);
+        expect(localizations.getText(key), isNot(key));
+      }
+    }
+  });
+
+  for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
+    for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
+      testWidgets(
+        'YouTube story bubble renders ${locale.languageCode} on mobile in ${themeMode.name} mode',
+        (tester) async {
+          tester.view.physicalSize = const Size(320, 568);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+
+          final video = _video(
+            title: 'Nouvelle vidéo CHOLOTO',
+            publishedAt: DateTime.now().subtract(const Duration(hours: 1)),
+          );
+
+          await tester.pumpWidget(
+            _app(
+              locale: locale,
+              themeMode: themeMode,
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: YoutubeStoryButton(video: video, onTap: () {}),
+              ),
+            ),
+          );
+          await tester.pump();
+
+          expect(
+            find.byKey(const ValueKey('youtube-story-button')),
+            findsOneWidget,
+          );
+          expect(
+            find.text(
+              FFLocalizations(locale).getText('youtube_story_label'),
+            ),
+            findsOneWidget,
+          );
+          final thumbnail = tester.widget<CachedNetworkImage>(
+            find.byKey(const ValueKey('youtube-story-thumbnail')),
+          );
+          expect(thumbnail.imageUrl, video.thumbnail);
+          expect(
+            tester.getSize(find.byKey(const ValueKey('youtube-story-circle'))),
+            const Size.square(72.0),
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  testWidgets('YouTube story viewer navigates recent videos on mobile',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var closed = false;
+    final now = DateTime.now();
+    final videos = [
+      _video(
+        title: 'Première vidéo',
+        publishedAt: now.subtract(const Duration(minutes: 10)),
+      ),
+      _video(
+        title:
+            'Deuxième vidéo avec un titre assez long pour vérifier la mise en page',
+        publishedAt: now.subtract(const Duration(hours: 2)),
+      ),
+    ];
+
+    await tester.pumpWidget(
+      _app(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        child: YoutubeStoryViewer(
+          videos: videos,
+          onClose: () => closed = true,
+          storyDuration: const Duration(hours: 1),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Première vidéo'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('youtube-story-progress')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('youtube-story-published-age')),
+      findsOneWidget,
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('youtube-story-viewer'))),
+      const Size(320.0, 568.0),
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const ValueKey('youtube-story-next-area')));
+    await tester.pump();
+
+    expect(find.text('Première vidéo'), findsNothing);
+    expect(find.text(videos.last.title), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('youtube-story-viewer-thumbnail-1')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const ValueKey('youtube-story-close-button')));
+    await tester.pump();
+
+    expect(closed, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('YouTube story viewer keeps a portrait frame on the Web',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _app(
+        locale: const Locale('cr'),
+        themeMode: ThemeMode.light,
+        child: YoutubeStoryViewer(
+          videos: [
+            _video(
+              title: 'Videyo CHOLOTO',
+              publishedAt: DateTime.now().subtract(const Duration(hours: 3)),
+            ),
+          ],
+          onClose: () {},
+          storyDuration: const Duration(hours: 1),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final viewerSize =
+        tester.getSize(find.byKey(const ValueKey('youtube-story-viewer')));
+    expect(viewerSize.height, 800.0);
+    expect(
+      viewerSize.width / viewerSize.height,
+      closeTo(youtubeStoryAspectRatio, 0.001),
+    );
+    expect(find.text('Videyo CHOLOTO'), findsOneWidget);
+    expect(
+      find.text(FFLocalizations(const Locale('cr')).getText('ytwatch1')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+}

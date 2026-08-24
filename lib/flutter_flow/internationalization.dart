@@ -395,6 +395,36 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'NOUVO',
       'en': 'NEW',
     },
+    'youtube_story_label': {
+      'fr': 'YouTube',
+      'cr': 'YouTube',
+      'en': 'YouTube',
+    },
+    'youtube_story_open': {
+      'fr': 'Ouvrir les nouvelles vidéos CHOLOTO',
+      'cr': 'Ouvri nouvo videyo CHOLOTO yo',
+      'en': 'Open the new CHOLOTO videos',
+    },
+    'youtube_story_previous': {
+      'fr': 'Vidéo précédente',
+      'cr': 'Videyo anvan an',
+      'en': 'Previous video',
+    },
+    'youtube_story_next': {
+      'fr': 'Vidéo suivante',
+      'cr': 'Videyo apre a',
+      'en': 'Next video',
+    },
+    'youtube_story_close': {
+      'fr': 'Fermer',
+      'cr': 'Fèmen',
+      'en': 'Close',
+    },
+    'youtube_story_thumbnail': {
+      'fr': 'Miniature de la vidéo YouTube',
+      'cr': 'Ti imaj videyo YouTube la',
+      'en': 'YouTube video thumbnail',
+    },
     'ytloading': {
       'fr': 'Chargement des vidéos…',
       'cr': 'Videyo yo ap chaje…',

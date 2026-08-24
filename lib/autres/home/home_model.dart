@@ -35,6 +35,7 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   // Stores action output result for [Firestore Query - Query a collection] action in Home widget.
   BingoRecord? bingooutput;
   List<BingoRecord> bingoStories = [];
+  List<YoutubeItemStruct> youtubeStories = [];
   // Stores action output result for [Firestore Query - Query a collection] action in Home widget.
   SettingsRecord? beta;
   // Model for tiragesHome component.

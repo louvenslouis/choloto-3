@@ -11,6 +11,8 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import '/services/engagement_service.dart';
+import '/youtube/youtube_feed_service.dart';
+import '/youtube/youtube_story.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -50,6 +52,9 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       unawaited(_maybeShowSubscriptionExpirationReminder());
     });
     unawaited(recordDailyEngagement(userReference: currentUserReference));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_loadYoutubeStories());
+    });
 
     logFirebaseEvent('screen_view', parameters: {'screen_name': 'Home'});
     // On page load action.
@@ -211,6 +216,26 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     context.pushNamed(UpgradeWidget.routeName);
   }
 
+  Future<void> _loadYoutubeStories() async {
+    try {
+      final videos = await loadYoutubeVideos(
+        fallbackTitle: FFLocalizations.of(context).getText('ytfallback'),
+      );
+      if (!mounted) {
+        return;
+      }
+
+      safeSetState(() {
+        _model.youtubeStories = youtubeVideosPublishedWithin(
+          videos,
+          now: getCurrentTimestamp,
+        );
+      });
+    } catch (error) {
+      debugPrint('YouTube story feed error: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -320,29 +345,56 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           if (isBingoStoryCollectionAvailable(
-                            viewed: FFAppState().bingo.vue,
-                            activeStoryCount: _model.bingoStories.length,
-                          ))
+                                viewed: FFAppState().bingo.vue,
+                                activeStoryCount: _model.bingoStories.length,
+                              ) ||
+                              _model.youtubeStories.isNotEmpty)
                             Align(
                               alignment: AlignmentDirectional.centerStart,
-                              child: BingoStoryButton(
-                                onTap: () async {
-                                  logFirebaseEvent(
-                                    'HOME_PAGE_bingo_story_ON_TAP',
-                                  );
-                                  await showBingoDialog(
-                                    context: context,
-                                    bingos: _model.bingoStories
-                                        .where(
-                                          (record) => isBingoActive(
-                                            bingoDate: record.date,
-                                            expiration: record.expiration,
-                                            now: getCurrentTimestamp,
-                                          ),
-                                        )
-                                        .toList(growable: false),
-                                  );
-                                },
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    if (isBingoStoryCollectionAvailable(
+                                      viewed: FFAppState().bingo.vue,
+                                      activeStoryCount:
+                                          _model.bingoStories.length,
+                                    ))
+                                      BingoStoryButton(
+                                        onTap: () async {
+                                          logFirebaseEvent(
+                                            'HOME_PAGE_bingo_story_ON_TAP',
+                                          );
+                                          await showBingoDialog(
+                                            context: context,
+                                            bingos: _model.bingoStories
+                                                .where(
+                                                  (record) => isBingoActive(
+                                                    bingoDate: record.date,
+                                                    expiration:
+                                                        record.expiration,
+                                                    now: getCurrentTimestamp,
+                                                  ),
+                                                )
+                                                .toList(growable: false),
+                                          );
+                                        },
+                                      ),
+                                    if (_model.youtubeStories.isNotEmpty)
+                                      YoutubeStoryButton(
+                                        video: _model.youtubeStories.first,
+                                        onTap: () async {
+                                          logFirebaseEvent(
+                                            'HOME_PAGE_youtube_story_ON_TAP',
+                                          );
+                                          await showYoutubeStoryDialog(
+                                            context: context,
+                                            videos: _model.youtubeStories,
+                                          );
+                                        },
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
                           InkWell(

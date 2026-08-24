@@ -1,4 +1,3 @@
-import '/backend/api_requests/api_calls.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'youtube_widget.dart' show YoutubeWidget;
@@ -24,11 +23,6 @@ class YoutubeModel extends FlutterFlowModel<YoutubeWidget> {
       videos.insert(index, item);
   void updateVideosAtIndex(int index, Function(YoutubeItemStruct) updateFn) =>
       videos[index] = updateFn(videos[index]);
-
-  ///  State fields for stateful widgets in this page.
-
-  // Stores action output result for [Backend Call - API (GetLatestVideos)] action in youtube widget.
-  ApiCallResponse? apiResult;
 
   @override
   void initState(BuildContext context) {}

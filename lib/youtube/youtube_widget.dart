@@ -1,11 +1,11 @@
-import '/backend/api_requests/api_calls.dart';
-import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/backend/schema/structs/youtube_item_struct.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'youtube_feed_service.dart';
 import 'youtube_model.dart';
 export 'youtube_model.dart';
 
@@ -53,13 +53,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
     logFirebaseEvent('youtube_backend_call');
 
     try {
-      final result = await GetLatestVideosCall.call();
-      _model.apiResult = result;
-      final response = YoutubeResponseStruct.maybeFromMap(result.jsonBody);
-
-      if (!result.succeeded || response == null || response.items.isEmpty) {
-        throw StateError('Unable to load the YouTube feed.');
-      }
+      final videos = await loadYoutubeVideos(fallbackTitle: fallbackTitle);
 
       if (!mounted) {
         return;
@@ -67,7 +61,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
 
       logFirebaseEvent('youtube_update_page_state');
       safeSetState(() {
-        _model.videos = response.items.toList();
+        _model.videos = videos;
         _isLoading = false;
         _hasError = false;
       });
@@ -77,43 +71,10 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
         return;
       }
 
-      try {
-        final fallbackRecords = await queryYoutubeLinksRecordOnce(
-          queryBuilder: (records) => records.orderBy('date', descending: true),
-          limit: 24,
-        );
-        final fallbackVideos = fallbackRecords
-            .where((record) => record.id.isNotEmpty)
-            .map(
-              (record) => YoutubeItemStruct(
-                title: record.caption.isEmpty ? fallbackTitle : record.caption,
-                link: record.link.isNotEmpty
-                    ? record.link
-                    : 'https://www.youtube.com/watch?v=${record.id}',
-                thumbnail: 'https://i.ytimg.com/vi/${record.id}/hqdefault.jpg',
-                pubDate: record.date?.toIso8601String(),
-              ),
-            )
-            .toList();
-
-        if (!mounted) {
-          return;
-        }
-        safeSetState(() {
-          _model.videos = fallbackVideos;
-          _isLoading = false;
-          _hasError = fallbackVideos.isEmpty;
-        });
-      } catch (fallbackError) {
-        debugPrint('YouTube Firestore fallback error: $fallbackError');
-        if (!mounted) {
-          return;
-        }
-        safeSetState(() {
-          _isLoading = false;
-          _hasError = true;
-        });
-      }
+      safeSetState(() {
+        _isLoading = false;
+        _hasError = true;
+      });
     }
   }
 
