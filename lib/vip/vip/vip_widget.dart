@@ -206,47 +206,56 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(height: 10.0),
-            FloatingActionButton.extended(
-              heroTag: 'vip_tip_fab',
-              onPressed: () async {
-                logFirebaseEvent('VIP_FloatingActionButton_qjsc5kip_ON_TAP');
-                logFirebaseEvent('FloatingActionButton_bottom_sheet');
-                await showModalBottomSheet(
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  context: context,
-                  builder: (context) => Padding(
-                    padding: MediaQuery.viewInsetsOf(context),
-                    child: DonWidget(),
-                  ),
-                );
-              },
-              backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-              icon: FaIcon(
-                FontAwesomeIcons.mugHot,
-                color: FlutterFlowTheme.of(context).primary,
-                size: 18.0,
-              ),
-              elevation: 5.0,
-              label: Visibility(
-                visible: _model.pourboireHide == false,
-                child: Text(
-                  FFLocalizations.of(context).getText(
-                    'isn2t0tf' /* POURBOIRE */,
-                  ),
-                  style: FlutterFlowTheme.of(context).labelLarge.override(
-                        font: GoogleFonts.inter(
+            AnimatedSize(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeInOutCubic,
+              alignment: Alignment.centerRight,
+              child: FloatingActionButton.extended(
+                heroTag: 'vip_tip_fab',
+                onPressed: () async {
+                  logFirebaseEvent('VIP_FloatingActionButton_qjsc5kip_ON_TAP');
+                  logFirebaseEvent('FloatingActionButton_bottom_sheet');
+                  await showModalBottomSheet(
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    context: context,
+                    builder: (context) => Padding(
+                      padding: MediaQuery.viewInsetsOf(context),
+                      child: DonWidget(),
+                    ),
+                  );
+                },
+                isExtended: _model.pourboireHide == false,
+                backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+                foregroundColor: FlutterFlowTheme.of(context).primary,
+                icon: FaIcon(
+                  FontAwesomeIcons.mugHot,
+                  color: FlutterFlowTheme.of(context).primary,
+                  size: 21.0,
+                ),
+                elevation: 4.0,
+                label: Visibility(
+                  visible: _model.pourboireHide == false,
+                  child: Text(
+                    FFLocalizations.of(context).getText(
+                      'isn2t0tf' /* POURBOIRE */,
+                    ),
+                    style: FlutterFlowTheme.of(context).labelLarge.override(
+                          font: GoogleFonts.inter(
+                            fontWeight: FontWeight.w900,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .labelLarge
+                                .fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).primary,
+                          fontSize: 15.0,
+                          letterSpacing: 0.0,
                           fontWeight: FontWeight.w900,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                          fontStyle: FlutterFlowTheme.of(context)
+                              .labelLarge
+                              .fontStyle,
                         ),
-                        color: FlutterFlowTheme.of(context).primary,
-                        fontSize: 15.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w900,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                      ),
+                  ),
                 ),
               ),
             ),
