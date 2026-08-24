@@ -52,6 +52,20 @@ void main() {
       isFalse,
     );
     expect(
+      isBingoStoryCollectionAvailable(
+        viewed: true,
+        activeStoryCount: 3,
+      ),
+      isTrue,
+    );
+    expect(
+      isBingoStoryCollectionAvailable(
+        viewed: true,
+        activeStoryCount: 0,
+      ),
+      isFalse,
+    );
+    expect(
       isBingoStoryAvailable(
         viewed: true,
         bingoDate: now,
@@ -85,6 +99,14 @@ void main() {
       final localizations = FFLocalizations(Locale(language));
       expect(localizations.getText('bingo_story_label').trim(), isNotEmpty);
       expect(localizations.getText('bingo_story_open').trim(), isNotEmpty);
+      expect(
+        localizations.getText('bingo_story_previous').trim(),
+        isNotEmpty,
+      );
+      expect(
+        localizations.getText('bingo_story_next').trim(),
+        isNotEmpty,
+      );
       expect(localizations.getText('bingo_story_like').trim(), isNotEmpty);
       expect(localizations.getText('bingo_story_dislike').trim(), isNotEmpty);
       expect(
@@ -241,6 +263,12 @@ void main() {
                   onReaction: (reaction) => tappedReaction = reaction,
                   commentController: commentController,
                   onCommentSubmitted: (comment) => submittedComment = comment,
+                  storyCount: 3,
+                  currentStoryIndex: 1,
+                  progressAnimation:
+                      const AlwaysStoppedAnimation<double>(0.5),
+                  onPreviousStory: () {},
+                  onNextStory: () {},
                   child: const SizedBox(
                     key: ValueKey('status-chrome-bingo-content'),
                   ),
@@ -252,6 +280,18 @@ void main() {
 
           expect(
             find.byKey(const ValueKey('bingo-story-header')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('bingo-story-progress')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('bingo-story-previous-area')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('bingo-story-next-area')),
             findsOneWidget,
           );
           expect(
@@ -369,7 +409,8 @@ void main() {
     );
 
     await tester.tap(find.byKey(const ValueKey('bingo-story-button')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(
       find.byKey(const ValueKey('reopened-bingo-content')),
@@ -446,7 +487,8 @@ void main() {
     );
 
     await tester.tap(find.text('Bingo'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final dialogSize =
         tester.getSize(find.byKey(const ValueKey('bingo-status-dialog')));
@@ -462,6 +504,102 @@ void main() {
       find.byKey(const ValueKey('mobile-bingo-status-content')),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'Bingo statuses expose progress and navigate right, left, and after 45 seconds',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fr'),
+        supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+        localizationsDelegates: const [
+          FFLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          FallbackMaterialLocalizationDelegate(),
+          FallbackCupertinoLocalizationDelegate(),
+        ],
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showBingoDialog<void>(
+                context: context,
+                stories: const [
+                  BingoStatusItem(
+                    content: Text(
+                      'Premier Bingo',
+                      key: ValueKey('first-bingo-status'),
+                    ),
+                  ),
+                  BingoStatusItem(
+                    content: Text(
+                      'Deuxième Bingo',
+                      key: ValueKey('second-bingo-status'),
+                    ),
+                  ),
+                  BingoStatusItem(
+                    content: Text(
+                      'Troisième Bingo',
+                      key: ValueKey('third-bingo-status'),
+                    ),
+                  ),
+                ],
+              ),
+              child: const Text('Ouvrir les statuts'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(bingoStatusDuration, const Duration(seconds: 45));
+
+    await tester.tap(find.text('Ouvrir les statuts'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byKey(const ValueKey('first-bingo-status')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('bingo-story-progress')),
+      findsOneWidget,
+    );
+    for (var index = 0; index < 3; index++) {
+      expect(
+        find.byKey(ValueKey('bingo-story-progress-track-$index')),
+        findsOneWidget,
+      );
+    }
+
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-next-area')),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('second-bingo-status')), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-previous-area')),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('first-bingo-status')), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-next-area')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 44));
+    expect(find.byKey(const ValueKey('second-bingo-status')), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('third-bingo-status')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

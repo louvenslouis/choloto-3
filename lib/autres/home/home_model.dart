@@ -2,7 +2,6 @@ import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo/bingo_widget.dart';
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
-import '/components/rappel_fin_abonnement_widget.dart';
 import '/components/tirages_home_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -35,23 +34,19 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
 
   // Stores action output result for [Firestore Query - Query a collection] action in Home widget.
   BingoRecord? bingooutput;
+  List<BingoRecord> bingoStories = [];
   // Stores action output result for [Firestore Query - Query a collection] action in Home widget.
   SettingsRecord? beta;
-  // Model for rappelFinAbonnement component.
-  late RappelFinAbonnementModel rappelFinAbonnementModel;
   // Model for tiragesHome component.
   late TiragesHomeModel tiragesHomeModel;
 
   @override
   void initState(BuildContext context) {
-    rappelFinAbonnementModel =
-        createModel(context, () => RappelFinAbonnementModel());
     tiragesHomeModel = createModel(context, () => TiragesHomeModel());
   }
 
   @override
   void dispose() {
-    rappelFinAbonnementModel.dispose();
     tiragesHomeModel.dispose();
   }
 }

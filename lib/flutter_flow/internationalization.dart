@@ -1234,6 +1234,16 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Ouvri Bingo a',
       'en': 'Open Bingo',
     },
+    'bingo_story_previous': {
+      'fr': 'Bingo précédent',
+      'cr': 'Bingo anvan an',
+      'en': 'Previous Bingo',
+    },
+    'bingo_story_next': {
+      'fr': 'Bingo suivant',
+      'cr': 'Bingo apre a',
+      'en': 'Next Bingo',
+    },
     'bingo_story_like': {
       'fr': 'J’aime ce Bingo',
       'cr': 'Mwen renmen Bingo sa a',
@@ -1658,6 +1668,38 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // rappelFinAbonnement
   {
+    'subscription_expiration_reminder_title': {
+      'fr': 'Abonnement bientôt expiré',
+      'cr': 'Abònman an pral ekspire',
+      'en': 'Subscription expiring soon',
+    },
+    'subscription_expiration_reminder_date': {
+      'fr': 'Votre accès VIP prend fin le',
+      'cr': 'Aksè VIP ou ap fini',
+      'en': 'Your VIP access ends on',
+    },
+    'subscription_expiration_reminder_message': {
+      'fr':
+          'Réabonnez-vous dès que possible pour éviter toute interruption de vos avantages VIP.',
+      'cr': 'Renouvle abònman ou pi vit posib pou avantaj VIP ou yo pa kanpe.',
+      'en':
+          'Renew as soon as possible to avoid any interruption to your VIP benefits.',
+    },
+    'subscription_expiration_reminder_renew': {
+      'fr': 'Se réabonner',
+      'cr': 'Renouvle kounye a',
+      'en': 'Renew now',
+    },
+    'subscription_expiration_reminder_later': {
+      'fr': 'Plus tard',
+      'cr': 'Pita',
+      'en': 'Later',
+    },
+    'subscription_expiration_reminder_close': {
+      'fr': 'Fermer',
+      'cr': 'Fèmen',
+      'en': 'Close',
+    },
     '6wnv7a6z': {
       'fr':
           'Votre abonnement CHOLOTO VIP expire bientôt. Contactez-Nous dès maintenant pour le renouveler.',

@@ -1,4 +1,5 @@
 import '/autres/bingo/stackbingo/stackbingo_widget.dart';
+import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -13,7 +14,12 @@ import 'bingo_model.dart';
 export 'bingo_model.dart';
 
 class BingoWidget extends StatefulWidget {
-  const BingoWidget({super.key});
+  const BingoWidget({
+    super.key,
+    this.dataStack,
+  });
+
+  final List<DataStackStruct>? dataStack;
 
   @override
   State<BingoWidget> createState() => _BingoWidgetState();
@@ -144,12 +150,16 @@ class _BingoWidgetState extends State<BingoWidget>
                       child: wrapWithModel(
                         model: _model.stackbingoModel,
                         updateCallback: () => safeSetState(() {}),
-                        child: StackbingoWidget(),
+                        child: StackbingoWidget(
+                          dataStack:
+                              widget.dataStack ?? FFAppState().bingo.dataStack,
+                        ),
                       ),
                     ),
                   ),
                 ),
-                if (FFAppState().bingo.dataStack.length > 1)
+                if ((widget.dataStack ?? FFAppState().bingo.dataStack).length >
+                    1)
                   Align(
                     alignment: AlignmentDirectional(-0.01, 0.34),
                     child: Container(
@@ -161,7 +171,7 @@ class _BingoWidgetState extends State<BingoWidget>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'x${FFAppState().bingo.dataStack.length.toString()}',
+                            'x${(widget.dataStack ?? FFAppState().bingo.dataStack).length}',
                             style: FlutterFlowTheme.of(context)
                                 .displayLarge
                                 .override(

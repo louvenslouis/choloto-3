@@ -9,10 +9,26 @@ bool isBingoStoryAvailable({
   required DateTime now,
 }) {
   return viewed &&
-      bingoDate != null &&
-      expiration != null &&
-      !expiration.isBefore(now);
+      isBingoActive(
+        bingoDate: bingoDate,
+        expiration: expiration,
+        now: now,
+      );
 }
+
+bool isBingoActive({
+  required DateTime? bingoDate,
+  required DateTime? expiration,
+  required DateTime now,
+}) {
+  return bingoDate != null && expiration != null && !expiration.isBefore(now);
+}
+
+bool isBingoStoryCollectionAvailable({
+  required bool viewed,
+  required int activeStoryCount,
+}) =>
+    viewed && activeStoryCount > 0;
 
 class BingoStoryButton extends StatelessWidget {
   const BingoStoryButton({

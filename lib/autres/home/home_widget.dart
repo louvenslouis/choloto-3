@@ -32,6 +32,11 @@ class HomeWidget extends StatefulWidget {
 class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   late HomeModel _model;
 
+  StreamSubscription<UserRecord?>? _subscriptionReminderSubscription;
+  DateTime? _latestSubscriptionExpiration;
+  bool _homeDialogsReady = false;
+  bool _subscriptionReminderHandled = false;
+
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -39,6 +44,11 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _model = createModel(context, () => HomeModel());
+    _latestSubscriptionExpiration = currentUserDocument?.endSub;
+    _subscriptionReminderSubscription = authenticatedUserStream.listen((user) {
+      _latestSubscriptionExpiration = user?.endSub;
+      unawaited(_maybeShowSubscriptionExpirationReminder());
+    });
     unawaited(recordDailyEngagement(userReference: currentUserReference));
 
     logFirebaseEvent('screen_view', parameters: {'screen_name': 'Home'});
@@ -47,11 +57,20 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       logFirebaseEvent('HOME_PAGE_Home_ON_INIT_STATE');
       // bingo requette
       logFirebaseEvent('Home_bingorequette');
-      _model.bingooutput = await queryBingoRecordOnce(
+      final bingoRecords = await queryBingoRecordOnce(
         queryBuilder: (bingoRecord) =>
             bingoRecord.orderBy('date', descending: true),
-        singleRecord: true,
-      ).then((s) => s.firstOrNull);
+      );
+      _model.bingooutput = bingoRecords.firstOrNull;
+      _model.bingoStories = bingoRecords
+          .where(
+            (record) => isBingoActive(
+              bingoDate: record.date,
+              expiration: record.expiration,
+              now: getCurrentTimestamp,
+            ),
+          )
+          .toList(growable: false);
       if (!mounted) {
         return;
       }
@@ -76,6 +95,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
           logFirebaseEvent('Home_alert_dialog');
           await showBingoDialog(
             context: context,
+            bingos: _model.bingoStories,
           );
 
           logFirebaseEvent('Home_update_app_state');
@@ -88,6 +108,12 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         logFirebaseEvent('Home_update_app_state');
         FFAppState().bingo = BingoStruct();
         safeSetState(() {});
+      }
+
+      _homeDialogsReady = true;
+      await _maybeShowSubscriptionExpirationReminder();
+      if (!mounted) {
+        return;
       }
 
       await Future.wait([
@@ -130,6 +156,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    unawaited(_subscriptionReminderSubscription?.cancel());
     _model.dispose();
 
     super.dispose();
@@ -140,6 +167,48 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       unawaited(recordDailyEngagement(userReference: currentUserReference));
     }
+  }
+
+  Future<void> _maybeShowSubscriptionExpirationReminder() async {
+    final expiration = _latestSubscriptionExpiration;
+    if (!mounted ||
+        !_homeDialogsReady ||
+        _subscriptionReminderHandled ||
+        expiration == null ||
+        !shouldShowSubscriptionExpirationReminder(
+          expiration: expiration,
+          now: getCurrentTimestamp,
+        )) {
+      return;
+    }
+
+    _subscriptionReminderHandled = true;
+    logFirebaseEvent('HOME_SUB_EXPIRY_REMINDER_SHOWN');
+    final shouldRenew = await showDialog<bool>(
+      context: context,
+      barrierColor: FlutterFlowTheme.of(context)
+          .primaryBackground
+          .withValues(alpha: 0.78),
+      builder: (dialogContext) => Dialog(
+        elevation: 0.0,
+        insetPadding: EdgeInsets.all(
+          FlutterFlowTheme.of(dialogContext).designToken.spacing.md,
+        ),
+        backgroundColor: Colors.transparent,
+        child: RappelFinAbonnementWidget(
+          expiration: expiration,
+          onRenew: () => Navigator.of(dialogContext).pop(true),
+          onDismiss: () => Navigator.of(dialogContext).pop(false),
+        ),
+      ),
+    );
+
+    if (!mounted || shouldRenew != true) {
+      return;
+    }
+
+    logFirebaseEvent('HOME_SUB_EXPIRY_REMINDER_RENEW');
+    context.pushNamed(UpgradeWidget.routeName);
   }
 
   @override
@@ -250,17 +319,9 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                       child: Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          if (_model.rappelAbonnement == true)
-                            wrapWithModel(
-                              model: _model.rappelFinAbonnementModel,
-                              updateCallback: () => safeSetState(() {}),
-                              child: RappelFinAbonnementWidget(),
-                            ),
-                          if (isBingoStoryAvailable(
+                          if (isBingoStoryCollectionAvailable(
                             viewed: FFAppState().bingo.vue,
-                            bingoDate: FFAppState().bingo.date,
-                            expiration: FFAppState().bingo.expiration,
-                            now: getCurrentTimestamp,
+                            activeStoryCount: _model.bingoStories.length,
                           ))
                             Align(
                               alignment: AlignmentDirectional.centerStart,
@@ -269,7 +330,18 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                   logFirebaseEvent(
                                     'HOME_PAGE_bingo_story_ON_TAP',
                                   );
-                                  await showBingoDialog(context: context);
+                                  await showBingoDialog(
+                                    context: context,
+                                    bingos: _model.bingoStories
+                                        .where(
+                                          (record) => isBingoActive(
+                                            bingoDate: record.date,
+                                            expiration: record.expiration,
+                                            now: getCurrentTimestamp,
+                                          ),
+                                        )
+                                        .toList(growable: false),
+                                  );
                                 },
                               ),
                             ),

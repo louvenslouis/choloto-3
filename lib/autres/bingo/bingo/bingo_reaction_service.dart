@@ -8,6 +8,16 @@ class BingoReactionUnavailableException implements Exception {
   const BingoReactionUnavailableException();
 }
 
+class BingoReactionUpdate {
+  const BingoReactionUpdate({
+    required this.reaction,
+    required this.reference,
+  });
+
+  final BingoReaction? reaction;
+  final DocumentReference? reference;
+}
+
 BingoReaction? bingoReactionFromState(BingoStruct bingo) {
   if (!bingo.hasRefGain() || !bingo.hasGagner()) {
     return null;
@@ -41,7 +51,19 @@ Map<String, int> bingoReactionCounterDeltas({
 Future<BingoReaction?> toggleCurrentBingoReaction(
   BingoReaction requestedReaction,
 ) async {
-  final bingo = FFAppState().bingo;
+  final update = await toggleBingoReaction(
+    bingo: FFAppState().bingo,
+    requestedReaction: requestedReaction,
+    updateCurrentState: true,
+  );
+  return update.reaction;
+}
+
+Future<BingoReactionUpdate> toggleBingoReaction({
+  required BingoStruct bingo,
+  required BingoReaction requestedReaction,
+  bool updateCurrentState = false,
+}) async {
   final bingoReference = bingo.doc;
   final userReference = currentUserReference;
 
@@ -98,15 +120,20 @@ Future<BingoReaction?> toggleCurrentBingoReaction(
 
   await batch.commit();
 
-  FFAppState().updateBingoStruct(
-    (value) => value
-      ..gagner = switch (nextReaction) {
-        BingoReaction.positive => true,
-        BingoReaction.negative => false,
-        null => null,
-      }
-      ..refGain = nextReference,
-  );
+  if (updateCurrentState && FFAppState().bingo.doc == bingoReference) {
+    FFAppState().updateBingoStruct(
+      (value) => value
+        ..gagner = switch (nextReaction) {
+          BingoReaction.positive => true,
+          BingoReaction.negative => false,
+          null => null,
+        }
+        ..refGain = nextReference,
+    );
+  }
 
-  return nextReaction;
+  return BingoReactionUpdate(
+    reaction: nextReaction,
+    reference: nextReference,
+  );
 }

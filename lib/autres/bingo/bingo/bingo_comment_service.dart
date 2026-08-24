@@ -21,8 +21,17 @@ String normalizeBingoComment(String value) {
 }
 
 Future<void> saveCurrentBingoComment(String value) async {
+  return saveBingoComment(
+    value,
+    bingoReference: FFAppState().bingo.doc,
+  );
+}
+
+Future<void> saveBingoComment(
+  String value, {
+  required DocumentReference? bingoReference,
+}) async {
   final comment = normalizeBingoComment(value);
-  final bingoReference = FFAppState().bingo.doc;
 
   if (bingoReference == null ||
       currentUserReference == null ||

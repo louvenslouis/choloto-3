@@ -51,7 +51,8 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       logFirebaseEvent('STACKBINGO_COMP_stackbingo_ON_INIT_STATE');
-      while (widget!.dataStack!.length > 1) {
+      final dataStack = widget.dataStack;
+      while (mounted && dataStack != null && dataStack.length > 1) {
         logFirebaseEvent('stackbingo_wait__delay');
         await Future.delayed(
           Duration(
@@ -95,14 +96,17 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
       height: 126.0,
       decoration: BoxDecoration(),
       child: StreamBuilder<List<BingoRecord>>(
-        stream: queryBingoRecord(
-          queryBuilder: (bingoRecord) =>
-              bingoRecord.orderBy('date', descending: true),
-          singleRecord: true,
-        ),
+        stream: widget.dataStack == null
+            ? queryBingoRecord(
+                queryBuilder: (bingoRecord) =>
+                    bingoRecord.orderBy('date', descending: true),
+                singleRecord: true,
+              )
+            : null,
+        initialData: widget.dataStack == null ? null : const [],
         builder: (context, snapshot) {
           // Customize what your widget looks like when it's loading.
-          if (!snapshot.hasData) {
+          if (widget.dataStack == null && !snapshot.hasData) {
             return Center(
               child: SizedBox(
                 width: 50.0,
@@ -115,9 +119,10 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
               ),
             );
           }
-          List<BingoRecord> swipeableStackBingoRecordList = snapshot.data!;
+          final swipeableStackBingoRecordList = snapshot.data ?? const [];
           // Return an empty Container when the item does not exist.
-          if (snapshot.data!.isEmpty) {
+          if (widget.dataStack == null &&
+              swipeableStackBingoRecordList.isEmpty) {
             return Container();
           }
           final swipeableStackBingoRecord =
@@ -127,8 +132,9 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
 
           return Builder(
             builder: (context) {
-              final datastacklist =
-                  swipeableStackBingoRecord?.dataStack?.toList() ?? [];
+              final datastacklist = widget.dataStack?.toList() ??
+                  swipeableStackBingoRecord?.dataStack.toList() ??
+                  [];
 
               return FlutterFlowSwipeableStack(
                 onSwipeFn: (datastacklistIndex) {},

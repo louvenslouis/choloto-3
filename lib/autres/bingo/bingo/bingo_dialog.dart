@@ -1,3 +1,4 @@
+import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -10,6 +11,7 @@ import 'bingo_widget.dart';
 
 const bingoStatusAspectRatio = 9.0 / 16.0;
 const bingoStatusMobileBreakpoint = 600.0;
+const bingoStatusDuration = Duration(seconds: 45);
 // Original 400x400 card, including its 4px Card margin and 10px side padding.
 const bingoCardPresentationSize = Size(428.0, 408.0);
 
@@ -25,6 +27,11 @@ class BingoStatusFrame extends StatelessWidget {
     this.commentController,
     this.onCommentSubmitted,
     this.commentPending = false,
+    this.storyCount = 0,
+    this.currentStoryIndex = 0,
+    this.progressAnimation,
+    this.onPreviousStory,
+    this.onNextStory,
   });
 
   final Widget child;
@@ -36,6 +43,11 @@ class BingoStatusFrame extends StatelessWidget {
   final TextEditingController? commentController;
   final ValueChanged<String>? onCommentSubmitted;
   final bool commentPending;
+  final int storyCount;
+  final int currentStoryIndex;
+  final Animation<double>? progressAnimation;
+  final VoidCallback? onPreviousStory;
+  final VoidCallback? onNextStory;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +75,39 @@ class BingoStatusFrame extends StatelessWidget {
                   ),
                 ),
               ),
+              if (onPreviousStory != null || onNextStory != null)
+                Positioned.fill(
+                  top: 80.0,
+                  bottom: 80.0,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Semantics(
+                          label: FFLocalizations.of(context)
+                              .getText('bingo_story_previous'),
+                          button: true,
+                          child: GestureDetector(
+                            key: const ValueKey('bingo-story-previous-area'),
+                            behavior: HitTestBehavior.translucent,
+                            onTap: onPreviousStory,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Semantics(
+                          label: FFLocalizations.of(context)
+                              .getText('bingo_story_next'),
+                          button: true,
+                          child: GestureDetector(
+                            key: const ValueKey('bingo-story-next-area'),
+                            behavior: HitTestBehavior.translucent,
+                            onTap: onNextStory,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               if (publishedAt != null)
                 _BingoStoryHeader(publishedAt: publishedAt!),
               if (onClose != null) _BingoStoryCloseButton(onClose: onClose!),
@@ -74,6 +119,12 @@ class BingoStatusFrame extends StatelessWidget {
                   commentController: commentController,
                   commentEnabled: !commentPending,
                   onCommentSubmitted: onCommentSubmitted,
+                ),
+              if (storyCount > 0 && progressAnimation != null)
+                _BingoStoryProgress(
+                  storyCount: storyCount,
+                  currentStoryIndex: currentStoryIndex,
+                  progressAnimation: progressAnimation!,
                 ),
             ],
           ),
@@ -106,6 +157,75 @@ class BingoStatusFrame extends StatelessWidget {
   }
 }
 
+class _BingoStoryProgress extends StatelessWidget {
+  const _BingoStoryProgress({
+    required this.storyCount,
+    required this.currentStoryIndex,
+    required this.progressAnimation,
+  });
+
+  final int storyCount;
+  final int currentStoryIndex;
+  final Animation<double> progressAnimation;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final spacing = theme.designToken.spacing;
+
+    return SafeArea(
+      child: Align(
+        alignment: AlignmentDirectional.topCenter,
+        child: Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(
+            spacing.sm,
+            spacing.xs,
+            spacing.sm,
+            0.0,
+          ),
+          child: AnimatedBuilder(
+            animation: progressAnimation,
+            builder: (context, _) => Row(
+              key: const ValueKey('bingo-story-progress'),
+              children: List.generate(storyCount, (index) {
+                final progress = index < currentStoryIndex
+                    ? 1.0
+                    : index == currentStoryIndex
+                        ? progressAnimation.value
+                        : 0.0;
+
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      end: index == storyCount - 1 ? 0.0 : spacing.xs,
+                    ),
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(theme.designToken.radius.full),
+                      child: Container(
+                        key: ValueKey('bingo-story-progress-track-$index'),
+                        height: 3.0,
+                        color: theme.secondaryText.withValues(alpha: 0.35),
+                        alignment: AlignmentDirectional.centerStart,
+                        child: FractionallySizedBox(
+                          key: ValueKey('bingo-story-progress-fill-$index'),
+                          widthFactor: progress,
+                          heightFactor: 1.0,
+                          child: ColoredBox(color: theme.primary),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _BingoStoryCloseButton extends StatelessWidget {
   const _BingoStoryCloseButton({required this.onClose});
 
@@ -133,7 +253,7 @@ class _BingoStoryCloseButton extends StatelessWidget {
               buttonSize: 40.0,
               icon: Icon(
                 Icons.close_outlined,
-                color: theme.onDecorative,
+                color: theme.primaryText,
                 size: 24.0,
               ),
               onPressed: onClose,
@@ -428,35 +548,160 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
   }
 }
 
-class _BingoStatusDialogBody extends StatefulWidget {
-  const _BingoStatusDialogBody({
-    required this.content,
+class BingoStatusItem {
+  const BingoStatusItem({
+    this.reference,
     this.publishedAt,
+    this.expiration,
+    this.dataStack = const [],
+    this.selectedReaction,
+    this.reactionReference,
+    this.content,
   });
 
-  final Widget content;
+  factory BingoStatusItem.fromRecord(
+    BingoRecord record, {
+    BingoStruct? currentBingo,
+  }) {
+    final isCurrentBingo = currentBingo?.doc == record.reference;
+    return BingoStatusItem(
+      reference: record.reference,
+      publishedAt: record.date,
+      expiration: record.expiration,
+      dataStack: record.dataStack.toList(),
+      selectedReaction:
+          isCurrentBingo ? bingoReactionFromState(currentBingo!) : null,
+      reactionReference: isCurrentBingo ? currentBingo!.refGain : null,
+    );
+  }
+
+  factory BingoStatusItem.fromCurrentState(
+    BingoStruct bingo, {
+    Widget? content,
+  }) =>
+      BingoStatusItem(
+        reference: bingo.doc,
+        publishedAt: bingo.date,
+        expiration: bingo.expiration,
+        dataStack: bingo.dataStack.toList(),
+        selectedReaction: bingoReactionFromState(bingo),
+        reactionReference: bingo.refGain,
+        content: content,
+      );
+
+  final DocumentReference? reference;
   final DateTime? publishedAt;
+  final DateTime? expiration;
+  final List<DataStackStruct> dataStack;
+  final BingoReaction? selectedReaction;
+  final DocumentReference? reactionReference;
+  final Widget? content;
+
+  BingoStruct toBingoStruct({
+    required BingoReaction? reaction,
+    required DocumentReference? reactionReference,
+  }) =>
+      BingoStruct(
+        date: publishedAt,
+        doc: reference,
+        gagner: switch (reaction) {
+          BingoReaction.positive => true,
+          BingoReaction.negative => false,
+          null => null,
+        },
+        refGain: reactionReference,
+        dataStack: dataStack.toList(),
+        expiration: expiration,
+      );
+}
+
+class _BingoStatusDialogBody extends StatefulWidget {
+  const _BingoStatusDialogBody({
+    required this.stories,
+    required this.storyDuration,
+  });
+
+  final List<BingoStatusItem> stories;
+  final Duration storyDuration;
 
   @override
   State<_BingoStatusDialogBody> createState() => _BingoStatusDialogBodyState();
 }
 
-class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody> {
-  late BingoReaction? _selectedReaction;
+class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _progressController;
+  late final List<BingoReaction?> _selectedReactions;
+  late final List<DocumentReference?> _reactionReferences;
   final _commentController = TextEditingController();
+  var _currentIndex = 0;
   var _reactionPending = false;
   var _commentPending = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedReaction = bingoReactionFromState(FFAppState().bingo);
+    _selectedReactions = widget.stories
+        .map((story) => story.selectedReaction)
+        .toList(growable: false);
+    _reactionReferences = widget.stories
+        .map((story) => story.reactionReference)
+        .toList(growable: false);
+    _progressController = AnimationController(
+      vsync: this,
+      duration: widget.storyDuration,
+    )..addStatusListener(_onProgressStatusChanged);
+    _progressController.forward();
   }
 
   @override
   void dispose() {
+    _progressController
+      ..removeStatusListener(_onProgressStatusChanged)
+      ..dispose();
     _commentController.dispose();
     super.dispose();
+  }
+
+  void _onProgressStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _showNextStory();
+    }
+  }
+
+  void _restartProgress() {
+    _progressController.forward(from: 0.0);
+  }
+
+  void _selectStory(int index) {
+    FocusScope.of(context).unfocus();
+    _commentController.clear();
+    setState(() => _currentIndex = index);
+    _restartProgress();
+  }
+
+  void _showPreviousStory() {
+    if (_currentIndex == 0) {
+      _restartProgress();
+      return;
+    }
+    _selectStory(_currentIndex - 1);
+  }
+
+  void _showNextStory() {
+    if (!mounted) {
+      return;
+    }
+    if (_currentIndex >= widget.stories.length - 1) {
+      Navigator.of(context).pop();
+      return;
+    }
+    _selectStory(_currentIndex + 1);
+  }
+
+  void _close() {
+    _progressController.stop();
+    Navigator.of(context).pop();
   }
 
   Future<void> _react(BingoReaction reaction) async {
@@ -464,11 +709,23 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody> {
       return;
     }
 
+    final storyIndex = _currentIndex;
+    final story = widget.stories[storyIndex];
     setState(() => _reactionPending = true);
     try {
-      final nextReaction = await toggleCurrentBingoReaction(reaction);
+      final update = await toggleBingoReaction(
+        bingo: story.toBingoStruct(
+          reaction: _selectedReactions[storyIndex],
+          reactionReference: _reactionReferences[storyIndex],
+        ),
+        requestedReaction: reaction,
+        updateCurrentState: story.reference == FFAppState().bingo.doc,
+      );
       if (mounted) {
-        setState(() => _selectedReaction = nextReaction);
+        setState(() {
+          _selectedReactions[storyIndex] = update.reaction;
+          _reactionReferences[storyIndex] = update.reference;
+        });
       }
     } catch (_) {
       if (mounted) {
@@ -493,9 +750,13 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody> {
       return;
     }
 
+    final bingoReference = widget.stories[_currentIndex].reference;
     setState(() => _commentPending = true);
     try {
-      await saveCurrentBingoComment(comment);
+      await saveBingoComment(
+        comment,
+        bingoReference: bingoReference,
+      );
       if (mounted) {
         FocusScope.of(context).unfocus();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -528,16 +789,26 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody> {
 
   @override
   Widget build(BuildContext context) {
+    final story = widget.stories[_currentIndex];
     return BingoStatusFrame(
-      onClose: () => Navigator.of(context).pop(),
-      publishedAt: widget.publishedAt,
-      selectedReaction: _selectedReaction,
+      onClose: _close,
+      publishedAt: story.publishedAt,
+      selectedReaction: _selectedReactions[_currentIndex],
       reactionPending: _reactionPending,
       onReaction: _react,
       commentController: _commentController,
       commentPending: _commentPending,
       onCommentSubmitted: _submitComment,
-      child: widget.content,
+      storyCount: widget.stories.length,
+      currentStoryIndex: _currentIndex,
+      progressAnimation: _progressController,
+      onPreviousStory: _showPreviousStory,
+      onNextStory: _showNextStory,
+      child: story.content ??
+          BingoWidget(
+            key: ValueKey('bingo-story-content-$_currentIndex'),
+            dataStack: story.dataStack,
+          ),
     );
   }
 }
@@ -545,7 +816,28 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody> {
 Future<T?> showBingoDialog<T>({
   required BuildContext context,
   Widget? content,
+  List<BingoRecord>? bingos,
+  List<BingoStatusItem>? stories,
+  Duration storyDuration = bingoStatusDuration,
 }) {
+  final currentBingo = FFAppState().bingo;
+  final statusItems = content != null
+      ? [BingoStatusItem.fromCurrentState(currentBingo, content: content)]
+      : stories ??
+          bingos
+              ?.map(
+                (record) => BingoStatusItem.fromRecord(
+                  record,
+                  currentBingo: currentBingo,
+                ),
+              )
+              .toList(growable: false) ??
+          [BingoStatusItem.fromCurrentState(currentBingo)];
+
+  if (statusItems.isEmpty) {
+    return Future<T?>.value();
+  }
+
   return showDialog<T>(
     context: context,
     useSafeArea: false,
@@ -556,8 +848,8 @@ Future<T?> showBingoDialog<T>({
         key: const ValueKey('bingo-status-dialog'),
         backgroundColor: theme.primaryBackground,
         child: _BingoStatusDialogBody(
-          publishedAt: FFAppState().bingo.date,
-          content: content ?? const BingoWidget(),
+          stories: statusItems,
+          storyDuration: storyDuration,
         ),
       );
     },
