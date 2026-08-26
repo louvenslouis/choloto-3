@@ -79,6 +79,10 @@ void main() {
             find.byKey(const ValueKey('onboarding-copy-overlay')),
             findsOneWidget,
           );
+          final blurMask = tester.widget<ShaderMask>(
+            find.byKey(const ValueKey('onboarding-blur-opacity-mask')),
+          );
+          expect(blurMask.blendMode, BlendMode.dstIn);
           expect(find.byType(BackdropFilter), findsOneWidget);
           expect(find.byType(SingleChildScrollView), findsNothing);
           expect(

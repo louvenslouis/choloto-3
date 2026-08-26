@@ -517,82 +517,106 @@ class _OnboardingHero extends StatelessWidget {
                   end: 0.0,
                   bottom: 0.0,
                   child: ClipRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(
-                        sigmaX: compact ? 8.0 : 12.0,
-                        sigmaY: compact ? 8.0 : 12.0,
-                      ),
-                      child: Container(
-                        key: const ValueKey('onboarding-copy-overlay'),
-                        padding: EdgeInsets.fromLTRB(
-                          contentPadding,
-                          compact ? tokens.spacing.lg : tokens.spacing.xl,
-                          contentPadding,
-                          contentPadding,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              theme.onPrimary.withValues(alpha: 0.0),
-                              theme.onPrimary.withValues(
-                                alpha: compact ? 0.54 : 0.66,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: ShaderMask(
+                            key: const ValueKey(
+                              'onboarding-blur-opacity-mask',
+                            ),
+                            blendMode: BlendMode.dstIn,
+                            shaderCallback: (bounds) => LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                theme.onPrimary.withValues(alpha: 0.0),
+                                theme.onPrimary.withValues(alpha: 0.72),
+                                theme.onPrimary,
+                              ],
+                              stops: const [0.0, 0.34, 0.62],
+                            ).createShader(bounds),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: compact ? 8.0 : 12.0,
+                                sigmaY: compact ? 8.0 : 12.0,
                               ),
-                              theme.onPrimary.withValues(
-                                alpha: compact ? 0.86 : 0.92,
+                              child: const SizedBox.expand(),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          key: const ValueKey('onboarding-copy-overlay'),
+                          padding: EdgeInsets.fromLTRB(
+                            contentPadding,
+                            compact ? tokens.spacing.lg : tokens.spacing.xl,
+                            contentPadding,
+                            contentPadding,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                theme.onPrimary.withValues(alpha: 0.0),
+                                theme.onPrimary.withValues(
+                                  alpha: compact ? 0.54 : 0.66,
+                                ),
+                                theme.onPrimary.withValues(
+                                  alpha: compact ? 0.86 : 0.92,
+                                ),
+                              ],
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: tokens.spacing.sm,
+                                  vertical: tokens.spacing.xs,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.primary,
+                                  borderRadius: BorderRadius.circular(
+                                    tokens.radius.full,
+                                  ),
+                                ),
+                                child: Text(
+                                  localizations.getText('onboarding_eyebrow'),
+                                  style: theme.labelSmall.copyWith(
+                                    color: theme.onPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: tokens.spacing.sm),
+                              Text(
+                                localizations.getText('onboarding_title'),
+                                key: const ValueKey('onboarding-title'),
+                                style: titleStyle.copyWith(
+                                  color: theme.onDecorative,
+                                  height: 1.05,
+                                ),
+                              ),
+                              SizedBox(height: tokens.spacing.xs),
+                              Text(
+                                localizations.getText('onboarding_description'),
+                                maxLines: compact ? 3 : 4,
+                                overflow: TextOverflow.ellipsis,
+                                style: (compact
+                                        ? theme.bodySmall
+                                        : theme.bodyMedium)
+                                    .copyWith(
+                                  color: theme.onDecorative
+                                      .withValues(alpha: 0.82),
+                                  height: 1.30,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: tokens.spacing.sm,
-                                vertical: tokens.spacing.xs,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.primary,
-                                borderRadius: BorderRadius.circular(
-                                  tokens.radius.full,
-                                ),
-                              ),
-                              child: Text(
-                                localizations.getText('onboarding_eyebrow'),
-                                style: theme.labelSmall.copyWith(
-                                  color: theme.onPrimary,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: tokens.spacing.sm),
-                            Text(
-                              localizations.getText('onboarding_title'),
-                              key: const ValueKey('onboarding-title'),
-                              style: titleStyle.copyWith(
-                                color: theme.onDecorative,
-                                height: 1.05,
-                              ),
-                            ),
-                            SizedBox(height: tokens.spacing.xs),
-                            Text(
-                              localizations.getText('onboarding_description'),
-                              maxLines: compact ? 3 : 4,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  (compact ? theme.bodySmall : theme.bodyMedium)
-                                      .copyWith(
-                                color:
-                                    theme.onDecorative.withValues(alpha: 0.82),
-                                height: 1.30,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ),
                   ),
                 ),

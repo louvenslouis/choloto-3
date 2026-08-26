@@ -692,10 +692,19 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
     widget.onFocusChanged?.call(_focusNode.hasFocus);
   }
 
+  void _focusOnPointerDown(PointerDownEvent _) {
+    if (!widget.enabled || _focusNode.hasFocus) return;
+    FocusScope.of(context).requestFocus(_focusNode);
+  }
+
   void _openKeyboard() {
     if (!widget.enabled) return;
-    _focusNode.requestFocus();
-    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.show'));
+    FocusScope.of(context).requestFocus(_focusNode);
+    // Native clients attach the text-input connection after focus is applied.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.enabled || !_focusNode.hasFocus) return;
+      unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.show'));
+    });
   }
 
   void _submit() {
@@ -713,64 +722,68 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
     final hasComment = widget.controller.text.trim().isNotEmpty;
     final canSubmit = widget.enabled && hasComment;
 
-    return SizedBox(
-      height: 48.0,
-      child: TextField(
-        key: const ValueKey('bingo-story-comment-field'),
-        controller: widget.controller,
-        focusNode: _focusNode,
-        readOnly: !widget.enabled,
-        maxLength: bingoCommentMaxLength,
-        maxLines: 1,
-        keyboardType: TextInputType.text,
-        textInputAction: TextInputAction.send,
-        style: theme.bodyMedium,
-        onTap: _openKeyboard,
-        onTapAlwaysCalled: true,
-        onTapOutside: (_) => _focusNode.unfocus(),
-        onSubmitted: (_) => _submit(),
-        decoration: InputDecoration(
-          hintText: localizations.getText('bingo_story_comment_hint'),
-          hintStyle: theme.labelMedium.copyWith(
-            color: theme.secondaryText,
-          ),
-          counterText: '',
-          filled: true,
-          fillColor: theme.secondaryBackground,
-          contentPadding: EdgeInsetsDirectional.only(
-            start: tokens.spacing.md,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(tokens.radius.full),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(tokens.radius.full),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(tokens.radius.full),
-            borderSide: BorderSide(
-              color: theme.primary,
-              width: 2.0,
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: _focusOnPointerDown,
+      child: SizedBox(
+        height: 48.0,
+        child: TextField(
+          key: const ValueKey('bingo-story-comment-field'),
+          controller: widget.controller,
+          focusNode: _focusNode,
+          readOnly: !widget.enabled,
+          maxLength: bingoCommentMaxLength,
+          maxLines: 1,
+          keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.send,
+          style: theme.bodyMedium,
+          onTap: _openKeyboard,
+          onTapAlwaysCalled: true,
+          onTapOutside: (_) => _focusNode.unfocus(),
+          onSubmitted: (_) => _submit(),
+          decoration: InputDecoration(
+            hintText: localizations.getText('bingo_story_comment_hint'),
+            hintStyle: theme.labelMedium.copyWith(
+              color: theme.secondaryText,
             ),
-          ),
-          suffixIcon: hasComment
-              ? Semantics(
-                  label: localizations.getText('bingo_story_comment_send'),
-                  button: true,
-                  enabled: canSubmit,
-                  child: IconButton(
-                    key: const ValueKey('bingo-story-comment-send'),
-                    onPressed: canSubmit ? _submit : null,
-                    icon: Icon(
-                      Icons.send_rounded,
-                      color: canSubmit ? theme.primary : theme.secondaryText,
-                      size: 20.0,
+            counterText: '',
+            filled: true,
+            fillColor: theme.secondaryBackground,
+            contentPadding: EdgeInsetsDirectional.only(
+              start: tokens.spacing.md,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(tokens.radius.full),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(tokens.radius.full),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(tokens.radius.full),
+              borderSide: BorderSide(
+                color: theme.primary,
+                width: 2.0,
+              ),
+            ),
+            suffixIcon: hasComment
+                ? Semantics(
+                    label: localizations.getText('bingo_story_comment_send'),
+                    button: true,
+                    enabled: canSubmit,
+                    child: IconButton(
+                      key: const ValueKey('bingo-story-comment-send'),
+                      onPressed: canSubmit ? _submit : null,
+                      icon: Icon(
+                        Icons.send_rounded,
+                        color: canSubmit ? theme.primary : theme.secondaryText,
+                        size: 20.0,
+                      ),
                     ),
-                  ),
-                )
-              : null,
+                  )
+                : null,
+          ),
         ),
       ),
     );

@@ -916,20 +916,33 @@ void main() {
     await tester.tap(find.text('Saisir un commentaire'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(
-      find.byKey(const ValueKey('bingo-story-comment-field')),
-    );
+    final commentFieldFinder =
+        find.byKey(const ValueKey('bingo-story-comment-field'));
+    final commentFieldGesture =
+        await tester.startGesture(tester.getCenter(commentFieldFinder));
     await tester.pump();
 
+    expect(
+      tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
+      isTrue,
+    );
+
+    await commentFieldGesture.up();
+    await tester.pump();
     expect(tester.testTextInput.isVisible, isTrue);
+
+    tester.testTextInput.enterText('Saisie mobile 123');
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(commentFieldFinder).controller?.text,
+      'Saisie mobile 123',
+    );
 
     tester.testTextInput.hide();
     await tester.pump();
     expect(tester.testTextInput.isVisible, isFalse);
 
-    await tester.tap(
-      find.byKey(const ValueKey('bingo-story-comment-field')),
-    );
+    await tester.tap(commentFieldFinder);
     await tester.pump();
     expect(tester.testTextInput.isVisible, isTrue);
 
