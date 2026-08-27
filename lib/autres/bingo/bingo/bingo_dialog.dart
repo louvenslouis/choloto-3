@@ -4,8 +4,8 @@ import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 
 import 'bingo_comment_service.dart';
@@ -693,18 +693,8 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
   }
 
   void _focusOnPointerDown(PointerDownEvent _) {
-    if (!widget.enabled || _focusNode.hasFocus) return;
+    if (kIsWeb || !widget.enabled || _focusNode.hasFocus) return;
     FocusScope.of(context).requestFocus(_focusNode);
-  }
-
-  void _openKeyboard() {
-    if (!widget.enabled) return;
-    FocusScope.of(context).requestFocus(_focusNode);
-    // Native clients attach the text-input connection after focus is applied.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !widget.enabled || !_focusNode.hasFocus) return;
-      unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.show'));
-    });
   }
 
   void _submit() {
@@ -723,8 +713,8 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
     final canSubmit = widget.enabled && hasComment;
 
     return Listener(
-      behavior: HitTestBehavior.opaque,
-      onPointerDown: _focusOnPointerDown,
+      behavior: kIsWeb ? HitTestBehavior.deferToChild : HitTestBehavior.opaque,
+      onPointerDown: kIsWeb ? null : _focusOnPointerDown,
       child: SizedBox(
         height: 48.0,
         child: TextField(
@@ -737,8 +727,6 @@ class _BingoStoryCommentFieldState extends State<_BingoStoryCommentField> {
           keyboardType: TextInputType.text,
           textInputAction: TextInputAction.send,
           style: theme.bodyMedium,
-          onTap: _openKeyboard,
-          onTapAlwaysCalled: true,
           onTapOutside: (_) => _focusNode.unfocus(),
           onSubmitted: (_) => _submit(),
           decoration: InputDecoration(

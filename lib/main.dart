@@ -270,75 +270,241 @@ class _NavBarPageState extends State<NavBarPage> {
         _ => HomeWidget(),
       };
 
+  void _selectTab(int index) => safeSetState(() {
+        _currentPage = null;
+        _currentPageName = _tabNames[index];
+        _tabPages[index] ??= _createTab(index);
+      });
+
+  List<NavigationRailDestination> _railDestinations(
+    BuildContext context,
+  ) =>
+      [
+        NavigationRailDestination(
+          icon: const Icon(Icons.home_outlined),
+          selectedIcon: const Icon(Icons.home_rounded),
+          label: Text(
+            FFLocalizations.of(context).getText(
+              'uer2q4no' /* Accueil */,
+            ),
+          ),
+        ),
+        NavigationRailDestination(
+          icon: const FaIcon(FontAwesomeIcons.checkToSlot),
+          selectedIcon: const FaIcon(FontAwesomeIcons.checkToSlot),
+          label: Text(
+            FFLocalizations.of(context).getText(
+              'wakkucok' /* Tirages */,
+            ),
+          ),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.workspace_premium_outlined),
+          selectedIcon: const Icon(Icons.workspace_premium_rounded),
+          label: Text(
+            FFLocalizations.of(context).getText(
+              'xj2saev3' /* VIP */,
+            ),
+          ),
+        ),
+        NavigationRailDestination(
+          icon: const FaIcon(FontAwesomeIcons.book),
+          selectedIcon: const FaIcon(FontAwesomeIcons.bookOpen),
+          label: Text(
+            FFLocalizations.of(context).getText(
+              '14smzvpm' /* Tchala */,
+            ),
+          ),
+        ),
+      ];
+
+  List<BottomNavigationBarItem> _bottomDestinations(
+    BuildContext context,
+  ) =>
+      [
+        BottomNavigationBarItem(
+          icon: const Icon(
+            Icons.home_outlined,
+            size: 24.0,
+          ),
+          activeIcon: const Icon(
+            Icons.home_rounded,
+            size: 24.0,
+          ),
+          label: FFLocalizations.of(context).getText(
+            'uer2q4no' /* Accueil */,
+          ),
+          tooltip: '',
+        ),
+        BottomNavigationBarItem(
+          icon: const FaIcon(
+            FontAwesomeIcons.checkToSlot,
+            size: 24.0,
+          ),
+          label: FFLocalizations.of(context).getText(
+            'wakkucok' /* Tirages */,
+          ),
+          tooltip: '',
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(
+            Icons.workspace_premium_outlined,
+            size: 24.0,
+          ),
+          activeIcon: const Icon(
+            Icons.workspace_premium_rounded,
+            size: 24.0,
+          ),
+          label: FFLocalizations.of(context).getText(
+            'xj2saev3' /* VIP */,
+          ),
+          tooltip: '',
+        ),
+        BottomNavigationBarItem(
+          icon: const FaIcon(
+            FontAwesomeIcons.book,
+            size: 24.0,
+          ),
+          activeIcon: const FaIcon(
+            FontAwesomeIcons.bookOpen,
+            size: 24.0,
+          ),
+          label: FFLocalizations.of(context).getText(
+            '14smzvpm' /* Tchala */,
+          ),
+          tooltip: '',
+        ),
+      ];
+
+  Widget _buildRail(
+    BuildContext context, {
+    required int currentIndex,
+    required bool extended,
+  }) {
+    final theme = FlutterFlowTheme.of(context);
+    final spacing = theme.designToken.spacing;
+    final unselectedColor = theme.primaryText.withValues(alpha: 0.72);
+
+    return NavigationRail(
+      key: const ValueKey('primary-navigation-rail'),
+      selectedIndex: currentIndex,
+      onDestinationSelected: _selectTab,
+      extended: extended,
+      labelType:
+          extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
+      minWidth: spacing.xl * 2.5,
+      minExtendedWidth: spacing.xl * 8.0,
+      backgroundColor: theme.secondaryBackground,
+      groupAlignment: -1.0,
+      useIndicator: true,
+      indicatorColor: theme.primary,
+      selectedIconTheme: IconThemeData(
+        color: theme.onPrimary,
+        size: spacing.lg,
+      ),
+      unselectedIconTheme: IconThemeData(
+        color: unselectedColor,
+        size: spacing.lg,
+      ),
+      selectedLabelTextStyle: theme.labelLarge.override(
+        color: theme.primary,
+        fontWeight: FontWeight.w600,
+      ),
+      unselectedLabelTextStyle: theme.labelLarge.override(
+        color: unselectedColor,
+        fontWeight: FontWeight.w500,
+      ),
+      leading: Padding(
+        padding: EdgeInsets.fromLTRB(
+          spacing.md,
+          spacing.lg,
+          spacing.md,
+          spacing.xl,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
+              child: Image.asset(
+                'assets/images/Logo_Choloto_509.png',
+                key: const ValueKey('primary-navigation-logo'),
+                width: extended ? spacing.xl * 2.0 : spacing.xl * 1.5,
+                height: extended ? spacing.xl * 2.0 : spacing.xl * 1.5,
+                fit: BoxFit.cover,
+              ),
+            ),
+            if (extended) ...[
+              SizedBox(width: spacing.md),
+              Text(
+                FFLocalizations.of(context).getText(
+                  'loh576na' /* CHOLOTO */,
+                ),
+                style: theme.titleLarge.override(
+                  color: theme.primaryText,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      destinations: _railDestinations(context),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentIndex = _tabNames.indexOf(_currentPageName);
+    final showNavigationRail = responsiveVisibility(
+      context: context,
+      phone: false,
+      tablet: false,
+      tabletLandscape: true,
+      desktop: true,
+    );
+    final extendNavigationRail =
+        MediaQuery.sizeOf(context).width >= kBreakpointLarge;
+    final page = _currentPage ??
+        IndexedStack(
+          index: currentIndex,
+          children:
+              _tabPages.map((page) => page ?? const SizedBox.shrink()).toList(),
+        );
 
     return Scaffold(
+      backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
       resizeToAvoidBottomInset: !widget.disableResizeToAvoidBottomInset,
-      body: _currentPage ??
-          IndexedStack(
-            index: currentIndex,
-            children: _tabPages
-                .map((page) => page ?? const SizedBox.shrink())
-                .toList(),
-          ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (i) => safeSetState(() {
-          _currentPage = null;
-          _currentPageName = _tabNames[i];
-          _tabPages[i] ??= _createTab(i);
-        }),
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        selectedItemColor: FlutterFlowTheme.of(context).primary,
-        unselectedItemColor: FlutterFlowTheme.of(context).alternate,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home_outlined,
-              size: 24.0,
+      body: showNavigationRail
+          ? Row(
+              children: [
+                SafeArea(
+                  right: false,
+                  child: _buildRail(
+                    context,
+                    currentIndex: currentIndex,
+                    extended: extendNavigationRail,
+                  ),
+                ),
+                Expanded(child: page),
+              ],
+            )
+          : page,
+      bottomNavigationBar: showNavigationRail
+          ? null
+          : BottomNavigationBar(
+              key: const ValueKey('primary-bottom-navigation'),
+              currentIndex: currentIndex,
+              onTap: _selectTab,
+              backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+              selectedItemColor: FlutterFlowTheme.of(context).primary,
+              unselectedItemColor: FlutterFlowTheme.of(context).alternate,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              type: BottomNavigationBarType.fixed,
+              items: _bottomDestinations(context),
             ),
-            label: FFLocalizations.of(context).getText(
-              'uer2q4no' /* Accueil */,
-            ),
-            tooltip: '',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(
-              FontAwesomeIcons.voteYea,
-              size: 24.0,
-            ),
-            label: FFLocalizations.of(context).getText(
-              'wakkucok' /* Tirages */,
-            ),
-            tooltip: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.workspace_premium_rounded,
-              size: 24.0,
-            ),
-            label: FFLocalizations.of(context).getText(
-              'xj2saev3' /* VIP */,
-            ),
-            tooltip: '',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(
-              FontAwesomeIcons.book,
-              size: 24.0,
-            ),
-            label: FFLocalizations.of(context).getText(
-              '14smzvpm' /* Tchala */,
-            ),
-            tooltip: '',
-          )
-        ],
-      ),
     );
   }
 }

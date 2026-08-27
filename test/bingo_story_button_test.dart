@@ -877,7 +877,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('tapping a Story comment opens input and pauses progression',
+  testWidgets('tapping a Story comment accepts text and pauses progression',
       (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1.0;
@@ -918,24 +918,20 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     final commentFieldFinder =
         find.byKey(const ValueKey('bingo-story-comment-field'));
-    final commentFieldGesture =
-        await tester.startGesture(tester.getCenter(commentFieldFinder));
+    await tester.tap(commentFieldFinder);
     await tester.pump();
 
     expect(
       tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
       isTrue,
     );
-
-    await commentFieldGesture.up();
-    await tester.pump();
     expect(tester.testTextInput.isVisible, isTrue);
 
-    tester.testTextInput.enterText('Saisie mobile 123');
+    tester.testTextInput.enterText('Saisie Web éà 123');
     await tester.pump();
     expect(
       tester.widget<TextField>(commentFieldFinder).controller?.text,
-      'Saisie mobile 123',
+      'Saisie Web éà 123',
     );
 
     tester.testTextInput.hide();
