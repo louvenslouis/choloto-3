@@ -6,7 +6,6 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:webviewx_plus/webviewx_plus.dart';
 
 import 'bingo_comment_service.dart';
 import 'bingo_public_comments_sheet.dart';
@@ -71,83 +70,83 @@ class BingoStatusFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
+    // WebViewAware inserts a fullscreen HtmlElementView on Web. That invisible
+    // layer consumes the trusted touch Safari/Chrome need to open a mobile IME.
+    // The Bingo status contains no WebView, so it must use a plain Stack.
     final frame = ColoredBox(
       color: theme.primaryBackground,
-      child: WebViewAware(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: SizedBox(
-                  key: const ValueKey('bingo-status-content-area'),
-                  width: bingoCardPresentationSize.width,
-                  height: bingoCardPresentationSize.height,
-                  child: child,
-                ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: SizedBox(
+                key: const ValueKey('bingo-status-content-area'),
+                width: bingoCardPresentationSize.width,
+                height: bingoCardPresentationSize.height,
+                child: child,
               ),
             ),
-            if (onPreviousStory != null || onNextStory != null)
-              Positioned.fill(
-                top: 80.0,
-                bottom: 80.0,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Semantics(
-                        label: FFLocalizations.of(context)
-                            .getText('bingo_story_previous'),
-                        button: true,
-                        child: GestureDetector(
-                          key: const ValueKey('bingo-story-previous-area'),
-                          behavior: HitTestBehavior.translucent,
-                          onTap: onPreviousStory,
-                        ),
+          ),
+          if (onPreviousStory != null || onNextStory != null)
+            Positioned.fill(
+              top: 80.0,
+              bottom: 80.0,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Semantics(
+                      label: FFLocalizations.of(context)
+                          .getText('bingo_story_previous'),
+                      button: true,
+                      child: GestureDetector(
+                        key: const ValueKey('bingo-story-previous-area'),
+                        behavior: HitTestBehavior.translucent,
+                        onTap: onPreviousStory,
                       ),
                     ),
-                    Expanded(
-                      child: Semantics(
-                        label: FFLocalizations.of(context)
-                            .getText('bingo_story_next'),
-                        button: true,
-                        child: GestureDetector(
-                          key: const ValueKey('bingo-story-next-area'),
-                          behavior: HitTestBehavior.translucent,
-                          onTap: onNextStory,
-                        ),
+                  ),
+                  Expanded(
+                    child: Semantics(
+                      label: FFLocalizations.of(context)
+                          .getText('bingo_story_next'),
+                      button: true,
+                      child: GestureDetector(
+                        key: const ValueKey('bingo-story-next-area'),
+                        behavior: HitTestBehavior.translucent,
+                        onTap: onNextStory,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            if (publishedAt != null)
-              _BingoStoryHeader(publishedAt: publishedAt!),
-            if (onClose != null) _BingoStoryCloseButton(onClose: onClose!),
-            if (onReaction != null ||
-                onCommentSubmitted != null ||
-                onViewComments != null)
-              _BingoStoryEngagementBar(
-                selectedReaction: selectedReaction,
-                reactionEnabled: !reactionPending,
-                onReaction: onReaction,
-                commentController: commentController,
-                commentEnabled: !commentPending,
-                onCommentSubmitted: onCommentSubmitted,
-                commentFeedback: commentFeedback,
-                commentFeedbackIsError: commentFeedbackIsError,
-                commentStatus: commentStatus,
-                onViewComments: onViewComments,
-                onCommentFocusChanged: onCommentFocusChanged,
-              ),
-            if (storyCount > 0 && progressAnimation != null)
-              _BingoStoryProgress(
-                storyCount: storyCount,
-                currentStoryIndex: currentStoryIndex,
-                progressAnimation: progressAnimation!,
-              ),
-          ],
-        ),
+            ),
+          if (publishedAt != null) _BingoStoryHeader(publishedAt: publishedAt!),
+          if (onClose != null) _BingoStoryCloseButton(onClose: onClose!),
+          if (onReaction != null ||
+              onCommentSubmitted != null ||
+              onViewComments != null)
+            _BingoStoryEngagementBar(
+              selectedReaction: selectedReaction,
+              reactionEnabled: !reactionPending,
+              onReaction: onReaction,
+              commentController: commentController,
+              commentEnabled: !commentPending,
+              onCommentSubmitted: onCommentSubmitted,
+              commentFeedback: commentFeedback,
+              commentFeedbackIsError: commentFeedbackIsError,
+              commentStatus: commentStatus,
+              onViewComments: onViewComments,
+              onCommentFocusChanged: onCommentFocusChanged,
+            ),
+          if (storyCount > 0 && progressAnimation != null)
+            _BingoStoryProgress(
+              storyCount: storyCount,
+              currentStoryIndex: currentStoryIndex,
+              progressAnimation: progressAnimation!,
+            ),
+        ],
       ),
     );
 

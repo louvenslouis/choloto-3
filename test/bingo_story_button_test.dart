@@ -10,6 +10,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:webviewx_plus/webviewx_plus.dart';
 
 Widget _app({
   required Locale locale,
@@ -1017,5 +1018,41 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('Web mobile comment has no hidden WebView interceptor',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final commentController = TextEditingController();
+    addTearDown(commentController.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fr'),
+        supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+        localizationsDelegates: const [
+          FFLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          FallbackMaterialLocalizationDelegate(),
+          FallbackCupertinoLocalizationDelegate(),
+        ],
+        home: Scaffold(
+          body: BingoStatusFrame(
+            commentController: commentController,
+            onCommentSubmitted: (_) {},
+            child: const SizedBox(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(WebViewAware), findsNothing);
   });
 }
