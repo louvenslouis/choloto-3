@@ -223,7 +223,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('YouTube story opens the current video from both video actions',
+  testWidgets('only the yellow button opens the current YouTube video',
       (tester) async {
     tester.view.physicalSize = const Size(320, 568);
     tester.view.devicePixelRatio = 1.0;
@@ -252,16 +252,17 @@ void main() {
     await tester.pump();
 
     await tester.tap(
-      find.byKey(const ValueKey('youtube-story-thumbnail-link')),
+      find.byKey(const ValueKey('youtube-story-viewer-thumbnail-0')),
     );
     await tester.pump();
-    expect(openedVideos, [video]);
+    expect(openedVideos, isEmpty);
+    expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey('youtube-story-watch-button')),
     );
     await tester.pump();
-    expect(openedVideos, [video, video]);
+    expect(openedVideos, [video]);
     expect(tester.takeException(), isNull);
   });
 

@@ -19,12 +19,14 @@ class BingoStoryCommentInput extends StatefulWidget {
     required this.enabled,
     required this.onSubmitted,
     this.onFocusChanged,
+    this.autofocus = false,
   });
 
   final TextEditingController controller;
   final bool enabled;
   final ValueChanged<String> onSubmitted;
   final ValueChanged<bool>? onFocusChanged;
+  final bool autofocus;
 
   @override
   State<BingoStoryCommentInput> createState() => _BingoStoryCommentInputState();
@@ -135,6 +137,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
       ..name = 'bingo-comment'
       ..maxLength = bingoCommentMaxLength
       ..autocomplete = 'off'
+      ..autofocus = widget.autofocus
       ..enterKeyHint = 'send'
       ..inputMode = 'text'
       ..setAttribute('autocapitalize', 'sentences')
@@ -162,6 +165,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
     _sendIcon = sendIcon;
     _styleElements();
     _syncDomFromController();
+    if (widget.autofocus) input.focus();
   }
 
   void _styleElements() {

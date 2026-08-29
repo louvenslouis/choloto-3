@@ -280,9 +280,7 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
           BingoReaction? tappedReaction;
-          String? submittedComment;
-          final commentController = TextEditingController();
-          addTearDown(commentController.dispose);
+          var commentPressed = false;
 
           await tester.pumpWidget(
             MaterialApp(
@@ -310,8 +308,7 @@ void main() {
                   selectedReaction: BingoReaction.positive,
                   onReaction: (reaction) => tappedReaction = reaction,
                   onViewComments: () {},
-                  commentController: commentController,
-                  onCommentSubmitted: (comment) => submittedComment = comment,
+                  onCommentPressed: () => commentPressed = true,
                   commentFeedback: FFLocalizations(locale)
                       .getText('bingo_story_comment_success'),
                   commentStatus: const BingoCommentStatus(
@@ -368,15 +365,18 @@ void main() {
             find.byKey(const ValueKey('bingo-story-dislike')),
             findsOneWidget,
           );
-          final commentField = tester.widget<TextField>(
+          expect(
+            find.byKey(const ValueKey('bingo-story-comment-open')),
+            findsOneWidget,
+          );
+          expect(
+            find.text(
+              FFLocalizations(locale).getText('bingo_story_comment_hint'),
+            ),
+            findsOneWidget,
+          );
+          expect(
             find.byKey(const ValueKey('bingo-story-comment-field')),
-          );
-          expect(
-            commentField.decoration?.hintText,
-            FFLocalizations(locale).getText('bingo_story_comment_hint'),
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-comment-send')),
             findsNothing,
           );
           expect(
@@ -404,13 +404,13 @@ void main() {
           final reactionRect = tester.getRect(
             find.byKey(const ValueKey('bingo-story-reactions')),
           );
-          final commentFieldRect = tester.getRect(
-            find.byKey(const ValueKey('bingo-story-comment-field')),
+          final commentActionRect = tester.getRect(
+            find.byKey(const ValueKey('bingo-story-comment-open')),
           );
           expect(reactionRect.center.dx, greaterThan(180.0));
           expect(reactionRect.center.dy, greaterThan(400.0));
           expect(
-            (reactionRect.center.dy - commentFieldRect.center.dy).abs(),
+            (reactionRect.center.dy - commentActionRect.center.dy).abs(),
             lessThan(1.0),
           );
 
@@ -448,22 +448,10 @@ void main() {
           expect(tappedReaction, BingoReaction.negative);
 
           await tester.tap(
-            find.byKey(const ValueKey('bingo-story-comment-field')),
-          );
-          await tester.enterText(
-            find.byKey(const ValueKey('bingo-story-comment-field')),
-            'Mwen genyen',
+            find.byKey(const ValueKey('bingo-story-comment-open')),
           );
           await tester.pump();
-          expect(
-            find.byKey(const ValueKey('bingo-story-comment-send')),
-            findsOneWidget,
-          );
-          await tester.tap(
-            find.byKey(const ValueKey('bingo-story-comment-send')),
-          );
-          await tester.pump();
-          expect(submittedComment, 'Mwen genyen');
+          expect(commentPressed, isTrue);
           expect(tester.takeException(), isNull);
         },
       );
@@ -516,8 +504,12 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('bingo-story-comment-field')),
+      find.byKey(const ValueKey('bingo-story-comment-open')),
       findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+      findsNothing,
     );
     expect(
       find.byKey(const ValueKey('bingo-story-reactions')),
@@ -779,7 +771,13 @@ void main() {
       findsOneWidget,
     );
     await tester.tap(
-      find.byKey(const ValueKey('bingo-story-comment-field')),
+      find.byKey(const ValueKey('bingo-story-comment-open')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      find.byKey(const ValueKey('bingo-comment-sheet')),
+      findsOneWidget,
     );
     await tester.enterText(
       find.byKey(const ValueKey('bingo-story-comment-field')),
@@ -787,16 +785,20 @@ void main() {
     );
     await tester.pump();
     await tester.tap(
-      find.byKey(const ValueKey('bingo-story-comment-send')),
+      find.byKey(const ValueKey('bingo-comment-sheet-submit')),
     );
     await tester.pump();
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(submittedComment, 'Mwen te genyen avèk nou');
-    final commentField = tester.widget<TextField>(
-      find.byKey(const ValueKey('bingo-story-comment-field')),
+    expect(
+      find.byKey(const ValueKey('bingo-comment-sheet')),
+      findsNothing,
     );
-    expect(commentField.controller?.text, isEmpty);
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+      findsNothing,
+    );
     expect(
       find.byKey(const ValueKey('bingo-story-comment-success')),
       findsOneWidget,
@@ -854,13 +856,18 @@ void main() {
     await tester.tap(find.text('Ouvrir le commentaire'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-comment-open')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.enterText(
       find.byKey(const ValueKey('bingo-story-comment-field')),
       'Gardez mon commentaire',
     );
     await tester.pump();
     await tester.tap(
-      find.byKey(const ValueKey('bingo-story-comment-send')),
+      find.byKey(const ValueKey('bingo-comment-sheet-submit')),
     );
     await tester.pump();
     await tester.pump();
@@ -870,25 +877,25 @@ void main() {
     );
     expect(commentField.controller?.text, 'Gardez mon commentaire');
     expect(
-      find.byKey(const ValueKey('bingo-story-comment-error')),
+      find.byKey(const ValueKey('bingo-comment-sheet-error')),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
 
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-comment-sheet-close')),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
     await tester.pumpAndSettle();
   });
 
-  testWidgets('Web desktop comment uses a native browser input',
+  testWidgets('Web desktop opens the comment input inside a bottom sheet',
       (tester) async {
     tester.view.physicalSize = const Size(1280, 720);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-
-    final commentController = TextEditingController();
-    addTearDown(commentController.dispose);
-    String? submittedComment;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -902,46 +909,62 @@ void main() {
           FallbackMaterialLocalizationDelegate(),
           FallbackCupertinoLocalizationDelegate(),
         ],
-        home: Scaffold(
-          body: BingoStatusFrame(
-            commentController: commentController,
-            onCommentSubmitted: (comment) => submittedComment = comment,
-            child: const SizedBox(),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showBingoDialog<void>(
+                context: context,
+                content: const SizedBox(),
+                storyDuration: const Duration(minutes: 1),
+                commentSubmitter: (_, __) async {},
+              ),
+              child: const Text('Commentaire Web ordinateur'),
+            ),
           ),
         ),
       ),
     );
-    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Commentaire Web ordinateur'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+      findsNothing,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-comment-open')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final commentFieldFinder =
         find.byKey(const ValueKey('bingo-story-comment-field'));
     expect(commentFieldFinder, findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('bingo-comment-sheet')),
+      findsOneWidget,
+    );
 
     if (kIsWeb) {
       expect(find.byType(HtmlElementView), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
-      expect(tester.getSize(commentFieldFinder).height, 48.0);
-      expect(tester.takeException(), isNull);
-      return;
     } else {
-      await tester.tap(commentFieldFinder);
-      await tester.pump();
-      expect(
-        tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
-        isTrue,
-      );
-      expect(tester.testTextInput.isVisible, isTrue);
-      tester.testTextInput.enterText('Clavier physique Web éà 123');
-      await tester.pump();
-      expect(commentController.text, 'Clavier physique Web éà 123');
-      await tester.testTextInput.receiveAction(TextInputAction.send);
+      expect(find.byType(TextField), findsOneWidget);
     }
-    await tester.pump();
-    expect(submittedComment, 'Clavier physique Web éà 123');
+    expect(tester.getSize(commentFieldFinder).height, 48.0);
     expect(tester.takeException(), isNull);
+
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-comment-sheet-close')),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
+    await tester.pumpAndSettle();
   });
 
-  testWidgets('Web mobile comment uses a direct HTML touch target',
+  testWidgets('Web mobile pauses the Story while the comment sheet is open',
       (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1.0;
@@ -980,38 +1003,50 @@ void main() {
     await tester.tap(find.text('Saisir un commentaire'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-open')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+      findsNothing,
+    );
+    if (kIsWeb) expect(find.byType(HtmlElementView), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-story-comment-open')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     final commentFieldFinder =
         find.byKey(const ValueKey('bingo-story-comment-field'));
     expect(commentFieldFinder, findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('bingo-comment-sheet')),
+      findsOneWidget,
+    );
 
     if (kIsWeb) {
       expect(find.byType(HtmlElementView), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
-      expect(tester.getSize(commentFieldFinder).height, 48.0);
     } else {
-      await tester.tap(commentFieldFinder);
-      await tester.pump();
-      expect(
-        tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
-        isTrue,
-      );
-      expect(tester.testTextInput.isVisible, isTrue);
-      tester.testTextInput.enterText('Saisie Web éà 123');
-      await tester.pump();
-      expect(
-        tester.widget<TextField>(commentFieldFinder).controller?.text,
-        'Saisie Web éà 123',
-      );
-      tester.testTextInput.hide();
-      await tester.pump();
-      expect(tester.testTextInput.isVisible, isFalse);
-      await tester.tap(commentFieldFinder);
-      await tester.pump();
-      expect(tester.testTextInput.isVisible, isTrue);
+      expect(find.byType(TextField), findsOneWidget);
     }
+    expect(tester.getSize(commentFieldFinder).height, 48.0);
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(
+      find.byKey(const ValueKey('bingo-status-dialog')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('bingo-comment-sheet')),
+      findsOneWidget,
+    );
 
     tester.view.viewInsets = const FakeViewPadding(bottom: 300.0);
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
     expect(
       tester
           .getRect(find.byKey(const ValueKey('bingo-story-comment-field')))
@@ -1021,8 +1056,17 @@ void main() {
 
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
-    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-comment-sheet-close')),
+    );
+    tester.view.viewInsets = FakeViewPadding.zero;
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      find.byKey(const ValueKey('bingo-status-dialog')),
+      findsNothing,
+    );
   });
 
   testWidgets('Web mobile comment has no hidden WebView interceptor',
@@ -1031,9 +1075,6 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-
-    final commentController = TextEditingController();
-    addTearDown(commentController.dispose);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -1049,8 +1090,7 @@ void main() {
         ],
         home: Scaffold(
           body: BingoStatusFrame(
-            commentController: commentController,
-            onCommentSubmitted: (_) {},
+            onCommentPressed: () {},
             child: const SizedBox(),
           ),
         ),

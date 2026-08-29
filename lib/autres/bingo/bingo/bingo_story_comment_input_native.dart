@@ -12,12 +12,14 @@ class BingoStoryCommentInput extends StatefulWidget {
     required this.enabled,
     required this.onSubmitted,
     this.onFocusChanged,
+    this.autofocus = false,
   });
 
   final TextEditingController controller;
   final bool enabled;
   final ValueChanged<String> onSubmitted;
   final ValueChanged<bool>? onFocusChanged;
+  final bool autofocus;
 
   @override
   State<BingoStoryCommentInput> createState() => _BingoStoryCommentInputState();
@@ -84,6 +86,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
           key: const ValueKey('bingo-story-comment-field'),
           controller: widget.controller,
           focusNode: _focusNode,
+          autofocus: widget.autofocus,
           readOnly: !widget.enabled,
           maxLength: bingoCommentMaxLength,
           maxLines: 1,

@@ -257,69 +257,37 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Semantics(
-                    label:
-                        '${FFLocalizations.of(context).getText('youtube_story_thumbnail')}. '
-                        '${FFLocalizations.of(context).getText('ytwatch1')}',
-                    button: true,
-                    excludeSemantics: true,
-                    child: InkWell(
-                      key: const ValueKey('youtube-story-thumbnail-link'),
-                      onTap: video.link.isEmpty
-                          ? null
-                          : () async => _openVideo(video),
-                      borderRadius: BorderRadius.circular(
-                        theme.designToken.radius.md,
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 16.0 / 9.0,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            theme.designToken.radius.md,
+                    image: true,
+                    label: FFLocalizations.of(context)
+                        .getText('youtube_story_thumbnail'),
+                    child: AspectRatio(
+                      aspectRatio: 16.0 / 9.0,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          theme.designToken.radius.md,
+                        ),
+                        child: CachedNetworkImage(
+                          key: ValueKey(
+                            'youtube-story-viewer-thumbnail-$_currentIndex',
                           ),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              CachedNetworkImage(
-                                key: ValueKey(
-                                  'youtube-story-viewer-thumbnail-$_currentIndex',
-                                ),
-                                imageUrl: video.thumbnail,
-                                fit: BoxFit.cover,
-                                placeholder: (context, _) => ColoredBox(
-                                  color: theme.secondaryBackground,
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      color: theme.primary,
-                                      strokeWidth: 3.0,
-                                    ),
-                                  ),
-                                ),
-                                errorWidget: (context, _, __) => ColoredBox(
-                                  color: theme.secondaryBackground,
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
-                                    color: theme.secondaryText,
-                                    size: 48.0,
-                                  ),
-                                ),
+                          imageUrl: video.thumbnail,
+                          fit: BoxFit.cover,
+                          placeholder: (context, _) => ColoredBox(
+                            color: theme.secondaryBackground,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: theme.primary,
+                                strokeWidth: 3.0,
                               ),
-                              Center(
-                                child: Container(
-                                  width: 56.0,
-                                  height: 56.0,
-                                  decoration: BoxDecoration(
-                                    color: theme.primary,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [theme.designToken.shadow.md],
-                                  ),
-                                  child: Icon(
-                                    Icons.play_arrow_rounded,
-                                    color: theme.onPrimary,
-                                    size: 36.0,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
+                          ),
+                          errorWidget: (context, _, __) => ColoredBox(
+                            color: theme.secondaryBackground,
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: theme.secondaryText,
+                              size: 48.0,
+                            ),
                           ),
                         ),
                       ),

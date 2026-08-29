@@ -6,10 +6,10 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 
+import 'bingo_comment_composer_sheet.dart';
 import 'bingo_comment_service.dart';
 import 'bingo_public_comments_sheet.dart';
 import 'bingo_reaction_service.dart';
-import 'bingo_story_comment_input.dart';
 import 'bingo_widget.dart';
 
 const bingoStatusAspectRatio = 9.0 / 16.0;
@@ -32,14 +32,12 @@ class BingoStatusFrame extends StatelessWidget {
     this.selectedReaction,
     this.onReaction,
     this.reactionPending = false,
-    this.commentController,
-    this.onCommentSubmitted,
+    this.onCommentPressed,
     this.commentPending = false,
     this.commentFeedback,
     this.commentFeedbackIsError = false,
     this.commentStatus,
     this.onViewComments,
-    this.onCommentFocusChanged,
     this.storyCount = 0,
     this.currentStoryIndex = 0,
     this.progressAnimation,
@@ -53,14 +51,12 @@ class BingoStatusFrame extends StatelessWidget {
   final BingoReaction? selectedReaction;
   final ValueChanged<BingoReaction>? onReaction;
   final bool reactionPending;
-  final TextEditingController? commentController;
-  final ValueChanged<String>? onCommentSubmitted;
+  final VoidCallback? onCommentPressed;
   final bool commentPending;
   final String? commentFeedback;
   final bool commentFeedbackIsError;
   final BingoCommentStatus? commentStatus;
   final VoidCallback? onViewComments;
-  final ValueChanged<bool>? onCommentFocusChanged;
   final int storyCount;
   final int currentStoryIndex;
   final Animation<double>? progressAnimation;
@@ -125,20 +121,18 @@ class BingoStatusFrame extends StatelessWidget {
           if (publishedAt != null) _BingoStoryHeader(publishedAt: publishedAt!),
           if (onClose != null) _BingoStoryCloseButton(onClose: onClose!),
           if (onReaction != null ||
-              onCommentSubmitted != null ||
+              onCommentPressed != null ||
               onViewComments != null)
             _BingoStoryEngagementBar(
               selectedReaction: selectedReaction,
               reactionEnabled: !reactionPending,
               onReaction: onReaction,
-              commentController: commentController,
               commentEnabled: !commentPending,
-              onCommentSubmitted: onCommentSubmitted,
+              onCommentPressed: onCommentPressed,
               commentFeedback: commentFeedback,
               commentFeedbackIsError: commentFeedbackIsError,
               commentStatus: commentStatus,
               onViewComments: onViewComments,
-              onCommentFocusChanged: onCommentFocusChanged,
             ),
           if (storyCount > 0 && progressAnimation != null)
             _BingoStoryProgress(
@@ -357,27 +351,23 @@ class _BingoStoryEngagementBar extends StatelessWidget {
     required this.selectedReaction,
     required this.reactionEnabled,
     required this.onReaction,
-    required this.commentController,
     required this.commentEnabled,
-    required this.onCommentSubmitted,
+    required this.onCommentPressed,
     required this.commentFeedback,
     required this.commentFeedbackIsError,
     required this.commentStatus,
     required this.onViewComments,
-    required this.onCommentFocusChanged,
   });
 
   final BingoReaction? selectedReaction;
   final bool reactionEnabled;
   final ValueChanged<BingoReaction>? onReaction;
-  final TextEditingController? commentController;
   final bool commentEnabled;
-  final ValueChanged<String>? onCommentSubmitted;
+  final VoidCallback? onCommentPressed;
   final String? commentFeedback;
   final bool commentFeedbackIsError;
   final BingoCommentStatus? commentStatus;
   final VoidCallback? onViewComments;
-  final ValueChanged<bool>? onCommentFocusChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -490,14 +480,56 @@ class _BingoStoryEngagementBar extends StatelessWidget {
               Row(
                 key: const ValueKey('bingo-story-engagement-bar'),
                 children: [
-                  if (commentController != null &&
-                      onCommentSubmitted != null) ...[
+                  if (onCommentPressed != null) ...[
                     Expanded(
-                      child: BingoStoryCommentInput(
-                        controller: commentController!,
+                      child: Semantics(
+                        label: localizations.getText(
+                          'bingo_story_comment_hint',
+                        ),
+                        button: true,
                         enabled: commentEnabled,
-                        onSubmitted: onCommentSubmitted!,
-                        onFocusChanged: onCommentFocusChanged,
+                        child: Material(
+                          color: engagementButtonColor,
+                          borderRadius: BorderRadius.circular(
+                            tokens.radius.full,
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            key: const ValueKey('bingo-story-comment-open'),
+                            onTap: commentEnabled ? onCommentPressed : null,
+                            hoverColor: engagementButtonHoverColor,
+                            child: SizedBox(
+                              height: 48.0,
+                              child: Padding(
+                                padding: EdgeInsetsDirectional.symmetric(
+                                  horizontal: tokens.spacing.md,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      color: theme.secondaryText,
+                                      size: 20.0,
+                                    ),
+                                    SizedBox(width: tokens.spacing.sm),
+                                    Expanded(
+                                      child: Text(
+                                        localizations.getText(
+                                          'bingo_story_comment_hint',
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.labelMedium.copyWith(
+                                          color: theme.secondaryText,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     if (onReaction != null || onViewComments != null)
@@ -731,7 +763,7 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
   var _currentIndex = 0;
   var _reactionPending = false;
   var _commentPending = false;
-  var _commentFocused = false;
+  var _commentSheetOpen = false;
   String? _commentFeedback;
   var _commentFeedbackIsError = false;
   Timer? _commentFeedbackTimer;
@@ -784,7 +816,6 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
     _commentController.clear();
     setState(() {
       _currentIndex = index;
-      _commentFocused = false;
       _commentFeedback = null;
     });
     _restartProgress();
@@ -800,15 +831,6 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       setState(() => _commentStatuses[index] = status);
     } catch (_) {
       // A missing acknowledgement must never prevent the Bingo story opening.
-    }
-  }
-
-  void _onCommentFocusChanged(bool focused) {
-    _commentFocused = focused;
-    if (focused) {
-      _progressController.stop();
-    } else if (!_commentPending) {
-      _progressController.forward();
     }
   }
 
@@ -855,8 +877,27 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       context: context,
       bingoReference: widget.stories[_currentIndex].reference,
     );
-    if (mounted && !_commentFocused && !_commentPending) {
+    if (mounted && !_commentSheetOpen && !_commentPending) {
       _progressController.forward();
+    }
+  }
+
+  Future<void> _showCommentComposer() async {
+    if (_commentSheetOpen || _commentPending) return;
+
+    _progressController.stop();
+    setState(() => _commentSheetOpen = true);
+    try {
+      await showBingoCommentComposerSheet(
+        context: context,
+        controller: _commentController,
+        onSubmitted: _submitComment,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _commentSheetOpen = false);
+        if (!_commentPending) _progressController.forward();
+      }
     }
   }
 
@@ -901,9 +942,9 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
     }
   }
 
-  Future<void> _submitComment(String comment) async {
+  Future<bool> _submitComment(String comment) async {
     if (_commentPending) {
-      return;
+      return false;
     }
 
     final storyIndex = _currentIndex;
@@ -914,6 +955,7 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       _commentPending = true;
       _commentFeedback = null;
     });
+    var succeeded = false;
     try {
       if (widget.commentSubmitter != null) {
         await widget.commentSubmitter!(comment, bingoReference);
@@ -924,6 +966,7 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
         );
       }
       if (mounted && storyIndex == _currentIndex) {
+        succeeded = true;
         _commentController.clear();
         FocusScope.of(context).unfocus();
         unawaited(_loadCommentStatus(storyIndex));
@@ -942,11 +985,9 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
     } finally {
       if (mounted) {
         setState(() => _commentPending = false);
-        if (!_commentFocused) {
-          _progressController.forward();
-        }
       }
     }
+    return succeeded;
   }
 
   @override
@@ -958,14 +999,12 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       selectedReaction: _selectedReactions[_currentIndex],
       reactionPending: _reactionPending,
       onReaction: _react,
-      commentController: _commentController,
       commentPending: _commentPending,
-      onCommentSubmitted: _submitComment,
+      onCommentPressed: _showCommentComposer,
       commentFeedback: _commentFeedback,
       commentFeedbackIsError: _commentFeedbackIsError,
       commentStatus: _commentStatuses[_currentIndex],
       onViewComments: _showPublicComments,
-      onCommentFocusChanged: _onCommentFocusChanged,
       storyCount: widget.stories.length,
       currentStoryIndex: _currentIndex,
       progressAnimation: _progressController,
