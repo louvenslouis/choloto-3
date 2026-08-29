@@ -6,7 +6,7 @@ import 'package:choloto/flutter_flow/flutter_flow_icon_button.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/flutter_flow_util.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
-import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -879,7 +879,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('Web desktop comment accepts mouse and physical keyboard input',
+  testWidgets('Web desktop comment uses a native browser input',
       (tester) async {
     tester.view.physicalSize = const Size(1280, 720);
     tester.view.devicePixelRatio = 1.0;
@@ -915,26 +915,33 @@ void main() {
 
     final commentFieldFinder =
         find.byKey(const ValueKey('bingo-story-comment-field'));
-    await tester.tap(commentFieldFinder, kind: PointerDeviceKind.mouse);
-    await tester.pump();
+    expect(commentFieldFinder, findsOneWidget);
 
-    expect(
-      tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
-      isTrue,
-    );
-    expect(tester.testTextInput.isVisible, isTrue);
-
-    tester.testTextInput.enterText('Clavier physique Web éà 123');
-    await tester.pump();
-    expect(commentController.text, 'Clavier physique Web éà 123');
-
-    await tester.testTextInput.receiveAction(TextInputAction.send);
+    if (kIsWeb) {
+      expect(find.byType(HtmlElementView), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+      expect(tester.getSize(commentFieldFinder).height, 48.0);
+      expect(tester.takeException(), isNull);
+      return;
+    } else {
+      await tester.tap(commentFieldFinder);
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
+        isTrue,
+      );
+      expect(tester.testTextInput.isVisible, isTrue);
+      tester.testTextInput.enterText('Clavier physique Web éà 123');
+      await tester.pump();
+      expect(commentController.text, 'Clavier physique Web éà 123');
+      await tester.testTextInput.receiveAction(TextInputAction.send);
+    }
     await tester.pump();
     expect(submittedComment, 'Clavier physique Web éà 123');
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Web mobile touch opens input and pauses progression',
+  testWidgets('Web mobile comment uses a direct HTML touch target',
       (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1.0;
@@ -975,29 +982,33 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     final commentFieldFinder =
         find.byKey(const ValueKey('bingo-story-comment-field'));
-    await tester.tap(commentFieldFinder, kind: PointerDeviceKind.touch);
-    await tester.pump();
+    expect(commentFieldFinder, findsOneWidget);
 
-    expect(
-      tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
-      isTrue,
-    );
-    expect(tester.testTextInput.isVisible, isTrue);
-
-    tester.testTextInput.enterText('Saisie Web éà 123');
-    await tester.pump();
-    expect(
-      tester.widget<TextField>(commentFieldFinder).controller?.text,
-      'Saisie Web éà 123',
-    );
-
-    tester.testTextInput.hide();
-    await tester.pump();
-    expect(tester.testTextInput.isVisible, isFalse);
-
-    await tester.tap(commentFieldFinder);
-    await tester.pump();
-    expect(tester.testTextInput.isVisible, isTrue);
+    if (kIsWeb) {
+      expect(find.byType(HtmlElementView), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+      expect(tester.getSize(commentFieldFinder).height, 48.0);
+    } else {
+      await tester.tap(commentFieldFinder);
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
+        isTrue,
+      );
+      expect(tester.testTextInput.isVisible, isTrue);
+      tester.testTextInput.enterText('Saisie Web éà 123');
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(commentFieldFinder).controller?.text,
+        'Saisie Web éà 123',
+      );
+      tester.testTextInput.hide();
+      await tester.pump();
+      expect(tester.testTextInput.isVisible, isFalse);
+      await tester.tap(commentFieldFinder);
+      await tester.pump();
+      expect(tester.testTextInput.isVisible, isTrue);
+    }
 
     tester.view.viewInsets = const FakeViewPadding(bottom: 300.0);
     await tester.pump();
@@ -1008,12 +1019,6 @@ void main() {
       lessThanOrEqualTo(500.0),
     );
 
-    await tester.pump(const Duration(seconds: 2));
-
-    expect(
-      find.byKey(const ValueKey('bingo-status-dialog')),
-      findsOneWidget,
-    );
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));

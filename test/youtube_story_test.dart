@@ -205,7 +205,7 @@ void main() {
     );
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.byKey(const ValueKey('youtube-story-next-area')));
+    await tester.tapAt(const Offset(240.0, 80.0));
     await tester.pump();
 
     expect(find.text('Première vidéo'), findsNothing);
@@ -220,6 +220,48 @@ void main() {
     await tester.pump();
 
     expect(closed, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('YouTube story opens the current video from both video actions',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final video = _video(
+      title: 'Vidéo cliquable',
+      publishedAt: DateTime.now().subtract(const Duration(minutes: 15)),
+    );
+    final openedVideos = <YoutubeItemStruct>[];
+
+    await tester.pumpWidget(
+      _app(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        child: YoutubeStoryViewer(
+          videos: [video],
+          onClose: () {},
+          onOpenVideo: (selectedVideo) async {
+            openedVideos.add(selectedVideo);
+          },
+          storyDuration: const Duration(hours: 1),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(
+      find.byKey(const ValueKey('youtube-story-thumbnail-link')),
+    );
+    await tester.pump();
+    expect(openedVideos, [video]);
+
+    await tester.tap(
+      find.byKey(const ValueKey('youtube-story-watch-button')),
+    );
+    await tester.pump();
+    expect(openedVideos, [video, video]);
     expect(tester.takeException(), isNull);
   });
 
