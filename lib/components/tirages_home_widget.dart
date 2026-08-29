@@ -34,8 +34,6 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => TiragesHomeModel());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override

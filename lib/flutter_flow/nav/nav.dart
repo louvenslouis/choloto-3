@@ -32,6 +32,9 @@ class AppStateNotifier extends ChangeNotifier {
   static AppStateNotifier? _instance;
   static AppStateNotifier get instance => _instance ??= AppStateNotifier._();
 
+  @visibleForTesting
+  static AppStateNotifier createForTesting() => AppStateNotifier._();
+
   BaseAuthUser? initialUser;
   BaseAuthUser? user;
   bool showSplashImage = true;
@@ -59,13 +62,17 @@ class AppStateNotifier extends ChangeNotifier {
   void updateNotifyOnAuthChange(bool notify) => notifyOnAuthChange = notify;
 
   void update(BaseAuthUser newUser) {
+    final shouldRevealInitialRoute = showSplashImage;
     final shouldUpdate =
         user?.uid == null || newUser.uid == null || user?.uid != newUser.uid;
     initialUser ??= newUser;
     user = newUser;
+    // The auth stream has now resolved the restored session. Keeping the
+    // splash visible for a fixed duration only delays returning users.
+    showSplashImage = false;
     // Refresh the app on auth change unless explicitly marked otherwise.
     // No need to update unless the user has changed.
-    if (notifyOnAuthChange && shouldUpdate) {
+    if (shouldRevealInitialRoute || (notifyOnAuthChange && shouldUpdate)) {
       notifyListeners();
     }
     // Once again mark the notifier as needing to update on auth change
@@ -74,6 +81,9 @@ class AppStateNotifier extends ChangeNotifier {
   }
 
   void stopShowingSplashImage() {
+    if (!showSplashImage) {
+      return;
+    }
     showSplashImage = false;
     notifyListeners();
   }

@@ -41,6 +41,9 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  int _assetCacheWidth(BuildContext context, double logicalWidth) =>
+      (logicalWidth * MediaQuery.devicePixelRatioOf(context)).ceil();
+
   @override
   void initState() {
     super.initState();
@@ -51,9 +54,10 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       _latestSubscriptionExpiration = user?.endSub;
       unawaited(_maybeShowSubscriptionExpirationReminder());
     });
-    unawaited(recordDailyEngagement(userReference: currentUserReference));
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(recordDailyEngagement(userReference: currentUserReference));
       unawaited(_loadYoutubeStories());
+      unawaited(_loadBetaFeatures());
     });
 
     logFirebaseEvent('screen_view', parameters: {'screen_name': 'Home'});
@@ -120,42 +124,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       if (!mounted) {
         return;
       }
-
-      await Future.wait([
-        Future(() async {
-          // Betafeatures
-          logFirebaseEvent('Home_Betafeatures');
-          _model.beta = await querySettingsRecordOnce(
-            singleRecord: true,
-          ).then((s) => s.firstOrNull);
-          if (_model.beta?.betaFeatures?.stories !=
-              FFAppState().betaFeatures.stories) {
-            // betaFeatures
-            logFirebaseEvent('Home_betaFeatures');
-            FFAppState().betaFeatures = BetaFeaturesStruct(
-              stories: valueOrDefault<bool>(
-                _model.beta?.betaFeatures?.stories,
-                false,
-              ),
-            );
-            safeSetState(() {});
-          } else if (_model.beta?.betaFeatures?.statsBingo !=
-              FFAppState().betaFeatures.statsBingo) {
-            // betaFeatures
-            logFirebaseEvent('Home_betaFeatures');
-            FFAppState().betaFeatures = BetaFeaturesStruct(
-              statsBingo: valueOrDefault<bool>(
-                _model.beta?.betaFeatures?.statsBingo,
-                false,
-              ),
-            );
-            safeSetState(() {});
-          }
-        }),
-      ]);
     });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
@@ -236,6 +205,42 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _loadBetaFeatures() async {
+    try {
+      logFirebaseEvent('Home_Betafeatures');
+      final beta = await querySettingsRecordOnce(
+        singleRecord: true,
+      ).then((settings) => settings.firstOrNull);
+      if (!mounted) {
+        return;
+      }
+
+      _model.beta = beta;
+      if (beta?.betaFeatures.stories != FFAppState().betaFeatures.stories) {
+        logFirebaseEvent('Home_betaFeatures');
+        FFAppState().betaFeatures = BetaFeaturesStruct(
+          stories: valueOrDefault<bool>(
+            beta?.betaFeatures.stories,
+            false,
+          ),
+        );
+        safeSetState(() {});
+      } else if (beta?.betaFeatures.statsBingo !=
+          FFAppState().betaFeatures.statsBingo) {
+        logFirebaseEvent('Home_betaFeatures');
+        FFAppState().betaFeatures = BetaFeaturesStruct(
+          statsBingo: valueOrDefault<bool>(
+            beta?.betaFeatures.statsBingo,
+            false,
+          ),
+        );
+        safeSetState(() {});
+      }
+    } catch (error) {
+      debugPrint('Home beta feature loading skipped: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -264,6 +269,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                     child: Image.asset(
                       'assets/images/Logo_Choloto_509.png',
                       height: 20.0,
+                      cacheWidth: _assetCacheWidth(context, 20.0),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -523,6 +529,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                           'assets/images/viplogo_-_Moyenne.png',
                                           width: 100.0,
                                           height: 100.0,
+                                          cacheWidth:
+                                              _assetCacheWidth(context, 100.0),
                                           fit: BoxFit.contain,
                                         ),
                                       ),
@@ -657,6 +665,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                           'assets/images/croixcholoto_-_Moyenne.png',
                                           width: 100.0,
                                           height: 100.0,
+                                          cacheWidth:
+                                              _assetCacheWidth(context, 100.0),
                                           fit: BoxFit.contain,
                                         ),
                                       ),
@@ -796,6 +806,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                           'assets/images/youtube_-_Moyenne.png',
                                           width: 100.0,
                                           height: 100.0,
+                                          cacheWidth:
+                                              _assetCacheWidth(context, 100.0),
                                           fit: BoxFit.contain,
                                         ),
                                       ),
