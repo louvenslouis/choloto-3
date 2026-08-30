@@ -256,37 +256,39 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Semantics(
-                    image: true,
-                    label: FFLocalizations.of(context)
-                        .getText('youtube_story_thumbnail'),
-                    child: AspectRatio(
-                      aspectRatio: 16.0 / 9.0,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          theme.designToken.radius.md,
-                        ),
-                        child: CachedNetworkImage(
-                          key: ValueKey(
-                            'youtube-story-viewer-thumbnail-$_currentIndex',
+                  IgnorePointer(
+                    child: Semantics(
+                      image: true,
+                      label: FFLocalizations.of(context)
+                          .getText('youtube_story_thumbnail'),
+                      child: AspectRatio(
+                        aspectRatio: 16.0 / 9.0,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            theme.designToken.radius.md,
                           ),
-                          imageUrl: video.thumbnail,
-                          fit: BoxFit.cover,
-                          placeholder: (context, _) => ColoredBox(
-                            color: theme.secondaryBackground,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: theme.primary,
-                                strokeWidth: 3.0,
+                          child: CachedNetworkImage(
+                            key: ValueKey(
+                              'youtube-story-viewer-thumbnail-$_currentIndex',
+                            ),
+                            imageUrl: video.thumbnail,
+                            fit: BoxFit.cover,
+                            placeholder: (context, _) => ColoredBox(
+                              color: theme.secondaryBackground,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: theme.primary,
+                                  strokeWidth: 3.0,
+                                ),
                               ),
                             ),
-                          ),
-                          errorWidget: (context, _, __) => ColoredBox(
-                            color: theme.secondaryBackground,
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: theme.secondaryText,
-                              size: 48.0,
+                            errorWidget: (context, _, __) => ColoredBox(
+                              color: theme.secondaryBackground,
+                              child: Icon(
+                                Icons.image_not_supported_outlined,
+                                color: theme.secondaryText,
+                                size: 48.0,
+                              ),
                             ),
                           ),
                         ),
@@ -294,15 +296,17 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
                     ),
                   ),
                   SizedBox(height: theme.designToken.spacing.lg),
-                  Text(
-                    video.title,
-                    key: const ValueKey('youtube-story-title'),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: theme.titleLarge.copyWith(
-                      fontWeight: FontWeight.bold,
-                      height: 1.25,
+                  IgnorePointer(
+                    child: Text(
+                      video.title,
+                      key: const ValueKey('youtube-story-title'),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: theme.titleLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                        height: 1.25,
+                      ),
                     ),
                   ),
                   SizedBox(height: theme.designToken.spacing.lg),

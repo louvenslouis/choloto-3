@@ -14,7 +14,7 @@ import 'bingo_widget.dart';
 
 const bingoStatusAspectRatio = 9.0 / 16.0;
 const bingoStatusMobileBreakpoint = 600.0;
-const bingoStatusDuration = Duration(seconds: 45);
+const bingoStatusDuration = Duration(seconds: 15);
 // Original 400x400 card, including its 4px Card margin and 10px side padding.
 const bingoCardPresentationSize = Size(428.0, 408.0);
 

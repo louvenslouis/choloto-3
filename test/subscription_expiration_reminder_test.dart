@@ -38,6 +38,35 @@ Widget _app({
   );
 }
 
+Widget _expiredCardApp({
+  required Locale locale,
+  required ThemeMode themeMode,
+  VoidCallback? onRenew,
+}) {
+  return MaterialApp(
+    locale: locale,
+    supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+    localizationsDelegates: const [
+      FFLocalizationsDelegate(),
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      FallbackMaterialLocalizationDelegate(),
+      FallbackCupertinoLocalizationDelegate(),
+    ],
+    theme: ThemeData(brightness: Brightness.light),
+    darkTheme: ThemeData(brightness: Brightness.dark),
+    themeMode: themeMode,
+    home: Scaffold(
+      body: SingleChildScrollView(
+        child: ExpiredSubscriptionCard(
+          onRenew: onRenew ?? () {},
+        ),
+      ),
+    ),
+  );
+}
+
 void main() {
   group('subscription expiration reminder window', () {
     final now = DateTime.utc(2026, 8, 23, 12);
@@ -97,6 +126,38 @@ void main() {
     });
   });
 
+  group('expired subscription state', () {
+    final now = DateTime.utc(2026, 8, 30, 12);
+
+    test('includes subscriptions expiring now or in the past', () {
+      expect(
+        isSubscriptionExpired(expiration: now, now: now),
+        isTrue,
+      );
+      expect(
+        isSubscriptionExpired(
+          expiration: now.subtract(const Duration(seconds: 1)),
+          now: now,
+        ),
+        isTrue,
+      );
+    });
+
+    test('excludes missing and future expiration dates', () {
+      expect(
+        isSubscriptionExpired(expiration: null, now: now),
+        isFalse,
+      );
+      expect(
+        isSubscriptionExpired(
+          expiration: now.add(const Duration(seconds: 1)),
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+  });
+
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
       testWidgets(
@@ -127,6 +188,38 @@ void main() {
           );
           expect(
             find.byKey(const ValueKey('subscription-reminder-later')),
+            findsOneWidget,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
+    for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
+      testWidgets(
+        'expired card fits a small ${themeMode.name} screen in ${locale.languageCode}',
+        (tester) async {
+          tester.view.physicalSize = const Size(320, 568);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+
+          await tester.pumpWidget(
+            _expiredCardApp(locale: locale, themeMode: themeMode),
+          );
+          await tester.pumpAndSettle();
+
+          final localizations = FFLocalizations(locale);
+          expect(
+            find.text(
+              localizations.getText('subscription_expired_card_title'),
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('expired-subscription-renew')),
             findsOneWidget,
           );
           expect(tester.takeException(), isNull);
@@ -180,6 +273,31 @@ void main() {
       find.byKey(const ValueKey('subscription-reminder-renew')),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('expired card renew button triggers the subscription flow',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var renewTapped = false;
+
+    await tester.pumpWidget(
+      _expiredCardApp(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        onRenew: () => renewTapped = true,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('expired-subscription-renew')),
+    );
+    await tester.pump();
+
+    expect(renewTapped, isTrue);
     expect(tester.takeException(), isNull);
   });
 }

@@ -2,6 +2,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 
+import 'bingo_comment_autofocus.dart';
 import 'bingo_comment_service.dart';
 
 /// Android and iOS implementation of the Bingo Story comment composer.
@@ -33,6 +34,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
     super.initState();
     _focusNode = FocusNode()..addListener(_onFocusChanged);
     widget.controller.addListener(_onTextChanged);
+    _scheduleAutofocus();
   }
 
   @override
@@ -42,6 +44,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
       oldWidget.controller.removeListener(_onTextChanged);
       widget.controller.addListener(_onTextChanged);
     }
+    if (!oldWidget.autofocus && widget.autofocus) _scheduleAutofocus();
   }
 
   @override
@@ -57,6 +60,18 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
 
   void _onFocusChanged() {
     widget.onFocusChanged?.call(_focusNode.hasFocus);
+  }
+
+  void _scheduleAutofocus() {
+    scheduleBingoCommentAutofocus(
+      shouldFocus: () =>
+          mounted &&
+          widget.autofocus &&
+          widget.enabled &&
+          !_focusNode.hasFocus,
+      isReady: () => mounted,
+      requestFocus: _focusNode.requestFocus,
+    );
   }
 
   void _focusOnPointerDown(PointerDownEvent _) {

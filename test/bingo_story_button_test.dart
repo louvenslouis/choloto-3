@@ -1,4 +1,5 @@
 import 'package:choloto/autres/bingo/bingo/bingo_dialog.dart';
+import 'package:choloto/autres/bingo/bingo/bingo_comment_autofocus.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_comment_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_reaction_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
@@ -41,6 +42,29 @@ Widget _app({
 }
 
 void main() {
+  test('Bingo comment autofocus waits until the input is attached', () {
+    final scheduledCallbacks = <VoidCallback>[];
+    var inputIsAttached = false;
+    var focusRequests = 0;
+
+    scheduleBingoCommentAutofocus(
+      shouldFocus: () => true,
+      isReady: () => inputIsAttached,
+      requestFocus: () => focusRequests += 1,
+      scheduleFrame: scheduledCallbacks.add,
+    );
+
+    expect(scheduledCallbacks, hasLength(1));
+    scheduledCallbacks.removeAt(0)();
+    expect(focusRequests, 0);
+    expect(scheduledCallbacks, hasLength(1));
+
+    inputIsAttached = true;
+    scheduledCallbacks.removeAt(0)();
+    expect(focusRequests, 1);
+    expect(scheduledCallbacks, isEmpty);
+  });
+
   test('the Bingo story is available only after viewing an active Bingo', () {
     final now = DateTime(2026, 8, 21, 12);
     final activeExpiration = now.add(const Duration(hours: 1));
@@ -599,7 +623,7 @@ void main() {
   });
 
   testWidgets(
-      'Bingo statuses expose progress and navigate right, left, and after 45 seconds',
+      'Bingo statuses expose progress and navigate right, left, and after 15 seconds',
       (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1.0;
@@ -651,7 +675,7 @@ void main() {
       ),
     );
 
-    expect(bingoStatusDuration, const Duration(seconds: 45));
+    expect(bingoStatusDuration, const Duration(seconds: 15));
 
     await tester.tap(find.text('Ouvrir les statuts'));
     await tester.pump();
@@ -685,7 +709,7 @@ void main() {
       find.byKey(const ValueKey('bingo-story-next-area')),
     );
     await tester.pump();
-    await tester.pump(const Duration(seconds: 44));
+    await tester.pump(const Duration(seconds: 14));
     expect(find.byKey(const ValueKey('second-bingo-status')), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 1100));
@@ -952,6 +976,10 @@ void main() {
       expect(find.byType(TextField), findsNothing);
     } else {
       expect(find.byType(TextField), findsOneWidget);
+      expect(
+        tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
+        isTrue,
+      );
     }
     expect(tester.getSize(commentFieldFinder).height, 48.0);
     expect(tester.takeException(), isNull);
@@ -1031,6 +1059,10 @@ void main() {
       expect(find.byType(TextField), findsNothing);
     } else {
       expect(find.byType(TextField), findsOneWidget);
+      expect(
+        tester.widget<TextField>(commentFieldFinder).focusNode?.hasFocus,
+        isTrue,
+      );
     }
     expect(tester.getSize(commentFieldFinder).height, 48.0);
 

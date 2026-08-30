@@ -205,7 +205,13 @@ void main() {
     );
     expect(tester.takeException(), isNull);
 
-    await tester.tapAt(const Offset(240.0, 80.0));
+    final firstThumbnailRect = tester.getRect(
+      find.byKey(const ValueKey('youtube-story-viewer-thumbnail-0')),
+    );
+    await tester.tapAt(Offset(
+      firstThumbnailRect.left + (firstThumbnailRect.width * 0.75),
+      firstThumbnailRect.center.dy,
+    ));
     await tester.pump();
 
     expect(find.text('Première vidéo'), findsNothing);
@@ -214,6 +220,19 @@ void main() {
       find.byKey(const ValueKey('youtube-story-viewer-thumbnail-1')),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
+
+    final secondThumbnailRect = tester.getRect(
+      find.byKey(const ValueKey('youtube-story-viewer-thumbnail-1')),
+    );
+    await tester.tapAt(Offset(
+      secondThumbnailRect.left + (secondThumbnailRect.width * 0.25),
+      secondThumbnailRect.center.dy,
+    ));
+    await tester.pump();
+
+    expect(find.text('Première vidéo'), findsOneWidget);
+    expect(find.text(videos.last.title), findsNothing);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.byKey(const ValueKey('youtube-story-close-button')));
@@ -251,8 +270,10 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(
-      find.byKey(const ValueKey('youtube-story-viewer-thumbnail-0')),
+    await tester.tapAt(
+      tester.getCenter(
+        find.byKey(const ValueKey('youtube-story-viewer-thumbnail-0')),
+      ),
     );
     await tester.pump();
     expect(openedVideos, isEmpty);

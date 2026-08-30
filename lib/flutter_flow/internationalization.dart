@@ -1740,6 +1740,21 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Fèmen',
       'en': 'Close',
     },
+    'subscription_expired_card_title': {
+      'fr': 'Votre abonnement VIP a expiré',
+      'cr': 'Abònman VIP ou a ekspire',
+      'en': 'Your VIP subscription has expired',
+    },
+    'subscription_expired_card_message': {
+      'fr': 'Renouvelez-le maintenant pour retrouver tous vos avantages VIP.',
+      'cr': 'Renouvle li kounye a pou w jwenn tout avantaj VIP ou yo ankò.',
+      'en': 'Renew now to restore all your VIP benefits.',
+    },
+    'subscription_expired_card_renew': {
+      'fr': 'Renouveler',
+      'cr': 'Renouvle',
+      'en': 'Renew',
+    },
     '6wnv7a6z': {
       'fr':
           'Votre abonnement CHOLOTO VIP expire bientôt. Contactez-Nous dès maintenant pour le renouveler.',

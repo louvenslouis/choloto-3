@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 
+import 'bingo_comment_autofocus.dart';
 import 'bingo_comment_service.dart';
 
 /// Web implementation backed by a real DOM input.
@@ -81,6 +82,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
       oldWidget.controller.removeListener(_syncDomFromController);
       widget.controller.addListener(_syncDomFromController);
     }
+    if (!oldWidget.autofocus && widget.autofocus) _scheduleAutofocus();
     _syncDomFromController();
   }
 
@@ -121,6 +123,20 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
   void _submit() {
     if (!widget.enabled || widget.controller.text.trim().isEmpty) return;
     widget.onSubmitted(widget.controller.text);
+  }
+
+  void _scheduleAutofocus() {
+    scheduleBingoCommentAutofocus(
+      shouldFocus: () => mounted && widget.autofocus && widget.enabled,
+      isReady: () => _input?.isConnected ?? false,
+      requestFocus: () {
+        final input = _input;
+        if (input == null) return;
+        input.focus();
+        final caretOffset = input.value.length;
+        input.setSelectionRange(caretOffset, caretOffset);
+      },
+    );
   }
 
   void _onElementCreated(Object element) {
@@ -165,7 +181,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
     _sendIcon = sendIcon;
     _styleElements();
     _syncDomFromController();
-    if (widget.autofocus) input.focus();
+    _scheduleAutofocus();
   }
 
   void _styleElements() {

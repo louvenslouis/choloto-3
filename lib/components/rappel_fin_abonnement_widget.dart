@@ -17,6 +17,12 @@ bool shouldShowSubscriptionExpirationReminder({
   return !expiration.isAfter(now.add(subscriptionExpirationReminderWindow));
 }
 
+bool isSubscriptionExpired({
+  required DateTime? expiration,
+  required DateTime now,
+}) =>
+    expiration != null && !expiration.isAfter(now);
+
 class RappelFinAbonnementWidget extends StatelessWidget {
   const RappelFinAbonnementWidget({
     super.key,
@@ -175,6 +181,114 @@ class RappelFinAbonnementWidget extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class ExpiredSubscriptionCard extends StatelessWidget {
+  const ExpiredSubscriptionCard({
+    super.key,
+    required this.onRenew,
+  });
+
+  final VoidCallback onRenew;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final spacing = theme.designToken.spacing;
+    final radius = theme.designToken.radius;
+    final localizations = FFLocalizations.of(context);
+
+    return Card(
+      key: const ValueKey('expired-subscription-card'),
+      margin: EdgeInsets.symmetric(
+        horizontal: spacing.xs,
+        vertical: spacing.sm,
+      ),
+      color: theme.secondaryBackground,
+      elevation: 0.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(radius.md),
+        side: BorderSide(color: theme.error, width: 1.0),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(spacing.md),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40.0,
+                  height: 40.0,
+                  decoration: BoxDecoration(
+                    color: theme.error.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(radius.full),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.workspace_premium_outlined,
+                    color: theme.error,
+                    size: 22.0,
+                  ),
+                ),
+                SizedBox(width: spacing.md),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.getText(
+                          'subscription_expired_card_title',
+                        ),
+                        style: theme.titleMedium,
+                      ),
+                      SizedBox(height: spacing.xs),
+                      Text(
+                        localizations.getText(
+                          'subscription_expired_card_message',
+                        ),
+                        style: theme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: spacing.md),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: FFButtonWidget(
+                key: const ValueKey('expired-subscription-renew'),
+                onPressed: onRenew,
+                text: localizations.getText(
+                  'subscription_expired_card_renew',
+                ),
+                icon: Icon(
+                  Icons.refresh_rounded,
+                  color: theme.onPrimary,
+                  size: 19.0,
+                ),
+                options: FFButtonOptions(
+                  height: 48.0,
+                  padding: EdgeInsets.symmetric(horizontal: spacing.md),
+                  color: theme.primary,
+                  textStyle: theme.titleSmall.override(
+                    color: theme.onPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  elevation: 0.0,
+                  borderRadius: BorderRadius.circular(radius.sm),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

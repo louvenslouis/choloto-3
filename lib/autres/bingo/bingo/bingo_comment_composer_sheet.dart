@@ -20,6 +20,7 @@ Future<bool?> showBingoCommentComposerSheet({
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
+    requestFocus: true,
     backgroundColor: theme.secondaryBackground,
     barrierColor: theme.primaryBackground.withValues(alpha: 0.72),
     constraints: const BoxConstraints(maxWidth: 640.0),
@@ -153,17 +154,6 @@ class _BingoCommentComposerSheetState
                         style: theme.titleLarge.copyWith(
                           color: theme.primaryText,
                           fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      SizedBox(height: tokens.spacing.xs),
-                      Text(
-                        localizations.getVariableText(
-                          frText: 'La Story reste en pause pendant la saisie.',
-                          crText: 'Story a rete an poz pandan w ap ekri.',
-                          enText: 'The Story stays paused while you type.',
-                        ),
-                        style: theme.bodySmall.copyWith(
-                          color: theme.secondaryText,
                         ),
                       ),
                     ],

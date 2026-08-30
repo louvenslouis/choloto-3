@@ -35,6 +35,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   late HomeModel _model;
 
   StreamSubscription<UserRecord?>? _subscriptionReminderSubscription;
+  Timer? _subscriptionExpirationTimer;
   DateTime? _latestSubscriptionExpiration;
   bool _homeDialogsReady = false;
   bool _subscriptionReminderHandled = false;
@@ -49,9 +50,12 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _model = createModel(context, () => HomeModel());
-    _latestSubscriptionExpiration = currentUserDocument?.endSub;
+    _updateSubscriptionExpiration(
+      currentUserDocument?.endSub,
+      rebuild: false,
+    );
     _subscriptionReminderSubscription = authenticatedUserStream.listen((user) {
-      _latestSubscriptionExpiration = user?.endSub;
+      _updateSubscriptionExpiration(user?.endSub);
       unawaited(_maybeShowSubscriptionExpirationReminder());
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -130,6 +134,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _subscriptionExpirationTimer?.cancel();
     unawaited(_subscriptionReminderSubscription?.cancel());
     _model.dispose();
 
@@ -140,6 +145,41 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(recordDailyEngagement(userReference: currentUserReference));
+      safeSetState(() {});
+    }
+  }
+
+  void _updateSubscriptionExpiration(
+    DateTime? expiration, {
+    bool rebuild = true,
+  }) {
+    final expirationChanged = _latestSubscriptionExpiration != expiration;
+    _latestSubscriptionExpiration = expiration;
+    _subscriptionExpirationTimer?.cancel();
+
+    if (expirationChanged) {
+      _subscriptionReminderHandled = false;
+    }
+    if (rebuild) {
+      safeSetState(() {});
+    }
+
+    final timeUntilExpiration = expiration?.difference(getCurrentTimestamp);
+    if (timeUntilExpiration != null && timeUntilExpiration > Duration.zero) {
+      final refreshDelay = timeUntilExpiration > const Duration(days: 1)
+          ? const Duration(days: 1)
+          : timeUntilExpiration;
+      _subscriptionExpirationTimer = Timer(refreshDelay, () {
+        if (!mounted) {
+          return;
+        }
+        safeSetState(() {});
+        unawaited(_maybeShowSubscriptionExpirationReminder());
+        _updateSubscriptionExpiration(
+          _latestSubscriptionExpiration,
+          rebuild: false,
+        );
+      });
     }
   }
 
@@ -402,6 +442,18 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                   ],
                                 ),
                               ),
+                            ),
+                          if (isSubscriptionExpired(
+                            expiration: _latestSubscriptionExpiration,
+                            now: getCurrentTimestamp,
+                          ))
+                            ExpiredSubscriptionCard(
+                              onRenew: () {
+                                logFirebaseEvent(
+                                  'HOME_EXPIRED_SUB_RENEW',
+                                );
+                                context.pushNamed(UpgradeWidget.routeName);
+                              },
                             ),
                           InkWell(
                             splashColor: Colors.transparent,
