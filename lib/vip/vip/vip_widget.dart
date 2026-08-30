@@ -7,11 +7,13 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/settings/devenir_v_i_p/devenir_v_i_p_widget.dart';
+import '/settings/upgrade/subscription_transaction.dart';
 import '/vip/universal_v_i_p/universal_v_i_p_widget.dart';
 import '/vip/v_i_pboloto/v_i_pboloto_widget.dart';
 import 'dart:math';
 import 'dart:ui';
 import '/index.dart';
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -38,6 +40,14 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   final animationsMap = <String, AnimationInfo>{};
+  final SubscriptionTransactionRepository _transactionsRepository =
+      SubscriptionTransactionRepository();
+
+  StreamSubscription<List<SubscriptionTransaction>>?
+      _transactionMembershipSubscription;
+  String? _transactionsUserUid;
+  DateTime? _latestRecordedSubscriptionEnd;
+  bool _latestTransactionIsCancellation = false;
 
   @override
   void initState() {
@@ -170,14 +180,54 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _transactionMembershipSubscription?.cancel();
     _model.dispose();
 
     super.dispose();
   }
 
+  void _ensureTransactionMembershipStream() {
+    if (!loggedIn ||
+        currentUserUid.isEmpty ||
+        _transactionsUserUid == currentUserUid) {
+      return;
+    }
+
+    _transactionsUserUid = currentUserUid;
+    _latestRecordedSubscriptionEnd = null;
+    _latestTransactionIsCancellation = false;
+    _transactionMembershipSubscription?.cancel();
+    _transactionMembershipSubscription =
+        _transactionsRepository.watchForUser(currentUserUid).listen(
+      (transactions) {
+        final latestEnd = latestRecordedSubscriptionEnd(transactions);
+        final latestIsCancellation =
+            latestSubscriptionTransactionIsCancellation(transactions);
+        if (!mounted || latestEnd == _latestRecordedSubscriptionEnd) {
+          if (mounted &&
+              latestIsCancellation != _latestTransactionIsCancellation) {
+            safeSetState(
+              () => _latestTransactionIsCancellation = latestIsCancellation,
+            );
+          }
+          return;
+        }
+        safeSetState(() {
+          _latestRecordedSubscriptionEnd = latestEnd;
+          _latestTransactionIsCancellation = latestIsCancellation;
+        });
+      },
+      onError: (_) {
+        // The profile stream remains the fallback when transaction history is
+        // unavailable (for example before the owner-read rules are deployed).
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+    _ensureTransactionMembershipStream();
 
     return GestureDetector(
       onTap: () {
@@ -251,9 +301,8 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                           fontSize: 15.0,
                           letterSpacing: 0.0,
                           fontWeight: FontWeight.w900,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .labelLarge
-                              .fontStyle,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).labelLarge.fontStyle,
                         ),
                   ),
                 ),
@@ -477,13 +526,19 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                     ),
                   AuthUserStreamWidget(
                     builder: (context) {
+                      // Start the fallback audit stream after the auth stream
+                      // has delivered the current UID. This covers the brief
+                      // window where a renewal is written before the profile
+                      // snapshot is refreshed.
+                      _ensureTransactionMembershipStream();
                       if (loggedIn && currentUserDocument == null) {
                         return Center(
                           child: Padding(
                             padding: EdgeInsets.all(
                               FlutterFlowTheme.of(context)
                                   .designToken
-                                  .spacing.lg,
+                                  .spacing
+                                  .lg,
                             ),
                             child: CircularProgressIndicator(
                               color: FlutterFlowTheme.of(context).primary,
@@ -492,9 +547,17 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                         );
                       }
 
+                      final subscriptionEnd = effectiveSubscriptionEnd(
+                        profileEnd: currentUserDocument?.endSub,
+                        latestRecordedEnd: _latestRecordedSubscriptionEnd,
+                        latestTransactionIsCancellation:
+                            _latestTransactionIsCancellation,
+                      );
                       if (loggedIn &&
-                          currentUserDocument?.endSub != null &&
-                          currentUserDocument!.endSub! >= getCurrentTimestamp) {
+                          hasActiveVipSubscription(
+                            expiration: subscriptionEnd,
+                            now: getCurrentTimestamp,
+                          )) {
                         return StreamBuilder<List<PredictionRecord>>(
                           stream: queryPredictionRecord(
                             queryBuilder: (predictionRecord) => predictionRecord
@@ -507,7 +570,8 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                 padding: EdgeInsets.all(
                                   FlutterFlowTheme.of(context)
                                       .designToken
-                                      .spacing.lg,
+                                      .spacing
+                                      .lg,
                                 ),
                                 child: Text(
                                   FFLocalizations.of(context)

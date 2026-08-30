@@ -1219,6 +1219,169 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Become VIP',
     },
   },
+  // subscription transactions
+  {
+    'subscription_plan_name': {
+      'fr': 'CHOLOTO VIP',
+      'cr': 'CHOLOTO VIP',
+      'en': 'CHOLOTO VIP',
+    },
+    'subscription_status_active': {
+      'fr': 'Actif',
+      'cr': 'Aktif',
+      'en': 'Active',
+    },
+    'subscription_status_expired': {
+      'fr': 'Expiré',
+      'cr': 'Ekspire',
+      'en': 'Expired',
+    },
+    'subscription_status_inactive': {
+      'fr': 'Inactif',
+      'cr': 'Inaktif',
+      'en': 'Inactive',
+    },
+    'subscription_no_active_membership': {
+      'fr': 'Aucun abonnement actif pour le moment.',
+      'cr': 'Pa gen abònman aktif pou kounye a.',
+      'en': 'There is no active subscription right now.',
+    },
+    'subscription_valid_until': {
+      'fr': 'Valide jusqu’au',
+      'cr': 'Valab jiska',
+      'en': 'Valid until',
+    },
+    'subscription_expired_on': {
+      'fr': 'Expiré le',
+      'cr': 'Li te ekspire',
+      'en': 'Expired on',
+    },
+    'subscription_latest_transaction': {
+      'fr': 'Dernière transaction',
+      'cr': 'Dènye tranzaksyon',
+      'en': 'Latest transaction',
+    },
+    'subscription_previous_transactions': {
+      'fr': 'Transactions précédentes',
+      'cr': 'Ansyen tranzaksyon yo',
+      'en': 'Previous transactions',
+    },
+    'subscription_transactions_loading': {
+      'fr': 'Chargement de vos transactions…',
+      'cr': 'N ap chaje tranzaksyon ou yo…',
+      'en': 'Loading your transactions…',
+    },
+    'subscription_transactions_error_title': {
+      'fr': 'Historique indisponible',
+      'cr': 'Istorik la pa disponib',
+      'en': 'History unavailable',
+    },
+    'subscription_transactions_error_message': {
+      'fr': 'Impossible de charger vos transactions pour le moment.',
+      'cr': 'Nou pa ka chaje tranzaksyon ou yo kounye a.',
+      'en': 'Your transactions could not be loaded right now.',
+    },
+    'subscription_no_transactions_title': {
+      'fr': 'Aucune transaction enregistrée',
+      'cr': 'Pa gen tranzaksyon ki anrejistre',
+      'en': 'No recorded transaction',
+    },
+    'subscription_no_transactions_message': {
+      'fr': 'Votre prochain paiement apparaîtra ici après sa validation.',
+      'cr': 'Pwochen peman ou ap parèt isit la apre yo valide li.',
+      'en': 'Your next payment will appear here after it is confirmed.',
+    },
+    'subscription_no_previous_transactions': {
+      'fr': 'Aucune ancienne transaction à afficher.',
+      'cr': 'Pa gen ansyen tranzaksyon pou montre.',
+      'en': 'There are no previous transactions to show.',
+    },
+    'subscription_more_transactions': {
+      'fr': 'autres transactions',
+      'cr': 'lòt tranzaksyon',
+      'en': 'more transactions',
+    },
+    'subscription_renew_action': {
+      'fr': 'Renouveler l’abonnement',
+      'cr': 'Renouvle abònman an',
+      'en': 'Renew subscription',
+    },
+    'subscription_become_vip_action': {
+      'fr': 'Devenir VIP',
+      'cr': 'Vin VIP',
+      'en': 'Become VIP',
+    },
+    'subscription_detail_date': {
+      'fr': 'Date',
+      'cr': 'Dat',
+      'en': 'Date',
+    },
+    'subscription_detail_payment_method': {
+      'fr': 'Mode de paiement',
+      'cr': 'Metòd peman',
+      'en': 'Payment method',
+    },
+    'subscription_detail_receipt': {
+      'fr': 'Référence',
+      'cr': 'Referans',
+      'en': 'Reference',
+    },
+    'subscription_detail_period_end': {
+      'fr': 'Fin de période',
+      'cr': 'Fen peryòd la',
+      'en': 'Period end',
+    },
+    'subscription_detail_refund': {
+      'fr': 'Remboursement',
+      'cr': 'Ranbousman',
+      'en': 'Refund',
+    },
+    'subscription_detail_unavailable': {
+      'fr': 'Non renseigné',
+      'cr': 'Pa disponib',
+      'en': 'Not provided',
+    },
+    'subscription_transaction_cancelled': {
+      'fr': 'Transaction annulée',
+      'cr': 'Tranzaksyon an anile',
+      'en': 'Transaction cancelled',
+    },
+    'subscription_amount_unavailable': {
+      'fr': 'Montant non renseigné',
+      'cr': 'Montan an pa disponib',
+      'en': 'Amount not provided',
+    },
+    'subscription_transaction_type_subscription': {
+      'fr': 'Abonnement',
+      'cr': 'Abònman',
+      'en': 'Subscription',
+    },
+    'subscription_transaction_type_renewal': {
+      'fr': 'Renouvellement',
+      'cr': 'Renouvèlman',
+      'en': 'Renewal',
+    },
+    'subscription_transaction_type_adjustment': {
+      'fr': 'Ajustement',
+      'cr': 'Ajisteman',
+      'en': 'Adjustment',
+    },
+    'subscription_transaction_type_cancellation': {
+      'fr': 'Annulation',
+      'cr': 'Anilasyon',
+      'en': 'Cancellation',
+    },
+    'subscription_payment_cash': {
+      'fr': 'Espèces',
+      'cr': 'Lajan kach',
+      'en': 'Cash',
+    },
+    'subscription_payment_transfer': {
+      'fr': 'Virement bancaire',
+      'cr': 'Transfè labank',
+      'en': 'Bank transfer',
+    },
+  },
   // editProfilTexts
   {
     'etl45w0v': {
@@ -1318,6 +1481,36 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'Réponse CHOLOTO',
       'cr': 'Repons CHOLOTO',
       'en': 'CHOLOTO reply',
+    },
+    'bingo_story_comment_delete': {
+      'fr': 'Supprimer',
+      'cr': 'Efase',
+      'en': 'Delete',
+    },
+    'bingo_story_comment_delete_title': {
+      'fr': 'Supprimer ce commentaire ?',
+      'cr': 'Efase kòmantè sa a?',
+      'en': 'Delete this comment?',
+    },
+    'bingo_story_comment_delete_message': {
+      'fr': 'Cette action est définitive.',
+      'cr': 'Ou p ap ka retounen sou aksyon sa a.',
+      'en': 'This action cannot be undone.',
+    },
+    'bingo_story_comment_delete_cancel': {
+      'fr': 'Annuler',
+      'cr': 'Anile',
+      'en': 'Cancel',
+    },
+    'bingo_story_comment_delete_success': {
+      'fr': 'Votre commentaire a été supprimé.',
+      'cr': 'Kòmantè ou a efase.',
+      'en': 'Your comment was deleted.',
+    },
+    'bingo_story_comment_delete_error': {
+      'fr': 'Impossible de supprimer votre commentaire pour le moment.',
+      'cr': 'Nou pa ka efase kòmantè ou a kounye a.',
+      'en': 'Your comment could not be deleted right now.',
     },
     'ch00aogu': {
       'fr': 'Avez-vous gagné avec nous ?',

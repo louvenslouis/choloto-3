@@ -1,8 +1,11 @@
 import '/app_state.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
+import 'package:uuid/uuid.dart';
 
 const bingoCommentMaxLength = 500;
+const _bingoCommentDocumentPrefix = 'comment_';
+const _uuid = Uuid();
 
 class BingoCommentStatus {
   const BingoCommentStatus({
@@ -24,6 +27,7 @@ class BingoCommentStatus {
 class BingoPublicComment {
   const BingoPublicComment({
     required this.id,
+    required this.userId,
     required this.text,
     required this.createdAt,
     required this.updatedAt,
@@ -35,6 +39,7 @@ class BingoPublicComment {
   });
 
   final String id;
+  final String userId;
   final String text;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -45,6 +50,9 @@ class BingoPublicComment {
   final bool likedByCurrentUser;
 
   bool get hasAdminReply => adminReply.isNotEmpty;
+
+  bool isOwnedBy(String viewerUserId) =>
+      viewerUserId.isNotEmpty && userId == viewerUserId;
 }
 
 BingoPublicComment? parseBingoPublicComment({
@@ -57,6 +65,7 @@ BingoPublicComment? parseBingoPublicComment({
   if (text.isEmpty) return null;
   return BingoPublicComment(
     id: id,
+    userId: data['user'] is String ? (data['user'] as String).trim() : '',
     text: text,
     createdAt: _dateTimeValue(data['createdAt']),
     updatedAt: _dateTimeValue(data['updatedAt']),
@@ -80,6 +89,34 @@ BingoCommentStatus parseBingoCommentStatus(Map<String, dynamic> data) {
     adminReplyAt: _dateTimeValue(data['adminReplyAt']),
   );
 }
+
+BingoCommentStatus? latestBingoCommentStatus(
+  Iterable<Map<String, dynamic>> comments,
+) {
+  Map<String, dynamic>? latestComment;
+  DateTime? latestActivityAt;
+
+  for (final comment in comments) {
+    final activityAt = _latestDateTimeValue([
+      comment['adminReplyAt'],
+      comment['adminLikedAt'],
+      comment['updatedAt'],
+      comment['createdAt'],
+    ]);
+    if (latestComment == null ||
+        (activityAt != null &&
+            (latestActivityAt == null ||
+                activityAt.isAfter(latestActivityAt)))) {
+      latestComment = comment;
+      latestActivityAt = activityAt;
+    }
+  }
+
+  return latestComment == null ? null : parseBingoCommentStatus(latestComment);
+}
+
+String createBingoCommentDocumentId() =>
+    '$_bingoCommentDocumentPrefix${_uuid.v4()}';
 
 class BingoCommentUnavailableException implements Exception {
   const BingoCommentUnavailableException();
@@ -109,11 +146,13 @@ Future<BingoCommentStatus?> loadBingoCommentStatus({
 }) async {
   if (bingoReference == null || currentUserUid.isEmpty) return null;
 
-  final snapshot =
-      await bingoReference.collection('comments').doc(currentUserUid).get();
-  final data = snapshot.data();
-  if (!snapshot.exists || data == null) return null;
-  return parseBingoCommentStatus(data);
+  final snapshot = await bingoReference
+      .collection('comments')
+      .where('user', isEqualTo: currentUserUid)
+      .get();
+  return latestBingoCommentStatus(
+    snapshot.docs.map((document) => document.data()),
+  );
 }
 
 Future<List<BingoPublicComment>> loadPublicBingoComments({
@@ -169,6 +208,24 @@ Future<void> togglePublicBingoCommentLike({
   await likeReference.set({'createdAt': FieldValue.serverTimestamp()});
 }
 
+Future<void> deleteBingoComment({
+  required DocumentReference? bingoReference,
+  required String commentId,
+}) async {
+  if (bingoReference == null || currentUserUid.isEmpty || commentId.isEmpty) {
+    throw const BingoCommentUnavailableException();
+  }
+
+  final commentReference = bingoReference.collection('comments').doc(commentId);
+  final snapshot = await commentReference.get();
+  final data = snapshot.data();
+  if (!snapshot.exists || data == null || data['user'] != currentUserUid) {
+    throw const BingoCommentUnavailableException();
+  }
+
+  await commentReference.delete();
+}
+
 Future<void> saveBingoComment(
   String value, {
   required DocumentReference? bingoReference,
@@ -182,17 +239,8 @@ Future<void> saveBingoComment(
   }
 
   final commentReference =
-      bingoReference.collection('comments').doc(currentUserUid);
-  final existingComment = await commentReference.get();
+      bingoReference.collection('comments').doc(createBingoCommentDocumentId());
   final serverTimestamp = FieldValue.serverTimestamp();
-
-  if (existingComment.exists) {
-    await commentReference.update({
-      'text': comment,
-      'updatedAt': serverTimestamp,
-    });
-    return;
-  }
 
   await commentReference.set({
     'user': currentUserUid,
@@ -205,4 +253,15 @@ Future<void> saveBingoComment(
 DateTime? _dateTimeValue(dynamic value) {
   if (value is Timestamp) return value.toDate();
   return value is DateTime ? value : null;
+}
+
+DateTime? _latestDateTimeValue(Iterable<dynamic> values) {
+  DateTime? latest;
+  for (final value in values) {
+    final dateTime = _dateTimeValue(value);
+    if (dateTime != null && (latest == null || dateTime.isAfter(latest))) {
+      latest = dateTime;
+    }
+  }
+  return latest;
 }

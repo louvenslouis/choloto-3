@@ -3,6 +3,7 @@ import 'package:choloto/autres/bingo/bingo/bingo_comment_autofocus.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_comment_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_reaction_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
+import 'package:choloto/autres/bingo/bingo/bingo_public_comments_sheet.dart';
 import 'package:choloto/flutter_flow/flutter_flow_icon_button.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/flutter_flow_util.dart';
@@ -38,6 +39,29 @@ Widget _app({
         child: BingoStoryButton(onTap: onTap),
       ),
     ),
+  );
+}
+
+Widget _localizedTestApp({
+  required Locale locale,
+  required ThemeMode themeMode,
+  required Widget child,
+}) {
+  return MaterialApp(
+    locale: locale,
+    supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+    localizationsDelegates: const [
+      FFLocalizationsDelegate(),
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      FallbackMaterialLocalizationDelegate(),
+      FallbackCupertinoLocalizationDelegate(),
+    ],
+    theme: ThemeData(brightness: Brightness.light),
+    darkTheme: ThemeData(brightness: Brightness.dark),
+    themeMode: themeMode,
+    home: Scaffold(body: child),
   );
 }
 
@@ -164,6 +188,16 @@ void main() {
         localizations.getText('bingo_story_comment_reply_label').trim(),
         isNotEmpty,
       );
+      for (final key in const [
+        'bingo_story_comment_delete',
+        'bingo_story_comment_delete_title',
+        'bingo_story_comment_delete_message',
+        'bingo_story_comment_delete_cancel',
+        'bingo_story_comment_delete_success',
+        'bingo_story_comment_delete_error',
+      ]) {
+        expect(localizations.getText(key).trim(), isNotEmpty);
+      }
     }
   });
 
@@ -184,6 +218,34 @@ void main() {
     expect(status.hasAdminInteraction, isTrue);
   });
 
+  test('multiple Bingo comments receive distinct document identifiers', () {
+    final firstId = createBingoCommentDocumentId();
+    final secondId = createBingoCommentDocumentId();
+    final commentIdPattern = RegExp(
+      r'^comment_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+    );
+
+    expect(firstId, matches(commentIdPattern));
+    expect(secondId, matches(commentIdPattern));
+    expect(secondId, isNot(firstId));
+  });
+
+  test('the latest activity is selected across a user’s Bingo comments', () {
+    final status = latestBingoCommentStatus([
+      {
+        'updatedAt': DateTime(2026, 8, 24, 12),
+        'adminReply': 'Réponse la plus récente',
+        'adminReplyAt': DateTime(2026, 8, 24, 12, 10),
+      },
+      {
+        'updatedAt': DateTime(2026, 8, 24, 12, 5),
+      },
+    ]);
+
+    expect(status, isNotNull);
+    expect(status!.adminReply, 'Réponse la plus récente');
+  });
+
   test('public Bingo comments expose content without an author profile', () {
     final comment = parseBingoPublicComment(
       id: 'private-user-id',
@@ -198,10 +260,140 @@ void main() {
 
     expect(comment, isNotNull);
     expect(comment!.id, 'private-user-id');
+    expect(comment.userId, 'private-user-id');
+    expect(comment.isOwnedBy('private-user-id'), isTrue);
+    expect(comment.isOwnedBy('another-user-id'), isFalse);
     expect(comment.text, 'Bravo CHOLOTO !');
     expect(comment.adminReply, 'Merci !');
     expect(comment.likeCount, 4);
     expect(comment.likedByCurrentUser, isTrue);
+  });
+
+  for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
+    for (final variant in const [
+      ('mobile dark', Size(360, 800), ThemeMode.dark),
+      ('Web light', Size(1024, 768), ThemeMode.light),
+    ]) {
+      testWidgets(
+        'an owned Bingo comment exposes delete in ${locale.languageCode} on ${variant.$1}',
+        (tester) async {
+          tester.view.physicalSize = variant.$2;
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          var deletePressed = false;
+          final comment = parseBingoPublicComment(
+            id: 'comment-owned',
+            data: {
+              'user': 'viewer-user',
+              'text': 'Mon commentaire CHOLOTO',
+            },
+          )!;
+
+          await tester.pumpWidget(
+            _localizedTestApp(
+              locale: locale,
+              themeMode: variant.$3,
+              child: Center(
+                child: SizedBox(
+                  width: 340.0,
+                  child: BingoPublicCommentCard(
+                    comment: comment,
+                    likePending: false,
+                    canDelete: comment.isOwnedBy('viewer-user'),
+                    deletePending: false,
+                    onLike: () {},
+                    onDelete: () async {
+                      deletePressed = true;
+                    },
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final deleteFinder = find.byKey(
+            const ValueKey('bingo-comment-delete-comment-owned'),
+          );
+          expect(deleteFinder, findsOneWidget);
+          expect(
+            tester.widget<FlutterFlowIconButton>(deleteFinder).buttonSize,
+            48.0,
+          );
+          await tester.tap(deleteFinder);
+          await tester.pumpAndSettle();
+          expect(deletePressed, isTrue);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  testWidgets('a foreign Bingo comment does not expose delete', (tester) async {
+    final comment = parseBingoPublicComment(
+      id: 'comment-foreign',
+      data: {'user': 'comment-owner', 'text': 'Commentaire public'},
+    )!;
+
+    await tester.pumpWidget(
+      _localizedTestApp(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        child: BingoPublicCommentCard(
+          comment: comment,
+          likePending: false,
+          canDelete: comment.isOwnedBy('viewer-user'),
+          deletePending: false,
+          onLike: () {},
+          onDelete: () async {},
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey('bingo-comment-delete-comment-foreign')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('Bingo comment deletion requires confirmation', (tester) async {
+    bool? confirmed;
+
+    await tester.pumpWidget(
+      _localizedTestApp(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async {
+              confirmed = await showBingoCommentDeleteConfirmation(context);
+            },
+            child: const Text('Ouvrir la confirmation'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Ouvrir la confirmation'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('bingo-comment-delete-dialog')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-comment-delete-cancel')),
+    );
+    await tester.pumpAndSettle();
+    expect(confirmed, isFalse);
+
+    await tester.tap(find.text('Ouvrir la confirmation'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-comment-delete-confirm')),
+    );
+    await tester.pumpAndSettle();
+    expect(confirmed, isTrue);
   });
 
   test('Bingo comments are trimmed and constrained before upload', () {

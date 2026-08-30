@@ -66,6 +66,44 @@ async function firestoreRequest(
   return {status: response.status, body: text};
 }
 
+async function firestoreCommit(writes, {token} = {}) {
+  const response = await fetch(`${documentsUrl}:commit`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? {authorization: `Bearer ${token}`} : {}),
+    },
+    body: JSON.stringify({writes}),
+  });
+  return {status: response.status, body: await response.text()};
+}
+
+async function paymentTransactionsQuery({token, userUid} = {}) {
+  const structuredQuery = {
+    from: [{collectionId: 'payment_transactions'}],
+    ...(userUid
+      ? {
+          where: {
+            fieldFilter: {
+              field: {fieldPath: 'user_uid'},
+              op: 'EQUAL',
+              value: {stringValue: userUid},
+            },
+          },
+        }
+      : {}),
+  };
+  const response = await fetch(`${documentsUrl}:runQuery`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? {authorization: `Bearer ${token}`} : {}),
+    },
+    body: JSON.stringify({structuredQuery}),
+  });
+  return {status: response.status, body: await response.text()};
+}
+
 function expectStatus(result, expected, label) {
   assert.equal(
     result.status,
@@ -77,7 +115,12 @@ function expectStatus(result, expected, label) {
 const stringValue = (value) => ({stringValue: value});
 const boolValue = (value) => ({booleanValue: value});
 const integerValue = (value) => ({integerValue: String(value)});
+const doubleValue = (value) => ({doubleValue: value});
 const timestampValue = (value = '2026-08-10T12:00:00Z') => ({timestampValue: value});
+const referenceValue = (path) => ({
+  referenceValue:
+    `projects/${projectId}/databases/(default)/documents/${path}`,
+});
 const mapValue = (fields) => ({mapValue: {fields}});
 const stringArray = (values) => ({
   arrayValue: {values: values.map(stringValue)},
@@ -188,9 +231,15 @@ expectStatus(
   'owner bingo vote update',
 );
 
-// Story comments use an additive owner-only path and do not alter the released
-// bingostats vote contract above.
+// Released clients keep their uid document path. New clients use a distinct
+// comment UUID for every submission so one owner can comment more than once.
 const commentPath = `bingo/public-bingo/comments/${owner.uid}`;
+const firstModernCommentPath =
+  'bingo/public-bingo/comments/comment_a11ce000-0000-4000-8000-000000000001';
+const secondModernCommentPath =
+  'bingo/public-bingo/comments/comment_a11ce000-0000-4000-8000-000000000002';
+const hiddenModernCommentPath =
+  'bingo/public-bingo/hiddenComments/comment_a11ce000-0000-4000-8000-000000000001';
 const commentFields = {
   user: stringValue(owner.uid),
   text: stringValue('Mwen te genyen avèk CHOLOTO.'),
@@ -221,7 +270,58 @@ expectStatus(
     fields: commentFields,
   }),
   200,
-  'owner Bingo comment creation',
+  'legacy owner Bingo comment creation',
+);
+expectStatus(
+  await firestoreRequest(firstModernCommentPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {
+      ...commentFields,
+      text: stringValue('Premye kòmantè modèn.'),
+      updatedAt: timestampValue('2026-08-21T12:01:00Z'),
+    },
+  }),
+  200,
+  'first modern Bingo comment creation',
+);
+expectStatus(
+  await firestoreRequest(secondModernCommentPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {
+      ...commentFields,
+      text: stringValue('Dezyèm kòmantè sou menm BINGO a.'),
+      createdAt: timestampValue('2026-08-21T12:02:00Z'),
+      updatedAt: timestampValue('2026-08-21T12:02:00Z'),
+    },
+  }),
+  200,
+  'second modern Bingo comment creation by the same owner',
+);
+expectStatus(
+  await firestoreRequest(
+    `bingo/public-bingo/comments/${other.uid}`,
+    {
+      method: 'PATCH',
+      token: owner.token,
+      fields: commentFields,
+    },
+  ),
+  403,
+  'modern owner cannot reserve another uid legacy comment path',
+);
+expectStatus(
+  await firestoreRequest(
+    'bingo/public-bingo/comments/comment_a11ce000-0000-4000-8000-000000000003',
+    {
+      method: 'PATCH',
+      token: owner.token,
+      fields: {...commentFields, user: stringValue(other.uid)},
+    },
+  ),
+  403,
+  'modern Bingo comment cannot spoof its owner field',
 );
 expectStatus(
   await firestoreRequest(commentPath, {token: owner.token}),
@@ -230,13 +330,13 @@ expectStatus(
 );
 expectStatus(
   await firestoreRequest(commentPath),
-  403,
-  'unauthenticated Bingo comment read',
+  200,
+  'public Bingo comment read',
 );
 expectStatus(
   await firestoreRequest(commentPath, {token: other.token}),
-  403,
-  'foreign Bingo comment read',
+  200,
+  'authenticated public Bingo comment read',
 );
 expectStatus(
   await firestoreRequest(commentPath, {token: admin.token}),
@@ -269,6 +369,34 @@ expectStatus(
   'owner Bingo comment update',
 );
 expectStatus(
+  await firestoreRequest(secondModernCommentPath, {
+    method: 'PATCH',
+    token: other.token,
+    fields: {
+      ...commentFields,
+      text: stringValue('Tentative étrangère sur un commentaire moderne.'),
+      createdAt: timestampValue('2026-08-21T12:02:00Z'),
+      updatedAt: timestampValue('2026-08-21T12:03:00Z'),
+    },
+  }),
+  403,
+  'foreign modern Bingo comment update',
+);
+expectStatus(
+  await firestoreRequest(secondModernCommentPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {
+      ...commentFields,
+      text: stringValue('Dezyèm kòmantè a korije.'),
+      createdAt: timestampValue('2026-08-21T12:02:00Z'),
+      updatedAt: timestampValue('2026-08-21T12:04:00Z'),
+    },
+  }),
+  200,
+  'owner modern Bingo comment update',
+);
+expectStatus(
   await firestoreRequest(commentPath, {
     method: 'PATCH',
     token: owner.token,
@@ -291,6 +419,128 @@ expectStatus(
   }),
   403,
   'Bingo comment creation date rewrite',
+);
+expectStatus(
+  await firestoreRequest(secondModernCommentPath, {
+    method: 'DELETE',
+    token: other.token,
+  }),
+  403,
+  'foreign modern Bingo comment deletion',
+);
+expectStatus(
+  await firestoreRequest(secondModernCommentPath, {method: 'DELETE'}),
+  403,
+  'unauthenticated modern Bingo comment deletion',
+);
+expectStatus(
+  await firestoreRequest(secondModernCommentPath, {
+    method: 'DELETE',
+    token: owner.token,
+  }),
+  200,
+  'owner modern Bingo comment deletion',
+);
+expectStatus(
+  await firestoreRequest(secondModernCommentPath),
+  404,
+  'deleted modern Bingo comment is absent',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'DELETE',
+    token: other.token,
+  }),
+  403,
+  'foreign legacy Bingo comment deletion',
+);
+expectStatus(
+  await firestoreRequest(commentPath, {
+    method: 'DELETE',
+    token: owner.token,
+  }),
+  200,
+  'owner legacy Bingo comment deletion',
+);
+expectStatus(
+  await firestoreRequest(commentPath),
+  404,
+  'deleted legacy Bingo comment is absent',
+);
+
+const hiddenCommentFields = {
+  ...commentFields,
+  text: stringValue('Premye kòmantè modèn.'),
+  updatedAt: timestampValue('2026-08-21T12:01:00Z'),
+  hiddenAt: timestampValue('2026-08-21T12:10:00Z'),
+  hiddenBy: stringValue(admin.uid),
+};
+expectStatus(
+  await firestoreRequest(hiddenModernCommentPath, {
+    method: 'PATCH',
+    token: other.token,
+    fields: hiddenCommentFields,
+  }),
+  403,
+  'non-admin cannot archive a Bingo comment',
+);
+expectStatus(
+  await firestoreRequest(hiddenModernCommentPath, {
+    method: 'PATCH',
+    token: admin.token,
+    fields: hiddenCommentFields,
+  }),
+  200,
+  'admin archives a Bingo comment',
+);
+expectStatus(
+  await firestoreRequest(firstModernCommentPath, {
+    method: 'DELETE',
+    token: admin.token,
+  }),
+  200,
+  'admin removes an archived comment from the public collection',
+);
+expectStatus(
+  await firestoreRequest(hiddenModernCommentPath, {token: admin.token}),
+  200,
+  'admin reads a hidden Bingo comment',
+);
+expectStatus(
+  await firestoreRequest(hiddenModernCommentPath, {token: owner.token}),
+  403,
+  'owner cannot read the private Bingo moderation archive',
+);
+expectStatus(
+  await firestoreRequest(hiddenModernCommentPath),
+  403,
+  'signed-out user cannot read the private Bingo moderation archive',
+);
+expectStatus(
+  await firestoreRequest(firstModernCommentPath, {
+    method: 'PATCH',
+    token: admin.token,
+    fields: {
+      ...commentFields,
+      text: stringValue('Premye kòmantè modèn.'),
+      updatedAt: timestampValue('2026-08-21T12:01:00Z'),
+    },
+  }),
+  200,
+  'admin restores a hidden Bingo comment',
+);
+expectStatus(
+  await firestoreRequest(hiddenModernCommentPath, {
+    method: 'DELETE',
+    token: admin.token,
+  }),
+  200,
+  'admin clears the restored Bingo moderation archive',
+);
+expectStatus(
+  await firestoreRequest(firstModernCommentPath),
+  200,
+  'restored Bingo comment is public again',
 );
 
 // Public lottery results preserve their old read contract and owner writes.
@@ -656,6 +906,99 @@ expectStatus(
   await firestoreRequest(`user/${emailOwner.uid}`),
   403,
   'unauthenticated email user document read',
+);
+
+// Payment transactions remain immutable dashboard audit records, while the
+// signed-in member can read only records whose user_uid matches their token.
+const paymentTransactionId = 'owner-payment-transaction';
+const paymentTransactionPath =
+  `payment_transactions/${paymentTransactionId}`;
+const paymentTransactionName =
+  `projects/${projectId}/databases/(default)/documents/${paymentTransactionPath}`;
+const paymentTransactionFields = {
+  user_ref: referenceValue(`user/${owner.uid}`),
+  user_uid: stringValue(owner.uid),
+  receipt_code: stringValue(`CH-${paymentTransactionId}`),
+  transaction_type: stringValue('renewal'),
+  new_end_sub: timestampValue('2026-09-30T12:00:00Z'),
+  payment_method: stringValue('moncash'),
+  amount: doubleValue(40),
+  currency: stringValue('USD'),
+  member_time_before: integerValue(1),
+  member_time_after: integerValue(2),
+  created_by: stringValue(admin.uid),
+};
+expectStatus(
+  await firestoreCommit(
+    [
+      {
+        update: {
+          name: paymentTransactionName,
+          fields: paymentTransactionFields,
+        },
+        updateTransforms: [
+          {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
+        ],
+      },
+    ],
+    {token: admin.token},
+  ),
+  200,
+  'admin payment transaction creation',
+);
+expectStatus(
+  await firestoreRequest(paymentTransactionPath, {token: owner.token}),
+  200,
+  'owner payment transaction read',
+);
+expectStatus(
+  await firestoreRequest(paymentTransactionPath, {token: admin.token}),
+  200,
+  'admin payment transaction read',
+);
+expectStatus(
+  await firestoreRequest(paymentTransactionPath, {token: other.token}),
+  403,
+  'foreign payment transaction read',
+);
+expectStatus(
+  await firestoreRequest(paymentTransactionPath),
+  403,
+  'unauthenticated payment transaction read',
+);
+expectStatus(
+  await paymentTransactionsQuery({
+    token: owner.token,
+    userUid: owner.uid,
+  }),
+  200,
+  'owner scoped payment transaction query',
+);
+expectStatus(
+  await paymentTransactionsQuery({
+    token: other.token,
+    userUid: owner.uid,
+  }),
+  403,
+  'foreign scoped payment transaction query',
+);
+expectStatus(
+  await paymentTransactionsQuery({token: owner.token}),
+  403,
+  'owner unscoped payment transaction query',
+);
+expectStatus(
+  await paymentTransactionsQuery({token: admin.token}),
+  200,
+  'admin unscoped payment transaction query',
+);
+expectStatus(
+  await firestoreRequest(paymentTransactionPath, {
+    method: 'DELETE',
+    token: owner.token,
+  }),
+  403,
+  'owner payment transaction deletion',
 );
 
 // Web push tokens are private and can only be managed by their owner.

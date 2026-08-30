@@ -1,8 +1,52 @@
+import '/auth/firebase_auth/auth_util.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 
 import 'bingo_comment_service.dart';
+
+Future<bool> showBingoCommentDeleteConfirmation(BuildContext context) async {
+  final localizations = FFLocalizations.of(context);
+  return await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          final theme = FlutterFlowTheme.of(dialogContext);
+          return AlertDialog(
+            key: const ValueKey('bingo-comment-delete-dialog'),
+            backgroundColor: theme.secondaryBackground,
+            title: Text(
+              localizations.getText('bingo_story_comment_delete_title'),
+              style: theme.titleLarge,
+            ),
+            content: Text(
+              localizations.getText('bingo_story_comment_delete_message'),
+              style: theme.bodyMedium,
+            ),
+            actions: [
+              TextButton(
+                key: const ValueKey('bingo-comment-delete-cancel'),
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(
+                  localizations.getText(
+                    'bingo_story_comment_delete_cancel',
+                  ),
+                ),
+              ),
+              TextButton(
+                key: const ValueKey('bingo-comment-delete-confirm'),
+                style: TextButton.styleFrom(foregroundColor: theme.error),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(
+                  localizations.getText('bingo_story_comment_delete'),
+                ),
+              ),
+            ],
+          );
+        },
+      ) ??
+      false;
+}
 
 Future<void> showBingoPublicCommentsSheet({
   required BuildContext context,
@@ -34,6 +78,7 @@ class _BingoPublicCommentsSheet extends StatefulWidget {
 class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
   late Future<List<BingoPublicComment>> _commentsFuture;
   final Set<String> _pendingLikes = {};
+  final Set<String> _pendingDeletes = {};
 
   @override
   void initState() {
@@ -48,7 +93,10 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
   }
 
   Future<void> _toggleLike(BingoPublicComment comment) async {
-    if (_pendingLikes.contains(comment.id)) return;
+    if (_pendingLikes.contains(comment.id) ||
+        _pendingDeletes.contains(comment.id)) {
+      return;
+    }
     setState(() => _pendingLikes.add(comment.id));
     try {
       await togglePublicBingoCommentLike(
@@ -74,6 +122,57 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
       }
     } finally {
       if (mounted) setState(() => _pendingLikes.remove(comment.id));
+    }
+  }
+
+  Future<void> _deleteComment(BingoPublicComment comment) async {
+    if (!comment.isOwnedBy(currentUserUid) ||
+        _pendingDeletes.contains(comment.id)) {
+      return;
+    }
+
+    final localizations = FFLocalizations.of(context);
+    final confirmed = await showBingoCommentDeleteConfirmation(context);
+    if (!confirmed || !mounted) return;
+
+    setState(() => _pendingDeletes.add(comment.id));
+    try {
+      await deleteBingoComment(
+        bingoReference: widget.bingoReference,
+        commentId: comment.id,
+      );
+      if (mounted) {
+        setState(_reload);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                localizations.getText(
+                  'bingo_story_comment_delete_success',
+                ),
+              ),
+              backgroundColor: FlutterFlowTheme.of(context).success,
+            ),
+          );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                localizations.getText(
+                  'bingo_story_comment_delete_error',
+                ),
+              ),
+              backgroundColor: FlutterFlowTheme.of(context).error,
+            ),
+          );
+      }
+    } finally {
+      if (mounted) setState(() => _pendingDeletes.remove(comment.id));
     }
   }
 
@@ -178,10 +277,15 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
                     padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 28.0),
                     itemCount: comments.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12.0),
-                    itemBuilder: (context, index) => _PublicCommentCard(
+                    itemBuilder: (context, index) => BingoPublicCommentCard(
                       comment: comments[index],
-                      pending: _pendingLikes.contains(comments[index].id),
+                      likePending: _pendingLikes.contains(comments[index].id) ||
+                          _pendingDeletes.contains(comments[index].id),
+                      canDelete: comments[index].isOwnedBy(currentUserUid),
+                      deletePending:
+                          _pendingDeletes.contains(comments[index].id),
                       onLike: () => _toggleLike(comments[index]),
+                      onDelete: () => _deleteComment(comments[index]),
                     ),
                   ),
                 );
@@ -194,16 +298,23 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
   }
 }
 
-class _PublicCommentCard extends StatelessWidget {
-  const _PublicCommentCard({
+class BingoPublicCommentCard extends StatelessWidget {
+  const BingoPublicCommentCard({
+    super.key,
     required this.comment,
-    required this.pending,
+    required this.likePending,
+    required this.canDelete,
+    required this.deletePending,
     required this.onLike,
+    required this.onDelete,
   });
 
   final BingoPublicComment comment;
-  final bool pending;
+  final bool likePending;
+  final bool canDelete;
+  final bool deletePending;
   final VoidCallback onLike;
+  final Future<void> Function() onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -301,23 +412,46 @@ class _PublicCommentCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 7.0),
-          TextButton.icon(
-            onPressed: pending ? null : onLike,
-            icon: pending
-                ? const SizedBox(
-                    width: 16.0,
-                    height: 16.0,
-                    child: CircularProgressIndicator(strokeWidth: 2.0),
-                  )
-                : Icon(
-                    comment.likedByCurrentUser
-                        ? Icons.favorite_rounded
-                        : Icons.favorite_border_rounded,
-                    color: comment.likedByCurrentUser ? theme.error : null,
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: likePending ? null : onLike,
+                icon: likePending
+                    ? const SizedBox(
+                        width: 16.0,
+                        height: 16.0,
+                        child: CircularProgressIndicator(strokeWidth: 2.0),
+                      )
+                    : Icon(
+                        comment.likedByCurrentUser
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: comment.likedByCurrentUser ? theme.error : null,
+                      ),
+                label: Text(
+                  '${comment.likedByCurrentUser ? localizations.getVariableText(frText: 'Aimé', crText: 'Renmen', enText: 'Liked') : localizations.getVariableText(frText: 'J’aime', crText: 'Renmen', enText: 'Like')} · ${comment.likeCount}',
+                ),
+              ),
+              const Spacer(),
+              if (canDelete)
+                Tooltip(
+                  message: localizations.getText(
+                    'bingo_story_comment_delete',
                   ),
-            label: Text(
-              '${comment.likedByCurrentUser ? localizations.getVariableText(frText: 'Aimé', crText: 'Renmen', enText: 'Liked') : localizations.getVariableText(frText: 'J’aime', crText: 'Renmen', enText: 'Like')} · ${comment.likeCount}',
-            ),
+                  child: FlutterFlowIconButton(
+                    key: ValueKey('bingo-comment-delete-${comment.id}'),
+                    borderRadius: theme.designToken.radius.full,
+                    buttonSize: 48.0,
+                    showLoadingIndicator: true,
+                    onPressed: deletePending ? null : onDelete,
+                    icon: Icon(
+                      Icons.delete_outline_rounded,
+                      color: theme.error,
+                      size: 20.0,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
