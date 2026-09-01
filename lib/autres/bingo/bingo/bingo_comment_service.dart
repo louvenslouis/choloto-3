@@ -9,12 +9,14 @@ const _uuid = Uuid();
 
 class BingoCommentStatus {
   const BingoCommentStatus({
+    this.commentId = '',
     required this.adminLiked,
     required this.adminLikedAt,
     required this.adminReply,
     required this.adminReplyAt,
   });
 
+  final String commentId;
   final bool adminLiked;
   final DateTime? adminLikedAt;
   final String adminReply;
@@ -81,6 +83,9 @@ BingoPublicComment? parseBingoPublicComment({
 
 BingoCommentStatus parseBingoCommentStatus(Map<String, dynamic> data) {
   return BingoCommentStatus(
+    commentId: data['__documentId'] is String
+        ? (data['__documentId'] as String).trim()
+        : '',
     adminLiked: data['adminLiked'] == true,
     adminLikedAt: _dateTimeValue(data['adminLikedAt']),
     adminReply: data['adminReply'] is String
@@ -151,8 +156,22 @@ Future<BingoCommentStatus?> loadBingoCommentStatus({
       .where('user', isEqualTo: currentUserUid)
       .get();
   return latestBingoCommentStatus(
-    snapshot.docs.map((document) => document.data()),
+    snapshot.docs.map(
+      (document) => <String, dynamic>{
+        '__documentId': document.id,
+        ...document.data(),
+      },
+    ),
   );
+}
+
+Future<int> loadBingoCommentCount({
+  required DocumentReference? bingoReference,
+}) async {
+  if (bingoReference == null) return 0;
+  final snapshot =
+      await bingoReference.collection('comments').count().get();
+  return snapshot.count ?? 0;
 }
 
 Future<List<BingoPublicComment>> loadPublicBingoComments({

@@ -3,11 +3,13 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/stories/story_viewer_shell.dart';
+import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-const youtubeStoryAspectRatio = 9.0 / 16.0;
-const youtubeStoryMobileBreakpoint = 600.0;
+const youtubeStoryAspectRatio = cholotoStoryAspectRatio;
+const youtubeStoryMobileBreakpoint = cholotoStoryMobileBreakpoint;
 const youtubeStoryDuration = Duration(seconds: 15);
 
 class YoutubeStoryButton extends StatelessWidget {
@@ -122,13 +124,16 @@ class YoutubeStoryViewer extends StatefulWidget {
 }
 
 class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _progressController;
   var _currentIndex = 0;
+  var _lifecyclePaused = false;
+  var _accessibilityPaused = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _progressController = AnimationController(
       vsync: this,
       duration: widget.storyDuration,
@@ -138,10 +143,44 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _progressController
       ..removeStatusListener(_onProgressStatusChanged)
       ..dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final mediaQuery = MediaQuery.maybeOf(context);
+    final shouldPause = mediaQuery?.accessibleNavigation == true ||
+        mediaQuery?.disableAnimations == true;
+    if (_accessibilityPaused == shouldPause) return;
+    _accessibilityPaused = shouldPause;
+    if (shouldPause) {
+      _pauseProgress();
+    } else {
+      _resumeProgress();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lifecyclePaused = state != AppLifecycleState.resumed;
+    if (_lifecyclePaused) {
+      _pauseProgress();
+    } else {
+      _resumeProgress();
+    }
+  }
+
+  void _pauseProgress() => _progressController.stop();
+
+  void _resumeProgress() {
+    if (mounted && !_lifecyclePaused && !_accessibilityPaused) {
+      _progressController.forward();
+    }
   }
 
   void _onProgressStatusChanged(AnimationStatus status) {
@@ -196,253 +235,146 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
         await launchURL(video.link);
       }
     } finally {
-      if (mounted) {
-        _progressController.forward(from: 0.0);
-      }
+      _resumeProgress();
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final video = widget.videos[_currentIndex];
-    final publishedAt = DateTime.tryParse(video.pubDate);
-    final frame = ColoredBox(
-      color: theme.primaryBackground,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned.fill(
-            top: 76.0,
-            bottom: 96.0,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Semantics(
-                    label: FFLocalizations.of(context)
-                        .getText('youtube_story_previous'),
-                    button: true,
-                    child: GestureDetector(
-                      key: const ValueKey('youtube-story-previous-area'),
-                      behavior: HitTestBehavior.translucent,
-                      onTap: _showPreviousStory,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Semantics(
-                    label: FFLocalizations.of(context)
-                        .getText('youtube_story_next'),
-                    button: true,
-                    child: GestureDetector(
-                      key: const ValueKey('youtube-story-next-area'),
-                      behavior: HitTestBehavior.translucent,
-                      onTap: _showNextStory,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                theme.designToken.spacing.md,
-                76.0,
-                theme.designToken.spacing.md,
-                theme.designToken.spacing.lg,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  IgnorePointer(
-                    child: Semantics(
-                      image: true,
-                      label: FFLocalizations.of(context)
-                          .getText('youtube_story_thumbnail'),
-                      child: AspectRatio(
-                        aspectRatio: 16.0 / 9.0,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            theme.designToken.radius.md,
-                          ),
-                          child: CachedNetworkImage(
-                            key: ValueKey(
-                              'youtube-story-viewer-thumbnail-$_currentIndex',
-                            ),
-                            imageUrl: video.thumbnail,
-                            fit: BoxFit.cover,
-                            placeholder: (context, _) => ColoredBox(
-                              color: theme.secondaryBackground,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: theme.primary,
-                                  strokeWidth: 3.0,
-                                ),
-                              ),
-                            ),
-                            errorWidget: (context, _, __) => ColoredBox(
-                              color: theme.secondaryBackground,
-                              child: Icon(
-                                Icons.image_not_supported_outlined,
-                                color: theme.secondaryText,
-                                size: 48.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: theme.designToken.spacing.lg),
-                  IgnorePointer(
-                    child: Text(
-                      video.title,
-                      key: const ValueKey('youtube-story-title'),
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: theme.titleLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        height: 1.25,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: theme.designToken.spacing.lg),
-                  FFButtonWidget(
-                    key: const ValueKey('youtube-story-watch-button'),
-                    text: FFLocalizations.of(context).getText('ytwatch1'),
-                    icon: Icon(
-                      Icons.open_in_new_rounded,
-                      color: theme.onPrimary,
-                      size: 20.0,
-                    ),
-                    onPressed: video.link.isEmpty
-                        ? null
-                        : () async => _openVideo(video),
-                    options: FFButtonOptions(
-                      height: 48.0,
-                      color: theme.primary,
-                      textStyle: theme.labelLarge.copyWith(
-                        color: theme.onPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      elevation: 0.0,
-                      borderRadius: BorderRadius.circular(
-                        theme.designToken.radius.sm,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          _YoutubeStoryHeader(publishedAt: publishedAt),
-          _YoutubeStoryCloseButton(onClose: _close),
-          _YoutubeStoryProgress(
-            storyCount: widget.videos.length,
-            currentStoryIndex: _currentIndex,
-            progressAnimation: _progressController,
-          ),
-        ],
-      ),
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final fillsMobileViewport =
-            constraints.maxWidth <= youtubeStoryMobileBreakpoint &&
-                constraints.maxHeight >= constraints.maxWidth;
-
-        if (fillsMobileViewport) {
-          return SizedBox.expand(
-            key: const ValueKey('youtube-story-viewer'),
-            child: frame,
-          );
-        }
-
-        return Center(
-          child: AspectRatio(
-            key: const ValueKey('youtube-story-viewer'),
-            aspectRatio: youtubeStoryAspectRatio,
-            child: frame,
-          ),
-        );
-      },
-    );
+  Future<void> _retryThumbnail(String imageUrl) async {
+    if (imageUrl.isNotEmpty) {
+      await CachedNetworkImage.evictFromCache(imageUrl);
+    }
+    if (mounted) setState(() {});
   }
-}
-
-class _YoutubeStoryHeader extends StatelessWidget {
-  const _YoutubeStoryHeader({required this.publishedAt});
-
-  final DateTime? publishedAt;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
     final localizations = FFLocalizations.of(context);
+    final video = widget.videos[_currentIndex];
+    final publishedAt = DateTime.tryParse(video.pubDate);
 
-    return SafeArea(
-      child: Align(
-        alignment: AlignmentDirectional.topStart,
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(
-            spacing.md,
-            spacing.md,
-            72.0,
-            spacing.md,
+    return StoryViewerShell(
+      frameKey: const ValueKey('youtube-story-viewer'),
+      keyPrefix: 'youtube',
+      title: localizations.getText('youtube_story_label'),
+      publishedAt: publishedAt,
+      storyCount: widget.videos.length,
+      currentStoryIndex: _currentIndex,
+      progressAnimation: _progressController,
+      onPreviousStory: _showPreviousStory,
+      onNextStory: _showNextStory,
+      onClose: _close,
+      onPause: _pauseProgress,
+      onResume: _resumeProgress,
+      previousLabel: localizations.getText('youtube_story_previous'),
+      nextLabel: localizations.getText('youtube_story_next'),
+      closeLabel: localizations.getText('youtube_story_close'),
+      avatar: Container(
+        padding: EdgeInsets.all(spacing.xs),
+        decoration: BoxDecoration(
+          color: theme.secondaryBackground,
+          shape: BoxShape.circle,
+        ),
+        child: ClipOval(
+          child: Image.asset(
+            'assets/images/youtube_-_Moyenne.png',
+            fit: BoxFit.contain,
+            excludeFromSemantics: true,
           ),
-          child: Row(
-            key: const ValueKey('youtube-story-header'),
+        ),
+      ),
+      background: _YoutubeStoryBackdrop(imageUrl: video.thumbnail),
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            spacing.md,
+            76.0,
+            spacing.md,
+            spacing.lg,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                width: 44.0,
-                height: 44.0,
-                padding: EdgeInsets.all(spacing.xs),
-                decoration: BoxDecoration(
-                  color: theme.secondaryBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/youtube_-_Moyenne.png',
-                    fit: BoxFit.contain,
-                    excludeFromSemantics: true,
+              Semantics(
+                image: true,
+                label: localizations.getText('youtube_story_thumbnail'),
+                child: AspectRatio(
+                  aspectRatio: 16.0 / 9.0,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      theme.designToken.radius.md,
+                    ),
+                    child: CachedNetworkImage(
+                      key: ValueKey(
+                        'youtube-story-viewer-thumbnail-$_currentIndex',
+                      ),
+                      imageUrl: video.thumbnail,
+                      fit: BoxFit.cover,
+                      fadeInDuration: const Duration(milliseconds: 180),
+                      placeholder: (context, _) => _YoutubeThumbnailLoading(
+                        key: const ValueKey('youtube-story-thumbnail-loading'),
+                        theme: theme,
+                      ),
+                      errorWidget: (context, _, __) => _YoutubeThumbnailError(
+                        onRetry: () => _retryThumbnail(video.thumbnail),
+                      ),
+                    ),
                   ),
                 ),
               ),
-              SizedBox(width: spacing.sm),
-              Expanded(
+              SizedBox(height: spacing.md),
+              Container(
+                padding: EdgeInsets.all(spacing.md),
+                decoration: BoxDecoration(
+                  color: theme.secondaryBackground.withValues(alpha: 0.94),
+                  borderRadius: BorderRadius.circular(
+                    theme.designToken.radius.md,
+                  ),
+                  border: Border.all(
+                    color: theme.primaryText.withValues(alpha: 0.08),
+                  ),
+                ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      localizations.getText('youtube_story_label'),
-                      key: const ValueKey('youtube-story-header-title'),
-                      maxLines: 1,
+                      video.title,
+                      key: const ValueKey('youtube-story-title'),
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.titleMedium.copyWith(
+                      textAlign: TextAlign.start,
+                      style: theme.titleLarge.copyWith(
                         fontWeight: FontWeight.bold,
+                        height: 1.25,
                       ),
                     ),
-                    if (publishedAt != null)
-                      Text(
-                        dateTimeFormat(
-                          'relative',
-                          publishedAt!,
-                          locale: localizations.languageCode,
+                    SizedBox(height: spacing.md),
+                    FFButtonWidget(
+                      key: const ValueKey('youtube-story-watch-button'),
+                      text: localizations.getText('ytwatch1'),
+                      icon: Icon(
+                        Icons.open_in_new_rounded,
+                        color: theme.onPrimary,
+                        size: 20.0,
+                      ),
+                      onPressed: video.link.isEmpty
+                          ? null
+                          : () async => _openVideo(video),
+                      options: FFButtonOptions(
+                        height: 48.0,
+                        color: theme.primary,
+                        textStyle: theme.labelLarge.copyWith(
+                          color: theme.onPrimary,
+                          fontWeight: FontWeight.bold,
                         ),
-                        key: const ValueKey('youtube-story-published-age'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.labelMedium.copyWith(
-                          color: theme.secondaryText,
+                        elevation: 0.0,
+                        borderRadius: BorderRadius.circular(
+                          theme.designToken.radius.sm,
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -454,103 +386,94 @@ class _YoutubeStoryHeader extends StatelessWidget {
   }
 }
 
-class _YoutubeStoryCloseButton extends StatelessWidget {
-  const _YoutubeStoryCloseButton({required this.onClose});
+class _YoutubeStoryBackdrop extends StatelessWidget {
+  const _YoutubeStoryBackdrop({required this.imageUrl});
 
-  final VoidCallback onClose;
+  final String imageUrl;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
+    if (imageUrl.isEmpty) return ColoredBox(color: theme.primaryBackground);
 
-    return SafeArea(
-      child: Align(
-        alignment: AlignmentDirectional.topEnd,
-        child: Padding(
-          padding: EdgeInsets.all(theme.designToken.spacing.md),
-          child: Tooltip(
-            message: FFLocalizations.of(context).getText('youtube_story_close'),
-            child: FlutterFlowIconButton(
-              key: const ValueKey('youtube-story-close-button'),
-              borderRadius: theme.designToken.radius.sm,
-              buttonSize: 40.0,
-              icon: Icon(
-                Icons.close_outlined,
-                color: theme.primaryText,
-                size: 24.0,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ImageFiltered(
+          imageFilter: ImageFilter.blur(sigmaX: 22.0, sigmaY: 22.0),
+          child: Transform.scale(
+            scale: 1.16,
+            child: CachedNetworkImage(
+              imageUrl: imageUrl,
+              fit: BoxFit.cover,
+              fadeInDuration: const Duration(milliseconds: 180),
+              placeholder: (_, __) => ColoredBox(
+                color: theme.secondaryBackground,
               ),
-              onPressed: onClose,
+              errorWidget: (_, __, ___) => ColoredBox(
+                color: theme.primaryBackground,
+              ),
             ),
           ),
         ),
-      ),
+        ColoredBox(
+          color: theme.primaryBackground.withValues(alpha: 0.72),
+        ),
+      ],
     );
   }
 }
 
-class _YoutubeStoryProgress extends StatelessWidget {
-  const _YoutubeStoryProgress({
-    required this.storyCount,
-    required this.currentStoryIndex,
-    required this.progressAnimation,
-  });
+class _YoutubeThumbnailLoading extends StatelessWidget {
+  const _YoutubeThumbnailLoading({super.key, required this.theme});
 
-  final int storyCount;
-  final int currentStoryIndex;
-  final Animation<double> progressAnimation;
+  final FlutterFlowTheme theme;
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+        color: theme.secondaryBackground,
+        child: Center(
+          child: SizedBox.square(
+            dimension: 30.0,
+            child: CircularProgressIndicator(
+              color: theme.primary,
+              strokeWidth: 3.0,
+            ),
+          ),
+        ),
+      );
+}
+
+class _YoutubeThumbnailError extends StatelessWidget {
+  const _YoutubeThumbnailError({required this.onRetry});
+
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
-
-    return SafeArea(
-      child: Align(
-        alignment: AlignmentDirectional.topCenter,
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(
-            spacing.sm,
-            spacing.xs,
-            spacing.sm,
-            0.0,
-          ),
-          child: AnimatedBuilder(
-            animation: progressAnimation,
-            builder: (context, _) => Row(
-              key: const ValueKey('youtube-story-progress'),
-              children: List.generate(storyCount, (index) {
-                final progress = index < currentStoryIndex
-                    ? 1.0
-                    : index == currentStoryIndex
-                        ? progressAnimation.value
-                        : 0.0;
-
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      end: index == storyCount - 1 ? 0.0 : spacing.xs,
-                    ),
-                    child: ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(theme.designToken.radius.full),
-                      child: Container(
-                        key: ValueKey('youtube-story-progress-track-$index'),
-                        height: 3.0,
-                        color: theme.secondaryText.withValues(alpha: 0.35),
-                        alignment: AlignmentDirectional.centerStart,
-                        child: FractionallySizedBox(
-                          key: ValueKey('youtube-story-progress-fill-$index'),
-                          widthFactor: progress,
-                          heightFactor: 1.0,
-                          child: ColoredBox(color: theme.primary),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }),
+    return ColoredBox(
+      color: theme.secondaryBackground,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.image_not_supported_outlined,
+              color: theme.secondaryText,
+              size: 40.0,
             ),
-          ),
+            SizedBox(height: spacing.sm),
+            TextButton.icon(
+              key: const ValueKey('youtube-story-thumbnail-retry'),
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18.0),
+              label: Text(
+                FFLocalizations.of(context).getText('story_retry'),
+              ),
+            ),
+          ],
         ),
       ),
     );
