@@ -169,8 +169,7 @@ Future<int> loadBingoCommentCount({
   required DocumentReference? bingoReference,
 }) async {
   if (bingoReference == null) return 0;
-  final snapshot =
-      await bingoReference.collection('comments').count().get();
+  final snapshot = await bingoReference.collection('comments').count().get();
   return snapshot.count ?? 0;
 }
 

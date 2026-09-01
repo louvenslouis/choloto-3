@@ -34,6 +34,7 @@ class StoryViewerShell extends StatefulWidget {
     this.onPause,
     this.onResume,
     this.navigationEnabled = true,
+    this.navigationAboveChild = false,
     this.showHeader = true,
     this.showClose = true,
     this.aspectRatio = cholotoStoryAspectRatio,
@@ -57,6 +58,7 @@ class StoryViewerShell extends StatefulWidget {
   final VoidCallback? onPause;
   final VoidCallback? onResume;
   final bool navigationEnabled;
+  final bool navigationAboveChild;
   final bool showHeader;
   final bool showClose;
   final String previousLabel;
@@ -113,6 +115,41 @@ class _StoryViewerShellState extends State<StoryViewerShell> {
     }
   }
 
+  Widget _buildNavigationOverlay() => Positioned.fill(
+        top: 80.0,
+        bottom: 80.0,
+        child: Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                label: widget.previousLabel,
+                button: true,
+                child: GestureDetector(
+                  key: ValueKey(
+                    '${widget.keyPrefix}-story-previous-area',
+                  ),
+                  behavior: HitTestBehavior.translucent,
+                  onTap: widget.onPreviousStory,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Semantics(
+                label: widget.nextLabel,
+                button: true,
+                child: GestureDetector(
+                  key: ValueKey(
+                    '${widget.keyPrefix}-story-next-area',
+                  ),
+                  behavior: HitTestBehavior.translucent,
+                  onTap: widget.onNextStory,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
@@ -131,43 +168,11 @@ class _StoryViewerShellState extends State<StoryViewerShell> {
             fit: StackFit.expand,
             children: [
               if (widget.background != null) widget.background!,
-              if (widget.navigationEnabled)
-                Positioned.fill(
-                  top: 80.0,
-                  bottom: 80.0,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Semantics(
-                          label: widget.previousLabel,
-                          button: true,
-                          child: GestureDetector(
-                            key: ValueKey(
-                              '${widget.keyPrefix}-story-previous-area',
-                            ),
-                            behavior: HitTestBehavior.translucent,
-                            onTap: widget.onPreviousStory,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Semantics(
-                          label: widget.nextLabel,
-                          button: true,
-                          child: GestureDetector(
-                            key: ValueKey(
-                              '${widget.keyPrefix}-story-next-area',
-                            ),
-                            behavior: HitTestBehavior.translucent,
-                            onTap: widget.onNextStory,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              if (widget.navigationEnabled && !widget.navigationAboveChild)
+                _buildNavigationOverlay(),
               widget.child,
+              if (widget.navigationEnabled && widget.navigationAboveChild)
+                _buildNavigationOverlay(),
               if (widget.bottomOverlay != null) widget.bottomOverlay!,
               if (widget.showHeader)
                 _StoryViewerHeader(

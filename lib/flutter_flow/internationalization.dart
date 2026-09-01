@@ -1437,6 +1437,16 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Bingo apre a',
       'en': 'Next Bingo',
     },
+    'story_close': {
+      'fr': 'Fermer',
+      'cr': 'Fèmen',
+      'en': 'Close',
+    },
+    'story_retry': {
+      'fr': 'Réessayer',
+      'cr': 'Eseye ankò',
+      'en': 'Retry',
+    },
     'bingo_story_like': {
       'fr': 'J’aime ce Bingo',
       'cr': 'Mwen renmen Bingo sa a',
@@ -1481,6 +1491,76 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'Réponse CHOLOTO',
       'cr': 'Repons CHOLOTO',
       'en': 'CHOLOTO reply',
+    },
+    'bingo_story_comments': {
+      'fr': 'Commentaires',
+      'cr': 'Kòmantè',
+      'en': 'Comments',
+    },
+    'bingo_story_admin_replied': {
+      'fr': 'CHOLOTO vous a répondu — Voir',
+      'cr': 'CHOLOTO reponn ou — Gade',
+      'en': 'CHOLOTO replied to you — View',
+    },
+    'bingo_comments_title': {
+      'fr': 'Commentaires du BINGO',
+      'cr': 'Kòmantè Bingo a',
+      'en': 'Bingo comments',
+    },
+    'bingo_comments_anonymous': {
+      'fr': 'Les auteurs restent anonymes.',
+      'cr': 'Non moun yo rete anonim.',
+      'en': 'Authors remain anonymous.',
+    },
+    'bingo_comments_load_error': {
+      'fr': 'Impossible de charger les commentaires.',
+      'cr': 'Nou pa ka chaje kòmantè yo.',
+      'en': 'Comments could not be loaded.',
+    },
+    'bingo_comments_empty': {
+      'fr': 'Aucun commentaire pour ce BINGO.',
+      'cr': 'Pa gen kòmantè pou Bingo sa a.',
+      'en': 'No comments for this Bingo yet.',
+    },
+    'bingo_comment_sign_in_required': {
+      'fr': 'Connectez-vous pour publier un commentaire.',
+      'cr': 'Konekte pou pibliye yon kòmantè.',
+      'en': 'Sign in to post a comment.',
+    },
+    'bingo_comment_you': {
+      'fr': 'Vous',
+      'cr': 'Ou',
+      'en': 'You',
+    },
+    'bingo_comment_member': {
+      'fr': 'Membre CHOLOTO',
+      'cr': 'Manm CHOLOTO',
+      'en': 'CHOLOTO member',
+    },
+    'bingo_comment_like': {
+      'fr': 'J’aime',
+      'cr': 'Renmen',
+      'en': 'Like',
+    },
+    'bingo_comment_liked': {
+      'fr': 'Aimé',
+      'cr': 'Renmen',
+      'en': 'Liked',
+    },
+    'bingo_comment_options': {
+      'fr': 'Options du commentaire',
+      'cr': 'Opsyon kòmantè a',
+      'en': 'Comment options',
+    },
+    'bingo_comment_sending': {
+      'fr': 'Envoi…',
+      'cr': 'Ap voye…',
+      'en': 'Sending…',
+    },
+    'bingo_comment_send_failed': {
+      'fr': 'Échec de l’envoi',
+      'cr': 'Voye a pa mache',
+      'en': 'Send failed',
     },
     'bingo_story_comment_delete': {
       'fr': 'Supprimer',

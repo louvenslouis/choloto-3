@@ -73,14 +73,16 @@ class BingoStatusFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final localizations = FFLocalizations.of(context);
-    final navigationEnabled =
-        onPreviousStory != null || onNextStory != null;
+    final localizations =
+        Localizations.of<FFLocalizations>(context, FFLocalizations);
+    String localized(String key, String fallback) =>
+        localizations?.getText(key) ?? fallback;
+    final navigationEnabled = onPreviousStory != null || onNextStory != null;
 
     return StoryViewerShell(
       frameKey: const ValueKey('bingo-status-frame'),
       keyPrefix: 'bingo',
-      title: localizations.getText('bingo_story_label'),
+      title: localized('bingo_story_label', 'Bingo'),
       avatar: Container(
         padding: EdgeInsets.all(theme.designToken.spacing.xs),
         decoration: BoxDecoration(
@@ -101,6 +103,7 @@ class BingoStatusFrame extends StatelessWidget {
       progressAnimation:
           progressAnimation ?? const AlwaysStoppedAnimation<double>(0.0),
       navigationEnabled: navigationEnabled,
+      navigationAboveChild: true,
       showHeader: publishedAt != null,
       showClose: onClose != null,
       onPreviousStory: onPreviousStory ?? () {},
@@ -108,9 +111,9 @@ class BingoStatusFrame extends StatelessWidget {
       onClose: onClose ?? () {},
       onPause: onPause,
       onResume: onResume,
-      previousLabel: localizations.getText('bingo_story_previous'),
-      nextLabel: localizations.getText('bingo_story_next'),
-      closeLabel: localizations.getText('story_close'),
+      previousLabel: localized('bingo_story_previous', 'Previous Bingo'),
+      nextLabel: localized('bingo_story_next', 'Next Bingo'),
+      closeLabel: localized('story_close', 'Close'),
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
@@ -356,8 +359,7 @@ class _BingoStoryEngagementBar extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (onReaction != null)
-                      SizedBox(width: tokens.spacing.sm),
+                    if (onReaction != null) SizedBox(width: tokens.spacing.sm),
                   ],
                   if (onReaction != null)
                     Row(
@@ -407,9 +409,8 @@ class _BingoAdminInteractionCard extends StatelessWidget {
     final labelKey = status.hasAdminReply
         ? 'bingo_story_admin_replied'
         : 'bingo_story_comment_liked';
-    final icon = status.hasAdminReply
-        ? Icons.verified_rounded
-        : Icons.favorite_rounded;
+    final icon =
+        status.hasAdminReply ? Icons.verified_rounded : Icons.favorite_rounded;
 
     return Material(
       key: const ValueKey('bingo-story-admin-interaction'),
@@ -735,8 +736,8 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
         onSubmitted: _submitComment,
         initialCommentId: _commentStatuses[storyIndex]?.commentId,
         autofocus: autofocus,
-        canComment: currentUserUid.isNotEmpty ||
-            widget.commentSubmitter != null,
+        canComment:
+            currentUserUid.isNotEmpty || widget.commentSubmitter != null,
       );
     } finally {
       if (mounted) {

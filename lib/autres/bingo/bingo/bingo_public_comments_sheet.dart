@@ -65,6 +65,7 @@ Future<void> showBingoPublicCommentsSheet({
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    requestFocus: true,
     backgroundColor: theme.primaryBackground.withValues(alpha: 0.0),
     barrierColor: theme.primaryBackground.withValues(alpha: 0.72),
     builder: (sheetContext) => AnimatedPadding(
@@ -119,6 +120,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
   var _loadFailed = false;
   var _commentPending = false;
   var _commentFailed = false;
+  var _commentSent = false;
   String? _optimisticComment;
 
   @override
@@ -135,7 +137,12 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
   }
 
   void _onDraftChanged() {
-    if (mounted) setState(() => _commentFailed = false);
+    if (mounted) {
+      setState(() {
+        _commentFailed = false;
+        _commentSent = false;
+      });
+    }
   }
 
   Future<void> _reload({bool showLoading = true}) async {
@@ -185,6 +192,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
     setState(() {
       _commentPending = true;
       _commentFailed = false;
+      _commentSent = false;
       _optimisticComment = draft;
     });
     final succeeded = await submitter(draft);
@@ -202,6 +210,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
     setState(() {
       _commentPending = false;
       _commentFailed = false;
+      _commentSent = true;
       _optimisticComment = null;
     });
   }
@@ -257,6 +266,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
       );
       if (mounted) {
         await _reload(showLoading: false);
+        if (!mounted) return;
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -415,6 +425,17 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
                       ),
                       actionLabel: localizations.getText('story_retry'),
                       onAction: _submitComment,
+                    ),
+                  ],
+                  if (_commentSent) ...[
+                    SizedBox(height: tokens.spacing.sm),
+                    _CommentInlineMessage(
+                      key: const ValueKey('bingo-comment-sheet-success'),
+                      color: theme.success,
+                      icon: Icons.check_circle_outline_rounded,
+                      message: localizations.getText(
+                        'bingo_story_comment_success',
+                      ),
                     ),
                   ],
                   SizedBox(height: tokens.spacing.sm),
@@ -712,7 +733,7 @@ class BingoPublicCommentCard extends StatelessWidget {
                             color: theme.secondaryText,
                           ),
                         ),
-                    ),
+                ),
             ],
           ),
         ],

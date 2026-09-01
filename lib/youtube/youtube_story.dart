@@ -1,5 +1,4 @@
 import '/backend/schema/structs/index.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -129,6 +128,7 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
   var _currentIndex = 0;
   var _lifecyclePaused = false;
   var _accessibilityPaused = false;
+  var _thumbnailFailed = false;
 
   @override
   void initState() {
@@ -190,7 +190,10 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
   }
 
   void _selectStory(int index) {
-    setState(() => _currentIndex = index);
+    setState(() {
+      _currentIndex = index;
+      _thumbnailFailed = false;
+    });
     _progressController.forward(from: 0.0);
   }
 
@@ -243,7 +246,16 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
     if (imageUrl.isNotEmpty) {
       await CachedNetworkImage.evictFromCache(imageUrl);
     }
-    if (mounted) setState(() {});
+    if (mounted) setState(() => _thumbnailFailed = false);
+  }
+
+  void _markThumbnailFailed() {
+    if (_thumbnailFailed) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_thumbnailFailed) {
+        setState(() => _thumbnailFailed = true);
+      }
+    });
   }
 
   @override
@@ -297,28 +309,33 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Semantics(
-                image: true,
-                label: localizations.getText('youtube_story_thumbnail'),
-                child: AspectRatio(
-                  aspectRatio: 16.0 / 9.0,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      theme.designToken.radius.md,
-                    ),
-                    child: CachedNetworkImage(
-                      key: ValueKey(
-                        'youtube-story-viewer-thumbnail-$_currentIndex',
+              IgnorePointer(
+                child: Semantics(
+                  image: true,
+                  label: localizations.getText('youtube_story_thumbnail'),
+                  child: AspectRatio(
+                    aspectRatio: 16.0 / 9.0,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        theme.designToken.radius.md,
                       ),
-                      imageUrl: video.thumbnail,
-                      fit: BoxFit.cover,
-                      fadeInDuration: const Duration(milliseconds: 180),
-                      placeholder: (context, _) => _YoutubeThumbnailLoading(
-                        key: const ValueKey('youtube-story-thumbnail-loading'),
-                        theme: theme,
-                      ),
-                      errorWidget: (context, _, __) => _YoutubeThumbnailError(
-                        onRetry: () => _retryThumbnail(video.thumbnail),
+                      child: CachedNetworkImage(
+                        key: ValueKey(
+                          'youtube-story-viewer-thumbnail-$_currentIndex',
+                        ),
+                        imageUrl: video.thumbnail,
+                        fit: BoxFit.cover,
+                        fadeInDuration: const Duration(milliseconds: 180),
+                        placeholder: (context, _) => _YoutubeThumbnailLoading(
+                          key: const ValueKey(
+                            'youtube-story-thumbnail-loading',
+                          ),
+                          theme: theme,
+                        ),
+                        errorWidget: (context, _, __) {
+                          _markThumbnailFailed();
+                          return const _YoutubeThumbnailError();
+                        },
                       ),
                     ),
                   ),
@@ -351,6 +368,15 @@ class _YoutubeStoryViewerState extends State<YoutubeStoryViewer>
                       ),
                     ),
                     SizedBox(height: spacing.md),
+                    if (_thumbnailFailed) ...[
+                      OutlinedButton.icon(
+                        key: const ValueKey('youtube-story-thumbnail-retry'),
+                        onPressed: () => _retryThumbnail(video.thumbnail),
+                        icon: const Icon(Icons.refresh_rounded, size: 18.0),
+                        label: Text(localizations.getText('story_retry')),
+                      ),
+                      SizedBox(height: spacing.sm),
+                    ],
                     FFButtonWidget(
                       key: const ValueKey('youtube-story-watch-button'),
                       text: localizations.getText('ytwatch1'),
@@ -445,35 +471,18 @@ class _YoutubeThumbnailLoading extends StatelessWidget {
 }
 
 class _YoutubeThumbnailError extends StatelessWidget {
-  const _YoutubeThumbnailError({required this.onRetry});
-
-  final VoidCallback onRetry;
+  const _YoutubeThumbnailError();
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
     return ColoredBox(
       color: theme.secondaryBackground,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.image_not_supported_outlined,
-              color: theme.secondaryText,
-              size: 40.0,
-            ),
-            SizedBox(height: spacing.sm),
-            TextButton.icon(
-              key: const ValueKey('youtube-story-thumbnail-retry'),
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 18.0),
-              label: Text(
-                FFLocalizations.of(context).getText('story_retry'),
-              ),
-            ),
-          ],
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          color: theme.secondaryText,
+          size: 40.0,
         ),
       ),
     );
