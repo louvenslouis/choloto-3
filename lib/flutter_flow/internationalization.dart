@@ -1447,6 +1447,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Eseye ankò',
       'en': 'Retry',
     },
+    'home_stories_title': {
+      'fr': 'En ce moment',
+      'cr': 'Kounye a',
+      'en': 'Happening now',
+    },
     'bingo_story_like': {
       'fr': 'J’aime ce Bingo',
       'cr': 'Mwen renmen Bingo sa a',

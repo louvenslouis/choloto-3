@@ -189,6 +189,23 @@ void main() {
         isNotEmpty,
       );
       for (final key in const [
+        'story_close',
+        'story_retry',
+        'home_stories_title',
+        'bingo_story_comments',
+        'bingo_story_admin_replied',
+        'bingo_comments_title',
+        'bingo_comments_anonymous',
+        'bingo_comments_load_error',
+        'bingo_comments_empty',
+        'bingo_comment_sign_in_required',
+        'bingo_comment_you',
+        'bingo_comment_member',
+        'bingo_comment_like',
+        'bingo_comment_liked',
+        'bingo_comment_options',
+        'bingo_comment_sending',
+        'bingo_comment_send_failed',
         'bingo_story_comment_delete',
         'bingo_story_comment_delete_title',
         'bingo_story_comment_delete_message',
@@ -317,11 +334,14 @@ void main() {
             const ValueKey('bingo-comment-delete-comment-owned'),
           );
           expect(deleteFinder, findsOneWidget);
-          expect(
-            tester.widget<FlutterFlowIconButton>(deleteFinder).buttonSize,
-            48.0,
-          );
+          expect(tester.getSize(deleteFinder), const Size.square(48.0));
           await tester.tap(deleteFinder);
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.text(
+              FFLocalizations(locale).getText('bingo_story_comment_delete'),
+            ),
+          );
           await tester.pumpAndSettle();
           expect(deletePressed, isTrue);
           expect(tester.takeException(), isNull);
@@ -329,6 +349,34 @@ void main() {
       );
     }
   }
+
+  testWidgets('Bingo bubble keeps its size and exposes the story count',
+      (tester) async {
+    await tester.pumpWidget(
+      _localizedTestApp(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: BingoStoryButton(
+            viewed: true,
+            storyCount: 3,
+            onTap: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      tester.getSize(find.byKey(const ValueKey('bingo-story-circle'))),
+      const Size.square(72.0),
+    );
+    expect(find.byKey(const ValueKey('bingo-story-count')), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+    expect(find.byKey(const ValueKey('bingo-story-label')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('a foreign Bingo comment does not expose delete', (tester) async {
     final comment = parseBingoPublicComment(
@@ -587,7 +635,7 @@ void main() {
           );
           expect(
             find.text(
-              FFLocalizations(locale).getText('bingo_story_comment_hint'),
+              FFLocalizations(locale).getText('bingo_story_comments'),
             ),
             findsOneWidget,
           );
@@ -605,7 +653,7 @@ void main() {
           );
           expect(
             find.text(
-              FFLocalizations(locale).getText('bingo_story_comment_liked'),
+              FFLocalizations(locale).getText('bingo_story_admin_replied'),
             ),
             findsOneWidget,
           );
@@ -614,7 +662,7 @@ void main() {
               FFLocalizations(locale)
                   .getText('bingo_story_comment_reply_label'),
             ),
-            findsOneWidget,
+            findsNothing,
           );
 
           final reactionRect = tester.getRect(
@@ -633,9 +681,8 @@ void main() {
           final likeButton = tester.widget<FlutterFlowIconButton>(
             find.byKey(const ValueKey('bingo-story-like')),
           );
-          final commentsButton = tester.widget<FlutterFlowIconButton>(
-            find.byKey(const ValueKey('bingo-story-comments-open')),
-          );
+          final commentsButton =
+              find.byKey(const ValueKey('bingo-story-comments-open'));
           final dislikeButton = tester.widget<FlutterFlowIconButton>(
             find.byKey(const ValueKey('bingo-story-dislike')),
           );
@@ -643,18 +690,24 @@ void main() {
             tester.element(find.byKey(const ValueKey('bingo-story-like'))),
           );
           expect(likeButton.buttonSize, 48.0);
-          expect(commentsButton.buttonSize, 48.0);
+          expect(tester.getSize(commentsButton).height, 48.0);
           expect(dislikeButton.buttonSize, 48.0);
           expect(
             likeButton.fillColor,
             storyTheme.primary.withValues(alpha: 0.16),
           );
+          expect((likeButton.icon as Icon).size, 20.0);
           expect(
-            commentsButton.fillColor,
+            tester
+                .widget<Material>(
+                  find.descendant(
+                    of: commentsButton,
+                    matching: find.byType(Material),
+                  ),
+                )
+                .color,
             storyTheme.secondaryBackground.withValues(alpha: 0.48),
           );
-          expect((likeButton.icon as Icon).size, 20.0);
-          expect((commentsButton.icon as Icon).size, 20.0);
           expect((dislikeButton.icon as Icon).size, 20.0);
 
           await tester.tap(
@@ -1009,14 +1062,23 @@ void main() {
     expect(submittedComment, 'Mwen te genyen avèk nou');
     expect(
       find.byKey(const ValueKey('bingo-comment-sheet')),
-      findsNothing,
+      findsOneWidget,
     );
     expect(
       find.byKey(const ValueKey('bingo-story-comment-field')),
-      findsNothing,
+      findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('bingo-story-comment-success')),
+      tester
+          .widget<TextField>(
+            find.byKey(const ValueKey('bingo-story-comment-field')),
+          )
+          .controller
+          ?.text,
+      isEmpty,
+    );
+    expect(
+      find.byKey(const ValueKey('bingo-comment-sheet-success')),
       findsOneWidget,
     );
     expect(
@@ -1024,10 +1086,18 @@ void main() {
         FFLocalizations(const Locale('fr'))
             .getText('bingo_story_comment_success'),
       ),
-      findsOneWidget,
+      findsWidgets,
     );
     expect(tester.takeException(), isNull);
 
+    await tester.tap(
+      find.byKey(const ValueKey('bingo-comment-sheet-close')),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      find.byKey(const ValueKey('bingo-story-comment-success')),
+      findsOneWidget,
+    );
     await tester.tap(find.byKey(const ValueKey('bingo-story-close-button')));
     await tester.pumpAndSettle();
   });
@@ -1077,6 +1147,16 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(
+      find.byKey(const ValueKey('bingo-story-comment-field')),
+      List.filled(450, 'x').join(),
+    );
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('bingo-comment-character-count')),
+      findsOneWidget,
+    );
+    expect(find.text('450 / $bingoCommentMaxLength'), findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('bingo-story-comment-field')),
       'Gardez mon commentaire',

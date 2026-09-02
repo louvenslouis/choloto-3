@@ -65,11 +65,9 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
   void _scheduleAutofocus() {
     scheduleBingoCommentAutofocus(
       shouldFocus: () =>
-          mounted &&
-          widget.autofocus &&
-          widget.enabled &&
-          !_focusNode.hasFocus,
-      isReady: () => mounted,
+          mounted && widget.autofocus && widget.enabled && !_focusNode.hasFocus,
+      isReady: () =>
+          mounted && _focusNode.context != null && _focusNode.canRequestFocus,
       requestFocus: _focusNode.requestFocus,
     );
   }

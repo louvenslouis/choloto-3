@@ -5,6 +5,7 @@ import '/autres/bingo/bingo/bingo_dialog.dart';
 import '/autres/bingo/bingo/bingo_story_button.dart';
 import '/backend/backend.dart';
 import '/components/home_feature_card.dart';
+import '/components/home_stories_rail.dart';
 import '/components/rappel_fin_abonnement_widget.dart';
 import '/components/tirages_home_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -39,6 +40,9 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   DateTime? _latestSubscriptionExpiration;
   bool _homeDialogsReady = false;
   bool _subscriptionReminderHandled = false;
+  bool _youtubeStoriesLoading = true;
+  bool _youtubeStoriesLoadFailed = false;
+  bool _youtubeStoriesViewed = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -226,6 +230,12 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   }
 
   Future<void> _loadYoutubeStories() async {
+    if (mounted) {
+      safeSetState(() {
+        _youtubeStoriesLoading = true;
+        _youtubeStoriesLoadFailed = false;
+      });
+    }
     try {
       final videos = await loadYoutubeVideos(
         fallbackTitle: FFLocalizations.of(context).getText('ytfallback'),
@@ -239,9 +249,17 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
           videos,
           now: getCurrentTimestamp,
         );
+        _youtubeStoriesLoading = false;
+        _youtubeStoriesLoadFailed = false;
       });
     } catch (error) {
       debugPrint('YouTube story feed error: $error');
+      if (mounted) {
+        safeSetState(() {
+          _youtubeStoriesLoading = false;
+          _youtubeStoriesLoadFailed = true;
+        });
+      }
     }
   }
 
@@ -431,59 +449,58 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
                           children: [
-                            if (isBingoStoryCollectionAvailable(
+                            HomeStoriesRail(
+                              loading: _youtubeStoriesLoading,
+                              loadFailed: _youtubeStoriesLoadFailed,
+                              onRetry: () => unawaited(_loadYoutubeStories()),
+                              stories: [
+                                if (isBingoStoryCollectionAvailable(
                                   viewed: FFAppState().bingo.vue,
                                   activeStoryCount: _model.bingoStories.length,
-                                ) ||
-                                _model.youtubeStories.isNotEmpty)
-                              Align(
-                                alignment: AlignmentDirectional.centerStart,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      if (isBingoStoryCollectionAvailable(
-                                        viewed: FFAppState().bingo.vue,
-                                        activeStoryCount:
-                                            _model.bingoStories.length,
-                                      ))
-                                        BingoStoryButton(
-                                          onTap: () async {
-                                            logFirebaseEvent(
-                                              'HOME_PAGE_bingo_story_ON_TAP',
-                                            );
-                                            await showBingoDialog(
-                                              context: context,
-                                              bingos: _model.bingoStories
-                                                  .where(
-                                                    (record) => isBingoActive(
-                                                      bingoDate: record.date,
-                                                      expiration:
-                                                          record.expiration,
-                                                      now: getCurrentTimestamp,
-                                                    ),
-                                                  )
-                                                  .toList(growable: false),
-                                            );
-                                          },
-                                        ),
-                                      if (_model.youtubeStories.isNotEmpty)
-                                        YoutubeStoryButton(
-                                          video: _model.youtubeStories.first,
-                                          onTap: () async {
-                                            logFirebaseEvent(
-                                              'HOME_PAGE_youtube_story_ON_TAP',
-                                            );
-                                            await showYoutubeStoryDialog(
-                                              context: context,
-                                              videos: _model.youtubeStories,
-                                            );
-                                          },
-                                        ),
-                                    ],
+                                ))
+                                  BingoStoryButton(
+                                    viewed: FFAppState().bingo.vue,
+                                    storyCount: _model.bingoStories.length,
+                                    onTap: () async {
+                                      logFirebaseEvent(
+                                        'HOME_PAGE_bingo_story_ON_TAP',
+                                      );
+                                      await showBingoDialog(
+                                        context: context,
+                                        bingos: _model.bingoStories
+                                            .where(
+                                              (record) => isBingoActive(
+                                                bingoDate: record.date,
+                                                expiration: record.expiration,
+                                                now: getCurrentTimestamp,
+                                              ),
+                                            )
+                                            .toList(growable: false),
+                                      );
+                                    },
                                   ),
-                                ),
-                              ),
+                                if (_model.youtubeStories.isNotEmpty)
+                                  YoutubeStoryButton(
+                                    video: _model.youtubeStories.first,
+                                    viewed: _youtubeStoriesViewed,
+                                    storyCount: _model.youtubeStories.length,
+                                    onTap: () async {
+                                      logFirebaseEvent(
+                                        'HOME_PAGE_youtube_story_ON_TAP',
+                                      );
+                                      await showYoutubeStoryDialog(
+                                        context: context,
+                                        videos: _model.youtubeStories,
+                                      );
+                                      if (mounted) {
+                                        safeSetState(
+                                          () => _youtubeStoriesViewed = true,
+                                        );
+                                      }
+                                    },
+                                  ),
+                              ],
+                            ),
                             if (isSubscriptionExpired(
                               expiration: _latestSubscriptionExpiration,
                               now: getCurrentTimestamp,

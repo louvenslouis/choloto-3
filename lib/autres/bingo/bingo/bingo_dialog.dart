@@ -114,17 +114,6 @@ class BingoStatusFrame extends StatelessWidget {
       previousLabel: localized('bingo_story_previous', 'Previous Bingo'),
       nextLabel: localized('bingo_story_next', 'Next Bingo'),
       closeLabel: localized('story_close', 'Close'),
-      child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: SizedBox(
-            key: const ValueKey('bingo-status-content-area'),
-            width: bingoCardPresentationSize.width,
-            height: bingoCardPresentationSize.height,
-            child: child,
-          ),
-        ),
-      ),
       bottomOverlay: onReaction != null ||
               onCommentPressed != null ||
               onViewComments != null
@@ -141,6 +130,17 @@ class BingoStatusFrame extends StatelessWidget {
               commentCount: commentCount,
             )
           : null,
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: SizedBox(
+            key: const ValueKey('bingo-status-content-area'),
+            width: bingoCardPresentationSize.width,
+            height: bingoCardPresentationSize.height,
+            child: child,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -222,7 +222,8 @@ class _BingoStoryEngagementBar extends StatelessWidget {
       );
     }
 
-    final commentsAction = onViewComments ?? onCommentPressed;
+    final commentsAction = onCommentPressed ?? onViewComments;
+    final adminInteractionAction = onViewComments ?? commentsAction;
     final commentsLabel = commentCount != null && commentCount! > 0
         ? '${localizations.getText('bingo_story_comments')} · $commentCount'
         : localizations.getText('bingo_story_comments');
@@ -254,7 +255,7 @@ class _BingoStoryEngagementBar extends StatelessWidget {
               if (commentStatus?.hasAdminInteraction ?? false) ...[
                 _BingoAdminInteractionCard(
                   status: commentStatus!,
-                  onTap: commentsAction,
+                  onTap: adminInteractionAction,
                 ),
                 SizedBox(height: tokens.spacing.sm),
               ],
@@ -666,23 +667,31 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
   }
 
   Future<void> _loadCommentStatus(int index) async {
+    BingoCommentStatus? status;
+    int? count;
+    var statusLoaded = false;
+    var countLoaded = false;
     try {
-      final statusFuture = loadBingoCommentStatus(
+      status = await loadBingoCommentStatus(
         bingoReference: widget.stories[index].reference,
       );
-      final countFuture = loadBingoCommentCount(
-        bingoReference: widget.stories[index].reference,
-      );
-      final status = await statusFuture;
-      final count = await countFuture;
-      if (!mounted) return;
-      setState(() {
-        _commentStatuses[index] = status;
-        _commentCounts[index] = count;
-      });
+      statusLoaded = true;
     } catch (_) {
       // A missing acknowledgement must never prevent the Bingo story opening.
     }
+    try {
+      count = await loadBingoCommentCount(
+        bingoReference: widget.stories[index].reference,
+      );
+      countLoaded = true;
+    } catch (_) {
+      // The comment total is supporting UI and must not block the story either.
+    }
+    if (!mounted || (!statusLoaded && !countLoaded)) return;
+    setState(() {
+      if (statusLoaded) _commentStatuses[index] = status;
+      if (countLoaded) _commentCounts[index] = count;
+    });
   }
 
   void _showCommentFeedback(String message, {required bool isError}) {

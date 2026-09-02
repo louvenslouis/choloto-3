@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:choloto/backend/schema/structs/youtube_item_struct.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
+import 'package:choloto/stories/story_viewer_shell.dart';
 import 'package:choloto/youtube/youtube_feed_service.dart';
 import 'package:choloto/youtube/youtube_story.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -157,6 +159,42 @@ void main() {
     }
   }
 
+  testWidgets('YouTube bubble keeps its size and exposes the story count',
+      (tester) async {
+    final video = _video(
+      title: 'Trois nouvelles vidéos',
+      publishedAt: DateTime.now(),
+    );
+    await tester.pumpWidget(
+      _app(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: YoutubeStoryButton(
+            video: video,
+            viewed: true,
+            storyCount: 3,
+            onTap: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      tester.getSize(find.byKey(const ValueKey('youtube-story-circle'))),
+      const Size.square(72.0),
+    );
+    expect(find.byKey(const ValueKey('youtube-story-count')), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('youtube-story-label')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('YouTube story viewer navigates recent videos on mobile',
       (tester) async {
     tester.view.physicalSize = const Size(320, 568);
@@ -284,6 +322,108 @@ void main() {
     );
     await tester.pump();
     expect(openedVideos, [video]);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('YouTube viewer supports swipe and keyboard navigation',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var closed = false;
+    final now = DateTime.now();
+    final videos = [
+      _video(
+        title: 'Navigation une',
+        publishedAt: now.subtract(const Duration(minutes: 5)),
+      ),
+      _video(
+        title: 'Navigation deux',
+        publishedAt: now.subtract(const Duration(minutes: 10)),
+      ),
+    ];
+
+    await tester.pumpWidget(
+      _app(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        child: YoutubeStoryViewer(
+          videos: videos,
+          storyDuration: const Duration(hours: 1),
+          onClose: () => closed = true,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.fling(
+      find.byKey(const ValueKey('youtube-story-viewer')),
+      const Offset(-240.0, 0.0),
+      1000.0,
+    );
+    await tester.pump();
+    expect(find.text('Navigation deux'), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pump();
+    expect(find.text('Navigation une'), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump();
+    expect(find.text('Navigation deux'), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump();
+    expect(closed, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('holding a Story pauses it until the pointer is released',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var pauseCount = 0;
+    var resumeCount = 0;
+
+    await tester.pumpWidget(
+      _app(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        child: StoryViewerShell(
+          frameKey: const ValueKey('hold-story-frame'),
+          keyPrefix: 'hold',
+          title: 'CHOLOTO',
+          avatar: const SizedBox.shrink(),
+          storyCount: 1,
+          currentStoryIndex: 0,
+          progressAnimation: const AlwaysStoppedAnimation<double>(0.5),
+          onPreviousStory: () {},
+          onNextStory: () {},
+          onClose: () {},
+          onPause: () => pauseCount += 1,
+          onResume: () => resumeCount += 1,
+          previousLabel: 'Précédent',
+          nextLabel: 'Suivant',
+          closeLabel: 'Fermer',
+          child: const ColoredBox(color: Colors.transparent),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('hold-story-frame'))),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(pauseCount, 1);
+    expect(resumeCount, 0);
+
+    await gesture.up();
+    await tester.pump();
+    expect(resumeCount, 1);
     expect(tester.takeException(), isNull);
   });
 
