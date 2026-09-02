@@ -1,5 +1,6 @@
 import 'package:choloto/components/home_feature_card.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -88,7 +89,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final gradientContainer = tester.widget<Container>(
+    final gradientContainer = tester.widget<AnimatedContainer>(
       find.byKey(const ValueKey('home-feature-gradient-vip')),
     );
     final decoration = gradientContainer.decoration! as BoxDecoration;
@@ -101,6 +102,97 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-feature-card-vip')));
     await tester.pumpAndSettle();
     expect(taps, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('reveals cards fluidly and respects reduced motion',
+      (tester) async {
+    await _setViewport(tester, const Size(390.0, 844.0));
+
+    Widget videoCard({bool reduceMotion = false}) => MediaQuery(
+          data: MediaQueryData(
+            size: const Size(390.0, 844.0),
+            disableAnimations: reduceMotion,
+          ),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: _card(
+              id: 'video',
+              title: 'YOUTUBE',
+              description: 'Regarde et reste connecté.',
+              tone: HomeFeatureTone.video,
+              assetPath: _videoAsset,
+            ),
+          ),
+        );
+
+    await tester.pumpWidget(
+      _testApp(themeMode: ThemeMode.dark, child: videoCard()),
+    );
+
+    FadeTransition entrance() => tester.widget<FadeTransition>(
+          find.byKey(const ValueKey('home-feature-entrance-video')),
+        );
+
+    await tester.pump();
+    expect(entrance().opacity.value, 0.0);
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(entrance().opacity.value, greaterThan(0.0));
+    await tester.pumpAndSettle();
+    expect(entrance().opacity.value, 1.0);
+
+    await tester.pumpWidget(
+      _testApp(
+        themeMode: ThemeMode.dark,
+        child: videoCard(reduceMotion: true),
+      ),
+    );
+    await tester.pump();
+    expect(entrance().opacity.value, 1.0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('lifts on hover and compresses on touch', (tester) async {
+    await _setViewport(tester, const Size(390.0, 844.0));
+    await tester.pumpWidget(
+      _testApp(
+        themeMode: ThemeMode.dark,
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: _card(
+            id: 'vip',
+            title: 'ABONNEMENT VIP',
+            description: 'Accède à tous les avantages exclusifs.',
+            tone: HomeFeatureTone.vip,
+            assetPath: _vipAsset,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final cardFinder = find.byKey(const ValueKey('home-feature-card-vip'));
+    final interactionFinder =
+        find.byKey(const ValueKey('home-feature-interaction-scale-vip'));
+    final artworkFinder =
+        find.byKey(const ValueKey('home-feature-artwork-motion-vip'));
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(mouse.removePointer);
+    await mouse.addPointer(location: Offset.zero);
+    await mouse.moveTo(tester.getCenter(cardFinder));
+    await tester.pump(const Duration(milliseconds: 260));
+
+    expect(tester.widget<AnimatedScale>(interactionFinder).scale, 1.018);
+    expect(tester.widget<AnimatedScale>(artworkFinder).scale, 1.065);
+
+    await mouse.moveTo(Offset.zero);
+    await tester.pumpAndSettle();
+    final touch = await tester.startGesture(tester.getCenter(cardFinder));
+    await tester.pump(const Duration(milliseconds: 30));
+    expect(tester.widget<AnimatedScale>(interactionFinder).scale, 0.972);
+    expect(tester.widget<AnimatedScale>(artworkFinder).scale, 0.94);
+    await touch.up();
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 
@@ -172,7 +264,7 @@ void main() {
           );
           await tester.pumpAndSettle();
 
-          final card = tester.widget<Container>(
+          final card = tester.widget<AnimatedContainer>(
             find.byKey(ValueKey('home-feature-gradient-$id')),
           );
           final decoration = card.decoration! as BoxDecoration;
@@ -185,6 +277,8 @@ void main() {
           );
           final titleColor = title.style!.color!;
           final descriptionColor = description.style!.color!;
+          final borderRadius = decoration.borderRadius! as BorderRadius;
+          final border = decoration.border! as Border;
 
           expect(
             tester
@@ -193,6 +287,13 @@ void main() {
                 )
                 .height,
             184.0,
+          );
+          expect(borderRadius.topLeft.x, greaterThanOrEqualTo(90.0));
+          expect(border.top.width, 2.0);
+          expect(decoration.boxShadow, hasLength(2));
+          expect(
+            find.byKey(ValueKey('home-feature-3d-edge-$id')),
+            findsOneWidget,
           );
           expect(
             find.byKey(ValueKey('home-feature-accent-$id')),
@@ -238,7 +339,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final card = tester.widget<Container>(
+      final card = tester.widget<AnimatedContainer>(
         find.byKey(const ValueKey('home-feature-gradient-video')),
       );
       final gradient =
