@@ -22,45 +22,30 @@ class HomeStoriesRail extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!isVisible) return const SizedBox.shrink();
 
-    final theme = FlutterFlowTheme.of(context);
-    final tokens = theme.designToken;
-    final localizations = FFLocalizations.of(context);
-
-    return Padding(
+    return Column(
       key: const ValueKey('home-stories-rail'),
-      padding: EdgeInsetsDirectional.only(bottom: tokens.spacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            localizations.getText('home_stories_title'),
-            key: const ValueKey('home-stories-title'),
-            style: theme.titleSmall.copyWith(
-              color: theme.primaryText,
-              fontWeight: FontWeight.w800,
-            ),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 80.0,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              ...stories,
+              if (loading)
+                const _StoryBubbleSkeleton(
+                  key: ValueKey('home-stories-loading'),
+                ),
+              if (loadFailed)
+                _StoryLoadError(
+                  key: const ValueKey('home-stories-error'),
+                  onRetry: onRetry,
+                ),
+            ],
           ),
-          SizedBox(height: tokens.spacing.sm),
-          SizedBox(
-            height: 80.0,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                ...stories,
-                if (loading)
-                  const _StoryBubbleSkeleton(
-                    key: ValueKey('home-stories-loading'),
-                  ),
-                if (loadFailed)
-                  _StoryLoadError(
-                    key: const ValueKey('home-stories-error'),
-                    onRetry: onRetry,
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

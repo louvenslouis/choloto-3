@@ -114,6 +114,62 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
         .toColor();
   }
 
+  List<Color> _gradientColors({
+    required FlutterFlowTheme theme,
+    required bool darkMode,
+    required Color baseColor,
+  }) {
+    switch (widget.tone) {
+      case HomeFeatureTone.vip:
+        // A restrained plum-to-graphite surface lets the black and gold
+        // membership artwork read clearly in both application themes.
+        return [
+          Color.alphaBlend(
+            baseColor.withValues(alpha: 0.46),
+            theme.onPrimary,
+          ),
+          Color.alphaBlend(
+            baseColor.withValues(alpha: 0.22),
+            theme.onPrimary,
+          ),
+          Color.alphaBlend(
+            theme.primary.withValues(alpha: 0.10),
+            theme.onPrimary,
+          ),
+        ];
+      case HomeFeatureTone.chance:
+        // The Chance card stays warm and golden without putting copy directly
+        // on the bright brand yellow.
+        return [
+          Color.alphaBlend(
+            theme.primary.withValues(alpha: 0.10),
+            theme.onPrimary,
+          ),
+          Color.alphaBlend(
+            theme.primary.withValues(alpha: 0.22),
+            theme.onPrimary,
+          ),
+          Color.alphaBlend(
+            theme.warning.withValues(alpha: 0.15),
+            theme.onPrimary,
+          ),
+        ];
+      case HomeFeatureTone.video:
+        // Preserve the approved YouTube background exactly.
+        return darkMode
+            ? [
+                _shiftLightness(baseColor, -0.28),
+                _shiftLightness(baseColor, -0.10),
+                baseColor,
+              ]
+            : [
+                _shiftLightness(baseColor, -0.12),
+                baseColor,
+                _shiftLightness(baseColor, 0.10),
+              ];
+    }
+  }
+
   IconData get _fallbackIcon {
     switch (widget.tone) {
       case HomeFeatureTone.vip:
@@ -125,6 +181,32 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
     }
   }
 
+  Widget _featureArtwork({
+    required double iconSize,
+    required int cacheWidth,
+    required Color foreground,
+  }) {
+    final imageKey = ValueKey('home-feature-image-${widget.semanticId}');
+
+    return Image.asset(
+      widget.assetPath,
+      key: imageKey,
+      width: iconSize,
+      height: iconSize,
+      cacheWidth: cacheWidth,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => SizedBox(
+        width: iconSize,
+        height: iconSize,
+        child: Icon(
+          _fallbackIcon,
+          size: iconSize * 0.66,
+          color: foreground,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
@@ -132,23 +214,16 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
     final radius = theme.designToken.radius;
     final darkMode = Theme.of(context).brightness == Brightness.dark;
     final baseColor = _brandColor(theme);
-    final foreground = widget.tone == HomeFeatureTone.chance
-        ? theme.onPrimary
-        : theme.onDecorative;
-    final glowColor = widget.tone == HomeFeatureTone.chance
-        ? theme.onDecorative
-        : theme.primary;
-    final gradientColors = darkMode
-        ? [
-            _shiftLightness(baseColor, -0.28),
-            _shiftLightness(baseColor, -0.10),
-            baseColor,
-          ]
-        : [
-            _shiftLightness(baseColor, -0.12),
-            baseColor,
-            _shiftLightness(baseColor, 0.10),
-          ];
+    final isVideo = widget.tone == HomeFeatureTone.video;
+    final foreground = theme.onDecorative;
+    final gradientColors = _gradientColors(
+      theme: theme,
+      darkMode: darkMode,
+      baseColor: baseColor,
+    );
+    final borderColor = isVideo
+        ? foreground.withValues(alpha: darkMode ? 0.16 : 0.22)
+        : theme.primary.withValues(alpha: 0.48);
 
     return Semantics(
       button: true,
@@ -171,9 +246,7 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
                 stops: const [0.0, 0.58, 1.0],
               ),
               borderRadius: BorderRadius.circular(radius.lg),
-              border: Border.all(
-                color: foreground.withValues(alpha: darkMode ? 0.16 : 0.22),
-              ),
+              border: Border.all(color: borderColor),
               boxShadow: [theme.designToken.shadow.md],
             ),
             child: Material(
@@ -195,6 +268,27 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
                   borderRadius: BorderRadius.circular(radius.lg),
                   child: Stack(
                     children: [
+                      if (!isVideo)
+                        PositionedDirectional(
+                          top: 0.0,
+                          start: 0.0,
+                          end: 0.0,
+                          child: Container(
+                            key: ValueKey(
+                              'home-feature-accent-${widget.semanticId}',
+                            ),
+                            height: 3.0,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  theme.primary.withValues(alpha: 0.18),
+                                  theme.primary,
+                                  theme.primary.withValues(alpha: 0.18),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       PositionedDirectional(
                         top: -54.0,
                         end: -28.0,
@@ -205,8 +299,10 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
                             shape: BoxShape.circle,
                             gradient: RadialGradient(
                               colors: [
-                                glowColor.withValues(alpha: 0.28),
-                                glowColor.withValues(alpha: 0.0),
+                                theme.primary.withValues(
+                                  alpha: isVideo ? 0.28 : 0.38,
+                                ),
+                                theme.primary.withValues(alpha: 0.0),
                               ],
                             ),
                           ),
@@ -243,26 +339,36 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
                                     children: [
                                       Text(
                                         widget.title,
+                                        key: ValueKey(
+                                          'home-feature-title-${widget.semanticId}',
+                                        ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: theme.titleLarge.override(
                                           color: foreground,
                                           fontSize: compact ? 19.0 : 21.0,
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: isVideo
+                                              ? FontWeight.w700
+                                              : FontWeight.w800,
                                           lineHeight: 1.05,
                                         ),
                                       ),
                                       SizedBox(height: spacing.sm),
                                       Text(
                                         widget.description,
+                                        key: ValueKey(
+                                          'home-feature-description-${widget.semanticId}',
+                                        ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: theme.bodyMedium.override(
                                           color: foreground.withValues(
-                                            alpha: 0.84,
+                                            alpha: isVideo ? 0.84 : 0.92,
                                           ),
                                           fontSize: compact ? 12.5 : 13.5,
-                                          fontWeight: FontWeight.w500,
+                                          fontWeight: isVideo
+                                              ? FontWeight.w500
+                                              : FontWeight.w600,
                                           lineHeight: 1.25,
                                         ),
                                       ),
@@ -271,21 +377,29 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
                                         width: 34.0,
                                         height: 34.0,
                                         decoration: BoxDecoration(
-                                          color: foreground.withValues(
-                                            alpha: 0.13,
-                                          ),
+                                          color: isVideo
+                                              ? foreground.withValues(
+                                                  alpha: 0.13,
+                                                )
+                                              : theme.primary,
                                           borderRadius: BorderRadius.circular(
                                             radius.full,
                                           ),
                                           border: Border.all(
-                                            color: foreground.withValues(
-                                              alpha: 0.13,
-                                            ),
+                                            color: isVideo
+                                                ? foreground.withValues(
+                                                    alpha: 0.13,
+                                                  )
+                                                : theme.onDecorative.withValues(
+                                                    alpha: 0.18,
+                                                  ),
                                           ),
                                         ),
                                         child: Icon(
                                           Icons.arrow_forward_rounded,
-                                          color: foreground,
+                                          color: isVideo
+                                              ? foreground
+                                              : theme.onPrimary,
                                           size: 19.0,
                                         ),
                                       ),
@@ -294,23 +408,28 @@ class _HomeFeatureCardState extends State<HomeFeatureCard> {
                                 ),
                                 SizedBox(width: spacing.sm),
                                 ExcludeSemantics(
-                                  child: Image.asset(
-                                    widget.assetPath,
-                                    key: ValueKey(
-                                      'home-feature-image-${widget.semanticId}',
-                                    ),
+                                  child: Container(
                                     width: iconSize,
                                     height: iconSize,
-                                    cacheWidth: cacheWidth,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => SizedBox(
-                                      width: iconSize,
-                                      height: iconSize,
-                                      child: Icon(
-                                        _fallbackIcon,
-                                        size: iconSize * 0.66,
-                                        color: foreground,
-                                      ),
+                                    decoration: isVideo
+                                        ? null
+                                        : BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: RadialGradient(
+                                              colors: [
+                                                theme.primary.withValues(
+                                                  alpha: 0.20,
+                                                ),
+                                                theme.primary.withValues(
+                                                  alpha: 0.0,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                    child: _featureArtwork(
+                                      iconSize: iconSize,
+                                      cacheWidth: cacheWidth,
+                                      foreground: foreground,
                                     ),
                                   ),
                                 ),

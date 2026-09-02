@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _vipAsset = 'assets/images/home/vip_membership_3d_v2.png';
-const _chanceAsset = 'assets/images/home/lucky_cross_3d_v2.png';
+const _chanceAsset = 'assets/images/home/lucky_cross_3d_x.png';
 const _videoAsset = 'assets/images/home/video_play_3d_v2.png';
 
 Widget _testApp({
@@ -44,8 +44,26 @@ Future<void> _setViewport(WidgetTester tester, Size size) async {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
+double _contrastRatio(Color foreground, Color background) {
+  final opaqueForeground = Color.alphaBlend(foreground, background);
+  final lighter =
+      opaqueForeground.computeLuminance() > background.computeLuminance()
+          ? opaqueForeground
+          : background;
+  final darker = lighter == opaqueForeground ? background : opaqueForeground;
+  return (lighter.computeLuminance() + 0.05) /
+      (darker.computeLuminance() + 0.05);
+}
+
+Color _shiftLightness(Color color, double amount) {
+  final hsl = HSLColor.fromColor(color);
+  return hsl
+      .withLightness((hsl.lightness + amount).clamp(0.0, 1.0).toDouble())
+      .toColor();
+}
+
 void main() {
-  testWidgets('renders a tappable gradient card with its 3D asset',
+  testWidgets('renders a tappable gradient card with its VIP asset',
       (tester) async {
     await _setViewport(tester, const Size(320.0, 568.0));
     var taps = 0;
@@ -85,6 +103,168 @@ void main() {
     expect(taps, 1);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('renders the Chance artwork as a 3D X asset', (tester) async {
+    await _setViewport(tester, const Size(320.0, 568.0));
+
+    await tester.pumpWidget(
+      _testApp(
+        themeMode: ThemeMode.dark,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _card(
+              id: 'chance',
+              title: 'CROIX DE LA CHANCE',
+              description: 'Tente chaque jour et gagne GROS.',
+              tone: HomeFeatureTone.chance,
+              assetPath: _chanceAsset,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final artwork = tester.widget<Image>(
+      find.byKey(const ValueKey('home-feature-image-chance')),
+    );
+    expect(artwork.image, isA<ResizeImage>());
+    final resizedImage = artwork.image as ResizeImage;
+    expect(resizedImage.imageProvider, isA<AssetImage>());
+    expect(
+      (resizedImage.imageProvider as AssetImage).assetName,
+      _chanceAsset,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final tone in const [HomeFeatureTone.vip, HomeFeatureTone.chance]) {
+    for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
+      testWidgets(
+        '${tone.name} card has a premium background and readable copy in ${themeMode.name}',
+        (tester) async {
+          await _setViewport(tester, const Size(320.0, 568.0));
+          final id = tone.name;
+
+          await tester.pumpWidget(
+            _testApp(
+              themeMode: themeMode,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _card(
+                    id: id,
+                    title: tone == HomeFeatureTone.vip
+                        ? 'ABONNEMENT VIP'
+                        : 'CROIX DE LA CHANCE',
+                    description: tone == HomeFeatureTone.vip
+                        ? 'Accède à tous les avantages exclusifs.'
+                        : 'Tente chaque jour et gagne GROS.',
+                    tone: tone,
+                    assetPath:
+                        tone == HomeFeatureTone.vip ? _vipAsset : _chanceAsset,
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final card = tester.widget<Container>(
+            find.byKey(ValueKey('home-feature-gradient-$id')),
+          );
+          final decoration = card.decoration! as BoxDecoration;
+          final gradient = decoration.gradient! as LinearGradient;
+          final title = tester.widget<Text>(
+            find.byKey(ValueKey('home-feature-title-$id')),
+          );
+          final description = tester.widget<Text>(
+            find.byKey(ValueKey('home-feature-description-$id')),
+          );
+          final titleColor = title.style!.color!;
+          final descriptionColor = description.style!.color!;
+
+          expect(
+            tester
+                .getSize(
+                  find.byKey(ValueKey('home-feature-gradient-$id')),
+                )
+                .height,
+            184.0,
+          );
+          expect(
+            find.byKey(ValueKey('home-feature-accent-$id')),
+            findsOneWidget,
+          );
+          for (final background in gradient.colors) {
+            expect(
+              _contrastRatio(titleColor, background),
+              greaterThanOrEqualTo(7.0),
+            );
+            expect(
+              _contrastRatio(descriptionColor, background),
+              greaterThanOrEqualTo(4.5),
+            );
+          }
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
+    testWidgets('YouTube card background stays unchanged in ${themeMode.name}',
+        (tester) async {
+      await _setViewport(tester, const Size(320.0, 568.0));
+      await tester.pumpWidget(
+        _testApp(
+          themeMode: themeMode,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _card(
+                id: 'video',
+                title: 'YOUTUBE',
+                description: 'Regarde et reste connecté.',
+                tone: HomeFeatureTone.video,
+                assetPath: _videoAsset,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final card = tester.widget<Container>(
+        find.byKey(const ValueKey('home-feature-gradient-video')),
+      );
+      final gradient =
+          (card.decoration! as BoxDecoration).gradient! as LinearGradient;
+      const youtubeRed = Color(0xFFE62117);
+      expect(
+        gradient.colors,
+        themeMode == ThemeMode.dark
+            ? [
+                _shiftLightness(youtubeRed, -0.28),
+                _shiftLightness(youtubeRed, -0.10),
+                youtubeRed,
+              ]
+            : [
+                _shiftLightness(youtubeRed, -0.12),
+                youtubeRed,
+                _shiftLightness(youtubeRed, 0.10),
+              ],
+      );
+      expect(
+        find.byKey(const ValueKey('home-feature-accent-video')),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {

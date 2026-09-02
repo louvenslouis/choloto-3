@@ -173,6 +173,26 @@ Future<int> loadBingoCommentCount({
   return snapshot.count ?? 0;
 }
 
+Future<BingoPublicComment?> loadBingoCommentPreview({
+  required DocumentReference? bingoReference,
+}) async {
+  if (bingoReference == null) return null;
+
+  final commentsSnapshot = await bingoReference
+      .collection('comments')
+      .orderBy('updatedAt', descending: true)
+      .limit(3)
+      .get();
+  for (final document in commentsSnapshot.docs) {
+    final comment = parseBingoPublicComment(
+      id: document.id,
+      data: document.data(),
+    );
+    if (comment != null) return comment;
+  }
+  return null;
+}
+
 Future<List<BingoPublicComment>> loadPublicBingoComments({
   required DocumentReference? bingoReference,
 }) async {

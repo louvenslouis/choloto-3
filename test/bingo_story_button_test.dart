@@ -193,6 +193,7 @@ void main() {
         'story_retry',
         'home_stories_title',
         'bingo_story_comments',
+        'bingo_comments_view_all',
         'bingo_story_admin_replied',
         'bingo_comments_title',
         'bingo_comments_anonymous',
@@ -536,194 +537,239 @@ void main() {
 
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
-      testWidgets(
-        'Bingo status chrome renders ${locale.languageCode} in ${themeMode.name} mode',
-        (tester) async {
-          tester.view.physicalSize = const Size(360, 800);
-          tester.view.devicePixelRatio = 1.0;
-          addTearDown(tester.view.resetPhysicalSize);
-          addTearDown(tester.view.resetDevicePixelRatio);
-          BingoReaction? tappedReaction;
-          var commentPressed = false;
+      for (final viewport in const [
+        ('mobile', Size(320, 568)),
+        ('Web', Size(1280, 800)),
+      ]) {
+        testWidgets(
+          'Bingo status chrome renders ${locale.languageCode} on ${viewport.$1} in ${themeMode.name} mode',
+          (tester) async {
+            tester.view.physicalSize = viewport.$2;
+            tester.view.devicePixelRatio = 1.0;
+            addTearDown(tester.view.resetPhysicalSize);
+            addTearDown(tester.view.resetDevicePixelRatio);
+            BingoReaction? tappedReaction;
+            var commentPressed = false;
+            var viewCommentsPressed = false;
 
-          await tester.pumpWidget(
-            MaterialApp(
-              locale: locale,
-              supportedLocales: const [
-                Locale('fr'),
-                Locale('en'),
-                Locale('cr'),
-              ],
-              localizationsDelegates: const [
-                FFLocalizationsDelegate(),
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-                FallbackMaterialLocalizationDelegate(),
-                FallbackCupertinoLocalizationDelegate(),
-              ],
-              theme: ThemeData(brightness: Brightness.light),
-              darkTheme: ThemeData(brightness: Brightness.dark),
-              themeMode: themeMode,
-              home: Scaffold(
-                body: BingoStatusFrame(
-                  publishedAt:
-                      DateTime.now().subtract(const Duration(hours: 2)),
-                  selectedReaction: BingoReaction.positive,
-                  onReaction: (reaction) => tappedReaction = reaction,
-                  onViewComments: () {},
-                  onCommentPressed: () => commentPressed = true,
-                  commentFeedback: FFLocalizations(locale)
-                      .getText('bingo_story_comment_success'),
-                  commentStatus: const BingoCommentStatus(
-                    adminLiked: true,
-                    adminLikedAt: null,
-                    adminReply: 'Merci pour votre message !',
-                    adminReplyAt: null,
-                  ),
-                  storyCount: 3,
-                  currentStoryIndex: 1,
-                  progressAnimation: const AlwaysStoppedAnimation<double>(0.5),
-                  onPreviousStory: () {},
-                  onNextStory: () {},
-                  child: const SizedBox(
-                    key: ValueKey('status-chrome-bingo-content'),
+            await tester.pumpWidget(
+              MaterialApp(
+                locale: locale,
+                supportedLocales: const [
+                  Locale('fr'),
+                  Locale('en'),
+                  Locale('cr'),
+                ],
+                localizationsDelegates: const [
+                  FFLocalizationsDelegate(),
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                  FallbackMaterialLocalizationDelegate(),
+                  FallbackCupertinoLocalizationDelegate(),
+                ],
+                theme: ThemeData(brightness: Brightness.light),
+                darkTheme: ThemeData(brightness: Brightness.dark),
+                themeMode: themeMode,
+                home: Scaffold(
+                  body: BingoStatusFrame(
+                    publishedAt:
+                        DateTime.now().subtract(const Duration(hours: 2)),
+                    selectedReaction: BingoReaction.positive,
+                    onReaction: (reaction) => tappedReaction = reaction,
+                    onViewComments: () => viewCommentsPressed = true,
+                    onCommentPressed: () => commentPressed = true,
+                    commentCount: 12,
+                    commentPreview: BingoPublicComment(
+                      id: 'preview-comment',
+                      userId: 'anonymous-member',
+                      text: 'Une combinaison vraiment gagnante !',
+                      createdAt: DateTime(2026, 8, 31, 12),
+                      updatedAt: DateTime(2026, 8, 31, 12),
+                      adminLiked: false,
+                      adminReply: '',
+                      adminReplyAt: null,
+                      likeCount: 0,
+                      likedByCurrentUser: false,
+                    ),
+                    commentFeedback: FFLocalizations(locale)
+                        .getText('bingo_story_comment_success'),
+                    commentStatus: const BingoCommentStatus(
+                      adminLiked: true,
+                      adminLikedAt: null,
+                      adminReply: 'Merci pour votre message !',
+                      adminReplyAt: null,
+                    ),
+                    storyCount: 3,
+                    currentStoryIndex: 1,
+                    progressAnimation:
+                        const AlwaysStoppedAnimation<double>(0.5),
+                    onPreviousStory: () {},
+                    onNextStory: () {},
+                    child: const SizedBox(
+                      key: ValueKey('status-chrome-bingo-content'),
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-          await tester.pumpAndSettle();
+            );
+            await tester.pumpAndSettle();
 
-          expect(
-            find.byKey(const ValueKey('bingo-story-header')),
-            findsOneWidget,
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-progress')),
-            findsOneWidget,
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-previous-area')),
-            findsOneWidget,
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-next-area')),
-            findsOneWidget,
-          );
-          expect(
-            find.text(
-              FFLocalizations(locale).getText('bingo_story_label'),
-            ),
-            findsOneWidget,
-          );
-          final publicationAge = tester.widget<Text>(
-            find.byKey(const ValueKey('bingo-story-published-age')),
-          );
-          expect(publicationAge.data, isNotEmpty);
-          expect(
-            find.byKey(const ValueKey('bingo-story-like')),
-            findsOneWidget,
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-dislike')),
-            findsOneWidget,
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-comment-open')),
-            findsOneWidget,
-          );
-          expect(
-            find.text(
-              FFLocalizations(locale).getText('bingo_story_comments'),
-            ),
-            findsOneWidget,
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-comment-field')),
-            findsNothing,
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-comment-success')),
-            findsOneWidget,
-          );
-          expect(
-            find.byKey(const ValueKey('bingo-story-admin-interaction')),
-            findsOneWidget,
-          );
-          expect(
-            find.text(
-              FFLocalizations(locale).getText('bingo_story_admin_replied'),
-            ),
-            findsOneWidget,
-          );
-          expect(
-            find.text(
-              FFLocalizations(locale)
-                  .getText('bingo_story_comment_reply_label'),
-            ),
-            findsNothing,
-          );
+            expect(
+              find.byKey(const ValueKey('bingo-story-header')),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-progress')),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-previous-area')),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-next-area')),
+              findsOneWidget,
+            );
+            expect(
+              find.text(
+                FFLocalizations(locale).getText('bingo_story_label'),
+              ),
+              findsOneWidget,
+            );
+            final publicationAge = tester.widget<Text>(
+              find.byKey(const ValueKey('bingo-story-published-age')),
+            );
+            expect(publicationAge.data, isNotEmpty);
+            expect(
+              find.byKey(const ValueKey('bingo-story-like')),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-dislike')),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-comment-open')),
+              findsOneWidget,
+            );
+            expect(
+              find.text(
+                FFLocalizations(locale).getText('bingo_story_comment_hint'),
+              ),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-comment-preview')),
+              findsOneWidget,
+            );
+            final previewText = tester.widget<Text>(
+              find.byKey(
+                const ValueKey('bingo-story-comment-preview-text'),
+              ),
+            );
+            expect(
+              previewText.textSpan?.toPlainText(),
+              contains('Une combinaison vraiment gagnante !'),
+            );
+            expect(
+              find.text(
+                '${FFLocalizations(locale).getText('bingo_comments_view_all')} · 12',
+              ),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-comment-field')),
+              findsNothing,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-comment-success')),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const ValueKey('bingo-story-admin-interaction')),
+              findsOneWidget,
+            );
+            expect(
+              find.text(
+                FFLocalizations(locale).getText('bingo_story_admin_replied'),
+              ),
+              findsOneWidget,
+            );
+            expect(
+              find.text(
+                FFLocalizations(locale)
+                    .getText('bingo_story_comment_reply_label'),
+              ),
+              findsNothing,
+            );
 
-          final reactionRect = tester.getRect(
-            find.byKey(const ValueKey('bingo-story-reactions')),
-          );
-          final commentActionRect = tester.getRect(
-            find.byKey(const ValueKey('bingo-story-comment-open')),
-          );
-          expect(reactionRect.center.dx, greaterThan(180.0));
-          expect(reactionRect.center.dy, greaterThan(400.0));
-          expect(
-            (reactionRect.center.dy - commentActionRect.center.dy).abs(),
-            lessThan(1.0),
-          );
+            final reactionRect = tester.getRect(
+              find.byKey(const ValueKey('bingo-story-reactions')),
+            );
+            final commentActionRect = tester.getRect(
+              find.byKey(const ValueKey('bingo-story-comment-open')),
+            );
+            expect(reactionRect.center.dx, greaterThan(180.0));
+            expect(reactionRect.center.dy, greaterThan(400.0));
+            expect(
+              (reactionRect.center.dy - commentActionRect.center.dy).abs(),
+              lessThan(1.0),
+            );
 
-          final likeButton = tester.widget<FlutterFlowIconButton>(
-            find.byKey(const ValueKey('bingo-story-like')),
-          );
-          final commentsButton =
-              find.byKey(const ValueKey('bingo-story-comments-open'));
-          final dislikeButton = tester.widget<FlutterFlowIconButton>(
-            find.byKey(const ValueKey('bingo-story-dislike')),
-          );
-          final storyTheme = FlutterFlowTheme.of(
-            tester.element(find.byKey(const ValueKey('bingo-story-like'))),
-          );
-          expect(likeButton.buttonSize, 48.0);
-          expect(tester.getSize(commentsButton).height, 48.0);
-          expect(dislikeButton.buttonSize, 48.0);
-          expect(
-            likeButton.fillColor,
-            storyTheme.primary.withValues(alpha: 0.16),
-          );
-          expect((likeButton.icon as Icon).size, 20.0);
-          expect(
-            tester
-                .widget<Material>(
-                  find.descendant(
-                    of: commentsButton,
-                    matching: find.byType(Material),
-                  ),
-                )
-                .color,
-            storyTheme.secondaryBackground.withValues(alpha: 0.48),
-          );
-          expect((dislikeButton.icon as Icon).size, 20.0);
+            final likeButton = tester.widget<FlutterFlowIconButton>(
+              find.byKey(const ValueKey('bingo-story-like')),
+            );
+            final commentsButton =
+                find.byKey(const ValueKey('bingo-story-comments-open'));
+            final dislikeButton = tester.widget<FlutterFlowIconButton>(
+              find.byKey(const ValueKey('bingo-story-dislike')),
+            );
+            final storyTheme = FlutterFlowTheme.of(
+              tester.element(find.byKey(const ValueKey('bingo-story-like'))),
+            );
+            expect(likeButton.buttonSize, 48.0);
+            expect(tester.getSize(commentsButton).height, 48.0);
+            expect(dislikeButton.buttonSize, 48.0);
+            expect(
+              likeButton.fillColor,
+              storyTheme.primary.withValues(alpha: 0.16),
+            );
+            expect((likeButton.icon as Icon).size, 20.0);
+            expect(
+              tester
+                  .widget<Material>(
+                    find.descendant(
+                      of: commentsButton,
+                      matching: find.byType(Material),
+                    ),
+                  )
+                  .color,
+              storyTheme.secondaryBackground.withValues(alpha: 0.48),
+            );
+            expect((dislikeButton.icon as Icon).size, 20.0);
 
-          await tester.tap(
-            find.byKey(const ValueKey('bingo-story-dislike')),
-          );
-          await tester.pump();
-          expect(tappedReaction, BingoReaction.negative);
+            await tester.tap(
+              find.byKey(const ValueKey('bingo-story-dislike')),
+            );
+            await tester.pump();
+            expect(tappedReaction, BingoReaction.negative);
 
-          await tester.tap(
-            find.byKey(const ValueKey('bingo-story-comment-open')),
-          );
-          await tester.pump();
-          expect(commentPressed, isTrue);
-          expect(tester.takeException(), isNull);
-        },
-      );
+            await tester.tap(
+              find.byKey(const ValueKey('bingo-story-comments-preview-open')),
+            );
+            await tester.pump();
+            expect(viewCommentsPressed, isTrue);
+
+            await tester.tap(
+              find.byKey(const ValueKey('bingo-story-comment-open')),
+            );
+            await tester.pump();
+            expect(commentPressed, isTrue);
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
     }
   }
 

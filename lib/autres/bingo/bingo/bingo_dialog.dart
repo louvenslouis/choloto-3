@@ -40,6 +40,7 @@ class BingoStatusFrame extends StatelessWidget {
     this.commentStatus,
     this.onViewComments,
     this.commentCount,
+    this.commentPreview,
     this.storyCount = 0,
     this.currentStoryIndex = 0,
     this.progressAnimation,
@@ -62,6 +63,7 @@ class BingoStatusFrame extends StatelessWidget {
   final BingoCommentStatus? commentStatus;
   final VoidCallback? onViewComments;
   final int? commentCount;
+  final BingoPublicComment? commentPreview;
   final int storyCount;
   final int currentStoryIndex;
   final Animation<double>? progressAnimation;
@@ -128,6 +130,7 @@ class BingoStatusFrame extends StatelessWidget {
               commentStatus: commentStatus,
               onViewComments: onViewComments,
               commentCount: commentCount,
+              commentPreview: commentPreview,
             )
           : null,
       child: Center(
@@ -157,6 +160,7 @@ class _BingoStoryEngagementBar extends StatelessWidget {
     required this.commentStatus,
     required this.onViewComments,
     required this.commentCount,
+    required this.commentPreview,
   });
 
   final BingoReaction? selectedReaction;
@@ -169,6 +173,7 @@ class _BingoStoryEngagementBar extends StatelessWidget {
   final BingoCommentStatus? commentStatus;
   final VoidCallback? onViewComments;
   final int? commentCount;
+  final BingoPublicComment? commentPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -222,11 +227,9 @@ class _BingoStoryEngagementBar extends StatelessWidget {
       );
     }
 
-    final commentsAction = onCommentPressed ?? onViewComments;
-    final adminInteractionAction = onViewComments ?? commentsAction;
-    final commentsLabel = commentCount != null && commentCount! > 0
-        ? '${localizations.getText('bingo_story_comments')} · $commentCount'
-        : localizations.getText('bingo_story_comments');
+    final commentAction = onCommentPressed ?? onViewComments;
+    final adminInteractionAction = onViewComments ?? commentAction;
+    final commentHint = localizations.getText('bingo_story_comment_hint');
 
     return SafeArea(
       child: Align(
@@ -307,13 +310,47 @@ class _BingoStoryEngagementBar extends StatelessWidget {
                 ),
                 SizedBox(height: tokens.spacing.sm),
               ],
+              if (commentPreview != null) ...[
+                _BingoCommentPreview(
+                  comment: commentPreview!,
+                  onTap: onViewComments,
+                ),
+                SizedBox(height: tokens.spacing.xs),
+              ],
+              if ((commentCount ?? 0) > 0 && onViewComments != null) ...[
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton(
+                    key: const ValueKey('bingo-story-comments-preview-open'),
+                    onPressed: onViewComments,
+                    style: TextButton.styleFrom(
+                      foregroundColor: theme.secondaryText,
+                      minimumSize: const Size(48.0, 40.0),
+                      padding: EdgeInsetsDirectional.symmetric(
+                        horizontal: tokens.spacing.sm,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      '${localizations.getText('bingo_comments_view_all')} · $commentCount',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.labelMedium.copyWith(
+                        color: theme.secondaryText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: tokens.spacing.xs),
+              ],
               Row(
                 key: const ValueKey('bingo-story-engagement-bar'),
                 children: [
-                  if (commentsAction != null) ...[
+                  if (commentAction != null) ...[
                     Expanded(
                       child: Semantics(
-                        label: commentsLabel,
+                        label: commentHint,
                         button: true,
                         enabled: commentEnabled,
                         child: SizedBox(
@@ -327,7 +364,7 @@ class _BingoStoryEngagementBar extends StatelessWidget {
                             clipBehavior: Clip.antiAlias,
                             child: InkWell(
                               key: const ValueKey('bingo-story-comment-open'),
-                              onTap: commentEnabled ? commentsAction : null,
+                              onTap: commentEnabled ? commentAction : null,
                               hoverColor: engagementButtonHoverColor,
                               child: Padding(
                                 padding: EdgeInsetsDirectional.symmetric(
@@ -336,14 +373,14 @@ class _BingoStoryEngagementBar extends StatelessWidget {
                                 child: Row(
                                   children: [
                                     Icon(
-                                      Icons.forum_outlined,
+                                      Icons.add_comment_outlined,
                                       color: theme.secondaryText,
                                       size: 20.0,
                                     ),
                                     SizedBox(width: tokens.spacing.sm),
                                     Expanded(
                                       child: Text(
-                                        commentsLabel,
+                                        commentHint,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: theme.labelLarge.copyWith(
@@ -385,6 +422,84 @@ class _BingoStoryEngagementBar extends StatelessWidget {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BingoCommentPreview extends StatelessWidget {
+  const _BingoCommentPreview({
+    required this.comment,
+    required this.onTap,
+  });
+
+  final BingoPublicComment comment;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final localizations = FFLocalizations.of(context);
+    final author = comment.isOwnedBy(currentUserUid)
+        ? localizations.getText('bingo_comment_you')
+        : localizations.getText('bingo_comment_member');
+
+    return Semantics(
+      button: onTap != null,
+      child: Material(
+        key: const ValueKey('bingo-story-comment-preview'),
+        color: theme.primaryBackground.withValues(alpha: 0.24),
+        borderRadius: BorderRadius.circular(tokens.radius.sm),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          hoverColor: theme.secondaryBackground.withValues(alpha: 0.48),
+          child: Padding(
+            padding: EdgeInsetsDirectional.symmetric(
+              horizontal: tokens.spacing.sm,
+              vertical: tokens.spacing.xs,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsetsDirectional.only(top: tokens.spacing.xs),
+                  child: Icon(
+                    Icons.person_outline_rounded,
+                    color: theme.secondaryText,
+                    size: 16.0,
+                  ),
+                ),
+                SizedBox(width: tokens.spacing.sm),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '$author  ',
+                          style: theme.bodySmall.copyWith(
+                            color: theme.primaryText,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        TextSpan(
+                          text: comment.text,
+                          style: theme.bodySmall.copyWith(
+                            color: theme.primaryText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    key: const ValueKey('bingo-story-comment-preview-text'),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -553,6 +668,7 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
   late final List<DocumentReference?> _reactionReferences;
   late final List<BingoCommentStatus?> _commentStatuses;
   late final List<int?> _commentCounts;
+  late final List<BingoPublicComment?> _commentPreviews;
   final _commentController = TextEditingController();
   var _currentIndex = 0;
   var _reactionPending = false;
@@ -580,6 +696,11 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       growable: false,
     );
     _commentCounts = List<int?>.filled(
+      widget.stories.length,
+      null,
+      growable: false,
+    );
+    _commentPreviews = List<BingoPublicComment?>.filled(
       widget.stories.length,
       null,
       growable: false,
@@ -669,8 +790,10 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
   Future<void> _loadCommentStatus(int index) async {
     BingoCommentStatus? status;
     int? count;
+    BingoPublicComment? preview;
     var statusLoaded = false;
     var countLoaded = false;
+    var previewLoaded = false;
     try {
       status = await loadBingoCommentStatus(
         bingoReference: widget.stories[index].reference,
@@ -687,10 +810,19 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
     } catch (_) {
       // The comment total is supporting UI and must not block the story either.
     }
-    if (!mounted || (!statusLoaded && !countLoaded)) return;
+    try {
+      preview = await loadBingoCommentPreview(
+        bingoReference: widget.stories[index].reference,
+      );
+      previewLoaded = true;
+    } catch (_) {
+      // The compact preview is optional and must not block the story either.
+    }
+    if (!mounted || (!statusLoaded && !countLoaded && !previewLoaded)) return;
     setState(() {
       if (statusLoaded) _commentStatuses[index] = status;
       if (countLoaded) _commentCounts[index] = count;
+      if (previewLoaded) _commentPreviews[index] = preview;
     });
   }
 
@@ -860,6 +992,7 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       commentFeedbackIsError: _commentFeedbackIsError,
       commentStatus: _commentStatuses[_currentIndex],
       commentCount: _commentCounts[_currentIndex],
+      commentPreview: _commentPreviews[_currentIndex],
       onViewComments: _showComments,
       storyCount: widget.stories.length,
       currentStoryIndex: _currentIndex,

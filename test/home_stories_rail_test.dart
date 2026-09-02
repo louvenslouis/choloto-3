@@ -67,11 +67,16 @@ void main() {
           );
           await tester.pumpAndSettle();
 
+          final railWidth = variant.$1.width < 720.0 ? variant.$1.width : 720.0;
           expect(
             find.text(
               FFLocalizations(locale).getText('home_stories_title'),
             ),
-            findsOneWidget,
+            findsNothing,
+          );
+          expect(
+            tester.getSize(find.byKey(const ValueKey('home-stories-rail'))),
+            Size(railWidth, 80.0),
           );
           expect(
             tester.getSize(
@@ -110,7 +115,7 @@ void main() {
 
     expect(find.byKey(const ValueKey('home-stories-rail')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-stories-loading')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-stories-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-stories-title')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

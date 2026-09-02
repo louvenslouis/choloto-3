@@ -1502,6 +1502,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Kòmantè',
       'en': 'Comments',
     },
+    'bingo_comments_view_all': {
+      'fr': 'Voir tous les commentaires',
+      'cr': 'Gade tout kòmantè yo',
+      'en': 'View all comments',
+    },
     'bingo_story_admin_replied': {
       'fr': 'CHOLOTO vous a répondu — Voir',
       'cr': 'CHOLOTO reponn ou — Gade',

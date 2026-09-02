@@ -364,17 +364,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                 ),
                 actions: [
                   FlutterFlowIconButton(
-                    borderColor: FlutterFlowTheme.of(context)
-                        .primaryText
-                        .withValues(alpha: 0.08),
-                    borderRadius:
-                        FlutterFlowTheme.of(context).designToken.radius.full,
-                    borderWidth: 1.0,
                     buttonSize: 40.0,
-                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                    hoverColor: FlutterFlowTheme.of(context)
-                        .primary
-                        .withValues(alpha: 0.14),
                     hoverIconColor: FlutterFlowTheme.of(context).primary,
                     icon: Icon(
                       Icons.query_stats_rounded,
@@ -391,17 +381,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                     width: FlutterFlowTheme.of(context).designToken.spacing.xs,
                   ),
                   FlutterFlowIconButton(
-                    borderColor: FlutterFlowTheme.of(context)
-                        .primaryText
-                        .withValues(alpha: 0.08),
-                    borderRadius:
-                        FlutterFlowTheme.of(context).designToken.radius.full,
-                    borderWidth: 1.0,
                     buttonSize: 40.0,
-                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                    hoverColor: FlutterFlowTheme.of(context)
-                        .primary
-                        .withValues(alpha: 0.14),
                     hoverIconColor: FlutterFlowTheme.of(context).primary,
                     icon: Icon(
                       Icons.settings_outlined,
@@ -544,7 +524,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                   'pqih1sxe' /* Tente chaque jour et gagne GROS. */,
                                 ),
                                 assetPath:
-                                    'assets/images/home/lucky_cross_3d_v2.png',
+                                    'assets/images/home/lucky_cross_3d_x.png',
                                 tone: HomeFeatureTone.chance,
                                 onTap: () {
                                   logFirebaseEvent(

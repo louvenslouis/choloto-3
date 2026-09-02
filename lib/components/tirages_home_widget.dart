@@ -111,10 +111,7 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
                     ),
                     SizedBox(width: spacing.xs),
                     FlutterFlowIconButton(
-                      borderRadius: radius.full,
                       buttonSize: 36.0,
-                      fillColor: theme.primaryText.withValues(alpha: 0.06),
-                      hoverColor: theme.primary.withValues(alpha: 0.12),
                       hoverIconColor: theme.primary,
                       icon: Icon(
                         Icons.refresh_rounded,
