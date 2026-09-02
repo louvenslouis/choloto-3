@@ -102,33 +102,34 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
   @override
   void initState() {
     super.initState();
-    final entranceDelayMilliseconds = widget.tone.index * 90;
-    final totalDurationMilliseconds = 620 + entranceDelayMilliseconds;
-    final entranceStart = entranceDelayMilliseconds / totalDurationMilliseconds;
+    final delayMilliseconds = widget.tone.index * 55;
+    final totalMilliseconds = 480 + delayMilliseconds;
+    final entranceStart = delayMilliseconds / totalMilliseconds;
+
     _entranceController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: totalDurationMilliseconds),
+      duration: Duration(milliseconds: totalMilliseconds),
     );
     _entranceOpacity = CurvedAnimation(
       parent: _entranceController,
       curve: Interval(
         entranceStart,
-        entranceStart + ((1.0 - entranceStart) * 0.72),
+        entranceStart + ((1.0 - entranceStart) * 0.70),
         curve: Curves.easeOut,
       ),
     );
-    _entranceScale = Tween<double>(begin: 0.96, end: 1.0).animate(
+    _entranceScale = Tween<double>(begin: 0.985, end: 1.0).animate(
       CurvedAnimation(
         parent: _entranceController,
         curve: Interval(
           entranceStart,
           1.0,
-          curve: Curves.easeOutBack,
+          curve: Curves.easeOutCubic,
         ),
       ),
     );
     _entranceOffset = Tween<Offset>(
-      begin: const Offset(0.0, 0.10),
+      begin: const Offset(0.0, 0.045),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -145,17 +146,17 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_entranceScheduled) {
-      return;
-    }
-    _entranceScheduled = true;
-
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (reduceMotion) {
       _entranceController.value = 1.0;
+      _entranceScheduled = true;
       return;
     }
+    if (_entranceScheduled) {
+      return;
+    }
+    _entranceScheduled = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -173,12 +174,12 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
   Color _brandColor(FlutterFlowTheme theme) {
     switch (widget.tone) {
       case HomeFeatureTone.vip:
-        // The purple is the existing, feature-specific VIP identity.
-        return const Color(0xFF650BB0);
+        // VIP purple is an established feature identity without a theme token.
+        return const Color(0xFF5D2A78);
       case HomeFeatureTone.chance:
         return theme.primary;
       case HomeFeatureTone.video:
-        // A dedicated video red keeps the destination immediately recognizable.
+        // YouTube red remains a deliberate destination-specific exception.
         return const Color(0xFFE62117);
     }
   }
@@ -199,29 +200,24 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
   }) {
     switch (widget.tone) {
       case HomeFeatureTone.vip:
-        // Purple is the established VIP identity and has no equivalent theme
-        // token. These shades deliberately stay dark enough for white copy.
         return darkMode
             ? const [
-                Color(0xFF29103F),
-                Color(0xFF5D168F),
-                Color(0xFF7D2CAF),
+                Color(0xFF241233),
+                Color(0xFF472060),
+                Color(0xFF673081),
               ]
             : const [
-                Color(0xFF341047),
-                Color(0xFF64188F),
-                Color(0xFF7D2CAF),
+                Color(0xFF321743),
+                Color(0xFF52256D),
+                Color(0xFF70368A),
               ];
       case HomeFeatureTone.chance:
-        // This feature intentionally uses the CHOLOTO yellow as its surface;
-        // onPrimary keeps the copy readable in both app themes.
         return [
           _shiftLightness(theme.primary, -0.08),
-          theme.primary,
-          _shiftLightness(theme.warning, 0.04),
+          _shiftLightness(theme.primary, -0.04),
+          _shiftLightness(theme.warning, 0.02),
         ];
       case HomeFeatureTone.video:
-        // Preserve YouTube red while giving it the same gradient treatment.
         return darkMode
             ? [
                 _shiftLightness(baseColor, -0.28),
@@ -247,26 +243,23 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
     }
   }
 
-  Widget _featureArtwork({
-    required double iconSize,
+  Widget _artwork({
+    required double size,
     required int cacheWidth,
     required Color foreground,
   }) {
-    final imageKey = ValueKey('home-feature-image-${widget.semanticId}');
-
     return Image.asset(
       widget.assetPath,
-      key: imageKey,
-      width: iconSize,
-      height: iconSize,
+      key: ValueKey('home-feature-image-${widget.semanticId}'),
+      width: size,
+      height: size,
       cacheWidth: cacheWidth,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => SizedBox(
-        width: iconSize,
-        height: iconSize,
+      errorBuilder: (_, __, ___) => SizedBox.square(
+        dimension: size,
         child: Icon(
           _fallbackIcon,
-          size: iconSize * 0.66,
+          size: size * 0.62,
           color: foreground,
         ),
       ),
@@ -283,31 +276,30 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
     final isChance = widget.tone == HomeFeatureTone.chance;
     final isVideo = widget.tone == HomeFeatureTone.video;
     final foreground = isChance ? theme.onPrimary : theme.onDecorative;
+    final cardRadius = BorderRadius.circular(radius.lg);
     final gradientColors = _gradientColors(
       theme: theme,
       darkMode: darkMode,
       baseColor: baseColor,
     );
     final borderColor = switch (widget.tone) {
-      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.78),
-      HomeFeatureTone.chance => theme.onPrimary.withValues(alpha: 0.24),
-      HomeFeatureTone.video =>
-        theme.onDecorative.withValues(alpha: darkMode ? 0.34 : 0.46),
+      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.54),
+      HomeFeatureTone.chance => theme.onPrimary.withValues(alpha: 0.18),
+      HomeFeatureTone.video => theme.onDecorative.withValues(alpha: 0.28),
     };
-    final edgeHighlight = switch (widget.tone) {
-      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.74),
-      HomeFeatureTone.chance =>
-        theme.onDecorative.withValues(alpha: darkMode ? 0.64 : 0.82),
-      HomeFeatureTone.video =>
-        theme.onDecorative.withValues(alpha: darkMode ? 0.46 : 0.62),
+    final highlightColor = switch (widget.tone) {
+      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.50),
+      HomeFeatureTone.chance => theme.onDecorative.withValues(alpha: 0.58),
+      HomeFeatureTone.video => theme.onDecorative.withValues(alpha: 0.42),
     };
-    final glowColor = isVideo ? theme.primary : theme.onDecorative;
-    final depthColor = _shiftLightness(baseColor, -0.26);
+    final depthColor =
+        isChance ? theme.onPrimary : _shiftLightness(baseColor, -0.20);
+    final glowColor =
+        widget.tone == HomeFeatureTone.vip ? theme.primary : theme.onDecorative;
     final interactionOffset = _pressed
-        ? const Offset(0.0, 0.012)
-        : (_hovered ? const Offset(0.0, -0.022) : Offset.zero);
-    final interactionScale = _pressed ? 0.972 : (_hovered ? 1.018 : 1.0);
-    final cardRadius = BorderRadius.circular(radius.full);
+        ? const Offset(0.0, 0.004)
+        : (_hovered ? const Offset(0.0, -0.008) : Offset.zero);
+    final interactionScale = _pressed ? 0.985 : (_hovered ? 1.008 : 1.0);
 
     return Semantics(
       button: true,
@@ -327,49 +319,44 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
               }),
               child: AnimatedSlide(
                 offset: interactionOffset,
-                duration: const Duration(milliseconds: 220),
+                duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOutCubic,
                 child: AnimatedScale(
                   key: ValueKey(
                     'home-feature-interaction-scale-${widget.semanticId}',
                   ),
                   scale: interactionScale,
-                  duration: const Duration(milliseconds: 220),
+                  duration: const Duration(milliseconds: 180),
                   curve: Curves.easeOutCubic,
                   child: AnimatedContainer(
                     key: ValueKey(
                       'home-feature-gradient-${widget.semanticId}',
                     ),
-                    height: 184.0,
-                    duration: const Duration(milliseconds: 260),
+                    height: 168.0,
+                    duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: _hovered
-                            ? const Alignment(-0.82, -1.0)
+                            ? const Alignment(-0.90, -1.0)
                             : Alignment.topLeft,
                         end: _hovered
-                            ? const Alignment(0.92, 1.0)
+                            ? const Alignment(0.90, 1.0)
                             : Alignment.bottomRight,
                         colors: gradientColors,
-                        stops: const [0.0, 0.52, 1.0],
+                        stops: const [0.0, 0.54, 1.0],
                       ),
                       borderRadius: cardRadius,
-                      border: Border.all(color: borderColor, width: 2.0),
-                      // The design-system shadow anchors the surface; the
-                      // tone-derived shadow supplies the requested 3D depth.
+                      border: Border.all(color: borderColor, width: 1.5),
                       boxShadow: [
-                        theme.designToken.shadow.lg,
+                        theme.designToken.shadow.md,
                         BoxShadow(
                           color: depthColor.withValues(
-                            alpha: darkMode ? 0.62 : 0.34,
+                            alpha: darkMode ? 0.34 : 0.18,
                           ),
-                          offset: Offset(
-                            0.0,
-                            _pressed ? 2.0 : (_hovered ? 10.0 : 7.0),
-                          ),
-                          blurRadius: _pressed ? 5.0 : 13.0,
-                          spreadRadius: -2.0,
+                          offset: Offset(0.0, _pressed ? 2.0 : 4.0),
+                          blurRadius: _pressed ? 7.0 : 12.0,
+                          spreadRadius: -3.0,
                         ),
                       ],
                     ),
@@ -381,9 +368,9 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                           'home-feature-card-${widget.semanticId}',
                         ),
                         borderRadius: cardRadius,
-                        splashColor: foreground.withValues(alpha: 0.12),
-                        highlightColor: foreground.withValues(alpha: 0.08),
-                        hoverColor: foreground.withValues(alpha: 0.05),
+                        splashColor: foreground.withValues(alpha: 0.10),
+                        highlightColor: foreground.withValues(alpha: 0.06),
+                        hoverColor: foreground.withValues(alpha: 0.035),
                         onHighlightChanged: (pressed) {
                           if (_pressed != pressed) {
                             setState(() => _pressed = pressed);
@@ -395,22 +382,20 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                           child: Stack(
                             children: [
                               PositionedDirectional(
-                                top: -52.0,
-                                end: -24.0,
+                                top: -44.0,
+                                end: -26.0,
                                 child: AnimatedScale(
-                                  scale: _hovered ? 1.10 : 1.0,
-                                  duration: const Duration(milliseconds: 360),
+                                  scale: _hovered ? 1.035 : 1.0,
+                                  duration: const Duration(milliseconds: 240),
                                   curve: Curves.easeOutCubic,
                                   child: Container(
-                                    width: 194.0,
-                                    height: 194.0,
+                                    width: 156.0,
+                                    height: 156.0,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       gradient: RadialGradient(
                                         colors: [
-                                          glowColor.withValues(
-                                            alpha: isChance ? 0.34 : 0.28,
-                                          ),
+                                          glowColor.withValues(alpha: 0.16),
                                           glowColor.withValues(alpha: 0.0),
                                         ],
                                       ),
@@ -419,52 +404,21 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                 ),
                               ),
                               PositionedDirectional(
-                                bottom: -70.0,
-                                start: -38.0,
-                                child: Container(
-                                  width: 166.0,
-                                  height: 166.0,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: foreground.withValues(alpha: 0.065),
-                                  ),
-                                ),
-                              ),
-                              PositionedDirectional(
                                 top: 1.0,
-                                start: spacing.xl,
-                                end: spacing.xl,
+                                start: spacing.lg,
+                                end: spacing.lg,
                                 child: Container(
                                   key: ValueKey(
                                     'home-feature-3d-edge-${widget.semanticId}',
                                   ),
-                                  height: 3.0,
+                                  height: 2.0,
                                   decoration: BoxDecoration(
                                     borderRadius: cardRadius,
                                     gradient: LinearGradient(
                                       colors: [
-                                        edgeHighlight.withValues(alpha: 0.0),
-                                        edgeHighlight,
-                                        edgeHighlight.withValues(alpha: 0.0),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              PositionedDirectional(
-                                bottom: 0.0,
-                                start: spacing.lg,
-                                end: spacing.lg,
-                                child: Container(
-                                  height: 9.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: cardRadius,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        depthColor.withValues(alpha: 0.0),
-                                        depthColor.withValues(alpha: 0.34),
+                                        highlightColor.withValues(alpha: 0.0),
+                                        highlightColor,
+                                        highlightColor.withValues(alpha: 0.0),
                                       ],
                                     ),
                                   ),
@@ -479,30 +433,49 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                     key: ValueKey(
                                       'home-feature-accent-${widget.semanticId}',
                                     ),
-                                    height: 2.0,
+                                    height: 1.5,
                                     decoration: BoxDecoration(
                                       borderRadius: cardRadius,
                                       gradient: LinearGradient(
                                         colors: [
                                           theme.primary.withValues(alpha: 0.0),
-                                          theme.primary,
+                                          theme.primary.withValues(alpha: 0.72),
                                           theme.primary.withValues(alpha: 0.0),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ),
+                              PositionedDirectional(
+                                bottom: 0.0,
+                                start: spacing.md,
+                                end: spacing.md,
+                                child: Container(
+                                  height: 6.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: cardRadius,
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        depthColor.withValues(alpha: 0.0),
+                                        depthColor.withValues(alpha: 0.18),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                               Padding(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: spacing.lg,
+                                  horizontal: spacing.md + spacing.xs,
                                   vertical: spacing.md,
                                 ),
                                 child: LayoutBuilder(
                                   builder: (context, constraints) {
                                     final compact =
                                         constraints.maxWidth < 300.0;
-                                    final iconSize = compact ? 100.0 : 120.0;
-                                    final cacheWidth = (iconSize *
+                                    final artworkSize = compact ? 90.0 : 106.0;
+                                    final cacheWidth = (artworkSize *
                                             MediaQuery.devicePixelRatioOf(
                                               context,
                                             ))
@@ -526,9 +499,9 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                                     theme.titleLarge.override(
                                                   color: foreground,
                                                   fontSize:
-                                                      compact ? 18.0 : 21.0,
-                                                  fontWeight: FontWeight.w800,
-                                                  lineHeight: 1.05,
+                                                      compact ? 18.0 : 20.0,
+                                                  fontWeight: FontWeight.w700,
+                                                  lineHeight: 1.08,
                                                 ),
                                               ),
                                               SizedBox(height: spacing.sm),
@@ -543,13 +516,13 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                                     theme.bodyMedium.override(
                                                   color: foreground.withValues(
                                                     alpha: isChance
-                                                        ? 0.76
+                                                        ? 0.78
                                                         : (isVideo
                                                             ? 0.86
-                                                            : 0.92),
+                                                            : 0.90),
                                                   ),
                                                   fontSize:
-                                                      compact ? 12.0 : 13.5,
+                                                      compact ? 12.0 : 13.0,
                                                   fontWeight: FontWeight.w600,
                                                   lineHeight: 1.25,
                                                 ),
@@ -559,54 +532,52 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                                 key: ValueKey(
                                                   'home-feature-arrow-${widget.semanticId}',
                                                 ),
-                                                width: 36.0,
-                                                height: 36.0,
+                                                width: 32.0,
+                                                height: 32.0,
                                                 duration: const Duration(
-                                                  milliseconds: 220,
+                                                  milliseconds: 180,
                                                 ),
                                                 decoration: BoxDecoration(
                                                   color: isChance
                                                       ? theme.onPrimary
-                                                      : foreground.withValues(
-                                                          alpha: _hovered
-                                                              ? 0.22
-                                                              : 0.14,
-                                                        ),
+                                                      : (widget.tone ==
+                                                              HomeFeatureTone
+                                                                  .vip
+                                                          ? theme.primary
+                                                          : foreground
+                                                              .withValues(
+                                                              alpha: _hovered
+                                                                  ? 0.18
+                                                                  : 0.12,
+                                                            )),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                     radius.full,
                                                   ),
                                                   border: Border.all(
-                                                    color: isChance
-                                                        ? theme.onDecorative
-                                                            .withValues(
-                                                            alpha: 0.28,
-                                                          )
-                                                        : foreground.withValues(
-                                                            alpha: 0.20,
-                                                          ),
+                                                    color:
+                                                        foreground.withValues(
+                                                            alpha: 0.16),
                                                   ),
-                                                  boxShadow: _hovered
-                                                      ? [
-                                                          theme.designToken
-                                                              .shadow.sm,
-                                                        ]
-                                                      : const [],
                                                 ),
                                                 child: AnimatedSlide(
                                                   offset: _hovered
-                                                      ? const Offset(0.10, 0.0)
+                                                      ? const Offset(0.06, 0.0)
                                                       : Offset.zero,
                                                   duration: const Duration(
-                                                    milliseconds: 220,
+                                                    milliseconds: 180,
                                                   ),
                                                   curve: Curves.easeOutCubic,
                                                   child: Icon(
                                                     Icons.arrow_forward_rounded,
                                                     color: isChance
                                                         ? theme.primary
-                                                        : foreground,
-                                                    size: 19.0,
+                                                        : (widget.tone ==
+                                                                HomeFeatureTone
+                                                                    .vip
+                                                            ? theme.onPrimary
+                                                            : foreground),
+                                                    size: 18.0,
                                                   ),
                                                 ),
                                               ),
@@ -617,10 +588,10 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                         ExcludeSemantics(
                                           child: AnimatedRotation(
                                             turns: _hovered
-                                                ? (isVideo ? 0.010 : -0.010)
+                                                ? (isVideo ? 0.004 : -0.004)
                                                 : 0.0,
                                             duration: const Duration(
-                                              milliseconds: 320,
+                                              milliseconds: 220,
                                             ),
                                             curve: Curves.easeOutCubic,
                                             child: AnimatedScale(
@@ -628,35 +599,16 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                                 'home-feature-artwork-motion-${widget.semanticId}',
                                               ),
                                               scale: _pressed
-                                                  ? 0.94
-                                                  : (_hovered ? 1.065 : 1.0),
+                                                  ? 0.97
+                                                  : (_hovered ? 1.03 : 1.0),
                                               duration: const Duration(
-                                                milliseconds: 260,
+                                                milliseconds: 200,
                                               ),
-                                              curve: Curves.easeOutBack,
-                                              child: Container(
-                                                width: iconSize,
-                                                height: iconSize,
-                                                decoration: isVideo
-                                                    ? null
-                                                    : BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        gradient:
-                                                            RadialGradient(
-                                                          colors: [
-                                                            glowColor
-                                                                .withValues(
-                                                              alpha: 0.22,
-                                                            ),
-                                                            glowColor
-                                                                .withValues(
-                                                              alpha: 0.0,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                child: _featureArtwork(
-                                                  iconSize: iconSize,
+                                              curve: Curves.easeOutCubic,
+                                              child: SizedBox.square(
+                                                dimension: artworkSize,
+                                                child: _artwork(
+                                                  size: artworkSize,
                                                   cacheWidth: cacheWidth,
                                                   foreground: foreground,
                                                 ),

@@ -182,15 +182,15 @@ void main() {
     await mouse.moveTo(tester.getCenter(cardFinder));
     await tester.pump(const Duration(milliseconds: 260));
 
-    expect(tester.widget<AnimatedScale>(interactionFinder).scale, 1.018);
-    expect(tester.widget<AnimatedScale>(artworkFinder).scale, 1.065);
+    expect(tester.widget<AnimatedScale>(interactionFinder).scale, 1.008);
+    expect(tester.widget<AnimatedScale>(artworkFinder).scale, 1.03);
 
     await mouse.moveTo(Offset.zero);
     await tester.pumpAndSettle();
     final touch = await tester.startGesture(tester.getCenter(cardFinder));
     await tester.pump(const Duration(milliseconds: 30));
-    expect(tester.widget<AnimatedScale>(interactionFinder).scale, 0.972);
-    expect(tester.widget<AnimatedScale>(artworkFinder).scale, 0.94);
+    expect(tester.widget<AnimatedScale>(interactionFinder).scale, 0.985);
+    expect(tester.widget<AnimatedScale>(artworkFinder).scale, 0.97);
     await touch.up();
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
@@ -286,10 +286,10 @@ void main() {
                   find.byKey(ValueKey('home-feature-gradient-$id')),
                 )
                 .height,
-            184.0,
+            168.0,
           );
-          expect(borderRadius.topLeft.x, greaterThanOrEqualTo(90.0));
-          expect(border.top.width, 2.0);
+          expect(borderRadius.topLeft.x, 24.0);
+          expect(border.top.width, 1.5);
           expect(decoration.boxShadow, hasLength(2));
           expect(
             find.byKey(ValueKey('home-feature-3d-edge-$id')),
