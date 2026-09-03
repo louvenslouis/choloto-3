@@ -332,7 +332,7 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                     key: ValueKey(
                       'home-feature-gradient-${widget.semanticId}',
                     ),
-                    height: 168.0,
+                    height: 150.0,
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
                     decoration: BoxDecoration(
@@ -468,13 +468,13 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                               Padding(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: spacing.md + spacing.xs,
-                                  vertical: spacing.md,
+                                  vertical: spacing.sm + spacing.xs,
                                 ),
                                 child: LayoutBuilder(
                                   builder: (context, constraints) {
                                     final compact =
                                         constraints.maxWidth < 300.0;
-                                    final artworkSize = compact ? 90.0 : 106.0;
+                                    final artworkSize = compact ? 84.0 : 96.0;
                                     final cacheWidth = (artworkSize *
                                             MediaQuery.devicePixelRatioOf(
                                               context,

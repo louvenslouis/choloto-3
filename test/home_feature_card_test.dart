@@ -286,7 +286,7 @@ void main() {
                   find.byKey(ValueKey('home-feature-gradient-$id')),
                 )
                 .height,
-            168.0,
+            150.0,
           );
           expect(borderRadius.topLeft.x, 24.0);
           expect(border.top.width, 1.5);

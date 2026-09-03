@@ -1,13 +1,9 @@
 import '/auth/base_auth_user_provider.dart';
-import '/auth/firebase_auth/auth_util.dart';
+import '/autres/bingo/bingo/bingo_reaction_service.dart';
 import '/autres/bingo/stackbingo/stackbingo_widget.dart';
-import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,6 +20,45 @@ class BingoCardVIPWidget extends StatefulWidget {
 
 class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
   late BingoCardVIPModel _model;
+  var _reactionPending = false;
+
+  Future<void> _react(BingoReaction requestedReaction) async {
+    if (_reactionPending) return;
+
+    safeSetState(() => _reactionPending = true);
+    try {
+      final reaction = await toggleCurrentBingoReaction(requestedReaction);
+      if (!mounted || reaction == null) return;
+
+      final isPositive = reaction == BingoReaction.positive;
+      final theme = FlutterFlowTheme.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            FFLocalizations.of(context)
+                .getText(isPositive ? 'bngsuccess' : 'bngtryagain'),
+            style: TextStyle(
+              color: isPositive ? theme.onPrimary : theme.primaryText,
+            ),
+          ),
+          duration: const Duration(milliseconds: 4000),
+          backgroundColor: isPositive ? theme.primary : theme.tertiary,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            FFLocalizations.of(context).getText('bingo_story_reaction_error'),
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    } finally {
+      if (mounted) safeSetState(() => _reactionPending = false);
+    }
+  }
 
   @override
   void setState(VoidCallback callback) {
@@ -172,160 +207,14 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                             mainAxisSize: MainAxisSize.max,
                             children: [
                               FFButtonWidget(
-                                onPressed: () async {
-                                  logFirebaseEvent(
-                                      'BINGO_CARD_V_I_P_COMP_WI_BTN_ON_TAP');
-                                  final firestoreBatch =
-                                      FirebaseFirestore.instance.batch();
-                                  try {
-                                    if (FFAppState().bingo.refGain == null) {
-                                      logFirebaseEvent('Button_backend_call');
-
-                                      var bingostatsRecordReference =
-                                          BingostatsRecord.createDoc(
-                                              FFAppState().bingo.doc!);
-                                      firestoreBatch.set(
-                                          bingostatsRecordReference,
-                                          createBingostatsRecordData(
-                                            user: currentUserReference?.id,
-                                            gain: true,
-                                          ));
-                                      _model.bingolikeyes =
-                                          BingostatsRecord.getDocumentFromData(
-                                              createBingostatsRecordData(
-                                                user: currentUserReference?.id,
-                                                gain: true,
-                                              ),
-                                              bingostatsRecordReference);
-                                      // Incrementation/decrementation
-                                      logFirebaseEvent(
-                                          'Button_Incrementationdecrementation');
-
-                                      firestoreBatch.update(
-                                          currentUserReference!,
-                                          createUserRecordData(
-                                            userStats: createUserStatsStruct(
-                                              fieldValues: {
-                                                'bingoGain':
-                                                    FieldValue.increment(1),
-                                              },
-                                              clearUnsetFields: false,
-                                            ),
-                                          ));
-                                      logFirebaseEvent(
-                                          'Button_update_app_state');
-                                      FFAppState().updateBingoStruct(
-                                        (e) => e
-                                          ..gagner = true
-                                          ..refGain =
-                                              _model.bingolikeyes?.reference,
-                                      );
-                                      safeSetState(() {});
-                                      logFirebaseEvent('Button_show_snack_bar');
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            FFLocalizations.of(context)
-                                                .getText('bngsuccess'),
-                                            style: TextStyle(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                            ),
-                                          ),
-                                          duration:
-                                              Duration(milliseconds: 4000),
-                                          backgroundColor: Color(0xFFA000D7),
-                                        ),
-                                      );
-                                    } else if ((FFAppState().bingo.gagner ==
-                                            true) &&
-                                        (FFAppState().bingo.refGain != null)) {
-                                      logFirebaseEvent('Button_backend_call');
-                                      firestoreBatch
-                                          .delete(FFAppState().bingo.refGain!);
-                                      // Incrementation/decrementation
-                                      logFirebaseEvent(
-                                          'Button_Incrementationdecrementation');
-
-                                      firestoreBatch.update(
-                                          currentUserReference!,
-                                          createUserRecordData(
-                                            userStats: createUserStatsStruct(
-                                              fieldValues: {
-                                                'bingoGain':
-                                                    FieldValue.increment(-(1)),
-                                              },
-                                              clearUnsetFields: false,
-                                            ),
-                                          ));
-                                      logFirebaseEvent(
-                                          'Button_update_app_state');
-                                      FFAppState().updateBingoStruct(
-                                        (e) => e
-                                          ..gagner = null
-                                          ..refGain = null,
-                                      );
-                                      safeSetState(() {});
-                                    } else if ((FFAppState().bingo.gagner ==
-                                            false) &&
-                                        (FFAppState().bingo.refGain != null)) {
-                                      logFirebaseEvent('Button_backend_call');
-
-                                      firestoreBatch.update(
-                                          FFAppState().bingo.refGain!,
-                                          createBingostatsRecordData(
-                                            gain: true,
-                                          ));
-                                      // Incrementation/decrementation
-                                      logFirebaseEvent(
-                                          'Button_Incrementationdecrementation');
-
-                                      firestoreBatch.update(
-                                          currentUserReference!,
-                                          createUserRecordData(
-                                            userStats: createUserStatsStruct(
-                                              fieldValues: {
-                                                'bingoGain':
-                                                    FieldValue.increment(1),
-                                                'bingoRater':
-                                                    FieldValue.increment(-(1)),
-                                              },
-                                              clearUnsetFields: false,
-                                            ),
-                                          ));
-                                      logFirebaseEvent(
-                                          'Button_update_app_state');
-                                      FFAppState().updateBingoStruct(
-                                        (e) => e..gagner = true,
-                                      );
-                                      safeSetState(() {});
-                                      logFirebaseEvent('Button_show_snack_bar');
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            FFLocalizations.of(context)
-                                                .getText('bngsuccess'),
-                                            style: TextStyle(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                            ),
-                                          ),
-                                          duration:
-                                              Duration(milliseconds: 4000),
-                                          backgroundColor: Color(0xFFA000D7),
-                                        ),
-                                      );
-                                    }
-                                  } finally {
-                                    await firestoreBatch.commit();
-                                  }
-
-                                  safeSetState(() {});
-                                },
+                                onPressed: _reactionPending
+                                    ? null
+                                    : () async {
+                                        logFirebaseEvent(
+                                          'BINGO_CARD_V_I_P_COMP_WI_BTN_ON_TAP',
+                                        );
+                                        await _react(BingoReaction.positive);
+                                      },
                                 text: FFLocalizations.of(context).getText(
                                   'ksh6eozy' /* WI */,
                                 ),
@@ -367,164 +256,14 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                                 ),
                               ),
                               FFButtonWidget(
-                                onPressed: () async {
-                                  logFirebaseEvent(
-                                      'BINGO_CARD_V_I_P_COMP_NON_BTN_ON_TAP');
-                                  final firestoreBatch =
-                                      FirebaseFirestore.instance.batch();
-                                  try {
-                                    if (FFAppState().bingo.refGain == null) {
-                                      logFirebaseEvent('Button_backend_call');
-
-                                      var bingostatsRecordReference =
-                                          BingostatsRecord.createDoc(
-                                              FFAppState().bingo.doc!);
-                                      firestoreBatch.set(
-                                          bingostatsRecordReference,
-                                          createBingostatsRecordData(
-                                            user: currentUserReference?.id,
-                                            gain: false,
-                                          ));
-                                      _model.bingolikeyesCopy =
-                                          BingostatsRecord.getDocumentFromData(
-                                              createBingostatsRecordData(
-                                                user: currentUserReference?.id,
-                                                gain: false,
-                                              ),
-                                              bingostatsRecordReference);
-                                      // Incrementation/decrementation
-                                      logFirebaseEvent(
-                                          'Button_Incrementationdecrementation');
-
-                                      firestoreBatch.update(
-                                          currentUserReference!,
-                                          createUserRecordData(
-                                            userStats: createUserStatsStruct(
-                                              fieldValues: {
-                                                'bingoRater':
-                                                    FieldValue.increment(1),
-                                              },
-                                              clearUnsetFields: false,
-                                            ),
-                                          ));
-                                      logFirebaseEvent(
-                                          'Button_update_app_state');
-                                      FFAppState().updateBingoStruct(
-                                        (e) => e
-                                          ..gagner = false
-                                          ..refGain = _model
-                                              .bingolikeyesCopy?.reference,
-                                      );
-                                      safeSetState(() {});
-                                      logFirebaseEvent('Button_show_snack_bar');
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            FFLocalizations.of(context)
-                                                .getText('bngtryagain'),
-                                            style: TextStyle(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                            ),
-                                          ),
-                                          duration:
-                                              Duration(milliseconds: 4000),
-                                          backgroundColor:
-                                              FlutterFlowTheme.of(context)
-                                                  .tertiary,
-                                        ),
-                                      );
-                                    } else if ((FFAppState().bingo.gagner ==
-                                            false) &&
-                                        (FFAppState().bingo.refGain != null)) {
-                                      logFirebaseEvent('Button_backend_call');
-                                      firestoreBatch
-                                          .delete(FFAppState().bingo.refGain!);
-                                      // Incrementation/decrementation
-                                      logFirebaseEvent(
-                                          'Button_Incrementationdecrementation');
-
-                                      firestoreBatch.update(
-                                          currentUserReference!,
-                                          createUserRecordData(
-                                            userStats: createUserStatsStruct(
-                                              fieldValues: {
-                                                'bingoRater':
-                                                    FieldValue.increment(-(1)),
-                                              },
-                                              clearUnsetFields: false,
-                                            ),
-                                          ));
-                                      logFirebaseEvent(
-                                          'Button_update_app_state');
-                                      FFAppState().updateBingoStruct(
-                                        (e) => e
-                                          ..gagner = null
-                                          ..refGain = null,
-                                      );
-                                      safeSetState(() {});
-                                    } else if ((FFAppState().bingo.gagner ==
-                                            true) &&
-                                        (FFAppState().bingo.refGain != null)) {
-                                      logFirebaseEvent('Button_backend_call');
-
-                                      firestoreBatch.update(
-                                          FFAppState().bingo.refGain!,
-                                          createBingostatsRecordData(
-                                            gain: false,
-                                          ));
-                                      // Incrementation/decrementation
-                                      logFirebaseEvent(
-                                          'Button_Incrementationdecrementation');
-
-                                      firestoreBatch.update(
-                                          currentUserReference!,
-                                          createUserRecordData(
-                                            userStats: createUserStatsStruct(
-                                              fieldValues: {
-                                                'bingoRater':
-                                                    FieldValue.increment(1),
-                                                'bingoGain':
-                                                    FieldValue.increment(-(1)),
-                                              },
-                                              clearUnsetFields: false,
-                                            ),
-                                          ));
-                                      logFirebaseEvent(
-                                          'Button_update_app_state');
-                                      FFAppState().updateBingoStruct(
-                                        (e) => e..gagner = false,
-                                      );
-                                      safeSetState(() {});
-                                      logFirebaseEvent('Button_show_snack_bar');
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            FFLocalizations.of(context)
-                                                .getText('bngtryagain'),
-                                            style: TextStyle(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                            ),
-                                          ),
-                                          duration:
-                                              Duration(milliseconds: 4000),
-                                          backgroundColor:
-                                              FlutterFlowTheme.of(context)
-                                                  .tertiary,
-                                        ),
-                                      );
-                                    }
-                                  } finally {
-                                    await firestoreBatch.commit();
-                                  }
-
-                                  safeSetState(() {});
-                                },
+                                onPressed: _reactionPending
+                                    ? null
+                                    : () async {
+                                        logFirebaseEvent(
+                                          'BINGO_CARD_V_I_P_COMP_NON_BTN_ON_TAP',
+                                        );
+                                        await _react(BingoReaction.negative);
+                                      },
                                 text: FFLocalizations.of(context).getText(
                                   '7ccuyv05' /* NON */,
                                 ),

@@ -121,6 +121,7 @@ class FFAppState extends ChangeNotifier {
   void updateBingoStruct(Function(BingoStruct) updateFn) {
     updateFn(_bingo);
     prefs.setString('ff_bingo', _bingo.serialize());
+    notifyListeners();
   }
 
   List<DateTime> _haiti = [

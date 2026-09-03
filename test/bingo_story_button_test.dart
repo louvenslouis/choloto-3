@@ -12,6 +12,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 
 Widget _app({
@@ -63,6 +65,21 @@ Widget _localizedTestApp({
     themeMode: themeMode,
     home: Scaffold(body: child),
   );
+}
+
+class _BingoReactionStateProbe extends StatelessWidget {
+  const _BingoReactionStateProbe({required super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final bingo = context.watch<FFAppState>().bingo;
+    final reaction = !bingo.hasGagner()
+        ? 'none'
+        : bingo.gagner
+            ? 'positive'
+            : 'negative';
+    return Text(reaction);
+  }
 }
 
 void main() {
@@ -481,6 +498,46 @@ void main() {
       ),
       {'bingoRater': -1},
     );
+  });
+
+  testWidgets('Bingo reaction state refreshes every listening surface',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    FFAppState.reset();
+    final appState = FFAppState();
+    await appState.initializePersistedState();
+    addTearDown(FFAppState.reset);
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: appState,
+        child: const MaterialApp(
+          home: Row(
+            children: [
+              _BingoReactionStateProbe(key: ValueKey('story-reaction-state')),
+              _BingoReactionStateProbe(key: ValueKey('vip-reaction-state')),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('none'), findsNWidgets(2));
+
+    appState.updateBingoStruct((bingo) => bingo.gagner = true);
+    await tester.pump();
+
+    expect(find.text('positive'), findsNWidgets(2));
+
+    appState.updateBingoStruct((bingo) => bingo.gagner = false);
+    await tester.pump();
+
+    expect(find.text('negative'), findsNWidgets(2));
+
+    appState.updateBingoStruct((bingo) => bingo.gagner = null);
+    await tester.pump();
+
+    expect(find.text('none'), findsNWidgets(2));
   });
 
   test('relative publication time is localized in Haitian Creole', () {
