@@ -104,6 +104,32 @@ async function paymentTransactionsQuery({token, userUid} = {}) {
   return {status: response.status, body: await response.text()};
 }
 
+async function supportConversationsQuery({token, userUid} = {}) {
+  const structuredQuery = {
+    from: [{collectionId: 'support_conversations'}],
+    ...(userUid
+      ? {
+          where: {
+            fieldFilter: {
+              field: {fieldPath: 'user_uid'},
+              op: 'EQUAL',
+              value: {stringValue: userUid},
+            },
+          },
+        }
+      : {}),
+  };
+  const response = await fetch(`${documentsUrl}:runQuery`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? {authorization: `Bearer ${token}`} : {}),
+    },
+    body: JSON.stringify({structuredQuery}),
+  });
+  return {status: response.status, body: await response.text()};
+}
+
 function expectStatus(result, expected, label) {
   assert.equal(
     result.status,
@@ -1091,6 +1117,252 @@ expectStatus(
   await firestoreRequest('settings/public-settings'),
   200,
   'public settings read',
+);
+
+// The integrated subscription chat uses one private conversation per uid.
+// The real first-message sequence reads the absent conversation, then commits
+// its summary and immutable message atomically.
+const supportConversationPath = `support_conversations/${owner.uid}`;
+const firstSupportMessageId = 'message-owner-first';
+const firstSupportMessagePath =
+  `${supportConversationPath}/messages/${firstSupportMessageId}`;
+const supportConversationName =
+  `projects/${projectId}/databases/(default)/documents/${supportConversationPath}`;
+const firstSupportMessageName =
+  `projects/${projectId}/databases/(default)/documents/${firstSupportMessagePath}`;
+expectStatus(
+  await firestoreRequest(supportConversationPath, {token: owner.token}),
+  404,
+  'first support conversation read is missing rather than denied',
+);
+
+const firstSupportConversationFields = {
+  user_uid: stringValue(owner.uid),
+  user_email: stringValue(owner.email),
+  user_display_name: stringValue('Owner'),
+  topic: stringValue('subscription'),
+  status: stringValue('open'),
+  last_message: stringValue('Comment puis-je payer mon abonnement ?'),
+  last_message_id: stringValue(firstSupportMessageId),
+  last_sender_role: stringValue('user'),
+};
+const firstSupportMessageFields = {
+  sender_uid: stringValue(owner.uid),
+  sender_role: stringValue('user'),
+  text: stringValue('Comment puis-je payer mon abonnement ?'),
+};
+const firstSupportCommit = [
+  {
+    update: {
+      name: supportConversationName,
+      fields: firstSupportConversationFields,
+    },
+    updateTransforms: [
+      {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
+      {fieldPath: 'updated_at', setToServerValue: 'REQUEST_TIME'},
+    ],
+  },
+  {
+    update: {
+      name: firstSupportMessageName,
+      fields: firstSupportMessageFields,
+    },
+    updateTransforms: [
+      {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
+    ],
+  },
+];
+expectStatus(
+  await firestoreCommit(firstSupportCommit),
+  403,
+  'unauthenticated support conversation creation',
+);
+expectStatus(
+  await firestoreCommit(firstSupportCommit, {token: other.token}),
+  403,
+  'foreign support conversation creation',
+);
+expectStatus(
+  await firestoreCommit(firstSupportCommit, {token: owner.token}),
+  200,
+  'owner creates support conversation and first message atomically',
+);
+expectStatus(
+  await firestoreRequest(supportConversationPath, {token: owner.token}),
+  200,
+  'owner reads own support conversation',
+);
+expectStatus(
+  await firestoreRequest(supportConversationPath, {token: admin.token}),
+  200,
+  'admin reads member support conversation',
+);
+expectStatus(
+  await firestoreRequest(supportConversationPath, {token: other.token}),
+  403,
+  'foreign user cannot read support conversation',
+);
+expectStatus(
+  await firestoreRequest(supportConversationPath),
+  403,
+  'signed-out user cannot read support conversation',
+);
+expectStatus(
+  await firestoreRequest(firstSupportMessagePath, {token: owner.token}),
+  200,
+  'owner reads own support message',
+);
+expectStatus(
+  await firestoreRequest(firstSupportMessagePath, {token: admin.token}),
+  200,
+  'admin reads member support message',
+);
+expectStatus(
+  await firestoreRequest(firstSupportMessagePath, {token: other.token}),
+  403,
+  'foreign user cannot read support message',
+);
+expectStatus(
+  await supportConversationsQuery({token: admin.token}),
+  200,
+  'admin lists support inbox',
+);
+expectStatus(
+  await supportConversationsQuery({token: owner.token, userUid: owner.uid}),
+  403,
+  'member cannot list the support inbox',
+);
+
+function supportReplyCommit({
+  actor,
+  messageId,
+  role,
+  text,
+  senderUid = actor.uid,
+}) {
+  const messagePath = `${supportConversationPath}/messages/${messageId}`;
+  return firestoreCommit(
+    [
+      {
+        update: {
+          name: supportConversationName,
+          fields: {
+            status: stringValue('open'),
+            last_message: stringValue(text),
+            last_message_id: stringValue(messageId),
+            last_sender_role: stringValue(role),
+          },
+        },
+        updateMask: {
+          fieldPaths: [
+            'status',
+            'last_message',
+            'last_message_id',
+            'last_sender_role',
+          ],
+        },
+        updateTransforms: [
+          {fieldPath: 'updated_at', setToServerValue: 'REQUEST_TIME'},
+        ],
+      },
+      {
+        update: {
+          name:
+            `projects/${projectId}/databases/(default)/documents/${messagePath}`,
+          fields: {
+            sender_uid: stringValue(senderUid),
+            sender_role: stringValue(role),
+            text: stringValue(text),
+          },
+        },
+        updateTransforms: [
+          {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
+        ],
+      },
+    ],
+    {token: actor.token},
+  );
+}
+
+const adminSupportReplyId = 'message-admin-reply';
+expectStatus(
+  await supportReplyCommit({
+    actor: owner,
+    messageId: 'message-owner-spoofed-admin',
+    role: 'admin',
+    text: 'Tentative de fausse réponse administrateur.',
+  }),
+  403,
+  'member cannot send an admin support reply',
+);
+expectStatus(
+  await supportReplyCommit({
+    actor: other,
+    messageId: 'message-foreign',
+    role: 'user',
+    text: 'Tentative étrangère.',
+  }),
+  403,
+  'foreign user cannot write in another support conversation',
+);
+expectStatus(
+  await supportReplyCommit({
+    actor: admin,
+    messageId: adminSupportReplyId,
+    role: 'admin',
+    text: 'Bonjour, nous pouvons vous accompagner pour le paiement.',
+  }),
+  200,
+  'admin replies to support conversation',
+);
+expectStatus(
+  await firestoreRequest(
+    `${supportConversationPath}/messages/${adminSupportReplyId}`,
+    {token: owner.token},
+  ),
+  200,
+  'owner reads admin support reply',
+);
+expectStatus(
+  await supportReplyCommit({
+    actor: owner,
+    messageId: 'message-owner-second',
+    role: 'user',
+    text: 'Merci. Je souhaite payer par MonCash.',
+  }),
+  200,
+  'owner continues support conversation after admin reply',
+);
+expectStatus(
+  await supportReplyCommit({
+    actor: owner,
+    messageId: 'message-owner-too-long',
+    role: 'user',
+    text: 'x'.repeat(1001),
+  }),
+  403,
+  'oversized support message',
+);
+expectStatus(
+  await firestoreRequest(firstSupportMessagePath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {
+      ...firstSupportMessageFields,
+      text: stringValue('Message réécrit.'),
+      created_at: timestampValue(),
+    },
+  }),
+  403,
+  'support messages are immutable',
+);
+expectStatus(
+  await firestoreRequest(firstSupportMessagePath, {
+    method: 'DELETE',
+    token: admin.token,
+  }),
+  403,
+  'admin cannot delete support history',
 );
 
 expectStatus(

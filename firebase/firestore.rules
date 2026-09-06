@@ -249,6 +249,61 @@ service cloud.firestore {
           optionalString(data, 'link', 2048);
     }
 
+    // Additive customer-support contract. A member owns the conversation whose
+    // document id is their Authentication uid. Messages are immutable and each
+    // conversation summary must point to the message written in the same commit.
+    function validSupportMessage(data) {
+      return data.keys().hasOnly([
+            'sender_uid', 'sender_role', 'text', 'created_at'
+          ]) &&
+          data.keys().hasAll([
+            'sender_uid', 'sender_role', 'text', 'created_at'
+          ]) &&
+          data.sender_uid is string && data.sender_uid.size() > 0 &&
+          data.sender_uid.size() <= 128 &&
+          data.sender_role in ['user', 'admin'] &&
+          data.text is string && data.text.size() > 0 &&
+          data.text.size() <= 1000 &&
+          data.created_at is timestamp;
+    }
+
+    function validSupportConversation(data, userId) {
+      return data.keys().hasOnly([
+            'user_uid', 'user_email', 'user_display_name', 'topic', 'status',
+            'created_at', 'updated_at', 'last_message', 'last_message_id',
+            'last_sender_role'
+          ]) &&
+          data.keys().hasAll([
+            'user_uid', 'topic', 'status', 'created_at', 'updated_at',
+            'last_message', 'last_message_id', 'last_sender_role'
+          ]) &&
+          data.user_uid == userId &&
+          optionalString(data, 'user_email', 320) &&
+          optionalString(data, 'user_display_name', 256) &&
+          data.topic == 'subscription' &&
+          data.status == 'open' &&
+          data.created_at is timestamp &&
+          data.updated_at is timestamp &&
+          data.last_message is string && data.last_message.size() > 0 &&
+          data.last_message.size() <= 1000 &&
+          data.last_message_id is string &&
+          data.last_message_id.size() > 0 &&
+          data.last_message_id.size() <= 128 &&
+          data.last_sender_role in ['user', 'admin'];
+    }
+
+    function supportSummaryMatchesMessage(userId, data, senderRole) {
+      let message = getAfter(
+        /databases/$(database)/documents/support_conversations/$(userId)/messages/$(data.last_message_id)
+      ).data;
+      return data.updated_at == request.time &&
+          data.last_sender_role == senderRole &&
+          message.sender_uid == request.auth.uid &&
+          message.sender_role == senderRole &&
+          message.text == data.last_message &&
+          message.created_at == request.time;
+    }
+
     function validWebPushToken(data, userId) {
       return data.keys().hasOnly([
             'token', 'userId', 'locale', 'createdAt', 'updatedAt'
@@ -565,6 +620,65 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isAdmin() && validPostText(request.resource.data);
       allow update, delete: if false;
+    }
+
+    match /support_conversations/{userId} {
+      // Reading an absent own conversation is part of the first-message flow;
+      // ownership therefore comes from the path, never resource.data.
+      allow get: if signedIn() &&
+          (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if signedIn() && request.auth.uid == userId &&
+          exists(/databases/$(database)/documents/user/$(userId)) &&
+          validSupportConversation(request.resource.data, userId) &&
+          request.resource.data.created_at == request.time &&
+          supportSummaryMatchesMessage(userId, request.resource.data, 'user');
+      allow update: if signedIn() &&
+          validSupportConversation(request.resource.data, userId) &&
+          request.resource.data.user_uid == resource.data.user_uid &&
+          request.resource.data.topic == resource.data.topic &&
+          request.resource.data.created_at == resource.data.created_at &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'updated_at', 'last_message', 'last_message_id',
+            'last_sender_role'
+          ]) &&
+          (
+            (request.auth.uid == userId &&
+              supportSummaryMatchesMessage(
+                userId, request.resource.data, 'user'
+              )) ||
+            (isAdmin() &&
+              supportSummaryMatchesMessage(
+                userId, request.resource.data, 'admin'
+              ))
+          );
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if signedIn() &&
+            (request.auth.uid == userId || isAdmin());
+        allow create: if signedIn() &&
+            validSupportMessage(request.resource.data) &&
+            request.resource.data.created_at == request.time &&
+            getAfter(
+              /databases/$(database)/documents/support_conversations/$(userId)
+            ).data.last_message_id == messageId &&
+            getAfter(
+              /databases/$(database)/documents/support_conversations/$(userId)
+            ).data.last_message == request.resource.data.text &&
+            getAfter(
+              /databases/$(database)/documents/support_conversations/$(userId)
+            ).data.updated_at == request.time &&
+            (
+              (request.auth.uid == userId &&
+                request.resource.data.sender_uid == request.auth.uid &&
+                request.resource.data.sender_role == 'user') ||
+              (isAdmin() &&
+                request.resource.data.sender_uid == request.auth.uid &&
+                request.resource.data.sender_role == 'admin')
+            );
+        allow update, delete: if false;
+      }
     }
 
     // Additive payment-proof flow. Published user/payment contracts stay intact.

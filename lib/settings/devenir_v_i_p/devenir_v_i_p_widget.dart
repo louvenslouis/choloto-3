@@ -3,6 +3,8 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/settings/customerservice/customerservice_widget.dart';
+import '/support/support_text.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -568,8 +570,26 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 ].divide(SizedBox(height: 8.0)),
                               ),
                             ),
-                            Container(
-                              decoration: BoxDecoration(),
+                            Tooltip(
+                              message: supportText(context, 'open'),
+                              child: FlutterFlowIconButton(
+                                key: const ValueKey(
+                                    'open-subscription-support-legacy'),
+                                borderRadius: FlutterFlowTheme.of(context)
+                                    .designToken
+                                    .radius
+                                    .full,
+                                buttonSize: 48.0,
+                                fillColor: FlutterFlowTheme.of(context).primary,
+                                icon: Icon(
+                                  Icons.chat_bubble_outline_rounded,
+                                  color: FlutterFlowTheme.of(context).onPrimary,
+                                  size: 23.0,
+                                ),
+                                onPressed: () => context.pushNamed(
+                                  CustomerserviceWidget.routeName,
+                                ),
+                              ),
                             ),
                           ],
                         ),

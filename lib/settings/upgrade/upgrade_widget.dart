@@ -5,6 +5,8 @@ import '/components/web_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/settings/customerservice/customerservice_widget.dart';
+import '/support/subscription_support_card.dart';
 import 'package:flutter/material.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 
@@ -160,6 +162,11 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
                                 !snapshot.hasData,
                             loadFailed: snapshot.hasError,
                             onRenew: _openSubscriptionFlow,
+                          ),
+                          SizedBox(height: tokens.spacing.md),
+                          SubscriptionSupportCard(
+                            onOpen: () => context
+                                .pushNamed(CustomerserviceWidget.routeName),
                           ),
                           SizedBox(height: tokens.spacing.md),
                           TextButton.icon(
