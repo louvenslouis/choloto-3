@@ -1,5 +1,3 @@
-import '/payments/payment_requests_widget.dart';
-import '/payments/payment_text.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -12,6 +10,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'parametres_model.dart';
+import 'subscription_settings_tile.dart';
 export 'parametres_model.dart';
 
 class ParametresWidget extends StatefulWidget {
@@ -43,28 +42,6 @@ class _ParametresWidgetState extends State<ParametresWidget> {
     _model.dispose();
 
     super.dispose();
-  }
-
-  String _subscriptionStatusText(DateTime expiration) {
-    final localizations = FFLocalizations.of(context);
-    if (expiration <= getCurrentTimestamp) {
-      return localizations.getVariableText(
-        frText: 'Votre abonnement est expiré',
-        enText: 'Your subscription has expired',
-        crText: 'Abònman ou ekspire',
-      );
-    }
-
-    final formattedDate = dateTimeFormat(
-      'yMMMd',
-      expiration,
-      locale: localizations.languageShortCode ?? localizations.languageCode,
-    );
-    return localizations.getVariableText(
-      frText: 'Votre abonnement expire le $formattedDate',
-      enText: 'Your subscription expires on $formattedDate',
-      crText: 'Abònman ou ap ekspire $formattedDate',
-    );
   }
 
   String? _notificationStatusText(PushNotificationStatus? status) {
@@ -198,91 +175,6 @@ class _ParametresWidgetState extends State<ParametresWidget> {
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  if (loggedIn && currentUserDocument?.endSub != null)
-                    Card(
-                      clipBehavior: Clip.antiAliasWithSaveLayer,
-                      color: FlutterFlowTheme.of(context).secondaryBackground,
-                      elevation: 0.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Container(
-                        width: double.infinity,
-                        height: 50.0,
-                        decoration: BoxDecoration(),
-                        child: Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              17.0, 0.0, 0.0, 0.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              FaIcon(
-                                FontAwesomeIcons.exclamation,
-                                color: FlutterFlowTheme.of(context).primaryText,
-                                size: 24.0,
-                              ),
-                              Align(
-                                alignment: AlignmentDirectional(0.0, 0.0),
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      19.0, 0.0, 0.0, 0.0),
-                                  child: AuthUserStreamWidget(
-                                    builder: (context) => Text(
-                                      _subscriptionStatusText(
-                                        currentUserDocument!.endSub!,
-                                      ),
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            font: GoogleFonts.inter(
-                                              fontWeight:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
-                                            ),
-                                            letterSpacing: 0.0,
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (loggedIn)
-                    ListTile(
-                      key: const ValueKey('payment-proof-settings-menu'),
-                      leading: Icon(Icons.receipt_long_outlined,
-                          color: FlutterFlowTheme.of(context).primary),
-                      title: Text(paymentText(context, 'menu'),
-                          style: FlutterFlowTheme.of(context).titleLarge),
-                      trailing: Icon(Icons.chevron_right,
-                          color: FlutterFlowTheme.of(context).secondaryText),
-                      tileColor:
-                          FlutterFlowTheme.of(context).secondaryBackground,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              FlutterFlowTheme.of(context)
-                                  .designToken
-                                  .radius
-                                  .sm)),
-                      onTap: () =>
-                          context.pushNamed(PaymentRequestsWidget.routeName),
-                    ),
                   if (kIsWeb)
                     AnimatedBuilder(
                       animation: PushNotificationService.instance,
@@ -432,50 +324,15 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                       ),
                     ),
                   if (loggedIn)
-                    InkWell(
-                      splashColor: Colors.transparent,
-                      focusColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      onTap: () async {
-                        logFirebaseEvent(
-                            'PARAMETRES_PAGE_ListTile_b68hxm1x_ON_TAP');
-                        logFirebaseEvent('ListTile_navigate_to');
-
-                        context.pushNamed(UpgradeWidget.routeName);
-                      },
-                      child: Material(
-                        color: Colors.transparent,
-                        child: ListTile(
-                          leading: FaIcon(
-                            FontAwesomeIcons.award,
-                            color: FlutterFlowTheme.of(context).alternate,
-                          ),
-                          title: Text(
-                            FFLocalizations.of(context).getText(
-                              'eywbwq85' /* Abonnement */,
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .titleLarge
-                                .override(
-                                  fontFamily: 'Google sans flex',
-                                  letterSpacing: 0.0,
-                                ),
-                          ),
-                          trailing: Icon(
-                            Icons.arrow_right_rounded,
-                            color: FlutterFlowTheme.of(context).secondaryText,
-                            size: 24.0,
-                          ),
-                          tileColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
-                          dense: false,
-                          contentPadding: EdgeInsetsDirectional.fromSTEB(
-                              12.0, 0.0, 12.0, 0.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                        ),
+                    AuthUserStreamWidget(
+                      builder: (context) => SubscriptionSettingsTile(
+                        expiration: currentUserDocument?.endSub,
+                        onTap: () {
+                          logFirebaseEvent(
+                              'PARAMETRES_PAGE_ListTile_b68hxm1x_ON_TAP');
+                          logFirebaseEvent('ListTile_navigate_to');
+                          context.pushNamed(UpgradeWidget.routeName);
+                        },
                       ),
                     ),
                   if (loggedIn)
