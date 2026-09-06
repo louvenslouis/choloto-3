@@ -1108,3 +1108,6 @@ expectStatus(
 );
 
 console.log('Firestore compatibility rules: all checks passed.');
+
+const {testPaymentRequests} = await import('./payment_requests_rules.mjs');
+await testPaymentRequests({admin});

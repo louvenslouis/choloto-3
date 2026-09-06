@@ -1,3 +1,5 @@
+import '/payments/payment_requests_widget.dart';
+import '/payments/payment_text.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/components/web_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -158,6 +160,16 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
                                 !snapshot.hasData,
                             loadFailed: snapshot.hasError,
                             onRenew: _openSubscriptionFlow,
+                          ),
+                          SizedBox(height: tokens.spacing.md),
+                          TextButton.icon(
+                            onPressed: () => context
+                                .pushNamed(PaymentRequestsWidget.routeName),
+                            icon: Icon(Icons.receipt_long_outlined,
+                                color: theme.primary),
+                            label: Text(paymentText(context, 'title'),
+                                style: theme.labelLarge
+                                    .override(color: theme.primaryText)),
                           ),
                         ],
                       ),

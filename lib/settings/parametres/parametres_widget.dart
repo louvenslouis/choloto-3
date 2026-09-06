@@ -1,3 +1,5 @@
+import '/payments/payment_requests_widget.dart';
+import '/payments/payment_text.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -260,6 +262,26 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                           ),
                         ),
                       ),
+                    ),
+                  if (loggedIn)
+                    ListTile(
+                      key: const ValueKey('payment-proof-settings-menu'),
+                      leading: Icon(Icons.receipt_long_outlined,
+                          color: FlutterFlowTheme.of(context).primary),
+                      title: Text(paymentText(context, 'menu'),
+                          style: FlutterFlowTheme.of(context).titleLarge),
+                      trailing: Icon(Icons.chevron_right,
+                          color: FlutterFlowTheme.of(context).secondaryText),
+                      tileColor:
+                          FlutterFlowTheme.of(context).secondaryBackground,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              FlutterFlowTheme.of(context)
+                                  .designToken
+                                  .radius
+                                  .sm)),
+                      onTap: () =>
+                          context.pushNamed(PaymentRequestsWidget.routeName),
                     ),
                   if (kIsWeb)
                     AnimatedBuilder(

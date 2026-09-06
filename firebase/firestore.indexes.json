@@ -14,5 +14,12 @@
         }
       ]
     }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "evidence",
+      "fieldPath": "base64",
+      "indexes": []
+    }
   ]
 }

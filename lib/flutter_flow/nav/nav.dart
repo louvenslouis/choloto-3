@@ -1,3 +1,4 @@
+import '/payments/payment_requests_widget.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -179,6 +180,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: VipHistoryWidget.routePath,
           requireAuth: true,
           builder: (context, params) => const VipHistoryWidget(),
+        ),
+        FFRoute(
+          name: PaymentRequestsWidget.routeName,
+          path: PaymentRequestsWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const PaymentRequestsWidget(),
         ),
         FFRoute(
           name: UpgradeWidget.routeName,
