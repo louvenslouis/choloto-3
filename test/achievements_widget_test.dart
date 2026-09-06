@@ -58,6 +58,14 @@ const _snapshot = AchievementSnapshot(
 );
 
 void main() {
+  test('counts completed badges for the global progress circle', () {
+    expect(unlockedAchievementCount(_snapshot), 7);
+    expect(
+      achievementCompletionValue(_snapshot),
+      closeTo(7 / achievementDefinitions.length, 0.0001),
+    );
+  });
+
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
       testWidgets(
@@ -105,6 +113,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('current-streak-value')), findsOneWidget);
+    expect(find.byKey(const ValueKey('achievement-status-circle')),
+        findsOneWidget);
+    expect(find.text('7/13'), findsOneWidget);
     expect(find.text('jours d’affilée'), findsOneWidget);
     expect(find.byKey(const ValueKey('achievement-streak_7')), findsOneWidget);
     await tester.scrollUntilVisible(
@@ -115,6 +126,43 @@ void main() {
         matching: find.byType(Scrollable),
       ),
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('advances the status circle when a new badge is completed',
+      (tester) async {
+    tester.view.physicalSize = const Size(480, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _app(
+        child: AchievementDashboard(
+          snapshot: const AchievementSnapshot(longestStreak: 2),
+          now: DateTime(2026, 8, 14),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('0/13'), findsOneWidget);
+
+    await tester.pumpWidget(
+      _app(
+        child: AchievementDashboard(
+          snapshot: const AchievementSnapshot(longestStreak: 3),
+          now: DateTime(2026, 8, 14),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final indicator = tester.widget<CircularProgressIndicator>(
+      find.byKey(const ValueKey('achievement-status-circle')),
+    );
+    expect(find.text('1/13'), findsOneWidget);
+    expect(indicator.value, closeTo(1 / achievementDefinitions.length, 0.0001));
     expect(tester.takeException(), isNull);
   });
 

@@ -924,6 +924,31 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en':
           'Your streak tracking starts today. No earlier history has been invented.',
     },
+    'ach_completion_title': {
+      'fr': 'Progression des badges',
+      'cr': 'Pwogrè badj yo',
+      'en': 'Badge progress',
+    },
+    'ach_completion_desc': {
+      'fr': 'Le cercle avance chaque fois que vous débloquez un nouveau badge.',
+      'cr': 'Sèk la avanse chak fwa ou debloke yon nouvo badj.',
+      'en': 'The circle advances each time you unlock a new badge.',
+    },
+    'ach_badges_count_label': {
+      'fr': 'badges débloqués',
+      'cr': 'badj debloke',
+      'en': 'badges unlocked',
+    },
+    'ach_next_badge_status': {
+      'fr': 'Prochain badge en cours',
+      'cr': 'Pwochen badj la an pwogrè',
+      'en': 'Next badge in progress',
+    },
+    'ach_collection_complete': {
+      'fr': 'Collection complète',
+      'cr': 'Koleksyon an konplè',
+      'en': 'Collection complete',
+    },
     'ach_overview_title': {
       'fr': 'Votre progression',
       'cr': 'Pwogrè ou',

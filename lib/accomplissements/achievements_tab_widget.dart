@@ -115,6 +115,8 @@ class AchievementDashboard extends StatelessWidget {
                     const _TrackingStartedNotice(),
                   ],
                   SizedBox(height: spacing.lg),
+                  _AchievementCompletionStatus(snapshot: snapshot),
+                  SizedBox(height: spacing.lg),
                   const _SectionTitle(
                     titleKey: 'ach_overview_title',
                     subtitleKey: 'ach_overview_desc',
@@ -406,6 +408,155 @@ class _TrackingStartedNotice extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AchievementCompletionStatus extends StatelessWidget {
+  const _AchievementCompletionStatus({required this.snapshot});
+
+  final AchievementSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final localizations = FFLocalizations.of(context);
+    final spacing = theme.designToken.spacing;
+    final total = achievementDefinitions.length;
+    final unlocked = unlockedAchievementCount(snapshot);
+    final progress = achievementCompletionValue(snapshot);
+    final complete = unlocked == total;
+
+    final ring = SizedBox.square(
+      dimension: 120.0,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: progress),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, _) => CircularProgressIndicator(
+                key: const ValueKey('achievement-status-circle'),
+                value: value,
+                strokeWidth: spacing.sm,
+                strokeCap: StrokeCap.round,
+                backgroundColor: theme.alternate.withValues(alpha: 0.28),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  complete ? theme.success : theme.primary,
+                ),
+              ),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$unlocked/$total',
+                key: const ValueKey('achievement-status-count'),
+                style:
+                    theme.headlineSmall.override(fontWeight: FontWeight.w700),
+              ),
+              Text(
+                localizations.getText('ach_badges_count_label'),
+                textAlign: TextAlign.center,
+                style: theme.labelSmall.override(color: theme.secondaryText),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          localizations.getText('ach_completion_title'),
+          style: theme.titleLarge,
+        ),
+        SizedBox(height: spacing.xs),
+        Text(
+          localizations.getText('ach_completion_desc'),
+          style: theme.bodyMedium.override(color: theme.secondaryText),
+        ),
+        SizedBox(height: spacing.sm),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: spacing.sm,
+            vertical: spacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: (complete ? theme.success : theme.primary)
+                .withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(theme.designToken.radius.full),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                complete
+                    ? Icons.workspace_premium_rounded
+                    : Icons.track_changes_rounded,
+                size: 18.0,
+                color: complete ? theme.success : theme.primary,
+              ),
+              SizedBox(width: spacing.xs),
+              Flexible(
+                child: Text(
+                  localizations.getText(
+                    complete
+                        ? 'ach_collection_complete'
+                        : 'ach_next_badge_status',
+                  ),
+                  style: theme.labelMedium.override(
+                    color: complete ? theme.success : theme.primaryText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    return Semantics(
+      container: true,
+      excludeSemantics: true,
+      label: localizations.getText('ach_completion_title'),
+      value:
+          '$unlocked ${localizations.getText('ach_progress_of')} $total ${localizations.getText('ach_badges_count_label')}',
+      child: Container(
+        key: const ValueKey('achievement-completion-status'),
+        padding: EdgeInsets.all(spacing.md),
+        decoration: BoxDecoration(
+          color: theme.secondaryBackground,
+          borderRadius: BorderRadius.circular(theme.designToken.radius.md),
+          boxShadow: [theme.designToken.shadow.sm],
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 420.0) {
+              return Column(
+                children: [
+                  ring,
+                  SizedBox(height: spacing.md),
+                  Align(alignment: Alignment.centerLeft, child: details),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                ring,
+                SizedBox(width: spacing.lg),
+                Expanded(child: details),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

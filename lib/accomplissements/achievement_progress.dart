@@ -175,6 +175,16 @@ const achievementDefinitions = <AchievementDefinition>[
   ),
 ];
 
+int unlockedAchievementCount(AchievementSnapshot snapshot) =>
+    achievementDefinitions
+        .where((definition) => definition.isUnlocked(snapshot))
+        .length;
+
+double achievementCompletionValue(AchievementSnapshot snapshot) =>
+    achievementDefinitions.isEmpty
+        ? 0.0
+        : unlockedAchievementCount(snapshot) / achievementDefinitions.length;
+
 int nextStreakTarget(int longestStreak) {
   for (final target in const [3, 7, 14, 30]) {
     if (longestStreak < target) {

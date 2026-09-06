@@ -184,51 +184,38 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
     }
   }
 
-  Color _shiftLightness(Color color, double amount) {
-    final hsl = HSLColor.fromColor(color);
-    return hsl
-        .withLightness(
-          (hsl.lightness + amount).clamp(0.0, 1.0).toDouble(),
-        )
-        .toColor();
-  }
-
   List<Color> _gradientColors({
     required FlutterFlowTheme theme,
     required bool darkMode,
     required Color baseColor,
   }) {
+    Color shade(double amount) =>
+        Color.lerp(baseColor, theme.onPrimary, amount)!;
+
+    // A broad, off-centre highlight gives the existing artwork a satin backdrop.
+    // Keep the text side deep and derive every shade from the feature identity.
     switch (widget.tone) {
       case HomeFeatureTone.vip:
-        return darkMode
-            ? const [
-                Color(0xFF241233),
-                Color(0xFF472060),
-                Color(0xFF673081),
-              ]
-            : const [
-                Color(0xFF321743),
-                Color(0xFF52256D),
-                Color(0xFF70368A),
-              ];
+        return [
+          shade(darkMode ? 0.52 : 0.42),
+          shade(0.24),
+          baseColor,
+          shade(0.18),
+        ];
       case HomeFeatureTone.chance:
         return [
-          _shiftLightness(theme.primary, -0.08),
-          _shiftLightness(theme.primary, -0.04),
-          _shiftLightness(theme.warning, 0.02),
+          shade(darkMode ? 0.12 : 0.08),
+          theme.primary,
+          Color.lerp(theme.primary, theme.onDecorative, 0.28)!,
+          Color.lerp(theme.primary, theme.onDecorative, 0.08)!,
         ];
       case HomeFeatureTone.video:
-        return darkMode
-            ? [
-                _shiftLightness(baseColor, -0.28),
-                _shiftLightness(baseColor, -0.10),
-                baseColor,
-              ]
-            : [
-                _shiftLightness(baseColor, -0.12),
-                baseColor,
-                _shiftLightness(baseColor, 0.10),
-              ];
+        return [
+          shade(darkMode ? 0.64 : 0.56),
+          shade(0.46),
+          shade(0.32),
+          shade(0.44),
+        ];
     }
   }
 
@@ -283,19 +270,15 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
       baseColor: baseColor,
     );
     final borderColor = switch (widget.tone) {
-      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.54),
-      HomeFeatureTone.chance => theme.onPrimary.withValues(alpha: 0.18),
-      HomeFeatureTone.video => theme.onDecorative.withValues(alpha: 0.28),
+      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.24),
+      HomeFeatureTone.chance => theme.onPrimary.withValues(alpha: 0.10),
+      HomeFeatureTone.video => theme.onDecorative.withValues(alpha: 0.14),
     };
     final highlightColor = switch (widget.tone) {
-      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.50),
-      HomeFeatureTone.chance => theme.onDecorative.withValues(alpha: 0.58),
-      HomeFeatureTone.video => theme.onDecorative.withValues(alpha: 0.42),
+      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.32),
+      HomeFeatureTone.chance => theme.onDecorative.withValues(alpha: 0.40),
+      HomeFeatureTone.video => theme.onDecorative.withValues(alpha: 0.24),
     };
-    final depthColor =
-        isChance ? theme.onPrimary : _shiftLightness(baseColor, -0.20);
-    final glowColor =
-        widget.tone == HomeFeatureTone.vip ? theme.primary : theme.onDecorative;
     final interactionOffset = _pressed
         ? const Offset(0.0, 0.004)
         : (_hovered ? const Offset(0.0, -0.008) : Offset.zero);
@@ -338,26 +321,20 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: _hovered
-                            ? const Alignment(-0.90, -1.0)
-                            : Alignment.topLeft,
+                            ? const Alignment(-1.0, -0.65)
+                            : const Alignment(-1.0, -0.80),
                         end: _hovered
-                            ? const Alignment(0.90, 1.0)
-                            : Alignment.bottomRight,
+                            ? const Alignment(1.0, 0.65)
+                            : const Alignment(1.0, 0.80),
                         colors: gradientColors,
-                        stops: const [0.0, 0.54, 1.0],
+                        stops: const [0.0, 0.38, 0.76, 1.0],
                       ),
                       borderRadius: cardRadius,
-                      border: Border.all(color: borderColor, width: 1.5),
+                      border: Border.all(color: borderColor),
                       boxShadow: [
-                        theme.designToken.shadow.md,
-                        BoxShadow(
-                          color: depthColor.withValues(
-                            alpha: darkMode ? 0.34 : 0.18,
-                          ),
-                          offset: Offset(0.0, _pressed ? 2.0 : 4.0),
-                          blurRadius: _pressed ? 7.0 : 12.0,
-                          spreadRadius: -3.0,
-                        ),
+                        _pressed
+                            ? theme.designToken.shadow.sm
+                            : theme.designToken.shadow.md,
                       ],
                     ),
                     child: Material(
@@ -381,23 +358,29 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                           borderRadius: cardRadius,
                           child: Stack(
                             children: [
-                              PositionedDirectional(
-                                top: -44.0,
-                                end: -26.0,
+                              Positioned.fill(
                                 child: AnimatedScale(
                                   scale: _hovered ? 1.035 : 1.0,
                                   duration: const Duration(milliseconds: 240),
                                   curve: Curves.easeOutCubic,
                                   child: Container(
-                                    width: 156.0,
-                                    height: 156.0,
+                                    key: ValueKey(
+                                      'home-feature-glow-${widget.semanticId}',
+                                    ),
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
                                       gradient: RadialGradient(
+                                        center: const Alignment(0.65, -0.75),
+                                        radius: 1.25,
                                         colors: [
-                                          glowColor.withValues(alpha: 0.16),
-                                          glowColor.withValues(alpha: 0.0),
+                                          theme.onDecorative.withValues(
+                                            alpha: isChance ? 0.12 : 0.06,
+                                          ),
+                                          theme.onDecorative
+                                              .withValues(alpha: 0.02),
+                                          theme.onDecorative
+                                              .withValues(alpha: 0.0),
                                         ],
+                                        stops: const [0.0, 0.45, 1.0],
                                       ),
                                     ),
                                   ),
@@ -411,7 +394,7 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                   key: ValueKey(
                                     'home-feature-3d-edge-${widget.semanticId}',
                                   ),
-                                  height: 2.0,
+                                  height: 1.0,
                                   decoration: BoxDecoration(
                                     borderRadius: cardRadius,
                                     gradient: LinearGradient(
@@ -419,47 +402,6 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                         highlightColor.withValues(alpha: 0.0),
                                         highlightColor,
                                         highlightColor.withValues(alpha: 0.0),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              if (!isVideo)
-                                PositionedDirectional(
-                                  top: 0.0,
-                                  start: spacing.xl,
-                                  end: spacing.xl,
-                                  child: Container(
-                                    key: ValueKey(
-                                      'home-feature-accent-${widget.semanticId}',
-                                    ),
-                                    height: 1.5,
-                                    decoration: BoxDecoration(
-                                      borderRadius: cardRadius,
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          theme.primary.withValues(alpha: 0.0),
-                                          theme.primary.withValues(alpha: 0.72),
-                                          theme.primary.withValues(alpha: 0.0),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              PositionedDirectional(
-                                bottom: 0.0,
-                                start: spacing.md,
-                                end: spacing.md,
-                                child: Container(
-                                  height: 6.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: cardRadius,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        depthColor.withValues(alpha: 0.0),
-                                        depthColor.withValues(alpha: 0.18),
                                       ],
                                     ),
                                   ),
@@ -501,7 +443,7 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                                   fontSize:
                                                       compact ? 18.0 : 20.0,
                                                   fontWeight: FontWeight.w700,
-                                                  lineHeight: 1.08,
+                                                  lineHeight: 1.12,
                                                 ),
                                               ),
                                               SizedBox(height: spacing.sm),
@@ -515,16 +457,13 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                                 style:
                                                     theme.bodyMedium.override(
                                                   color: foreground.withValues(
-                                                    alpha: isChance
-                                                        ? 0.78
-                                                        : (isVideo
-                                                            ? 0.86
-                                                            : 0.90),
+                                                    alpha:
+                                                        isChance ? 0.78 : 0.86,
                                                   ),
                                                   fontSize:
                                                       compact ? 12.0 : 13.0,
-                                                  fontWeight: FontWeight.w600,
-                                                  lineHeight: 1.25,
+                                                  fontWeight: FontWeight.w500,
+                                                  lineHeight: 1.30,
                                                 ),
                                               ),
                                               const Spacer(),

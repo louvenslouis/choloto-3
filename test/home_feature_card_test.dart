@@ -56,11 +56,19 @@ double _contrastRatio(Color foreground, Color background) {
       (darker.computeLuminance() + 0.05);
 }
 
-Color _shiftLightness(Color color, double amount) {
-  final hsl = HSLColor.fromColor(color);
-  return hsl
-      .withLightness((hsl.lightness + amount).clamp(0.0, 1.0).toDouble())
-      .toColor();
+HomeFeatureCard _localizedCard(HomeFeatureTone tone, FFLocalizations strings) {
+  final (titleKey, descriptionKey, asset) = switch (tone) {
+    HomeFeatureTone.vip => ('covzb0rd', 'uvl7vow9', _vipAsset),
+    HomeFeatureTone.chance => ('afym167o', 'pqih1sxe', _chanceAsset),
+    HomeFeatureTone.video => ('fkwji2m2', 'gcjztr88', _videoAsset),
+  };
+  return _card(
+    id: tone.name,
+    title: strings.getText(titleKey),
+    description: strings.getText(descriptionKey),
+    tone: tone,
+    assetPath: asset,
+  );
 }
 
 void main() {
@@ -231,7 +239,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final tone in const [HomeFeatureTone.vip, HomeFeatureTone.chance]) {
+  for (final tone in HomeFeatureTone.values) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
       testWidgets(
         '${tone.name} card has a premium background and readable copy in ${themeMode.name}',
@@ -246,18 +254,8 @@ void main() {
                 alignment: Alignment.topCenter,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: _card(
-                    id: id,
-                    title: tone == HomeFeatureTone.vip
-                        ? 'ABONNEMENT VIP'
-                        : 'CROIX DE LA CHANCE',
-                    description: tone == HomeFeatureTone.vip
-                        ? 'Accède à tous les avantages exclusifs.'
-                        : 'Tente chaque jour et gagne GROS.',
-                    tone: tone,
-                    assetPath:
-                        tone == HomeFeatureTone.vip ? _vipAsset : _chanceAsset,
-                  ),
+                  child:
+                      _localizedCard(tone, FFLocalizations(const Locale('fr'))),
                 ),
               ),
             ),
@@ -289,25 +287,40 @@ void main() {
             150.0,
           );
           expect(borderRadius.topLeft.x, 24.0);
-          expect(border.top.width, 1.5);
-          expect(decoration.boxShadow, hasLength(2));
+          expect(border.top.width, lessThanOrEqualTo(1.0));
+          expect(decoration.boxShadow, hasLength(1));
           expect(
             find.byKey(ValueKey('home-feature-3d-edge-$id')),
             findsOneWidget,
           );
-          expect(
-            find.byKey(ValueKey('home-feature-accent-$id')),
-            findsOneWidget,
+          final glow = tester.widget<Container>(
+            find.byKey(ValueKey('home-feature-glow-$id')),
           );
-          for (final background in gradient.colors) {
-            expect(
-              _contrastRatio(titleColor, background),
-              greaterThanOrEqualTo(7.0),
-            );
-            expect(
-              _contrastRatio(descriptionColor, background),
-              greaterThanOrEqualTo(4.5),
-            );
+          final glowGradient =
+              (glow.decoration! as BoxDecoration).gradient! as RadialGradient;
+          // Check the full gradient, including its brightest overlaid reflection.
+          // Testing only the opaque stops misses washed-out text under a glow.
+          for (var segment = 0;
+              segment < gradient.colors.length - 1;
+              segment++) {
+            for (var step = 0; step <= 10; step++) {
+              final base = Color.lerp(
+                gradient.colors[segment],
+                gradient.colors[segment + 1],
+                step / 10,
+              )!;
+              for (final reflection in glowGradient.colors) {
+                final background = Color.alphaBlend(reflection, base);
+                expect(
+                  _contrastRatio(titleColor, background),
+                  greaterThanOrEqualTo(7.0),
+                );
+                expect(
+                  _contrastRatio(descriptionColor, background),
+                  greaterThanOrEqualTo(4.5),
+                );
+              }
+            }
           }
           expect(tester.takeException(), isNull);
         },
@@ -315,94 +328,43 @@ void main() {
     }
   }
 
-  for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
-    testWidgets('YouTube card background stays unchanged in ${themeMode.name}',
-        (tester) async {
-      await _setViewport(tester, const Size(320.0, 568.0));
-      await tester.pumpWidget(
-        _testApp(
-          themeMode: themeMode,
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: _card(
-                id: 'video',
-                title: 'YOUTUBE',
-                description: 'Regarde et reste connecté.',
-                tone: HomeFeatureTone.video,
-                assetPath: _videoAsset,
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final card = tester.widget<AnimatedContainer>(
-        find.byKey(const ValueKey('home-feature-gradient-video')),
-      );
-      final gradient =
-          (card.decoration! as BoxDecoration).gradient! as LinearGradient;
-      const youtubeRed = Color(0xFFE62117);
-      expect(
-        gradient.colors,
-        themeMode == ThemeMode.dark
-            ? [
-                _shiftLightness(youtubeRed, -0.28),
-                _shiftLightness(youtubeRed, -0.10),
-                youtubeRed,
-              ]
-            : [
-                _shiftLightness(youtubeRed, -0.12),
-                youtubeRed,
-                _shiftLightness(youtubeRed, 0.10),
-              ],
-      );
-      expect(
-        find.byKey(const ValueKey('home-feature-accent-video')),
-        findsNothing,
-      );
-      expect(tester.takeException(), isNull);
-    });
-  }
-
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
-      testWidgets(
-        'fits localized chance content on a small phone in '
-        '${locale.languageCode} ${themeMode.name}',
-        (tester) async {
-          await _setViewport(tester, const Size(320.0, 568.0));
-          final localizations = FFLocalizations(locale);
-
-          await tester.pumpWidget(
-            _testApp(
-              themeMode: themeMode,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
+      for (final width in [320.0, 800.0, 1160.0]) {
+        testWidgets(
+          'fits all localized cards at $width px in '
+          '${locale.languageCode} ${themeMode.name}',
+          (tester) async {
+            await _setViewport(tester, Size(width, 700.0));
+            final strings = FFLocalizations(locale);
+            await tester.pumpWidget(
+              _testApp(
+                themeMode: themeMode,
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
-                  child: _card(
-                    id: 'chance',
-                    title: localizations.getText('afym167o'),
-                    description: localizations.getText('pqih1sxe'),
-                    tone: HomeFeatureTone.chance,
-                    assetPath: _chanceAsset,
+                  child: HomeFeatureSection(
+                    vipCard: _localizedCard(HomeFeatureTone.vip, strings),
+                    chanceCard: _localizedCard(HomeFeatureTone.chance, strings),
+                    videoCard: _localizedCard(HomeFeatureTone.video, strings),
+                    draws: const SizedBox(height: 100.0),
                   ),
                 ),
               ),
-            ),
-          );
-          await tester.pumpAndSettle();
+            );
+            await tester.pumpAndSettle();
 
-          expect(
-            find.byKey(const ValueKey('home-feature-card-chance')),
-            findsOneWidget,
-          );
-          expect(tester.takeException(), isNull);
-        },
-      );
+            for (final tone in HomeFeatureTone.values) {
+              final card =
+                  find.byKey(ValueKey('home-feature-card-${tone.name}'));
+              expect(card, findsOneWidget);
+              expect(tester.getTopLeft(card).dx, greaterThanOrEqualTo(16.0));
+              expect(tester.getBottomRight(card).dx,
+                  lessThanOrEqualTo(width - 16));
+            }
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
     }
   }
 
