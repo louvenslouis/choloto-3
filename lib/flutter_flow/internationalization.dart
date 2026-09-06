@@ -517,6 +517,21 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Modifye pwofil ou',
       'en': 'Edit your profile',
     },
+    'profile_phone_label': {
+      'fr': 'Numéro de téléphone',
+      'cr': 'Nimewo telefòn',
+      'en': 'Phone number',
+    },
+    'profile_phone_add': {
+      'fr': 'Ajouter',
+      'cr': 'Ajoute',
+      'en': 'Add',
+    },
+    'profile_phone_edit': {
+      'fr': 'Modifier',
+      'cr': 'Modifye',
+      'en': 'Edit',
+    },
   },
   // customerservice
   {
@@ -1438,6 +1453,24 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'L\'adresse e-mail est obligatoire.',
       'cr': 'Adrès imèl la obligatwa.',
       'en': 'Email is required.',
+    },
+    'profile_phone_hint': {
+      'fr': 'Exemple : +509 37 00 00 00',
+      'cr': 'Egzanp : +509 37 00 00 00',
+      'en': 'Example: +509 37 00 00 00',
+    },
+    'profile_phone_required': {
+      'fr': 'Saisissez votre numéro de téléphone.',
+      'cr': 'Antre nimewo telefòn ou.',
+      'en': 'Enter your phone number.',
+    },
+    'profile_save_error': {
+      'fr':
+          'Impossible d\'enregistrer la modification. Vérifiez votre connexion et réessayez.',
+      'cr':
+          'Nou pa kapab anrejistre chanjman an. Verifye koneksyon ou epi eseye ankò.',
+      'en':
+          'Unable to save the change. Check your connection and try again.',
     },
   },
   // bingoCardVIP

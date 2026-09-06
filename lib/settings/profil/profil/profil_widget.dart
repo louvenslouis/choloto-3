@@ -2,11 +2,8 @@ import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'profil_model.dart';
 export 'profil_model.dart';
 
@@ -49,23 +46,24 @@ class _ProfilWidgetState extends State<ProfilWidget> {
       appBar: AppBar(
         backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         automaticallyImplyLeading: false,
-        actions: [],
+        actions: const [],
         flexibleSpace: FlexibleSpaceBar(
           title: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 14.0),
+            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 14.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 8.0),
+                  padding:
+                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 8.0),
                   child: Row(
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 0.0, 0.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            12.0, 0.0, 0.0, 0.0),
                         child: FlutterFlowIconButton(
                           borderColor: Colors.transparent,
                           borderRadius: 30.0,
@@ -85,8 +83,8 @@ class _ProfilWidgetState extends State<ProfilWidget> {
                         ),
                       ),
                       Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(24.0, 0.0, 0.0, 0.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            24.0, 0.0, 0.0, 0.0),
                         child: Text(
                           FFLocalizations.of(context).getText(
                             'xpn42xty' /* Modifie ton Profil */,
@@ -175,8 +173,8 @@ class _ProfilWidgetState extends State<ProfilWidget> {
                     ),
                     tileColor: FlutterFlowTheme.of(context).secondaryBackground,
                     dense: false,
-                    contentPadding:
-                        EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                    contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                        12.0, 0.0, 12.0, 0.0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -236,13 +234,87 @@ class _ProfilWidgetState extends State<ProfilWidget> {
                   ),
                   tileColor: FlutterFlowTheme.of(context).secondaryBackground,
                   dense: false,
-                  contentPadding:
-                      EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                  contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                      12.0, 0.0, 12.0, 0.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
               ),
+            ),
+            AuthUserStreamWidget(
+              builder: (context) {
+                final phoneNumber = currentPhoneNumber;
+                final hasPhoneNumber = phoneNumber.isNotEmpty;
+
+                return InkWell(
+                  key: const ValueKey('profile-phone-tile'),
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: () async {
+                    logFirebaseEvent('PROFIL_PAGE_phone_ON_TAP');
+                    await _model.edit(context, champ: 3);
+                  },
+                  child: Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.phone_outlined,
+                        color: FlutterFlowTheme.of(context).primary,
+                      ),
+                      title: Text(
+                        hasPhoneNumber
+                            ? phoneNumber
+                            : FFLocalizations.of(context)
+                                .getText('profile_phone_label'),
+                        style: FlutterFlowTheme.of(context).titleLarge.override(
+                              fontFamily: 'Google sans flex',
+                              letterSpacing: 0.0,
+                            ),
+                      ),
+                      subtitle: Text(
+                        FFLocalizations.of(context).getText(
+                          hasPhoneNumber
+                              ? 'profile_phone_edit'
+                              : 'profile_phone_add',
+                        ),
+                        style:
+                            FlutterFlowTheme.of(context).labelMedium.override(
+                                  font: GoogleFonts.inter(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .fontStyle,
+                                  ),
+                                  letterSpacing: 0.0,
+                                ),
+                      ),
+                      trailing: Icon(
+                        hasPhoneNumber ? Icons.create : Icons.add,
+                        color: FlutterFlowTheme.of(context).secondaryText,
+                        size: 24.0,
+                      ),
+                      tileColor:
+                          FlutterFlowTheme.of(context).secondaryBackground,
+                      contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                        12.0,
+                        0.0,
+                        12.0,
+                        0.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          FlutterFlowTheme.of(context).designToken.radius.sm,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
