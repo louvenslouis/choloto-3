@@ -121,7 +121,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(15.0, 6.0, 15.0, 0.0),
+              padding: EdgeInsetsDirectional.fromSTEB(
+                  tokens.spacing.sm, tokens.spacing.xs, tokens.spacing.sm, 0.0),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
@@ -129,8 +130,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                   Align(
                     alignment: AlignmentDirectional(-1.0, 1.0),
                     child: Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(12.0, 8.0, 0.0, 8.0),
+                      padding: EdgeInsetsDirectional.fromSTEB(tokens.spacing.xs,
+                          tokens.spacing.xs, 0.0, tokens.spacing.xs),
                       child: Text(
                         valueOrDefault<String>(
                           widget!.name,
@@ -160,7 +161,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
               child: Align(
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: Padding(
-                  padding: EdgeInsets.all(12.0),
+                  padding: EdgeInsets.all(tokens.spacing.sm),
                   child: Material(
                     color: Colors.transparent,
                     elevation: 0.0,
@@ -203,7 +204,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                         alignment:
                                             AlignmentDirectional(0.0, 0.0),
                                         child: Padding(
-                                          padding: EdgeInsets.all(6.0),
+                                          padding:
+                                              EdgeInsets.all(tokens.spacing.xs),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.max,
                                             mainAxisAlignment:
@@ -224,8 +226,10 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                             context)
                                                         .bodyMedium
                                                         .override(
-                                                          color: theme.primaryText,
+                                                          color:
+                                                              theme.primaryText,
                                                           fontSize: 32.0,
+                                                          lineHeight: 1.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FontWeight.w900,
@@ -250,7 +254,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                   ),
                                                 ),
                                                 child: Padding(
-                                                  padding: EdgeInsets.all(6.0),
+                                                  padding: EdgeInsets.all(
+                                                      tokens.spacing.xs),
                                                   child: Row(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -288,9 +293,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                                   .of(context)
                                                               .bodyMedium
                                                               .override(
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .primary,
+                                                                color: theme
+                                                                    .primaryText,
                                                                 fontSize: 11.0,
                                                                 letterSpacing:
                                                                     0.0,
@@ -317,7 +321,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                         alignment:
                                             AlignmentDirectional(0.0, 0.0),
                                         child: Padding(
-                                          padding: EdgeInsets.all(6.0),
+                                          padding:
+                                              EdgeInsets.all(tokens.spacing.xs),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.max,
                                             mainAxisAlignment:
@@ -339,6 +344,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                         .bodyMedium
                                                         .override(
                                                           fontSize: 32.0,
+                                                          lineHeight: 1.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FontWeight.w900,
@@ -363,7 +369,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                   ),
                                                 ),
                                                 child: Padding(
-                                                  padding: EdgeInsets.all(10.0),
+                                                  padding: EdgeInsets.all(
+                                                      tokens.spacing.xs),
                                                   child: Text(
                                                     () {
                                                       if (chiffressIndex == 0) {
@@ -406,7 +413,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                           alignment:
                                               AlignmentDirectional(0.0, 0.0),
                                           child: Padding(
-                                            padding: EdgeInsets.all(6.0),
+                                            padding: EdgeInsets.all(
+                                                tokens.spacing.xs),
                                             child: AutoSizeText(
                                               chiffressItem,
                                               textAlign: TextAlign.center,
@@ -417,6 +425,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                       .bodyMedium
                                                       .override(
                                                         fontSize: 32.0,
+                                                        lineHeight: 1.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FontWeight.w900,

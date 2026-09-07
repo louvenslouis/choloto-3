@@ -74,7 +74,8 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(15.0, 6.0, 15.0, 0.0),
+              padding: EdgeInsetsDirectional.fromSTEB(
+                  tokens.spacing.sm, tokens.spacing.xs, tokens.spacing.sm, 0.0),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
@@ -86,8 +87,8 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                   Align(
                     alignment: AlignmentDirectional(-1.0, 1.0),
                     child: Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(12.0, 8.0, 0.0, 8.0),
+                      padding: EdgeInsetsDirectional.fromSTEB(tokens.spacing.xs,
+                          tokens.spacing.xs, 0.0, tokens.spacing.xs),
                       child: Text(
                         valueOrDefault<String>(
                           widget!.name,
@@ -117,7 +118,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
               child: Align(
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: Padding(
-                  padding: EdgeInsets.all(12.0),
+                  padding: EdgeInsets.all(tokens.spacing.sm),
                   child: Material(
                     color: Colors.transparent,
                     elevation: 0.0,

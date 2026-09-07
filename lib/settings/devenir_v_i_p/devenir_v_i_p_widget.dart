@@ -141,10 +141,8 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.6,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 6,
                           child: Text(
                             FFLocalizations.of(context).getText(
                               '99kfebqb' /* WHAT'S INCLUDED */,
@@ -160,10 +158,8 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 ),
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Text(
                             FFLocalizations.of(context).getText(
                               'juufc32a' /* GRATUIT */,
@@ -181,10 +177,8 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 ),
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Text(
                             FFLocalizations.of(context).getText(
                               'zpnlwhem' /* VIP */,
@@ -193,7 +187,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  color: theme.primary,
+                                  color: theme.primaryText,
                                   fontSize: 12.0,
                                   letterSpacing: 0.0,
                                   fontWeight: FontWeight.w600,
@@ -211,20 +205,16 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.1,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 1,
                           child: Icon(
                             Icons.request_page,
                             color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.5,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 5,
                           child: Text(
                             FFLocalizations.of(context).getText(
                               'tv8dp8zl' /* Resultats lotteries */,
@@ -242,23 +232,21 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 ),
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Icon(
                             Icons.minimize_outlined,
                             color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Icon(
                             Icons.check,
-                            color: theme.primary,
+                            color: theme is DarkModeTheme
+                                ? theme.primary
+                                : theme.primaryText,
                             size: 24.0,
                           ),
                         ),
@@ -270,20 +258,16 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.1,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 1,
                           child: Icon(
                             Icons.request_page,
                             color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.5,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 5,
                           child: Text(
                             FFLocalizations.of(context).getText(
                               'jekwx2fb' /* Resultats lotteries */,
@@ -301,23 +285,21 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 ),
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Icon(
                             Icons.minimize_outlined,
                             color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Icon(
                             Icons.check,
-                            color: theme.primary,
+                            color: theme is DarkModeTheme
+                                ? theme.primary
+                                : theme.primaryText,
                             size: 24.0,
                           ),
                         ),
@@ -329,20 +311,16 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.1,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 1,
                           child: Icon(
                             Icons.request_page,
                             color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.5,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 5,
                           child: Text(
                             FFLocalizations.of(context).getText(
                               'j59fr62k' /* Resultats lotteries */,
@@ -360,23 +338,21 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 ),
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Icon(
                             Icons.minimize_outlined,
                             color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Icon(
                             Icons.check,
-                            color: theme.primary,
+                            color: theme is DarkModeTheme
+                                ? theme.primary
+                                : theme.primaryText,
                             size: 24.0,
                           ),
                         ),
@@ -388,20 +364,16 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.1,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 1,
                           child: Icon(
                             Icons.request_page,
                             color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.5,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 5,
                           child: Text(
                             FFLocalizations.of(context).getText(
                               '96ad4c5w' /* Resultats lotteries */,
@@ -419,23 +391,21 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                 ),
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Icon(
                             Icons.minimize_outlined,
                             color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
-                        Container(
-                          width:
-                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
-                          decoration: BoxDecoration(),
+                        Expanded(
+                          flex: 2,
                           child: Icon(
                             Icons.check,
-                            color: theme.primary,
+                            color: theme is DarkModeTheme
+                                ? theme.primary
+                                : theme.primaryText,
                             size: 24.0,
                           ),
                         ),
@@ -470,8 +440,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              decoration: BoxDecoration(),
+                            Expanded(
                               child: Column(
                                 mainAxisSize: MainAxisSize.max,
                                 crossAxisAlignment: CrossAxisAlignment.start,

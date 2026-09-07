@@ -380,20 +380,23 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                     ),
-                                    child: CachedNetworkImage(
-                                      fadeInDuration:
-                                          Duration(milliseconds: 500),
-                                      fadeOutDuration:
-                                          Duration(milliseconds: 500),
-                                      imageUrl: currentUserPhoto,
-                                      errorWidget: (context, url, error) =>
-                                          Icon(
-                                        Icons.person_rounded,
-                                        color: theme.onPrimary,
-                                        size: 30,
-                                      ),
-                                      fit: BoxFit.cover,
-                                    ),
+                                    child: currentUserPhoto.isEmpty
+                                        ? Icon(Icons.person_rounded,
+                                            color: theme.onPrimary, size: 30)
+                                        : CachedNetworkImage(
+                                            fadeInDuration:
+                                                Duration(milliseconds: 500),
+                                            fadeOutDuration:
+                                                Duration(milliseconds: 500),
+                                            imageUrl: currentUserPhoto,
+                                            errorWidget:
+                                                (context, url, error) => Icon(
+                                              Icons.person_rounded,
+                                              color: theme.onPrimary,
+                                              size: 30,
+                                            ),
+                                            fit: BoxFit.cover,
+                                          ),
                                   ),
                                 ),
                               ),
