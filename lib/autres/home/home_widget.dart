@@ -5,10 +5,10 @@ import '/autres/bingo/bingo/bingo_dialog.dart';
 import '/autres/bingo/bingo/bingo_story_button.dart';
 import '/backend/backend.dart';
 import '/components/home_feature_card.dart';
+import '/components/home_header_actions.dart';
 import '/components/home_stories_rail.dart';
 import '/components/rappel_fin_abonnement_widget.dart';
 import '/components/tirages_home_widget.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
@@ -299,6 +299,70 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     }
   }
 
+  Widget? _buildStoriesRail(BuildContext context) {
+    if (!(_youtubeStoriesLoading ||
+        _youtubeStoriesLoadFailed ||
+        _model.youtubeStories.isNotEmpty ||
+        isBingoStoryCollectionAvailable(
+          viewed: FFAppState().bingo.vue,
+          activeStoryCount: _model.bingoStories.length,
+        ))) {
+      return null;
+    }
+    return HomeStoriesRail(
+      loading: _youtubeStoriesLoading,
+      loadFailed: _youtubeStoriesLoadFailed,
+      onRetry: () => unawaited(_loadYoutubeStories()),
+      stories: [
+        if (isBingoStoryCollectionAvailable(
+          viewed: FFAppState().bingo.vue,
+          activeStoryCount: _model.bingoStories.length,
+        ))
+          BingoStoryButton(
+            viewed: FFAppState().bingo.vue,
+            storyCount: _model.bingoStories.length,
+            onTap: () async {
+              logFirebaseEvent(
+                'HOME_PAGE_bingo_story_ON_TAP',
+              );
+              await showBingoDialog(
+                context: context,
+                bingos: _model.bingoStories
+                    .where(
+                      (record) => isBingoActive(
+                        bingoDate: record.date,
+                        expiration: record.expiration,
+                        now: getCurrentTimestamp,
+                      ),
+                    )
+                    .toList(growable: false),
+              );
+            },
+          ),
+        if (_model.youtubeStories.isNotEmpty)
+          YoutubeStoryButton(
+            video: _model.youtubeStories.first,
+            viewed: _youtubeStoriesViewed,
+            storyCount: _model.youtubeStories.length,
+            onTap: () async {
+              logFirebaseEvent(
+                'HOME_PAGE_youtube_story_ON_TAP',
+              );
+              await showYoutubeStoryDialog(
+                context: context,
+                videos: _model.youtubeStories,
+              );
+              if (mounted) {
+                safeSetState(
+                  () => _youtubeStoriesViewed = true,
+                );
+              }
+            },
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -312,13 +376,24 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         child: Scaffold(
           key: scaffoldKey,
           backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+          floatingActionButton: HomeSupportFab(
+            onSupport: () async {
+              logFirebaseEvent(
+                'HOME_PAGE_support_agent_ICN_ON_TAP',
+              );
+              logFirebaseEvent('IconButton_navigate_to');
+              await context.pushNamed(
+                CustomerserviceWidget.routeName,
+              );
+            },
+          ),
           body: NestedScrollView(
             floatHeaderSlivers: false,
             headerSliverBuilder: (context, _) => [
               SliverAppBar(
                 pinned: true,
                 floating: false,
-                toolbarHeight: 72.0,
+                toolbarHeight: 64.0,
                 backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
                 surfaceTintColor:
                     FlutterFlowTheme.of(context).primaryBackground,
@@ -363,37 +438,20 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                   ],
                 ),
                 actions: [
-                  FlutterFlowIconButton(
-                    buttonSize: 40.0,
-                    hoverIconColor: FlutterFlowTheme.of(context).primary,
-                    icon: Icon(
-                      Icons.query_stats_rounded,
-                      color: FlutterFlowTheme.of(context).primaryText,
-                      size: 22.0,
-                    ),
-                    onPressed: () async {
+                  HomeHeaderActions(
+                    onAchievements: () async {
                       logFirebaseEvent('HOME_PAGE_query_stats_ICN_ON_TAP');
                       logFirebaseEvent('IconButton_navigate_to');
-                      context.pushNamed(AccomplissementsWidget.routeName);
+                      await context.pushNamed(
+                        AccomplissementsWidget.routeName,
+                      );
                     },
-                  ),
-                  SizedBox(
-                    width: FlutterFlowTheme.of(context).designToken.spacing.xs,
-                  ),
-                  FlutterFlowIconButton(
-                    buttonSize: 40.0,
-                    hoverIconColor: FlutterFlowTheme.of(context).primary,
-                    icon: Icon(
-                      Icons.settings_outlined,
-                      color: FlutterFlowTheme.of(context).primaryText,
-                      size: 22.0,
-                    ),
-                    onPressed: () async {
+                    onSettings: () async {
                       logFirebaseEvent(
                         'HOME_PAGE_settings_outlined_ICN_ON_TAP',
                       );
                       logFirebaseEvent('IconButton_navigate_to');
-                      context.pushNamed(ParametresWidget.routeName);
+                      await context.pushNamed(ParametresWidget.routeName);
                     },
                   ),
                   SizedBox(
@@ -421,66 +479,16 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                       FlutterFlowTheme.of(context).designToken.spacing.md,
                       FlutterFlowTheme.of(context).designToken.spacing.sm,
                       FlutterFlowTheme.of(context).designToken.spacing.md,
-                      FlutterFlowTheme.of(context).designToken.spacing.xl,
+                      // Keep the last card clear of the support FAB.
+                      FlutterFlowTheme.of(context).designToken.spacing.xl * 3,
                     ),
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1120.0),
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            HomeStoriesRail(
-                              loading: _youtubeStoriesLoading,
-                              loadFailed: _youtubeStoriesLoadFailed,
-                              onRetry: () => unawaited(_loadYoutubeStories()),
-                              stories: [
-                                if (isBingoStoryCollectionAvailable(
-                                  viewed: FFAppState().bingo.vue,
-                                  activeStoryCount: _model.bingoStories.length,
-                                ))
-                                  BingoStoryButton(
-                                    viewed: FFAppState().bingo.vue,
-                                    storyCount: _model.bingoStories.length,
-                                    onTap: () async {
-                                      logFirebaseEvent(
-                                        'HOME_PAGE_bingo_story_ON_TAP',
-                                      );
-                                      await showBingoDialog(
-                                        context: context,
-                                        bingos: _model.bingoStories
-                                            .where(
-                                              (record) => isBingoActive(
-                                                bingoDate: record.date,
-                                                expiration: record.expiration,
-                                                now: getCurrentTimestamp,
-                                              ),
-                                            )
-                                            .toList(growable: false),
-                                      );
-                                    },
-                                  ),
-                                if (_model.youtubeStories.isNotEmpty)
-                                  YoutubeStoryButton(
-                                    video: _model.youtubeStories.first,
-                                    viewed: _youtubeStoriesViewed,
-                                    storyCount: _model.youtubeStories.length,
-                                    onTap: () async {
-                                      logFirebaseEvent(
-                                        'HOME_PAGE_youtube_story_ON_TAP',
-                                      );
-                                      await showYoutubeStoryDialog(
-                                        context: context,
-                                        videos: _model.youtubeStories,
-                                      );
-                                      if (mounted) {
-                                        safeSetState(
-                                          () => _youtubeStoriesViewed = true,
-                                        );
-                                      }
-                                    },
-                                  ),
-                              ],
-                            ),
                             if (isSubscriptionExpired(
                               expiration: _latestSubscriptionExpiration,
                               now: getCurrentTimestamp,
@@ -494,6 +502,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                 },
                               ),
                             HomeFeatureSection(
+                              stories: _buildStoriesRail(context),
                               vipCard: HomeFeatureCard(
                                 semanticId: 'vip',
                                 title: FFLocalizations.of(context).getText(
@@ -558,7 +567,12 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                 },
                               ),
                             ),
-                          ].divide(const SizedBox(height: 16.0)),
+                          ].divide(SizedBox(
+                            height: FlutterFlowTheme.of(context)
+                                .designToken
+                                .spacing
+                                .sm,
+                          )),
                         ),
                       ),
                     ),

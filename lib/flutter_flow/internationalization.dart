@@ -783,29 +783,29 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // Home
   {
     'covzb0rd': {
-      'fr': 'ABONNEMENT VIP',
-      'cr': 'ABÒNMAN VIP',
-      'en': 'VIP MEMBERSHIP',
+      'fr': 'Abonnement VIP',
+      'cr': 'Abònman VIP',
+      'en': 'VIP membership',
     },
     'uvl7vow9': {
-      'fr': 'Accède à tous les avantages exclusifs.',
-      'cr': 'Jwenn aksè nan tout avantaj eksklizif yo.',
-      'en': 'Access all exclusive benefits.',
+      'fr': 'Vos avantages exclusifs.',
+      'cr': 'Tout avantaj eksklizif ou yo.',
+      'en': 'Your exclusive benefits.',
     },
     'afym167o': {
-      'fr': 'CROIX DE LA CHANCE',
-      'cr': 'KWA LACHANS',
-      'en': 'LUCKY CROSS',
+      'fr': 'Croix de la chance',
+      'cr': 'Kwa lachans',
+      'en': 'Lucky Cross',
     },
     'pqih1sxe': {
-      'fr': 'Tente chaque jour et gagne GROS.',
-      'cr': 'Tante chans ou chak jou epi genyen GWO.',
-      'en': 'Try every day and win BIG.',
+      'fr': 'Tentez votre chance chaque jour.',
+      'cr': 'Tante chans ou chak jou.',
+      'en': 'Try your luck every day.',
     },
     'fkwji2m2': {
-      'fr': 'YOUTUBE',
-      'cr': 'YOUTUBE',
-      'en': 'YOUTUBE',
+      'fr': 'YouTube',
+      'cr': 'YouTube',
+      'en': 'YouTube',
     },
     'gcjztr88': {
       'fr': 'Regarde, Abonne-toi et reste connecté',

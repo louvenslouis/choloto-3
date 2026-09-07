@@ -11,12 +11,14 @@ class HomeFeatureSection extends StatelessWidget {
     required this.chanceCard,
     required this.draws,
     required this.videoCard,
+    this.stories,
   });
 
   final Widget vipCard;
   final Widget chanceCard;
   final Widget draws;
   final Widget videoCard;
+  final Widget? stories;
 
   @override
   Widget build(BuildContext context) {
@@ -25,15 +27,24 @@ class HomeFeatureSection extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 680.0) {
+          final shortScreen = MediaQuery.sizeOf(context).height < 700.0;
           return Column(
             key: const ValueKey('home-feature-mobile-layout'),
             children: [
+              if (stories != null && !shortScreen) ...[
+                stories!,
+                SizedBox(height: spacing.sm),
+              ],
               vipCard,
-              SizedBox(height: spacing.md),
+              SizedBox(height: spacing.sm),
               chanceCard,
-              SizedBox(height: spacing.md),
+              SizedBox(height: spacing.sm),
               draws,
-              SizedBox(height: spacing.md),
+              SizedBox(height: spacing.sm),
+              if (stories != null && shortScreen) ...[
+                stories!,
+                SizedBox(height: spacing.sm),
+              ],
               videoCard,
             ],
           );
@@ -47,6 +58,10 @@ class HomeFeatureSection extends StatelessWidget {
         return Column(
           key: const ValueKey('home-feature-wide-layout'),
           children: [
+            if (stories != null) ...[
+              stories!,
+              SizedBox(height: spacing.sm),
+            ],
             Wrap(
               alignment: WrapAlignment.center,
               spacing: spacing.md,
@@ -57,7 +72,7 @@ class HomeFeatureSection extends StatelessWidget {
                 SizedBox(width: cardWidth, child: videoCard),
               ],
             ),
-            SizedBox(height: spacing.md),
+            SizedBox(height: spacing.sm),
             draws,
           ],
         );
@@ -256,37 +271,34 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    final radius = theme.designToken.radius;
-    final darkMode = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = _brandColor(theme);
+    final tokens = theme.designToken;
+    final viewport = MediaQuery.sizeOf(context);
+    final compact = viewport.height > 0 &&
+        viewport.height < 700 &&
+        viewport.width < 680 &&
+        MediaQuery.textScalerOf(context).scale(14) <= 20;
     final isChance = widget.tone == HomeFeatureTone.chance;
     final isVideo = widget.tone == HomeFeatureTone.video;
-    final foreground = isChance ? theme.onPrimary : theme.onDecorative;
-    final cardRadius = BorderRadius.circular(radius.lg);
-    final gradientColors = _gradientColors(
-      theme: theme,
-      darkMode: darkMode,
-      baseColor: baseColor,
-    );
-    final borderColor = switch (widget.tone) {
-      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.24),
-      HomeFeatureTone.chance => theme.onPrimary.withValues(alpha: 0.10),
-      HomeFeatureTone.video => theme.onDecorative.withValues(alpha: 0.14),
-    };
-    final highlightColor = switch (widget.tone) {
-      HomeFeatureTone.vip => theme.primary.withValues(alpha: 0.32),
-      HomeFeatureTone.chance => theme.onDecorative.withValues(alpha: 0.40),
-      HomeFeatureTone.video => theme.onDecorative.withValues(alpha: 0.24),
-    };
-    final interactionOffset = _pressed
-        ? const Offset(0.0, 0.004)
-        : (_hovered ? const Offset(0.0, -0.008) : Offset.zero);
-    final interactionScale = _pressed ? 0.985 : (_hovered ? 1.008 : 1.0);
+    final foreground = isVideo
+        ? theme.primaryText
+        : (isChance ? theme.onPrimary : theme.onDecorative);
+    final cardRadius = BorderRadius.circular(tokens.radius.lg);
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final duration =
+        reduceMotion ? Duration.zero : const Duration(milliseconds: 180);
+    final gradientColors = isVideo
+        ? [theme.secondaryBackground, theme.secondaryBackground]
+        : _gradientColors(
+            theme: theme,
+            darkMode: Theme.of(context).brightness == Brightness.dark,
+            baseColor: _brandColor(theme),
+          );
 
     return Semantics(
       button: true,
+      onTap: widget.onTap,
       label: '${widget.title}. ${widget.description}',
+      excludeSemantics: true,
       child: FadeTransition(
         key: ValueKey('home-feature-entrance-${widget.semanticId}'),
         opacity: _entranceOpacity,
@@ -300,268 +312,135 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                 _hovered = false;
                 _pressed = false;
               }),
-              child: AnimatedSlide(
-                offset: interactionOffset,
-                duration: const Duration(milliseconds: 180),
+              child: AnimatedScale(
+                key: ValueKey(
+                  'home-feature-interaction-scale-${widget.semanticId}',
+                ),
+                scale: reduceMotion
+                    ? 1.0
+                    : (_pressed ? 0.985 : (_hovered ? 1.008 : 1.0)),
+                duration: duration,
                 curve: Curves.easeOutCubic,
-                child: AnimatedScale(
-                  key: ValueKey(
-                    'home-feature-interaction-scale-${widget.semanticId}',
+                child: AnimatedContainer(
+                  key: ValueKey('home-feature-gradient-${widget.semanticId}'),
+                  constraints: BoxConstraints(minHeight: compact ? 48.0 : 88.0),
+                  duration: duration,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.bottomRight,
+                      colors: gradientColors,
+                    ),
+                    borderRadius: cardRadius,
+                    border: Border.all(
+                      color:
+                          foreground.withValues(alpha: _hovered ? 0.22 : 0.10),
+                    ),
                   ),
-                  scale: interactionScale,
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOutCubic,
-                  child: AnimatedContainer(
-                    key: ValueKey(
-                      'home-feature-gradient-${widget.semanticId}',
-                    ),
-                    height: 150.0,
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: _hovered
-                            ? const Alignment(-1.0, -0.65)
-                            : const Alignment(-1.0, -0.80),
-                        end: _hovered
-                            ? const Alignment(1.0, 0.65)
-                            : const Alignment(1.0, 0.80),
-                        colors: gradientColors,
-                        stops: const [0.0, 0.38, 0.76, 1.0],
-                      ),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      key: ValueKey('home-feature-card-${widget.semanticId}'),
                       borderRadius: cardRadius,
-                      border: Border.all(color: borderColor),
-                      boxShadow: [
-                        _pressed
-                            ? theme.designToken.shadow.sm
-                            : theme.designToken.shadow.md,
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: cardRadius,
-                      child: InkWell(
-                        key: ValueKey(
-                          'home-feature-card-${widget.semanticId}',
+                      splashColor: foreground.withValues(alpha: 0.10),
+                      highlightColor: foreground.withValues(alpha: 0.06),
+                      hoverColor: foreground.withValues(alpha: 0.035),
+                      onHighlightChanged: (pressed) {
+                        if (_pressed != pressed) {
+                          setState(() => _pressed = pressed);
+                        }
+                      },
+                      onTap: widget.onTap,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: tokens.spacing.md,
+                          vertical:
+                              compact ? tokens.spacing.xs : tokens.spacing.sm,
                         ),
-                        borderRadius: cardRadius,
-                        splashColor: foreground.withValues(alpha: 0.10),
-                        highlightColor: foreground.withValues(alpha: 0.06),
-                        hoverColor: foreground.withValues(alpha: 0.035),
-                        onHighlightChanged: (pressed) {
-                          if (_pressed != pressed) {
-                            setState(() => _pressed = pressed);
-                          }
-                        },
-                        onTap: widget.onTap,
-                        child: ClipRRect(
-                          borderRadius: cardRadius,
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: AnimatedScale(
-                                  scale: _hovered ? 1.035 : 1.0,
-                                  duration: const Duration(milliseconds: 240),
-                                  curve: Curves.easeOutCubic,
-                                  child: Container(
-                                    key: ValueKey(
-                                      'home-feature-glow-${widget.semanticId}',
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: RadialGradient(
-                                        center: const Alignment(0.65, -0.75),
-                                        radius: 1.25,
-                                        colors: [
-                                          theme.onDecorative.withValues(
-                                            alpha: isChance ? 0.12 : 0.06,
-                                          ),
-                                          theme.onDecorative
-                                              .withValues(alpha: 0.02),
-                                          theme.onDecorative
-                                              .withValues(alpha: 0.0),
-                                        ],
-                                        stops: const [0.0, 0.45, 1.0],
-                                      ),
-                                    ),
-                                  ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            // Give enlarged text the full card width; the artwork
+                            // is decorative and may sit above it when space is tight.
+                            final stacked =
+                                MediaQuery.textScalerOf(context).scale(14.0) >
+                                    20.0;
+                            final artworkSize = compact
+                                ? 40.0
+                                : (constraints.maxWidth < 300.0 ? 56.0 : 72.0);
+                            final artwork = ExcludeSemantics(
+                              child: AnimatedScale(
+                                key: ValueKey(
+                                  'home-feature-artwork-motion-${widget.semanticId}',
                                 ),
-                              ),
-                              PositionedDirectional(
-                                top: 1.0,
-                                start: spacing.lg,
-                                end: spacing.lg,
-                                child: Container(
-                                  key: ValueKey(
-                                    'home-feature-3d-edge-${widget.semanticId}',
-                                  ),
-                                  height: 1.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: cardRadius,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        highlightColor.withValues(alpha: 0.0),
-                                        highlightColor,
-                                        highlightColor.withValues(alpha: 0.0),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: spacing.md + spacing.xs,
-                                  vertical: spacing.sm + spacing.xs,
-                                ),
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final compact =
-                                        constraints.maxWidth < 300.0;
-                                    final artworkSize = compact ? 84.0 : 96.0;
-                                    final cacheWidth = (artworkSize *
+                                scale: reduceMotion
+                                    ? 1.0
+                                    : (_pressed
+                                        ? 0.97
+                                        : (_hovered ? 1.03 : 1.0)),
+                                duration: duration,
+                                child: SizedBox.square(
+                                  dimension: artworkSize,
+                                  child: _artwork(
+                                    size: artworkSize,
+                                    cacheWidth: (artworkSize *
                                             MediaQuery.devicePixelRatioOf(
-                                              context,
-                                            ))
-                                        .ceil();
-
-                                    return Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                widget.title,
-                                                key: ValueKey(
-                                                  'home-feature-title-${widget.semanticId}',
-                                                ),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style:
-                                                    theme.titleLarge.override(
-                                                  color: foreground,
-                                                  fontSize:
-                                                      compact ? 18.0 : 20.0,
-                                                  fontWeight: FontWeight.w700,
-                                                  lineHeight: 1.12,
-                                                ),
-                                              ),
-                                              SizedBox(height: spacing.sm),
-                                              Text(
-                                                widget.description,
-                                                key: ValueKey(
-                                                  'home-feature-description-${widget.semanticId}',
-                                                ),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style:
-                                                    theme.bodyMedium.override(
-                                                  color: foreground.withValues(
-                                                    alpha:
-                                                        isChance ? 0.78 : 0.86,
-                                                  ),
-                                                  fontSize:
-                                                      compact ? 12.0 : 13.0,
-                                                  fontWeight: FontWeight.w500,
-                                                  lineHeight: 1.30,
-                                                ),
-                                              ),
-                                              const Spacer(),
-                                              AnimatedContainer(
-                                                key: ValueKey(
-                                                  'home-feature-arrow-${widget.semanticId}',
-                                                ),
-                                                width: 32.0,
-                                                height: 32.0,
-                                                duration: const Duration(
-                                                  milliseconds: 180,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: isChance
-                                                      ? theme.onPrimary
-                                                      : (widget.tone ==
-                                                              HomeFeatureTone
-                                                                  .vip
-                                                          ? theme.primary
-                                                          : foreground
-                                                              .withValues(
-                                                              alpha: _hovered
-                                                                  ? 0.18
-                                                                  : 0.12,
-                                                            )),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                    radius.full,
-                                                  ),
-                                                  border: Border.all(
-                                                    color:
-                                                        foreground.withValues(
-                                                            alpha: 0.16),
-                                                  ),
-                                                ),
-                                                child: AnimatedSlide(
-                                                  offset: _hovered
-                                                      ? const Offset(0.06, 0.0)
-                                                      : Offset.zero,
-                                                  duration: const Duration(
-                                                    milliseconds: 180,
-                                                  ),
-                                                  curve: Curves.easeOutCubic,
-                                                  child: Icon(
-                                                    Icons.arrow_forward_rounded,
-                                                    color: isChance
-                                                        ? theme.primary
-                                                        : (widget.tone ==
-                                                                HomeFeatureTone
-                                                                    .vip
-                                                            ? theme.onPrimary
-                                                            : foreground),
-                                                    size: 18.0,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(width: spacing.sm),
-                                        ExcludeSemantics(
-                                          child: AnimatedRotation(
-                                            turns: _hovered
-                                                ? (isVideo ? 0.004 : -0.004)
-                                                : 0.0,
-                                            duration: const Duration(
-                                              milliseconds: 220,
-                                            ),
-                                            curve: Curves.easeOutCubic,
-                                            child: AnimatedScale(
-                                              key: ValueKey(
-                                                'home-feature-artwork-motion-${widget.semanticId}',
-                                              ),
-                                              scale: _pressed
-                                                  ? 0.97
-                                                  : (_hovered ? 1.03 : 1.0),
-                                              duration: const Duration(
-                                                milliseconds: 200,
-                                              ),
-                                              curve: Curves.easeOutCubic,
-                                              child: SizedBox.square(
-                                                dimension: artworkSize,
-                                                child: _artwork(
-                                                  size: artworkSize,
-                                                  cacheWidth: cacheWidth,
-                                                  foreground: foreground,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
+                                                context))
+                                        .ceil(),
+                                    foreground: foreground,
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                            final copy = Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.title,
+                                  key: ValueKey(
+                                    'home-feature-title-${widget.semanticId}',
+                                  ),
+                                  style: theme.titleLarge.override(
+                                    color: foreground,
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.w700,
+                                    lineHeight: 1.15,
+                                  ),
+                                ),
+                                if (!compact) ...[
+                                  SizedBox(height: tokens.spacing.xs),
+                                  Text(
+                                    widget.description,
+                                    key: ValueKey(
+                                      'home-feature-description-${widget.semanticId}',
+                                    ),
+                                    style: theme.bodyMedium.override(
+                                      color: foreground.withValues(alpha: 0.82),
+                                      fontSize: 14.0,
+                                      lineHeight: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            );
+                            if (stacked) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  artwork,
+                                  SizedBox(height: tokens.spacing.md),
+                                  copy,
+                                ],
+                              );
+                            }
+                            return Row(
+                              children: [
+                                Expanded(child: copy),
+                                SizedBox(width: tokens.spacing.sm),
+                                artwork,
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ),

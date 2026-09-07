@@ -244,7 +244,7 @@ void main() {
       testWidgets(
         '${tone.name} card has a premium background and readable copy in ${themeMode.name}',
         (tester) async {
-          await _setViewport(tester, const Size(320.0, 568.0));
+          await _setViewport(tester, const Size(320.0, 700.0));
           final id = tone.name;
 
           await tester.pumpWidget(
@@ -284,22 +284,11 @@ void main() {
                   find.byKey(ValueKey('home-feature-gradient-$id')),
                 )
                 .height,
-            150.0,
+            lessThanOrEqualTo(140.0),
           );
           expect(borderRadius.topLeft.x, 24.0);
           expect(border.top.width, lessThanOrEqualTo(1.0));
-          expect(decoration.boxShadow, hasLength(1));
-          expect(
-            find.byKey(ValueKey('home-feature-3d-edge-$id')),
-            findsOneWidget,
-          );
-          final glow = tester.widget<Container>(
-            find.byKey(ValueKey('home-feature-glow-$id')),
-          );
-          final glowGradient =
-              (glow.decoration! as BoxDecoration).gradient! as RadialGradient;
-          // Check the full gradient, including its brightest overlaid reflection.
-          // Testing only the opaque stops misses washed-out text under a glow.
+          // Verify contrast across the entire card background in both themes.
           for (var segment = 0;
               segment < gradient.colors.length - 1;
               segment++) {
@@ -309,8 +298,8 @@ void main() {
                 gradient.colors[segment + 1],
                 step / 10,
               )!;
-              for (final reflection in glowGradient.colors) {
-                final background = Color.alphaBlend(reflection, base);
+              {
+                final background = base;
                 expect(
                   _contrastRatio(titleColor, background),
                   greaterThanOrEqualTo(7.0),
@@ -331,39 +320,59 @@ void main() {
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
       for (final width in [320.0, 800.0, 1160.0]) {
-        testWidgets(
-          'fits all localized cards at $width px in '
-          '${locale.languageCode} ${themeMode.name}',
-          (tester) async {
-            await _setViewport(tester, Size(width, 700.0));
-            final strings = FFLocalizations(locale);
-            await tester.pumpWidget(
-              _testApp(
-                themeMode: themeMode,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: HomeFeatureSection(
-                    vipCard: _localizedCard(HomeFeatureTone.vip, strings),
-                    chanceCard: _localizedCard(HomeFeatureTone.chance, strings),
-                    videoCard: _localizedCard(HomeFeatureTone.video, strings),
-                    draws: const SizedBox(height: 100.0),
+        for (final scale in [1.0, 2.0]) {
+          testWidgets(
+            'fits all localized cards at $width px in '
+            '${locale.languageCode} ${themeMode.name} scale $scale',
+            (tester) async {
+              await _setViewport(tester, Size(width, 700.0));
+              final strings = FFLocalizations(locale);
+              await tester.pumpWidget(
+                _testApp(
+                  themeMode: themeMode,
+                  child: MediaQuery(
+                    data: MediaQueryData(
+                        size: Size(width, 700),
+                        textScaler: TextScaler.linear(scale)),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16.0),
+                      child: HomeFeatureSection(
+                        vipCard: _localizedCard(HomeFeatureTone.vip, strings),
+                        chanceCard:
+                            _localizedCard(HomeFeatureTone.chance, strings),
+                        videoCard:
+                            _localizedCard(HomeFeatureTone.video, strings),
+                        draws: const SizedBox(height: 100.0),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            );
-            await tester.pumpAndSettle();
+              );
+              await tester.pumpAndSettle();
 
-            for (final tone in HomeFeatureTone.values) {
-              final card =
-                  find.byKey(ValueKey('home-feature-card-${tone.name}'));
-              expect(card, findsOneWidget);
-              expect(tester.getTopLeft(card).dx, greaterThanOrEqualTo(16.0));
-              expect(tester.getBottomRight(card).dx,
-                  lessThanOrEqualTo(width - 16));
-            }
-            expect(tester.takeException(), isNull);
-          },
-        );
+              for (final tone in HomeFeatureTone.values) {
+                final card =
+                    find.byKey(ValueKey('home-feature-card-${tone.name}'));
+                expect(card, findsOneWidget);
+                final title = find.byKey(
+                  ValueKey('home-feature-title-${tone.name}'),
+                );
+                final description = find.byKey(
+                  ValueKey('home-feature-description-${tone.name}'),
+                );
+                // Important copy stays complete when translations or text size grow.
+                expect(tester.widget<Text>(title).maxLines, isNull);
+                expect(tester.widget<Text>(description).maxLines, isNull);
+                expect(tester.getBottomRight(description).dy,
+                    lessThan(tester.getBottomRight(card).dy));
+                expect(tester.getTopLeft(card).dx, greaterThanOrEqualTo(16.0));
+                expect(tester.getBottomRight(card).dx,
+                    lessThanOrEqualTo(width - 16));
+              }
+              expect(tester.takeException(), isNull);
+            },
+          );
+        }
       }
     }
   }

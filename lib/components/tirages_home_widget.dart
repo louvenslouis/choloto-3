@@ -81,54 +81,44 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Container(
-                      width: 36.0,
-                      height: 36.0,
-                      decoration: BoxDecoration(
-                        color: theme.primary.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(radius.full),
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          FFLocalizations.of(context).getText(
+                            'grf0e1nq' /* TIRAGES */,
+                          ),
+                          style: theme.titleSmall.override(
+                            color: theme.primaryText,
+                            fontSize: 15.0,
+                            letterSpacing: 0.3,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.casino_outlined,
-                        color: theme.primary,
-                        size: 20.0,
+                      SizedBox(width: spacing.xs),
+                      FlutterFlowIconButton(
+                        buttonSize: 36.0,
+                        hoverIconColor: theme.primary,
+                        icon: Icon(
+                          Icons.refresh_rounded,
+                          color: theme.primaryText.withValues(alpha: 0.72),
+                          size: 18.0,
+                        ),
+                        showLoadingIndicator: true,
+                        onPressed: () async {
+                          logFirebaseEvent(
+                            'TIRAGES_HOME_COMP_refresh_ICN_ON_TAP',
+                          );
+                          logFirebaseEvent('IconButton_update_component_state');
+                          _model.refresh = true;
+                          safeSetState(() {});
+                        },
                       ),
-                    ),
-                    SizedBox(width: spacing.sm),
-                    Text(
-                      FFLocalizations.of(context).getText(
-                        'grf0e1nq' /* TIRAGES */,
-                      ),
-                      style: theme.titleSmall.override(
-                        color: theme.primaryText,
-                        fontSize: 15.0,
-                        letterSpacing: 0.3,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(width: spacing.xs),
-                    FlutterFlowIconButton(
-                      buttonSize: 36.0,
-                      hoverIconColor: theme.primary,
-                      icon: Icon(
-                        Icons.refresh_rounded,
-                        color: theme.primaryText.withValues(alpha: 0.72),
-                        size: 18.0,
-                      ),
-                      showLoadingIndicator: true,
-                      onPressed: () async {
-                        logFirebaseEvent(
-                          'TIRAGES_HOME_COMP_refresh_ICN_ON_TAP',
-                        );
-                        logFirebaseEvent('IconButton_update_component_state');
-                        _model.refresh = true;
-                        safeSetState(() {});
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 FFButtonWidget(
                   onPressed: () async {
@@ -147,9 +137,9 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
                   options: FFButtonOptions(
                     height: 36.0,
                     padding: EdgeInsetsDirectional.fromSTEB(
-                      spacing.md,
+                      spacing.sm,
                       0.0,
-                      spacing.md,
+                      spacing.sm,
                       0.0,
                     ),
                     iconAlignment: IconAlignment.end,
