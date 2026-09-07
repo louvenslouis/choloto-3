@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:choloto/app_state.dart';
+import 'package:choloto/components/vip_casino_card.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/vip/vip/vip_widget.dart';
@@ -205,6 +206,19 @@ void main() {
               expect(tester.getTopLeft(find.text('FAVORI')).dx,
                   lessThan(tester.getTopLeft(find.text('SOUTNI')).dx));
               expect(find.text('12 x 34'), findsOneWidget);
+              expect(find.byType(VipCasinoCard), findsWidgets);
+              expect(find.byType(VipCasinoPlaque), findsWidgets);
+              expect(find.byType(VipCasinoChip), findsNWidgets(2));
+              // The casino finish must keep the two-column card footprints.
+              final left = tester.getRect(find.ancestor(
+                  of: find.text('FAVORI'),
+                  matching: find.byType(VipCasinoCard)));
+              final right = tester.getRect(find.ancestor(
+                  of: find.text('SOUTNI'),
+                  matching: find.byType(VipCasinoCard)));
+              expect(left.top, right.top);
+              expect(left.width, right.width);
+              expect(left.right, lessThanOrEqualTo(right.left));
             }
             if (exportDirectory.isNotEmpty) {
               final boundary = captureKey.currentContext!.findRenderObject()!

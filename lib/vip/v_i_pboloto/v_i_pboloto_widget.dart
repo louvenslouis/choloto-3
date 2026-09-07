@@ -1,8 +1,8 @@
+import '/components/vip_casino_card.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
-import 'package:styled_divider/styled_divider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -58,14 +58,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
 
-    return Card(
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      color: theme.secondaryBackground,
-      elevation: 0.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        side: BorderSide(color: theme.primary.withValues(alpha: 0.22)),
-      ),
+    return VipCasinoCard(
       child: Container(
         height: 170.0,
         decoration: BoxDecoration(),
@@ -98,7 +91,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                           color: theme.primaryText,
                           fontSize: 15.0,
                           letterSpacing: 0.4,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           fontStyle:
                               FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                         ),
@@ -108,11 +101,13 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                 ],
               ),
             ),
-            StyledDivider(
-              height: 8.0,
-              thickness: 1.0,
-              color: theme.primary.withValues(alpha: 0.20),
-              lineStyle: DividerLineStyle.solid,
+            SizedBox(
+              height: tokens.spacing.sm,
+              child: Center(
+                  child: Container(
+                height: 1,
+                decoration: BoxDecoration(gradient: tokens.vip.gold),
+              )),
             ),
             Flexible(
               child: Align(
@@ -127,7 +122,6 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                     ),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: theme.secondaryBackground,
                         borderRadius: BorderRadius.circular(tokens.radius.sm),
                       ),
                       alignment: AlignmentDirectional(0.0, 0.0),
@@ -145,11 +139,8 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                                 child: Container(
                                   width: 50.0,
                                   height: 50.0,
-                                  decoration: BoxDecoration(
-                                    color: theme.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Visibility(
+                                  child: VipCasinoChip(
+                                      child: Visibility(
                                     visible:
                                         boulsItem != null && boulsItem != '',
                                     child: Align(
@@ -177,7 +168,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                                         ),
                                       ),
                                     ),
-                                  ),
+                                  )),
                                 ),
                               );
                             }),

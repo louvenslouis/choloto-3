@@ -1,10 +1,10 @@
+import '/components/vip_casino_card.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:math';
 import 'dart:ui';
-import 'package:styled_divider/styled_divider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -103,19 +103,9 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
 
-    return Card(
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      color: FlutterFlowTheme.of(context).secondaryBackground,
-      elevation: 0.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        side: BorderSide(color: theme.primary.withValues(alpha: 0.22)),
-      ),
+    return VipCasinoCard(
       child: Container(
         height: 170.0,
-        decoration: BoxDecoration(
-          color: theme.secondaryBackground,
-        ),
         child: Column(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -141,7 +131,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                           color: theme.primaryText,
                           fontSize: 15.0,
                           letterSpacing: 0.4,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           fontStyle:
                               FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                         ),
@@ -151,11 +141,13 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                 ],
               ),
             ),
-            StyledDivider(
-              height: 8.0,
-              thickness: 1.0,
-              color: theme.primary.withValues(alpha: 0.20),
-              lineStyle: DividerLineStyle.solid,
+            SizedBox(
+              height: tokens.spacing.sm,
+              child: Center(
+                  child: Container(
+                height: 1,
+                decoration: BoxDecoration(gradient: tokens.vip.gold),
+              )),
             ),
             Flexible(
               child: Align(
@@ -186,17 +178,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                             children: List.generate(chiffress.length,
                                 (chiffressIndex) {
                               final chiffressItem = chiffress[chiffressIndex];
-                              return Container(
-                                decoration: BoxDecoration(
-                                  color: theme.primaryBackground,
-                                  borderRadius:
-                                      BorderRadius.circular(tokens.radius.md),
-                                  border: Border.all(
-                                    color:
-                                        theme.primary.withValues(alpha: 0.20),
-                                    width: 1.0,
-                                  ),
-                                ),
+                              return VipCasinoPlaque(
                                 child: Builder(
                                   builder: (context) {
                                     if (widget!.name == 'FAVORI') {
@@ -226,8 +208,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                             context)
                                                         .bodyMedium
                                                         .override(
-                                                          color:
-                                                              theme.primaryText,
+                                                          color: tokens
+                                                              .vip.numberText,
                                                           fontSize: 32.0,
                                                           lineHeight: 1.0,
                                                           letterSpacing: 0.0,
@@ -343,6 +325,8 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                             context)
                                                         .bodyMedium
                                                         .override(
+                                                          color: tokens
+                                                              .vip.numberText,
                                                           fontSize: 32.0,
                                                           lineHeight: 1.0,
                                                           letterSpacing: 0.0,
@@ -420,21 +404,22 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                               textAlign: TextAlign.center,
                                               maxLines: 1,
                                               minFontSize: 25.0,
-                                              style:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontSize: 32.0,
-                                                        lineHeight: 1.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FontWeight.w900,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
+                                              style: FlutterFlowTheme.of(
+                                                      context)
+                                                  .bodyMedium
+                                                  .override(
+                                                    color:
+                                                        tokens.vip.numberText,
+                                                    fontSize: 32.0,
+                                                    lineHeight: 1.0,
+                                                    letterSpacing: 0.0,
+                                                    fontWeight: FontWeight.w900,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontStyle,
+                                                  ),
                                               overflow: TextOverflow.fade,
                                             ),
                                           ),

@@ -6,6 +6,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('application theme', () {
+    test('VIP casino materials retain readable text in both themes', () {
+      double contrast(Color a, Color b) {
+        final x = a.computeLuminance();
+        final y = b.computeLuminance();
+        return (x > y ? x + 0.05 : y + 0.05) / (x > y ? y + 0.05 : x + 0.05);
+      }
+
+      for (final theme in [DarkModeTheme(), LightModeTheme()]) {
+        final materials = theme.designToken.vip;
+        expect(materials.felt.colors.toSet().length, greaterThan(1));
+        for (final color in materials.felt.colors) {
+          expect(contrast(theme.primaryText, color), greaterThanOrEqualTo(4.5));
+        }
+        for (final color in materials.plaque.colors) {
+          expect(
+              contrast(materials.numberText, color), greaterThanOrEqualTo(4.5));
+        }
+        expect(contrast(theme.onPrimary, theme.primary),
+            greaterThanOrEqualTo(4.5));
+      }
+    });
     test('home uses readable blackened gold without changing the base palette',
         () {
       final theme = DarkModeTheme();

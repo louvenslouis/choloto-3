@@ -345,6 +345,70 @@ class FFDesignTokens {
   FFRadius get radius => const FFRadius();
   FFShadows get shadow => FFShadows(theme);
   FFBackgrounds get background => FFBackgrounds(theme);
+  FFVipMaterials get vip => FFVipMaterials(theme);
+}
+
+// Casino materials requested for VIP. Keep this feature palette here so cards,
+// number plaques and chips share one finish without changing the base themes.
+class FFVipMaterials {
+  const FFVipMaterials(this.theme);
+  final FlutterFlowTheme theme;
+  bool get _dark => theme is DarkModeTheme;
+
+  // Established CHOLOTO VIP purple, also used by the home membership artwork.
+  Color get _vipPurple => const Color(0xFF5D2A78);
+  Color get goldLight => Color.lerp(theme.primary, theme.onDecorative, 0.70)!;
+  Color get goldShade => Color.lerp(theme.primary, theme.onPrimary, 0.48)!;
+  Color get ornament =>
+      (_dark ? goldLight : _vipPurple).withValues(alpha: 0.08);
+  Color get numberText => _dark ? goldLight : theme.primaryText;
+
+  LinearGradient get felt => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: _dark
+            ? [
+                Color.lerp(_vipPurple, theme.secondaryBackground, 0.25)!,
+                Color.lerp(_vipPurple, theme.primaryBackground, 0.67)!,
+                Color.lerp(_vipPurple, theme.primaryBackground, 0.82)!
+              ]
+            : [
+                theme.secondaryBackground,
+                Color.lerp(theme.secondaryBackground, _vipPurple, 0.06)!,
+                Color.lerp(theme.secondaryBackground, theme.primary, 0.10)!
+              ],
+        stops: const [0.0, 0.55, 1.0],
+      );
+
+  LinearGradient get gold => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [goldLight, theme.primary, goldShade, theme.primary, goldLight],
+        stops: const [0.0, 0.28, 0.55, 0.78, 1.0],
+      );
+
+  LinearGradient get plaque => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: _dark
+            ? [
+                Color.lerp(theme.primaryBackground, _vipPurple, 0.32)!,
+                theme.primaryBackground,
+                Color.lerp(theme.primaryBackground, theme.primary, 0.12)!
+              ]
+            : [
+                theme.secondaryBackground,
+                Color.lerp(theme.secondaryBackground, theme.primary, 0.08)!,
+                Color.lerp(theme.secondaryBackground, theme.primary, 0.22)!
+              ],
+      );
+
+  RadialGradient get chip => RadialGradient(
+        center: const Alignment(-0.4, -0.6),
+        radius: 1.1,
+        colors: [goldLight, theme.primary, goldShade],
+        stops: const [0.0, 0.65, 1.0],
+      );
 }
 
 class FFBackgrounds {
