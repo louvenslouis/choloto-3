@@ -452,6 +452,10 @@ class _NavBarPageState extends State<NavBarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final navigationBackground = _currentPageName == 'Home'
+        ? theme.designToken.background.home
+        : theme.primaryBackground;
     final currentIndex = _tabNames.indexOf(_currentPageName);
     final showNavigationRail = responsiveVisibility(
       context: context,
@@ -470,7 +474,7 @@ class _NavBarPageState extends State<NavBarPage> {
         );
 
     return Scaffold(
-      backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+      backgroundColor: navigationBackground,
       resizeToAvoidBottomInset: !widget.disableResizeToAvoidBottomInset,
       body: showNavigationRail
           ? Row(
@@ -493,7 +497,7 @@ class _NavBarPageState extends State<NavBarPage> {
               key: const ValueKey('primary-bottom-navigation'),
               currentIndex: currentIndex,
               onTap: _selectTab,
-              backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+              backgroundColor: navigationBackground,
               selectedItemColor: FlutterFlowTheme.of(context).primary,
               unselectedItemColor: FlutterFlowTheme.of(context).alternate,
               showSelectedLabels: true,

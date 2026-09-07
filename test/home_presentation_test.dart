@@ -176,9 +176,9 @@ void main() {
                   }
 
                   return Scaffold(
-                    backgroundColor: theme.primaryBackground,
+                    backgroundColor: theme.designToken.background.home,
                     appBar: AppBar(
-                      backgroundColor: theme.primaryBackground,
+                      backgroundColor: theme.designToken.background.home,
                       elevation: 0,
                       toolbarHeight: 64,
                       title: Text('CHOLOTO', style: theme.titleLarge),
@@ -241,6 +241,18 @@ void main() {
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 800));
           expect(find.text('À la une'), findsNothing);
+          final homeTheme = brightness == Brightness.dark
+              ? DarkModeTheme()
+              : LightModeTheme();
+          if (width < 600) {
+            expect(
+              tester
+                  .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+                  .backgroundColor,
+              homeTheme.designToken.background.home,
+            );
+          }
+
           final draws = find.byKey(const ValueKey('home-draws-gradient-card'));
           final bottomNav =
               find.byKey(const ValueKey('primary-bottom-navigation'));

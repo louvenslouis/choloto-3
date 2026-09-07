@@ -344,6 +344,18 @@ class FFDesignTokens {
   FFSpacing get spacing => const FFSpacing();
   FFRadius get radius => const FFRadius();
   FFShadows get shadow => FFShadows(theme);
+  FFBackgrounds get background => FFBackgrounds(theme);
+}
+
+class FFBackgrounds {
+  const FFBackgrounds(this.theme);
+  final FlutterFlowTheme theme;
+
+  // The home surface intentionally uses a warm charcoal instead of pure black.
+  // Derive it from the existing palette without changing other page backgrounds.
+  Color get home => theme is DarkModeTheme
+      ? Color.lerp(theme.secondaryBackground, theme.primary, 0.015)!
+      : theme.primaryBackground;
 }
 
 class FFSpacing {

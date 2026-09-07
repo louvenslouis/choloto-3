@@ -375,7 +375,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         },
         child: Scaffold(
           key: scaffoldKey,
-          backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+          backgroundColor:
+              FlutterFlowTheme.of(context).designToken.background.home,
           floatingActionButton: HomeSupportFab(
             onSupport: () async {
               logFirebaseEvent(
@@ -394,9 +395,10 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                 pinned: true,
                 floating: false,
                 toolbarHeight: 64.0,
-                backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+                backgroundColor:
+                    FlutterFlowTheme.of(context).designToken.background.home,
                 surfaceTintColor:
-                    FlutterFlowTheme.of(context).primaryBackground,
+                    FlutterFlowTheme.of(context).designToken.background.home,
                 automaticallyImplyLeading: false,
                 titleSpacing:
                     FlutterFlowTheme.of(context).designToken.spacing.md,

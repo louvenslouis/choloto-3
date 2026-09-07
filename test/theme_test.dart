@@ -6,6 +6,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('application theme', () {
+    test('home uses readable warm charcoal without changing the base palette',
+        () {
+      final theme = DarkModeTheme();
+      final background = theme.designToken.background.home;
+      expect(background, isNot(theme.primaryBackground));
+      expect(background.computeLuminance(), greaterThan(0.01));
+      for (final foreground in [theme.primaryText, theme.primary]) {
+        final contrast = (foreground.computeLuminance() + 0.05) /
+            (background.computeLuminance() + 0.05);
+        expect(contrast, greaterThanOrEqualTo(7.0));
+      }
+      expect(theme.primaryBackground, const Color(0xFF000000));
+    });
+
+    test('home keeps the existing off-white surface in light mode', () {
+      final theme = LightModeTheme();
+      expect(theme.designToken.background.home, theme.primaryBackground);
+    });
+
     testWidgets('uses the unchanged black palette in dark mode',
         (tester) async {
       late FlutterFlowTheme resolvedTheme;
