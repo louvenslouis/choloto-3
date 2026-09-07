@@ -788,9 +788,9 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'VIP membership',
     },
     'uvl7vow9': {
-      'fr': 'Vos avantages exclusifs.',
-      'cr': 'Tout avantaj eksklizif ou yo.',
-      'en': 'Your exclusive benefits.',
+      'fr': 'Probabilités des jeux de loterie.',
+      'cr': 'Pwobabilite jwèt lotri yo.',
+      'en': 'Lottery game probabilities.',
     },
     'afym167o': {
       'fr': 'Croix de la chance',

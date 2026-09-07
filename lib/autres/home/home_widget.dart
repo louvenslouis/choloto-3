@@ -522,7 +522,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                                   ),
                                   description:
                                       FFLocalizations.of(context).getText(
-                                    'uvl7vow9' /* Accède à tous les avantages exclusifs. */,
+                                    'uvl7vow9' /* Probabilités des jeux de loterie. */,
                                   ),
                                   assetPath:
                                       'assets/images/home/vip_membership_3d_v2.png',

@@ -7,7 +7,6 @@ import '/settings/customerservice/customerservice_widget.dart';
 import '/support/support_text.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'devenir_v_i_p_model.dart';
@@ -46,6 +45,9 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+
     return Container(
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -58,11 +60,12 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF9049B8),
-                  Color(0xFF381352),
-                  Color(0xFF673AB7)
+                  theme.secondaryBackground,
+                  Color.alphaBlend(theme.primary.withValues(alpha: 0.12),
+                      theme.secondaryBackground),
+                  theme.secondaryBackground
                 ],
-                stops: [0.0, 1.0, 1.0],
+                stops: [0.0, 0.6, 1.0],
                 begin: AlignmentDirectional(0.0, -1.0),
                 end: AlignmentDirectional(0, 1.0),
               ),
@@ -82,7 +85,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                         buttonSize: 40.0,
                         icon: Icon(
                           Icons.close_sharp,
-                          color: FlutterFlowTheme.of(context).onDecorative,
+                          color: theme.primaryText,
                           size: 30.0,
                         ),
                         onPressed: () async {
@@ -98,36 +101,23 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                     FFLocalizations.of(context).getText(
                       'c8ki06qv' /* Devenez un membre VIP */,
                     ),
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
-                          fontSize: 20.0,
-                          color: FlutterFlowTheme.of(context).onDecorative,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.bold,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
+                    style: theme.titleLarge.override(
+                      fontSize: 20.0,
+                      color: theme.primaryText,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.bold,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                    ),
                   ),
                   Text(
                     FFLocalizations.of(context).getText(
                       'imcn98qf' /* ak CHOLOTO VIP, miltipliye cha... */,
                     ),
+                    textAlign: TextAlign.center,
                     style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
                           letterSpacing: 0.0,
-                          color: FlutterFlowTheme.of(context).onDecorative,
+                          color: theme.primaryText,
                           fontWeight: FlutterFlowTheme.of(context)
                               .bodyMedium
                               .fontWeight,
@@ -152,7 +142,8 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.6,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.6,
                           decoration: BoxDecoration(),
                           child: Text(
                             FFLocalizations.of(context).getText(
@@ -161,12 +152,6 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
                                   letterSpacing: 0.0,
                                   fontWeight: FontWeight.w600,
                                   fontStyle: FlutterFlowTheme.of(context)
@@ -176,7 +161,8 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Text(
                             FFLocalizations.of(context).getText(
@@ -186,12 +172,6 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
                                   fontSize: 12.0,
                                   letterSpacing: 0.0,
                                   fontWeight: FontWeight.w600,
@@ -202,7 +182,8 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Text(
                             FFLocalizations.of(context).getText(
@@ -212,13 +193,7 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                                  color: Color(0xFF650BB0),
+                                  color: theme.primary,
                                   fontSize: 12.0,
                                   letterSpacing: 0.0,
                                   fontWeight: FontWeight.w600,
@@ -237,16 +212,18 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.1,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.1,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.request_page,
-                            color: FlutterFlowTheme.of(context).onDecorative,
+                            color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.5,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.5,
                           decoration: BoxDecoration(),
                           child: Text(
                             FFLocalizations.of(context).getText(
@@ -255,14 +232,6 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
                                   letterSpacing: 0.0,
                                   fontWeight: FlutterFlowTheme.of(context)
                                       .bodyMedium
@@ -274,20 +243,22 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.minimize_outlined,
-                            color: FlutterFlowTheme.of(context).onDecorative,
+                            color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.check,
-                            color: Color(0xFF650BB0),
+                            color: theme.primary,
                             size: 24.0,
                           ),
                         ),
@@ -300,16 +271,18 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.1,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.1,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.request_page,
-                            color: FlutterFlowTheme.of(context).onDecorative,
+                            color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.5,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.5,
                           decoration: BoxDecoration(),
                           child: Text(
                             FFLocalizations.of(context).getText(
@@ -318,14 +291,6 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
                                   letterSpacing: 0.0,
                                   fontWeight: FlutterFlowTheme.of(context)
                                       .bodyMedium
@@ -337,20 +302,22 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.minimize_outlined,
-                            color: FlutterFlowTheme.of(context).onDecorative,
+                            color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.check,
-                            color: Color(0xFF650BB0),
+                            color: theme.primary,
                             size: 24.0,
                           ),
                         ),
@@ -363,16 +330,18 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.1,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.1,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.request_page,
-                            color: FlutterFlowTheme.of(context).onDecorative,
+                            color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.5,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.5,
                           decoration: BoxDecoration(),
                           child: Text(
                             FFLocalizations.of(context).getText(
@@ -381,14 +350,6 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
                                   letterSpacing: 0.0,
                                   fontWeight: FlutterFlowTheme.of(context)
                                       .bodyMedium
@@ -400,20 +361,22 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.minimize_outlined,
-                            color: FlutterFlowTheme.of(context).onDecorative,
+                            color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.check,
-                            color: Color(0xFF650BB0),
+                            color: theme.primary,
                             size: 24.0,
                           ),
                         ),
@@ -426,16 +389,18 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.1,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.1,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.request_page,
-                            color: FlutterFlowTheme.of(context).onDecorative,
+                            color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.5,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.5,
                           decoration: BoxDecoration(),
                           child: Text(
                             FFLocalizations.of(context).getText(
@@ -444,14 +409,6 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
                                   letterSpacing: 0.0,
                                   fontWeight: FlutterFlowTheme.of(context)
                                       .bodyMedium
@@ -463,20 +420,22 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.minimize_outlined,
-                            color: FlutterFlowTheme.of(context).onDecorative,
+                            color: theme.primaryText,
                             size: 24.0,
                           ),
                         ),
                         Container(
-                          width: MediaQuery.sizeOf(context).width * 0.2,
+                          width:
+                              (MediaQuery.sizeOf(context).width - 20.0) * 0.2,
                           decoration: BoxDecoration(),
                           child: Icon(
                             Icons.check,
-                            color: Color(0xFF650BB0),
+                            color: theme.primary,
                             size: 24.0,
                           ),
                         ),
@@ -498,10 +457,12 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                         EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 10.0, 0.0),
                     child: Card(
                       clipBehavior: Clip.antiAliasWithSaveLayer,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      elevation: 3.0,
+                      color: theme.primaryBackground,
+                      elevation: 0.0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
+                        borderRadius: BorderRadius.circular(tokens.radius.md),
+                        side: BorderSide(
+                            color: theme.primary.withValues(alpha: 0.35)),
                       ),
                       child: Padding(
                         padding: EdgeInsets.all(8.0),
@@ -522,13 +483,6 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                     style: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight: FontWeight.bold,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
                                           fontSize: 20.0,
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.bold,
@@ -545,16 +499,6 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                                     style: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
                                           fontSize: 17.0,
                                           letterSpacing: 0.0,
                                           fontWeight:
@@ -633,15 +577,15 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
                 height: 55.0,
                 padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
                 iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                color: Color(0xFF650BB0),
+                color: theme.primary,
                 textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       fontFamily: 'Google sans flex',
-                      color: Colors.white,
+                      color: theme.onPrimary,
                       fontSize: 20.0,
                       letterSpacing: 0.0,
                     ),
-                elevation: 4.0,
-                borderRadius: BorderRadius.circular(8.0),
+                elevation: 0.0,
+                borderRadius: BorderRadius.circular(tokens.radius.md),
               ),
             ),
           ),

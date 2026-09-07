@@ -7,7 +7,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'v_i_pboloto_model.dart';
 export 'v_i_pboloto_model.dart';
@@ -56,12 +55,16 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+
     return Card(
       clipBehavior: Clip.antiAliasWithSaveLayer,
-      color: FlutterFlowTheme.of(context).primaryBackground,
-      elevation: 2.0,
+      color: theme.secondaryBackground,
+      elevation: 0.0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        side: BorderSide(color: theme.primary.withValues(alpha: 0.22)),
       ),
       child: Container(
         height: 170.0,
@@ -90,21 +93,14 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                           widget!.name,
                           'null',
                         ),
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              font: GoogleFonts.changaOne(
-                                fontWeight: FontWeight.w600,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontStyle,
-                              ),
-                              color: FlutterFlowTheme.of(context).alternate,
-                              fontSize: 15.0,
-                              letterSpacing: 1.0,
-                              fontWeight: FontWeight.w600,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
+                        style: theme.titleSmall.override(
+                          color: theme.primaryText,
+                          fontSize: 15.0,
+                          letterSpacing: 0.4,
+                          fontWeight: FontWeight.w600,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
                       ),
                     ),
                   ),
@@ -113,9 +109,9 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
             ),
             StyledDivider(
               height: 8.0,
-              thickness: 2.0,
-              color: Color(0xFF3E0066),
-              lineStyle: DividerLineStyle.dashed,
+              thickness: 1.0,
+              color: theme.primary.withValues(alpha: 0.20),
+              lineStyle: DividerLineStyle.solid,
             ),
             Flexible(
               child: Align(
@@ -124,14 +120,14 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                   padding: EdgeInsets.all(12.0),
                   child: Material(
                     color: Colors.transparent,
-                    elevation: 4.0,
+                    elevation: 0.0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+                      borderRadius: BorderRadius.circular(tokens.radius.sm),
                     ),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).primaryBackground,
-                        borderRadius: BorderRadius.circular(12.0),
+                        color: theme.secondaryBackground,
+                        borderRadius: BorderRadius.circular(tokens.radius.sm),
                       ),
                       alignment: AlignmentDirectional(0.0, 0.0),
                       child: Builder(
@@ -149,7 +145,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                                   width: 50.0,
                                   height: 50.0,
                                   decoration: BoxDecoration(
-                                    color: Color(0xFF6B00D8),
+                                    color: theme.primary,
                                     shape: BoxShape.circle,
                                   ),
                                   child: Visibility(
@@ -167,17 +163,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium
                                               .override(
-                                                font: GoogleFonts.raleway(
-                                                  fontWeight: FontWeight.w900,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .onDecorative,
+                                                color: theme.onPrimary,
                                                 fontSize: 32.0,
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.w900,

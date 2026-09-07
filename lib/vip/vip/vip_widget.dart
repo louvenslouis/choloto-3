@@ -19,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'vip_model.dart';
 export 'vip_model.dart';
@@ -227,6 +226,8 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
     _ensureTransactionMembershipStream();
 
     return GestureDetector(
@@ -236,7 +237,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: Color(0xFF3E0066),
+        backgroundColor: theme.primaryBackground,
         floatingActionButton: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -249,7 +250,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                   logFirebaseEvent('VIP_HISTORY_FAB_ON_TAP');
                   context.pushNamed(VipHistoryWidget.routeName);
                 },
-                backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+                backgroundColor: theme.secondaryBackground,
                 foregroundColor: FlutterFlowTheme.of(context).primary,
                 elevation: 4.0,
                 child: const Icon(Icons.history_rounded, size: 21.0),
@@ -276,7 +277,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                   );
                 },
                 isExtended: _model.pourboireHide == false,
-                backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+                backgroundColor: theme.secondaryBackground,
                 foregroundColor: FlutterFlowTheme.of(context).primary,
                 icon: FaIcon(
                   FontAwesomeIcons.mugHot,
@@ -291,12 +292,6 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                       'isn2t0tf' /* POURBOIRE */,
                     ),
                     style: FlutterFlowTheme.of(context).labelLarge.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: FontWeight.w900,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .labelLarge
-                                .fontStyle,
-                          ),
                           color: FlutterFlowTheme.of(context).primary,
                           fontSize: 15.0,
                           letterSpacing: 0.0,
@@ -313,7 +308,25 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(120.0),
           child: AppBar(
-            backgroundColor: Color(0xFF650BB0),
+            backgroundColor: theme.secondaryBackground,
+            flexibleSpace: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    theme.secondaryBackground,
+                    Color.alphaBlend(theme.primary.withValues(alpha: 0.10),
+                        theme.secondaryBackground),
+                    theme.secondaryBackground,
+                  ],
+                ),
+                border: Border(
+                    bottom: BorderSide(
+                  color: theme.primary.withValues(alpha: 0.24),
+                )),
+              ),
+            ),
             automaticallyImplyLeading: false,
             actions: [],
             bottom: PreferredSize(
@@ -341,7 +354,8 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                         color: FlutterFlowTheme.of(context).primary,
                         elevation: 0.0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(34.0),
+                          borderRadius:
+                              BorderRadius.circular(tokens.radius.full),
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
@@ -372,6 +386,12 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                       fadeOutDuration:
                                           Duration(milliseconds: 500),
                                       imageUrl: currentUserPhoto,
+                                      errorWidget: (context, url, error) =>
+                                          Icon(
+                                        Icons.person_rounded,
+                                        color: theme.onPrimary,
+                                        size: 30,
+                                      ),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -415,25 +435,13 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                 style: FlutterFlowTheme.of(context)
                                     .bodyMedium
                                     .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w900,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                                  letterSpacing: 1.0,
-                                  fontWeight: FontWeight.w900,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                  shadows: [
-                                    Shadow(
-                                      color: Color(0x6857636C),
-                                      offset: Offset(1.0, 1.0),
-                                      blurRadius: 2.0,
-                                    )
-                                  ],
-                                ),
+                                      letterSpacing: 1.0,
+                                      fontWeight: FontWeight.w900,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                      color: theme.onPrimary,
+                                    ),
                               ),
                             ),
                           ],
@@ -452,17 +460,11 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: FlutterFlowTheme.of(context)
-                                .bodyMedium
+                                .titleMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FontWeight.bold,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
                                   letterSpacing: 0.0,
                                   color:
-                                      FlutterFlowTheme.of(context).onDecorative,
+                                      FlutterFlowTheme.of(context).primaryText,
                                   fontWeight: FontWeight.bold,
                                   fontStyle: FlutterFlowTheme.of(context)
                                       .bodyMedium
@@ -478,17 +480,9 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
                                   letterSpacing: 0.0,
                                   color:
-                                      FlutterFlowTheme.of(context).onDecorative,
+                                      FlutterFlowTheme.of(context).primaryText,
                                   fontWeight: FlutterFlowTheme.of(context)
                                       .bodyMedium
                                       .fontWeight,
@@ -581,7 +575,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                       .bodyMedium
                                       .override(
                                         color: FlutterFlowTheme.of(context)
-                                            .onDecorative,
+                                            .primaryText,
                                       ),
                                 ),
                               );
@@ -658,38 +652,25 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                                           context)
                                                       .languageCode,
                                                 )} ${listViewPredictionRecord?.periode}',
-                                                style: FlutterFlowTheme.of(
-                                                        context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      font: GoogleFonts.inter(
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
+                                                style:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
                                                               .alternate,
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
                                               ),
                                             ],
                                           ),
@@ -711,18 +692,6 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                                           context)
                                                       .bodyMedium
                                                       .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
                                                         color:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -884,7 +853,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                             .extra.name,
                                         icon: FaIcon(
                                           FontAwesomeIcons.meteor,
-                                          color: Color(0xFFFF0006),
+                                          color: theme.error,
                                           size: 20.0,
                                         ),
                                         chiffre: listViewPredictionRecord
