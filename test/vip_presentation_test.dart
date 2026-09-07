@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:choloto/app_state.dart';
+import 'package:choloto/components/vip_prediction_header.dart';
 import 'package:choloto/components/vip_casino_card.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
@@ -105,6 +106,39 @@ void main() {
     }
   });
 
+  for (final brightness in [Brightness.dark, Brightness.light]) {
+    for (final percentage in [null, '100%']) {
+      testWidgets(
+          'prediction header $brightness $percentage with enlarged text',
+          (tester) async {
+        tester.view.physicalSize = const Size(320, 568);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(MaterialApp(
+          theme: ThemeData(brightness: brightness),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(1.5)),
+            child: child!,
+          ),
+          home: Scaffold(
+              body: VipPredictionHeader(
+            label: 'Probabilité : mercredi 30 septembre 2026 Soir',
+            percentage: percentage,
+          )),
+        ));
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Probabilité : mercredi 30 septembre 2026 Soir'),
+            findsOneWidget);
+        expect(find.byType(VipCasinoPlaque),
+            percentage == null ? findsNothing : findsOneWidget);
+        if (percentage != null) expect(find.text(percentage), findsOneWidget);
+      });
+    }
+  }
+
   for (final language in ['fr', 'en', 'cr']) {
     for (final brightness in [Brightness.dark, Brightness.light]) {
       for (final width in [320.0, 390.0, 1280.0]) {
@@ -151,37 +185,52 @@ void main() {
                                     backgroundColor:
                                         FlutterFlowTheme.of(context)
                                             .primaryBackground,
-                                    body: GridView.count(
-                                        crossAxisCount: 2,
-                                        children: const [
-                                          UniversalVIPWidget(
-                                              name: 'FAVORI',
-                                              chiffre: ['12'],
-                                              icon: Icon(Icons.star)),
-                                          UniversalVIPWidget(
-                                              name: 'SOUTNI',
-                                              chiffre: ['34', '56'],
-                                              icon: Icon(Icons.favorite)),
-                                          VIPbolotoWidget(
-                                              name: 'BOLOTO',
-                                              chiffre: ['12', '34']),
-                                          UniversalVIPWidget(
-                                              name: 'MARIAGE',
-                                              chiffre: ['12 x 34'],
-                                              icon: Icon(Icons.link)),
-                                          UniversalVIPWidget(
-                                              name: '3 CHIFFRES',
-                                              chiffre: ['123'],
-                                              icon: Icon(Icons.looks_3)),
-                                          UniversalVIPWidget(
-                                              name: '4 CHIFFRES',
-                                              chiffre: ['1234'],
-                                              icon: Icon(Icons.looks_4)),
-                                          UniversalVIPWidget(
-                                              name: 'EXTRA',
-                                              chiffre: [],
-                                              icon: Icon(Icons.auto_awesome)),
-                                        ])))
+                                    body: SingleChildScrollView(
+                                        child: Column(children: [
+                                      VipPredictionHeader(
+                                        label:
+                                            '${FFLocalizations.of(context).getText('vipproblb')}: ${switch (language) {
+                                          'en' => 'Monday, September 7 Evening',
+                                          'cr' => 'Lendi 7 septanm Aswè',
+                                          _ => 'lundi 7 septembre Soir',
+                                        }}',
+                                        percentage: '85%',
+                                      ),
+                                      GridView.count(
+                                          shrinkWrap: true,
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          crossAxisCount: 2,
+                                          children: const [
+                                            UniversalVIPWidget(
+                                                name: 'FAVORI',
+                                                chiffre: ['12'],
+                                                icon: Icon(Icons.star)),
+                                            UniversalVIPWidget(
+                                                name: 'SOUTNI',
+                                                chiffre: ['34', '56'],
+                                                icon: Icon(Icons.favorite)),
+                                            VIPbolotoWidget(
+                                                name: 'BOLOTO',
+                                                chiffre: ['12', '34']),
+                                            UniversalVIPWidget(
+                                                name: 'MARIAGE',
+                                                chiffre: ['12 x 34'],
+                                                icon: Icon(Icons.link)),
+                                            UniversalVIPWidget(
+                                                name: '3 CHIFFRES',
+                                                chiffre: ['123'],
+                                                icon: Icon(Icons.looks_3)),
+                                            UniversalVIPWidget(
+                                                name: '4 CHIFFRES',
+                                                chiffre: ['1234'],
+                                                icon: Icon(Icons.looks_4)),
+                                            UniversalVIPWidget(
+                                                name: 'EXTRA',
+                                                chiffre: [],
+                                                icon: Icon(Icons.auto_awesome)),
+                                          ]),
+                                    ]))))
                             : const VipWidget()),
                   )),
             ));
@@ -209,6 +258,10 @@ void main() {
               expect(find.byType(VipCasinoCard), findsWidgets);
               expect(find.byType(VipCasinoPlaque), findsWidgets);
               expect(find.byType(VipCasinoChip), findsNWidgets(2));
+              expect(find.byType(VipPredictionHeader), findsOneWidget);
+              expect(find.text('85%'), findsOneWidget);
+              expect(tester.getBottomLeft(find.byType(VipPredictionHeader)).dy,
+                  lessThanOrEqualTo(tester.getTopLeft(find.text('FAVORI')).dy));
               // The casino finish must keep the two-column card footprints.
               final left = tester.getRect(find.ancestor(
                   of: find.text('FAVORI'),

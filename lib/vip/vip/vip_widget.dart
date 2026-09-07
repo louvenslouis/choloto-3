@@ -1,3 +1,4 @@
+import '/components/vip_prediction_header.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
@@ -611,114 +612,16 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                               shrinkWrap: true,
                               scrollDirection: Axis.vertical,
                               children: [
-                                Card(
-                                  clipBehavior: Clip.antiAliasWithSaveLayer,
-                                  color: FlutterFlowTheme.of(context)
-                                      .primaryBackground,
-                                  elevation: 0.0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: Align(
-                                    alignment: AlignmentDirectional(0.0, 0.0),
-                                    child: Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          15.0, 8.0, 15.0, 8.0),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Row(
-                                            mainAxisSize: MainAxisSize.max,
-                                            children: [
-                                              Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        0.0, 0.0, 6.0, 0.0),
-                                                child: Icon(
-                                                  Icons.calendar_today,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryText,
-                                                  size: 24.0,
-                                                ),
-                                              ),
-                                              Text(
-                                                '${FFLocalizations.of(context).getText('vipproblb')}: ${dateTimeFormat(
-                                                  "MMMMEEEEd",
-                                                  listViewPredictionRecord
-                                                      ?.date,
-                                                  locale: FFLocalizations.of(
-                                                          context)
-                                                      .languageCode,
-                                                )} ${listViewPredictionRecord?.periode}',
-                                                style:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .alternate,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                              ),
-                                            ],
-                                          ),
-                                          Container(
-                                            decoration: BoxDecoration(),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                Icon(
-                                                  Icons.timeline_sharp,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .alternate,
-                                                  size: 24.0,
-                                                ),
-                                                Text(
-                                                  '${listViewPredictionRecord?.pourcentage?.toString()}%',
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .alternate,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                                ),
-                                              ].divide(SizedBox(width: 5.0)),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                VipPredictionHeader(
+                                  label:
+                                      '${FFLocalizations.of(context).getText('vipproblb')}: ${dateTimeFormat(
+                                    "MMMMEEEEd",
+                                    listViewPredictionRecord.date,
+                                    locale: FFLocalizations.of(context)
+                                        .languageCode,
+                                  )} ${listViewPredictionRecord.periode}',
+                                  percentage:
+                                      '${listViewPredictionRecord.pourcentage}%',
                                 ).animateOnPageLoad(
                                     animationsMap['cardOnPageLoadAnimation']!),
                                 GridView(

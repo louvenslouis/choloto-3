@@ -1,3 +1,4 @@
+import '/components/vip_prediction_header.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -340,56 +341,12 @@ class _VipPredictionDisplay extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Card(
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          color: theme.primaryBackground,
-          elevation: 0.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: theme.designToken.spacing.md,
-              vertical: theme.designToken.spacing.sm,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  color: theme.primaryText,
-                  size: 24.0,
-                ),
-                SizedBox(width: theme.designToken.spacing.sm),
-                Expanded(
-                  child: Text(
-                    '${FFLocalizations.of(context).getText('vipproblb')}: '
-                    '${_formatVipFullDate(context, prediction.date!)} '
-                    '${prediction.periode}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.bodyMedium.override(
-                      color: theme.alternate,
-                    ),
-                  ),
-                ),
-                if (prediction.hasPourcentage()) ...[
-                  SizedBox(width: theme.designToken.spacing.sm),
-                  Icon(
-                    Icons.timeline_sharp,
-                    color: theme.alternate,
-                    size: 24.0,
-                  ),
-                  SizedBox(width: theme.designToken.spacing.xs),
-                  Text(
-                    '${prediction.pourcentage}%',
-                    style: theme.bodyMedium.override(
-                      color: theme.alternate,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+        VipPredictionHeader(
+          label: '${FFLocalizations.of(context).getText('vipproblb')}: '
+              '${_formatVipFullDate(context, prediction.date!)} '
+              '${prediction.periode}',
+          percentage:
+              prediction.hasPourcentage() ? '${prediction.pourcentage}%' : null,
         ),
         GridView(
           padding: EdgeInsets.zero,
