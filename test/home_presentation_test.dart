@@ -192,30 +192,36 @@ void main() {
                     ),
                     floatingActionButton:
                         HomeSupportFab(onSupport: () async {}),
-                    body: SingleChildScrollView(
-                      padding: EdgeInsets.fromLTRB(
-                          spacing.md, spacing.sm, spacing.md, spacing.xl * 3),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 1120),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              HomeFeatureSection(
-                                stories: width < 600
-                                    ? HomeStoriesRail(
-                                        stories: const [],
-                                        loading: true,
-                                        loadFailed: false,
-                                        onRetry: () {},
-                                      )
-                                    : null,
-                                vipCard: card(HomeFeatureTone.vip),
-                                chanceCard: card(HomeFeatureTone.chance),
-                                videoCard: card(HomeFeatureTone.video),
-                                draws: const TiragesHomeWidget(),
-                              ),
-                            ],
+                    body: DecoratedBox(
+                      key: const ValueKey('home-background-gradient'),
+                      decoration: BoxDecoration(
+                        gradient: theme.designToken.background.homeGradient,
+                      ),
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                            spacing.md, spacing.sm, spacing.md, spacing.xl * 3),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 1120),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                HomeFeatureSection(
+                                  stories: width < 600
+                                      ? HomeStoriesRail(
+                                          stories: const [],
+                                          loading: true,
+                                          loadFailed: false,
+                                          onRetry: () {},
+                                        )
+                                      : null,
+                                  vipCard: card(HomeFeatureTone.vip),
+                                  chanceCard: card(HomeFeatureTone.chance),
+                                  videoCard: card(HomeFeatureTone.video),
+                                  draws: const TiragesHomeWidget(),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -252,6 +258,13 @@ void main() {
               homeTheme.designToken.background.home,
             );
           }
+          final background = tester.widget<DecoratedBox>(
+            find.byKey(const ValueKey('home-background-gradient')),
+          );
+          expect(
+            (background.decoration as BoxDecoration).gradient,
+            homeTheme.designToken.background.homeGradient,
+          );
 
           final draws = find.byKey(const ValueKey('home-draws-gradient-card'));
           final bottomNav =

@@ -6,15 +6,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('application theme', () {
-    test('home uses readable warm charcoal without changing the base palette',
+    test('home uses readable blackened gold without changing the base palette',
         () {
       final theme = DarkModeTheme();
       final background = theme.designToken.background.home;
+      final gradient = theme.designToken.background.homeGradient;
       expect(background, isNot(theme.primaryBackground));
-      expect(background.computeLuminance(), greaterThan(0.01));
-      for (final foreground in [theme.primaryText, theme.primary]) {
-        final contrast = (foreground.computeLuminance() + 0.05) /
-            (background.computeLuminance() + 0.05);
+      expect(gradient.colors, hasLength(3));
+      expect(gradient.colors[1], isNot(background));
+      for (final color in gradient.colors) {
+        final contrast = (theme.primaryText.computeLuminance() + 0.05) /
+            (color.computeLuminance() + 0.05);
         expect(contrast, greaterThanOrEqualTo(7.0));
       }
       expect(theme.primaryBackground, const Color(0xFF000000));
@@ -23,6 +25,10 @@ void main() {
     test('home keeps the existing off-white surface in light mode', () {
       final theme = LightModeTheme();
       expect(theme.designToken.background.home, theme.primaryBackground);
+      expect(
+        theme.designToken.background.homeGradient.colors.toSet(),
+        {theme.primaryBackground},
+      );
     });
 
     testWidgets('uses the unchanged black palette in dark mode',

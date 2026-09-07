@@ -351,11 +351,27 @@ class FFBackgrounds {
   const FFBackgrounds(this.theme);
   final FlutterFlowTheme theme;
 
-  // The home surface intentionally uses a warm charcoal instead of pure black.
-  // Derive it from the existing palette without changing other page backgrounds.
+  // Keep the surrounding chrome dark while the page itself transitions through
+  // a restrained, blackened gold derived from the CHOLOTO brand color.
   Color get home => theme is DarkModeTheme
-      ? Color.lerp(theme.secondaryBackground, theme.primary, 0.015)!
+      ? Color.lerp(theme.primaryBackground, theme.secondaryBackground, 0.62)!
       : theme.primaryBackground;
+
+  LinearGradient get homeGradient => theme is DarkModeTheme
+      ? LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            home,
+            Color.lerp(theme.primaryBackground, theme.primary, 0.16)!,
+            Color.lerp(
+                theme.primaryBackground, theme.secondaryBackground, 0.78)!,
+          ],
+          stops: const [0.0, 0.58, 1.0],
+        )
+      : LinearGradient(
+          colors: [theme.primaryBackground, theme.primaryBackground],
+        );
 }
 
 class FFSpacing {
