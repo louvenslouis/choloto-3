@@ -23,6 +23,11 @@ void main() {
           expect(
               contrast(materials.numberText, color), greaterThanOrEqualTo(4.5));
         }
+        // Number insets remain close to the surrounding card material.
+        for (var i = 0; i < materials.plaque.colors.length; i++) {
+          expect(contrast(materials.plaque.colors[i], materials.felt.colors[i]),
+              lessThan(1.5));
+        }
         expect(contrast(theme.onPrimary, theme.primary),
             greaterThanOrEqualTo(4.5));
       }

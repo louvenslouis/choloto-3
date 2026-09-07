@@ -387,20 +387,26 @@ class FFVipMaterials {
         stops: const [0.0, 0.28, 0.55, 0.78, 1.0],
       );
 
+  // A translucent satin inset follows the card's hue, without a separate
+  // black-and-gold frame competing with the outer metallic card edge.
+  Color get plaqueEdge =>
+      (_dark ? goldLight : goldShade).withValues(alpha: 0.20);
+  Color get badgeFill => theme.primaryText.withValues(alpha: 0.045);
+  Color get badgeEdge =>
+      (_dark ? goldLight : goldShade).withValues(alpha: 0.25);
+
   LinearGradient get plaque => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: _dark
-            ? [
-                Color.lerp(theme.primaryBackground, _vipPurple, 0.32)!,
-                theme.primaryBackground,
-                Color.lerp(theme.primaryBackground, theme.primary, 0.12)!
-              ]
-            : [
-                theme.secondaryBackground,
-                Color.lerp(theme.secondaryBackground, theme.primary, 0.08)!,
-                Color.lerp(theme.secondaryBackground, theme.primary, 0.22)!
-              ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          for (var i = 0; i < felt.colors.length; i++)
+            Color.alphaBlend(
+              (_dark ? goldLight : theme.secondaryBackground)
+                  .withValues(alpha: i == 0 ? 0.09 : 0.04),
+              felt.colors[i],
+            ),
+        ],
+        stops: felt.stops,
       );
 
   RadialGradient get chip => RadialGradient(

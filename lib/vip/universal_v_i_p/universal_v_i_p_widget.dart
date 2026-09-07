@@ -226,14 +226,13 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                 ),
                                               Container(
                                                 decoration: BoxDecoration(
+                                                  color: tokens.vip.badgeFill,
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                          8.0),
+                                                          tokens.radius.sm),
                                                   border: Border.all(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                  ),
+                                                      color:
+                                                          tokens.vip.badgeEdge),
                                                 ),
                                                 child: Padding(
                                                   padding: EdgeInsets.all(
@@ -282,7 +281,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                                     0.0,
                                                                 fontWeight:
                                                                     FontWeight
-                                                                        .w300,
+                                                                        .w500,
                                                                 fontStyle: FlutterFlowTheme.of(
                                                                         context)
                                                                     .bodyMedium
@@ -343,14 +342,13 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                 ),
                                               Container(
                                                 decoration: BoxDecoration(
+                                                  color: tokens.vip.badgeFill,
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                          8.0),
+                                                          tokens.radius.sm),
                                                   border: Border.all(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                  ),
+                                                      color:
+                                                          tokens.vip.badgeEdge),
                                                 ),
                                                 child: Padding(
                                                   padding: EdgeInsets.all(
@@ -375,7 +373,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                           fontSize: 11.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
-                                                              FontWeight.w300,
+                                                              FontWeight.w500,
                                                           fontStyle:
                                                               FlutterFlowTheme.of(
                                                                       context)

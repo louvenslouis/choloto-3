@@ -46,12 +46,9 @@ class VipCasinoPlaque extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: tokens.vip.plaque,
         borderRadius: BorderRadius.circular(tokens.radius.sm),
-        boxShadow: [tokens.shadow.md],
+        border: Border.all(color: tokens.vip.plaqueEdge, width: 0.7),
       ),
-      child: CustomPaint(
-        foregroundPainter: _CasinoRim(tokens, plaque: true),
-        child: child,
-      ),
+      child: child,
     );
   }
 }
@@ -117,22 +114,20 @@ class _CasinoEngraving extends CustomPainter {
 }
 
 class _CasinoRim extends CustomPainter {
-  _CasinoRim(this.tokens, {this.plaque = false});
+  _CasinoRim(this.tokens);
   final FFDesignTokens tokens;
-  final bool plaque;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final radius = plaque ? tokens.radius.sm : tokens.radius.md;
+    final radius = tokens.radius.md;
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = plaque ? 1 : 1.6
+      ..strokeWidth = 1.6
       ..shader = tokens.vip.gold.createShader(rect);
     canvas.drawRRect(
         RRect.fromRectAndRadius(rect.deflate(0.8), Radius.circular(radius)),
         paint);
-    if (plaque) return;
     final inset = tokens.spacing.xs;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -158,8 +153,7 @@ class _CasinoRim extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CasinoRim old) =>
-      old.tokens.theme != tokens.theme || old.plaque != plaque;
+  bool shouldRepaint(_CasinoRim old) => old.tokens.theme != tokens.theme;
 }
 
 class _ChipEdge extends CustomPainter {
