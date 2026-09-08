@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:choloto/app_state.dart';
 import 'package:choloto/components/vip_prediction_header.dart';
+import 'package:choloto/components/vip_motion.dart';
 import 'package:choloto/components/vip_casino_card.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
@@ -195,13 +196,13 @@ void main() {
                                           _ => 'lundi 7 septembre Soir',
                                         }}',
                                         percentage: '85%',
-                                      ),
+                                      ).vipEntrance(delayMs: 80),
                                       GridView.count(
                                           shrinkWrap: true,
                                           physics:
                                               const NeverScrollableScrollPhysics(),
                                           crossAxisCount: 2,
-                                          children: const [
+                                          children: [
                                             UniversalVIPWidget(
                                                 name: 'FAVORI',
                                                 chiffre: ['12'],
@@ -229,7 +230,14 @@ void main() {
                                                 name: 'EXTRA',
                                                 chiffre: [],
                                                 icon: Icon(Icons.auto_awesome)),
-                                          ]),
+                                          ]
+                                              .asMap()
+                                              .entries
+                                              .map((entry) => entry.value
+                                                  .vipEntrance(
+                                                      delayMs:
+                                                          125 + entry.key * 45))
+                                              .toList()),
                                     ]))))
                             : const VipWidget()),
                   )),
@@ -238,9 +246,25 @@ void main() {
               await Future<void>.delayed(Duration.zero);
             });
             await tester.pump();
+            final entrances = find.descendant(
+              of: find.byType(VipEntrance),
+              matching: find.byType(FadeTransition),
+            );
+            expect(entrances, findsWidgets);
+            await tester.pump(const Duration(milliseconds: 180));
+            expect(
+                tester
+                    .widgetList<FadeTransition>(entrances)
+                    .any((fade) => fade.opacity.value < 1),
+                isTrue);
             await tester.pump(const Duration(seconds: 6));
             await tester.pump(const Duration(milliseconds: 400));
             expect(tester.takeException(), isNull);
+            expect(
+                tester
+                    .widgetList<FadeTransition>(entrances)
+                    .every((fade) => fade.opacity.value == 1),
+                isTrue);
             if (!member) {
               final strings = FFLocalizations(Locale(language));
               expect(find.text(strings.getText('gfj3b9xn')), findsOneWidget);

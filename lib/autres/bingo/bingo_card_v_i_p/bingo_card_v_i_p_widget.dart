@@ -5,8 +5,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'bingo_card_v_i_p_model.dart';
 export 'bingo_card_v_i_p_model.dart';
@@ -84,231 +82,164 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final toggleLabel = FFLocalizations.of(context)
+        .getText(_model.minimise ? 'bngexpand' : 'bngreduce');
 
-    return SafeArea(
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        curve: Curves.easeIn,
-        height: _model.minimise == false ? 250.0 : 60.0,
-        decoration: BoxDecoration(),
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 0.0),
-          child: Card(
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            color: FlutterFlowTheme.of(context).primaryBackground,
-            elevation: 0.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.asset(
-                          'assets/images/bingo-2.png',
-                          height: 30.0,
-                          fit: BoxFit.cover,
-                        ),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        tokens.spacing.xs,
+        tokens.spacing.sm,
+        tokens.spacing.xs,
+        0,
+      ),
+      child: Material(
+        color: theme.secondaryBackground,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        clipBehavior: Clip.antiAlias,
+        child: AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          curve: Curves.easeInOut,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Semantics(
+                expanded: !_model.minimise,
+                child: InkWell(
+                  onTap: () {
+                    logFirebaseEvent('BINGO_CARD_V_I_P_Button_vv92t9cq_ON_TAP');
+                    logFirebaseEvent('Button_update_component_state');
+                    safeSetState(() => _model.minimise = !_model.minimise);
+                  },
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: tokens.spacing.md,
+                        vertical: tokens.spacing.sm,
                       ),
-                      FFButtonWidget(
-                        onPressed: () async {
-                          logFirebaseEvent(
-                              'BINGO_CARD_V_I_P_Button_vv92t9cq_ON_TAP');
-                          logFirebaseEvent('Button_update_component_state');
-                          _model.minimise = !_model.minimise;
-                          safeSetState(() {});
-                        },
-                        text: FFLocalizations.of(context).getText(
-                          _model.minimise == false ? 'bngreduce' : 'bngexpand',
-                        ),
-                        icon: FaIcon(
-                          FontAwesomeIcons.minusSquare,
-                          size: 15.0,
-                        ),
-                        options: FFButtonOptions(
-                          height: 25.0,
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              6.0, 0.0, 6.0, 0.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          iconColor: FlutterFlowTheme.of(context).alternate,
-                          color: Color(0x00F8BB00),
-                          textStyle: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .override(
-                                fontFamily: 'Google sans flex',
-                                color: FlutterFlowTheme.of(context).alternate,
-                                fontSize: 12.0,
-                                letterSpacing: 0.0,
-                                fontWeight: FontWeight.normal,
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/images/bingo-2.png',
+                            height: tokens.spacing.lg,
+                            width: tokens.spacing.lg,
+                            fit: BoxFit.contain,
+                            excludeFromSemantics: true,
+                          ),
+                          SizedBox(width: tokens.spacing.sm),
+                          Text(
+                            FFLocalizations.of(context)
+                                .getText('bingo_story_label'),
+                            style: theme.labelLarge
+                                .override(color: theme.primaryText),
+                          ),
+                          SizedBox(width: tokens.spacing.sm),
+                          Expanded(
+                            child: Text(
+                              toggleLabel,
+                              textAlign: TextAlign.end,
+                              style: theme.labelMedium.override(
+                                color:
+                                    theme.primaryText.withValues(alpha: 0.75),
                               ),
-                          elevation: 0.0,
-                          borderRadius: BorderRadius.circular(14.0),
-                        ),
-                        showLoadingIndicator: false,
+                            ),
+                          ),
+                          SizedBox(width: tokens.spacing.xs),
+                          Icon(
+                            _model.minimise
+                                ? Icons.expand_more_rounded
+                                : Icons.expand_less_rounded,
+                            color: theme.primaryText.withValues(alpha: 0.75),
+                            size: tokens.spacing.lg,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  if (_model.minimise == false)
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).primaryBackground,
-                      ),
-                      child: wrapWithModel(
+                ),
+              ),
+              if (!_model.minimise)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    tokens.spacing.sm,
+                    0,
+                    tokens.spacing.sm,
+                    tokens.spacing.sm,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      wrapWithModel(
                         model: _model.stackbingoModel,
                         updateCallback: () => safeSetState(() {}),
-                        child: StackbingoWidget(),
+                        child: const StackbingoWidget(),
                       ),
-                    ),
-                  if ((_model.minimise == false) && loggedIn)
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          FFLocalizations.of(context).getText(
-                            'ch00aogu' /* Ou te gagné ak nou ? */,
-                          ),
-                          style:
-                              FlutterFlowTheme.of(context).bodyMedium.override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color:
-                                FlutterFlowTheme.of(context).primaryBackground,
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              FFButtonWidget(
-                                onPressed: _reactionPending
-                                    ? null
-                                    : () async {
-                                        logFirebaseEvent(
-                                          'BINGO_CARD_V_I_P_COMP_WI_BTN_ON_TAP',
-                                        );
-                                        await _react(BingoReaction.positive);
-                                      },
-                                text: FFLocalizations.of(context).getText(
-                                  'ksh6eozy' /* WI */,
-                                ),
-                                icon: Icon(
-                                  Icons.thumb_up,
-                                  size: 12.0,
-                                ),
-                                options: FFButtonOptions(
-                                  height: 30.0,
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      5.0, 0.0, 5.0, 0.0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 0.0, 0.0, 0.0),
-                                  iconColor: FFAppState().bingo.gagner == true
-                                      ? FlutterFlowTheme.of(context).error
-                                      : FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                  color: Color(0x00F8BB00),
-                                  textStyle: FlutterFlowTheme.of(context)
-                                      .titleSmall
-                                      .override(
-                                        fontFamily: 'Google sans flex',
-                                        color: Colors.white,
-                                        fontSize: 10.0,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                  elevation: 0.0,
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                showLoadingIndicator: false,
-                              ),
-                              SizedBox(
-                                height: 15.0,
-                                child: VerticalDivider(
-                                  thickness: 2.0,
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryBackground,
-                                ),
-                              ),
-                              FFButtonWidget(
-                                onPressed: _reactionPending
-                                    ? null
-                                    : () async {
-                                        logFirebaseEvent(
-                                          'BINGO_CARD_V_I_P_COMP_NON_BTN_ON_TAP',
-                                        );
-                                        await _react(BingoReaction.negative);
-                                      },
-                                text: FFLocalizations.of(context).getText(
-                                  '7ccuyv05' /* NON */,
-                                ),
-                                icon: Icon(
-                                  Icons.thumb_down_alt,
-                                  size: 12.0,
-                                ),
-                                options: FFButtonOptions(
-                                  height: 30.0,
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      5.0, 0.0, 5.0, 0.0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 0.0, 0.0, 0.0),
-                                  iconColor: (FFAppState().bingo.gagner ==
-                                              false) &&
-                                          (FFAppState().bingo.refGain != null)
-                                      ? FlutterFlowTheme.of(context).error
-                                      : FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                  color: Color(0x00F8BB00),
-                                  textStyle: FlutterFlowTheme.of(context)
-                                      .titleSmall
-                                      .override(
-                                        fontFamily: 'Google sans flex',
-                                        color: Colors.white,
-                                        fontSize: 10.0,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                  elevation: 0.0,
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                showLoadingIndicator: false,
-                              ),
-                            ],
-                          ),
+                      if (loggedIn) ...[
+                        SizedBox(height: tokens.spacing.sm),
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: tokens.spacing.sm,
+                          children: [
+                            Text(
+                              FFLocalizations.of(context).getText('ch00aogu'),
+                              style: theme.bodyMedium,
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _reactionButton(BingoReaction.positive),
+                                _reactionButton(BingoReaction.negative),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                ].divide(SizedBox(height: 10.0)),
-              ),
-            ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _reactionButton(BingoReaction reaction) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final positive = reaction == BingoReaction.positive;
+    final bingo = FFAppState().bingo;
+    final selected = positive
+        ? bingo.gagner == true
+        : bingo.gagner == false && bingo.refGain != null;
+    final color = selected ? theme.error : theme.primaryText;
+
+    return FFButtonWidget(
+      onPressed: _reactionPending
+          ? null
+          : () async {
+              logFirebaseEvent(positive
+                  ? 'BINGO_CARD_V_I_P_COMP_WI_BTN_ON_TAP'
+                  : 'BINGO_CARD_V_I_P_COMP_NON_BTN_ON_TAP');
+              await _react(reaction);
+            },
+      text: FFLocalizations.of(context)
+          .getText(positive ? 'ksh6eozy' : '7ccuyv05'),
+      icon: Icon(positive ? Icons.thumb_up : Icons.thumb_down_alt, size: 16),
+      options: FFButtonOptions(
+        height: 48,
+        padding: EdgeInsets.symmetric(horizontal: tokens.spacing.sm),
+        iconColor: color,
+        color: theme.secondaryBackground,
+        textStyle: theme.labelMedium.override(color: color),
+        elevation: 0,
+        borderRadius: BorderRadius.circular(tokens.radius.sm),
+      ),
+      showLoadingIndicator: false,
     );
   }
 }

@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 class BingoCardVIPModel extends FlutterFlowModel<BingoCardVIPWidget> {
   ///  Local state fields for this component.
 
-  bool minimise = false;
+  // Keep the VIP predictions prominent; details remain one tap away.
+  bool minimise = true;
 
   ///  State fields for stateful widgets in this component.
 

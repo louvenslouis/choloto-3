@@ -45,6 +45,12 @@ Future<void> _setViewport(WidgetTester tester, Size size) async {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
+// VIP sparkles loop continuously; only wait for finite entrance/press effects.
+Future<void> _finishCardTransitions(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 800));
+}
+
 double _contrastRatio(Color foreground, Color background) {
   final opaqueForeground = Color.alphaBlend(foreground, background);
   final lighter =
@@ -95,7 +101,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
 
     final gradientContainer = tester.widget<AnimatedContainer>(
       find.byKey(const ValueKey('home-feature-gradient-vip')),
@@ -108,8 +114,62 @@ void main() {
       findsOneWidget,
     );
     await tester.tap(find.byKey(const ValueKey('home-feature-card-vip')));
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
     expect(taps, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('VIP sparkles repaint, preserve taps and respect reduced motion',
+      (tester) async {
+    var taps = 0;
+    Widget scene({bool reduceMotion = false, bool ticking = true}) => _testApp(
+          themeMode: ThemeMode.dark,
+          child: MediaQuery(
+            data: MediaQueryData(
+              size: const Size(390, 844),
+              disableAnimations: reduceMotion,
+            ),
+            child: TickerMode(
+              enabled: ticking,
+              child: Center(
+                child: _card(
+                  id: 'vip',
+                  title: 'VIP',
+                  description: 'Premium',
+                  tone: HomeFeatureTone.vip,
+                  assetPath: _vipAsset,
+                  onTap: () => taps++,
+                ),
+              ),
+            ),
+          ),
+        );
+    await tester.pumpWidget(scene());
+    await _finishCardTransitions(tester);
+    final sparkles = find.byKey(const ValueKey('home-vip-sparkles'));
+    var repaints = 0;
+    final painter = tester.widget<CustomPaint>(sparkles).painter!;
+    void onRepaint() => repaints++;
+    painter.addListener(onRepaint);
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(repaints, greaterThan(0));
+    await tester.tapAt(tester.getCenter(sparkles));
+    expect(taps, 1);
+
+    await tester.pumpWidget(scene(reduceMotion: true));
+    repaints = 0;
+    await tester.pump(const Duration(seconds: 1));
+    expect(repaints, 0);
+
+    await tester.pumpWidget(scene());
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(repaints, greaterThan(0));
+    await tester.pumpWidget(scene(ticking: false));
+    repaints = 0;
+    await tester.pump(const Duration(seconds: 1));
+    expect(repaints, 0);
+    painter.removeListener(onRepaint);
+    await tester.pumpWidget(const SizedBox());
     expect(tester.takeException(), isNull);
   });
 
@@ -146,7 +206,7 @@ void main() {
     expect(entrance().opacity.value, 0.0);
     await tester.pump(const Duration(milliseconds: 250));
     expect(entrance().opacity.value, greaterThan(0.0));
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
     expect(entrance().opacity.value, 1.0);
 
     await tester.pumpWidget(
@@ -177,7 +237,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
 
     final cardFinder = find.byKey(const ValueKey('home-feature-card-vip'));
     final interactionFinder =
@@ -194,13 +254,13 @@ void main() {
     expect(tester.widget<AnimatedScale>(artworkFinder).scale, 1.03);
 
     await mouse.moveTo(Offset.zero);
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
     final touch = await tester.startGesture(tester.getCenter(cardFinder));
     await tester.pump(const Duration(milliseconds: 30));
     expect(tester.widget<AnimatedScale>(interactionFinder).scale, 0.985);
     expect(tester.widget<AnimatedScale>(artworkFinder).scale, 0.97);
     await touch.up();
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
     expect(tester.takeException(), isNull);
   });
 
@@ -224,7 +284,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
 
     final artwork = tester.widget<Image>(
       find.byKey(const ValueKey('home-feature-image-chance')),
@@ -260,7 +320,10 @@ void main() {
               ),
             ),
           );
-          await tester.pumpAndSettle();
+          await _finishCardTransitions(tester);
+
+          expect(find.byKey(const ValueKey('home-vip-sparkles')),
+              tone == HomeFeatureTone.vip ? findsOneWidget : findsNothing);
 
           final card = tester.widget<AnimatedContainer>(
             find.byKey(ValueKey('home-feature-gradient-$id')),
@@ -348,7 +411,7 @@ void main() {
                   ),
                 ),
               );
-              await tester.pumpAndSettle();
+              await _finishCardTransitions(tester);
 
               for (final tone in HomeFeatureTone.values) {
                 final card =
@@ -418,7 +481,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
 
     expect(
       find.byKey(const ValueKey('home-feature-mobile-layout')),
@@ -445,7 +508,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _finishCardTransitions(tester);
 
     expect(
       find.byKey(const ValueKey('home-feature-wide-layout')),

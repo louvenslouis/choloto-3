@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -380,13 +382,22 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                 duration: duration,
                                 child: SizedBox.square(
                                   dimension: artworkSize,
-                                  child: _artwork(
-                                    size: artworkSize,
-                                    cacheWidth: (artworkSize *
-                                            MediaQuery.devicePixelRatioOf(
-                                                context))
-                                        .ceil(),
-                                    foreground: foreground,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      _artwork(
+                                        size: artworkSize,
+                                        cacheWidth: (artworkSize *
+                                                MediaQuery.devicePixelRatioOf(
+                                                    context))
+                                            .ceil(),
+                                        foreground: foreground,
+                                      ),
+                                      if (widget.tone == HomeFeatureTone.vip)
+                                        const Positioned.fill(
+                                          child: _VipSparkles(),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -453,4 +464,102 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
       ),
     );
   }
+}
+
+/// Decorative stars stay inside the artwork so they never obscure the copy.
+class _VipSparkles extends StatefulWidget {
+  const _VipSparkles();
+
+  @override
+  State<_VipSparkles> createState() => _VipSparklesState();
+}
+
+class _VipSparklesState extends State<_VipSparkles>
+    with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2800),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context) ||
+        !TickerMode.valuesOf(context).enabled) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: RepaintBoundary(
+          child: CustomPaint(
+            key: const ValueKey('home-vip-sparkles'),
+            painter: _VipSparklePainter(
+              _controller,
+              Color.lerp(theme.primary, theme.onDecorative, 0.55)!,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VipSparklePainter extends CustomPainter {
+  _VipSparklePainter(this.animation, this.color) : super(repaint: animation);
+
+  final Animation<double> animation;
+  final Color color;
+
+  // Relative positions keep the same constellation on compact and wide cards.
+  static const _stars = [
+    (Offset(0.13, 0.20), 4.0, 0.0),
+    (Offset(0.47, 0.09), 3.0, 0.38),
+    (Offset(0.85, 0.18), 4.5, 0.70),
+    (Offset(0.91, 0.61), 3.0, 0.18),
+    (Offset(0.70, 0.88), 3.5, 0.54),
+    (Offset(0.12, 0.74), 3.0, 0.84),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    for (final (position, radius, phase) in _stars) {
+      final pulse = (1 + math.sin((animation.value + phase) * 2 * math.pi)) / 2;
+      final extent = radius * (0.65 + pulse * 0.35);
+      final inset = extent * 0.24;
+      canvas.save();
+      canvas.translate(position.dx * size.width, position.dy * size.height);
+      canvas.drawPath(
+        Path()
+          ..moveTo(0, -extent)
+          ..lineTo(inset, -inset)
+          ..lineTo(extent, 0)
+          ..lineTo(inset, inset)
+          ..lineTo(0, extent)
+          ..lineTo(-inset, inset)
+          ..lineTo(-extent, 0)
+          ..lineTo(-inset, -inset)
+          ..close(),
+        paint..color = color.withValues(alpha: 0.18 + pulse * 0.72),
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_VipSparklePainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.animation != animation;
 }

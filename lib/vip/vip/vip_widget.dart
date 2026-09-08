@@ -3,7 +3,7 @@ import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
 import '/components/don_widget.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
+import '/components/vip_motion.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -18,7 +18,6 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'vip_model.dart';
@@ -34,12 +33,11 @@ class VipWidget extends StatefulWidget {
   State<VipWidget> createState() => _VipWidgetState();
 }
 
-class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
+class _VipWidgetState extends State<VipWidget> {
   late VipModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final animationsMap = <String, AnimationInfo>{};
   final SubscriptionTransactionRepository _transactionsRepository =
       SubscriptionTransactionRepository();
 
@@ -67,112 +65,6 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
       logFirebaseEvent('VIP_update_page_state');
       _model.pourboireHide = true;
       safeSetState(() {});
-    });
-
-    animationsMap.addAll({
-      'cardOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 6.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-      'universalVIPOnPageLoadAnimation1': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 6.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-      'universalVIPOnPageLoadAnimation2': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 6.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-      'vIPbolotoOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 25.ms),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 25.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 6.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-      'universalVIPOnPageLoadAnimation3': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 25.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 6.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-      'universalVIPOnPageLoadAnimation4': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 50.ms),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 50.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 6.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-      'universalVIPOnPageLoadAnimation5': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 50.ms),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 50.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 6.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-      'universalVIPOnPageLoadAnimation6': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 70.ms),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 70.0.ms,
-            duration: 300.0.ms,
-            begin: Offset(0.0, 6.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
@@ -255,11 +147,13 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                 foregroundColor: FlutterFlowTheme.of(context).primary,
                 elevation: 4.0,
                 child: const Icon(Icons.history_rounded, size: 21.0),
-              ),
-            ),
+              ).vipActionFeedback(),
+            ).vipEntrance(delayMs: 220),
             const SizedBox(height: 10.0),
             AnimatedSize(
-              duration: const Duration(milliseconds: 350),
+              duration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : const Duration(milliseconds: 350),
               curve: Curves.easeInOutCubic,
               alignment: Alignment.centerRight,
               child: FloatingActionButton.extended(
@@ -303,7 +197,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-            ),
+            ).vipActionFeedback().vipEntrance(delayMs: 280),
           ],
         ),
         appBar: PreferredSize(
@@ -451,7 +345,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                           ],
                         ),
                       ),
-                    ),
+                    ).vipActionFeedback(),
                     Expanded(
                       child: Column(
                         mainAxisSize: MainAxisSize.max,
@@ -499,7 +393,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                       ),
                     ),
                   ].divide(SizedBox(width: 10.0)),
-                ),
+                ).vipEntrance(),
               ),
             ),
             centerTitle: false,
@@ -521,7 +415,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                       model: _model.bingoCardVIPModel,
                       updateCallback: () => safeSetState(() {}),
                       child: BingoCardVIPWidget(),
-                    ),
+                    ).vipEntrance(delayMs: 80),
                   AuthUserStreamWidget(
                     builder: (context) {
                       // Start the fallback audit stream after the auth stream
@@ -622,8 +516,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                   )} ${listViewPredictionRecord.periode}',
                                   percentage:
                                       '${listViewPredictionRecord.pourcentage}%',
-                                ).animateOnPageLoad(
-                                    animationsMap['cardOnPageLoadAnimation']!),
+                                ).vipEntrance(delayMs: 80),
                                 GridView(
                                   padding: EdgeInsets.fromLTRB(
                                     0,
@@ -660,8 +553,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                           size: 20.0,
                                         ),
                                       ),
-                                    ).animateOnPageLoad(animationsMap[
-                                        'universalVIPOnPageLoadAnimation1']!),
+                                    ).vipEntrance(delayMs: 125),
                                     wrapWithModel(
                                       model: _model.soutniModel,
                                       updateCallback: () => safeSetState(() {}),
@@ -679,8 +571,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                           size: 20.0,
                                         ),
                                       ),
-                                    ).animateOnPageLoad(animationsMap[
-                                        'universalVIPOnPageLoadAnimation2']!),
+                                    ).vipEntrance(delayMs: 170),
                                     wrapWithModel(
                                       model: _model.vIPbolotoModel,
                                       updateCallback: () => safeSetState(() {}),
@@ -692,8 +583,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                         ref:
                                             listViewPredictionRecord?.reference,
                                       ),
-                                    ).animateOnPageLoad(animationsMap[
-                                        'vIPbolotoOnPageLoadAnimation']!),
+                                    ).vipEntrance(delayMs: 215),
                                     wrapWithModel(
                                       model: _model.mariageModel,
                                       updateCallback: () => safeSetState(() {}),
@@ -711,8 +601,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                           size: 20.0,
                                         ),
                                       ),
-                                    ).animateOnPageLoad(animationsMap[
-                                        'universalVIPOnPageLoadAnimation3']!),
+                                    ).vipEntrance(delayMs: 260),
                                     wrapWithModel(
                                       model: _model.chif3Model,
                                       updateCallback: () => safeSetState(() {}),
@@ -730,8 +619,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                         ref:
                                             listViewPredictionRecord?.reference,
                                       ),
-                                    ).animateOnPageLoad(animationsMap[
-                                        'universalVIPOnPageLoadAnimation4']!),
+                                    ).vipEntrance(delayMs: 305),
                                     wrapWithModel(
                                       model: _model.chif4Model,
                                       updateCallback: () => safeSetState(() {}),
@@ -749,8 +637,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                         ref:
                                             listViewPredictionRecord?.reference,
                                       ),
-                                    ).animateOnPageLoad(animationsMap[
-                                        'universalVIPOnPageLoadAnimation5']!),
+                                    ).vipEntrance(delayMs: 350),
                                     wrapWithModel(
                                       model: _model.extraModel,
                                       updateCallback: () => safeSetState(() {}),
@@ -767,8 +654,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                                         ref:
                                             listViewPredictionRecord?.reference,
                                       ),
-                                    ).animateOnPageLoad(animationsMap[
-                                        'universalVIPOnPageLoadAnimation6']!),
+                                    ).vipEntrance(delayMs: 395),
                                   ],
                                 ),
                               ],
@@ -780,7 +666,7 @@ class _VipWidgetState extends State<VipWidget> with TickerProviderStateMixin {
                           model: _model.devenirVIPModel,
                           updateCallback: () => safeSetState(() {}),
                           child: DevenirVIPWidget(),
-                        );
+                        ).vipEntrance(delayMs: 100);
                       }
                     },
                   ),
