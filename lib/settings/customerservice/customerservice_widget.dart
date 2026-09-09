@@ -5,16 +5,21 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/support/support_chat_view.dart';
 import '/support/support_conversation.dart';
-import '/support/support_guest_gate.dart';
+import '/support/support_guest_session.dart';
 import '/support/support_text.dart';
 
 class CustomerserviceWidget extends StatefulWidget {
-  const CustomerserviceWidget({super.key, this.repository});
+  const CustomerserviceWidget({
+    super.key,
+    this.repository,
+    this.guestIdLoader,
+  });
 
   static String routeName = 'customerservice';
   static String routePath = '/customerservice';
 
   final SupportConversationRepository? repository;
+  final Future<String> Function()? guestIdLoader;
 
   @override
   State<CustomerserviceWidget> createState() => _CustomerserviceWidgetState();
@@ -23,19 +28,36 @@ class CustomerserviceWidget extends StatefulWidget {
 class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
   late final SupportConversationRepository _repository =
       widget.repository ?? SupportConversationRepository();
-  bool _startingGuestSupport = false;
+  late final Future<String> _guestId =
+      (widget.guestIdLoader ?? GuestSupportSession.loadOrCreateId)();
 
-  Future<void> _startGuestSupport(BuildContext context) async {
-    if (_startingGuestSupport) return;
-    setState(() => _startingGuestSupport = true);
-    final appState = GoRouter.of(context).appState;
-    appState.updateNotifyOnAuthChange(false);
-    try {
-      await authManager.signInAnonymously(context);
-    } finally {
-      appState.updateNotifyOnAuthChange(true);
-      if (mounted) setState(() => _startingGuestSupport = false);
-    }
+  Widget _chat({
+    required String conversationId,
+    required bool guestWithoutAuth,
+  }) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 760),
+        child: SupportChatView(
+          messages: guestWithoutAuth
+              ? _repository.watchGuestMessages(conversationId)
+              : _repository.watchMessages(conversationId),
+          onSend: (text) => guestWithoutAuth
+              ? _repository.sendGuestMessage(
+                  guestId: conversationId,
+                  text: text,
+                )
+              : _repository.sendUserMessage(
+                  userUid: conversationId,
+                  userEmail: currentUserEmail,
+                  userDisplayName: currentUserDisplayName,
+                  text: text,
+                ),
+          showOptionalPhoneOnFirstMessage:
+              guestWithoutAuth || currentUserIsAnonymous,
+        ),
+      ),
+    );
   }
 
   @override
@@ -61,27 +83,26 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
         top: false,
         child: AuthUserStreamWidget(
           builder: (context) {
-            if (!hasFirebaseSession || currentUserUid.isEmpty) {
-              return SupportGuestGate(
-                starting: _startingGuestSupport,
-                onStart: () => _startGuestSupport(context),
+            if (hasFirebaseSession && currentUserUid.isNotEmpty) {
+              return _chat(
+                conversationId: currentUserUid,
+                guestWithoutAuth: false,
               );
             }
-            final uid = currentUserUid;
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 760),
-                child: SupportChatView(
-                  messages: _repository.watchMessages(uid),
-                  onSend: (text) => _repository.sendUserMessage(
-                    userUid: uid,
-                    userEmail: currentUserEmail,
-                    userDisplayName: currentUserDisplayName,
-                    text: text,
-                  ),
-                  showOptionalPhoneOnFirstMessage: currentUserIsAnonymous,
-                ),
-              ),
+            return FutureBuilder<String>(
+              future: _guestId,
+              builder: (context, snapshot) {
+                final guestId = snapshot.data;
+                if (guestId == null) {
+                  return Center(
+                    child: CircularProgressIndicator(color: theme.primary),
+                  );
+                }
+                return _chat(
+                  conversationId: guestId,
+                  guestWithoutAuth: true,
+                );
+              },
             );
           },
         ),

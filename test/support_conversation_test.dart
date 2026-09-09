@@ -1,9 +1,71 @@
 import 'package:choloto/support/support_conversation.dart';
+import 'package:choloto/support/support_guest_session.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/memory_firestore.dart';
 
 void main() {
+  const guestId = '123e4567-e89b-42d3-a456-426614174000';
+
+  test('guest support id is private, valid and persisted without auth',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+    final first = await GuestSupportSession.loadOrCreateId();
+    final restored = await GuestSupportSession.loadOrCreateId();
+
+    expect(GuestSupportSession.isValidId(first), isTrue);
+    expect(restored, first);
+    expect(GuestSupportSession.isValidId('member'), isFalse);
+  });
+
+  test('guest sends and retries a first message without a user profile',
+      () async {
+    final db = MemoryFirestore();
+    final repository = SupportConversationRepository(firestore: db);
+
+    await repository.sendGuestMessage(
+      guestId: guestId,
+      text: ' Téléphone: +50937000000\n\nJe veux m’abonner. ',
+      messageId: 'guest-m1',
+    );
+
+    expect(db.reads, [
+      'support_conversations/$guestId',
+      'support_conversations/$guestId/messages/guest-m1',
+    ]);
+    expect(
+      db.rows['support_conversations/$guestId'],
+      containsPair('guest_access', true),
+    );
+    expect(
+      db.rows['support_conversations/$guestId/messages/guest-m1']?['text'],
+      'Téléphone: +50937000000\n\nJe veux m’abonner.',
+    );
+
+    await repository.sendGuestMessage(
+      guestId: guestId,
+      text: 'Téléphone: +50937000000\n\nJe veux m’abonner.',
+      messageId: 'guest-m1',
+    );
+    expect(
+      db.rows.keys.where((path) => path.contains('/messages/')),
+      ['support_conversations/$guestId/messages/guest-m1'],
+    );
+  });
+
+  test('guest rejects malformed capability ids', () async {
+    final repository =
+        SupportConversationRepository(firestore: MemoryFirestore());
+    await expectLater(
+      repository.sendGuestMessage(
+        guestId: 'not-private',
+        text: 'Bonjour',
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('first message reads absence/profile and writes one atomic conversation',
       () async {
     final db = MemoryFirestore();

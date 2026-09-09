@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'support_guest_session.dart';
+
 DateTime? supportDate(Object? value) => value is Timestamp
     ? value.toDate()
     : value is DateTime
@@ -44,6 +46,9 @@ class SupportConversationRepository {
   CollectionReference<Map<String, dynamic>> get conversations =>
       db.collection('support_conversations');
 
+  DocumentReference<Map<String, dynamic>> guestConversation(String guestId) =>
+      conversations.doc(guestId);
+
   Stream<SupportConversation?> watchConversation(String userUid) =>
       conversations.doc(userUid).snapshots().map((snapshot) {
         final data = snapshot.data();
@@ -59,6 +64,89 @@ class SupportConversationRepository {
           .toList()
         ..sort((a, b) => (a.createdAt ?? DateTime(1970))
             .compareTo(b.createdAt ?? DateTime(1970))));
+
+  Stream<List<SupportMessage>> watchGuestMessages(String guestId) {
+    if (!GuestSupportSession.isValidId(guestId)) {
+      return Stream.error(ArgumentError('invalid-support-guest'));
+    }
+    return guestConversation(guestId).collection('messages').snapshots().map(
+        (snapshot) => snapshot.docs
+            .map((doc) => SupportMessage(doc.id, doc.data()))
+            .toList()
+          ..sort((a, b) => (a.createdAt ?? DateTime(1970))
+              .compareTo(b.createdAt ?? DateTime(1970))));
+  }
+
+  Future<void> sendGuestMessage({
+    required String guestId,
+    required String text,
+    String? messageId,
+  }) async {
+    if (!GuestSupportSession.isValidId(guestId)) {
+      throw ArgumentError('invalid-support-guest');
+    }
+    final normalized = text.trim();
+    if (normalized.isEmpty ||
+        normalized.length > 1000 ||
+        (messageId != null &&
+            (messageId.isEmpty ||
+                messageId.length > 128 ||
+                messageId.contains('/')))) {
+      throw ArgumentError('invalid-support-message');
+    }
+
+    final conversationRef = guestConversation(guestId);
+    final resolvedMessageId =
+        messageId ?? conversationRef.collection('messages').doc().id;
+    final messageRef =
+        conversationRef.collection('messages').doc(resolvedMessageId);
+
+    await db.runTransaction((transaction) async {
+      final conversation = await transaction.get(conversationRef);
+      final existingMessage = await transaction.get(messageRef);
+      if (existingMessage.exists) {
+        final data = existingMessage.data();
+        if (data?['sender_uid'] == guestId &&
+            data?['sender_role'] == 'user' &&
+            data?['text'] == normalized &&
+            conversation.data()?['last_message_id'] == resolvedMessageId) {
+          return;
+        }
+        throw StateError('support-message-id');
+      }
+      if (conversation.exists) {
+        if (conversation.data()?['user_uid'] != guestId ||
+            conversation.data()?['guest_access'] != true) {
+          throw StateError('support-conversation-owner');
+        }
+        transaction.update(conversationRef, {
+          'status': 'open',
+          'updated_at': FieldValue.serverTimestamp(),
+          'last_message': normalized,
+          'last_message_id': resolvedMessageId,
+          'last_sender_role': 'user',
+        });
+      } else {
+        transaction.set(conversationRef, {
+          'user_uid': guestId,
+          'guest_access': true,
+          'topic': 'subscription',
+          'status': 'open',
+          'created_at': FieldValue.serverTimestamp(),
+          'updated_at': FieldValue.serverTimestamp(),
+          'last_message': normalized,
+          'last_message_id': resolvedMessageId,
+          'last_sender_role': 'user',
+        });
+      }
+      transaction.set(messageRef, {
+        'sender_uid': guestId,
+        'sender_role': 'user',
+        'text': normalized,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    });
+  }
 
   /// Sends the summary and immutable message in one transaction. Supplying a
   /// message id is useful for retrying an uncertain acknowledgement and tests.

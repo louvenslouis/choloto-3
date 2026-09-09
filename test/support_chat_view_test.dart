@@ -2,7 +2,6 @@ import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/support/subscription_support_card.dart';
 import 'package:choloto/support/support_chat_view.dart';
 import 'package:choloto/support/support_conversation.dart';
-import 'package:choloto/support/support_guest_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,52 +27,6 @@ Widget localizedApp({
     );
 
 void main() {
-  const guestActions = {
-    'fr': 'Commencer le chat',
-    'en': 'Start chat',
-    'cr': 'Kòmanse chat la',
-  };
-  for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
-    for (final variant in const [
-      (320.0, Brightness.dark),
-      (1280.0, Brightness.light),
-    ]) {
-      testWidgets(
-        'guest gate fits ${locale.languageCode} at ${variant.$1.toInt()} px',
-        (tester) async {
-          tester.view.physicalSize = Size(variant.$1, 720);
-          tester.view.devicePixelRatio = 1;
-          addTearDown(tester.view.resetPhysicalSize);
-          addTearDown(tester.view.resetDevicePixelRatio);
-          var opened = false;
-
-          await tester.pumpWidget(
-            localizedApp(
-              locale: locale,
-              brightness: variant.$2,
-              child: SupportGuestGate(
-                starting: false,
-                onStart: () async {
-                  opened = true;
-                },
-              ),
-            ),
-          );
-          await tester.pumpAndSettle();
-
-          expect(find.byKey(const ValueKey('support-guest-gate')), findsOne);
-          expect(find.text(guestActions[locale.languageCode]!), findsOneWidget);
-          await tester.tap(
-            find.byKey(const ValueKey('support-start-guest-button')),
-          );
-          await tester.pump();
-          expect(opened, isTrue);
-          expect(tester.takeException(), isNull);
-        },
-      );
-    }
-  }
-
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final brightness in Brightness.values) {
       testWidgets(

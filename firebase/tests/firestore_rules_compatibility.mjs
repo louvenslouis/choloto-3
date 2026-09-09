@@ -144,6 +144,23 @@ async function supportConversationsQuery({token, userUid} = {}) {
   return {status: response.status, body: await response.text()};
 }
 
+async function supportMessagesQuery(conversationId, {token} = {}) {
+  const response = await fetch(
+    `${documentsUrl}/support_conversations/${conversationId}:runQuery`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...(token ? {authorization: `Bearer ${token}`} : {}),
+      },
+      body: JSON.stringify({
+        structuredQuery: {from: [{collectionId: 'messages'}]},
+      }),
+    },
+  );
+  return {status: response.status, body: await response.text()};
+}
+
 function expectStatus(result, expected, label) {
   assert.equal(
     result.status,
@@ -1487,6 +1504,127 @@ expectStatus(
   await firestoreRequest(guestConversationPath, {token: other.token}),
   403,
   'other member cannot read anonymous guest support conversation',
+);
+
+// New clients do not authenticate visitors. A random UUID stored on the
+// device is the private capability for one guest conversation. It remains in
+// the existing support collection so the administrator receives it normally.
+const unauthenticatedGuestId = '123e4567-e89b-42d3-a456-426614174000';
+const unauthenticatedGuestConversationPath =
+  `support_conversations/${unauthenticatedGuestId}`;
+const unauthenticatedGuestMessageId = 'message-no-auth-first';
+const unauthenticatedGuestMessagePath =
+  `${unauthenticatedGuestConversationPath}/messages/${unauthenticatedGuestMessageId}`;
+const unauthenticatedGuestConversationName =
+  `projects/${projectId}/databases/(default)/documents/${unauthenticatedGuestConversationPath}`;
+const unauthenticatedGuestMessageName =
+  `projects/${projectId}/databases/(default)/documents/${unauthenticatedGuestMessagePath}`;
+const unauthenticatedGuestText =
+  'Telefòn (opsyonèl): +50939000000\n\nMwen vle abòne.';
+const unauthenticatedGuestCommit = [
+  {
+    update: {
+      name: unauthenticatedGuestConversationName,
+      fields: {
+        user_uid: stringValue(unauthenticatedGuestId),
+        guest_access: boolValue(true),
+        topic: stringValue('subscription'),
+        status: stringValue('open'),
+        last_message: stringValue(unauthenticatedGuestText),
+        last_message_id: stringValue(unauthenticatedGuestMessageId),
+        last_sender_role: stringValue('user'),
+      },
+    },
+    updateTransforms: [
+      {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
+      {fieldPath: 'updated_at', setToServerValue: 'REQUEST_TIME'},
+    ],
+  },
+  {
+    update: {
+      name: unauthenticatedGuestMessageName,
+      fields: {
+        sender_uid: stringValue(unauthenticatedGuestId),
+        sender_role: stringValue('user'),
+        text: stringValue(unauthenticatedGuestText),
+      },
+    },
+    updateTransforms: [
+      {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
+    ],
+  },
+];
+expectStatus(
+  await firestoreRequest(unauthenticatedGuestConversationPath),
+  404,
+  'visitor reads missing private conversation without authentication',
+);
+expectStatus(
+  await supportMessagesQuery(unauthenticatedGuestId),
+  200,
+  'visitor watches empty private chat before sending the first message',
+);
+expectStatus(
+  await firestoreCommit(unauthenticatedGuestCommit),
+  200,
+  'visitor starts support chat without authentication or profile',
+);
+expectStatus(
+  await firestoreRequest(unauthenticatedGuestConversationPath),
+  200,
+  'visitor reads private conversation without authentication',
+);
+expectStatus(
+  await firestoreRequest(unauthenticatedGuestMessagePath),
+  200,
+  'visitor reads private message without authentication',
+);
+expectStatus(
+  await supportMessagesQuery(unauthenticatedGuestId),
+  200,
+  'visitor watches private chat messages without authentication',
+);
+expectStatus(
+  await firestoreRequest(unauthenticatedGuestConversationPath, {
+    token: other.token,
+  }),
+  403,
+  'signed-in foreign member cannot read visitor conversation',
+);
+expectStatus(
+  await firestoreRequest('support_conversations/not-a-private-id'),
+  403,
+  'visitor cannot use a predictable conversation id',
+);
+expectStatus(
+  await supportConversationsQuery(),
+  403,
+  'visitor cannot list support conversations',
+);
+expectStatus(
+  await supportConversationsQuery({token: admin.token}),
+  200,
+  'admin receives authenticated and unauthenticated conversations together',
+);
+const unauthenticatedGuestAdminReplyId = 'message-no-auth-admin-reply';
+expectStatus(
+  await supportReplyCommit({
+    actor: admin,
+    messageId: unauthenticatedGuestAdminReplyId,
+    role: 'admin',
+    text: 'Nou resevwa mesaj ou a.',
+    conversationPath: unauthenticatedGuestConversationPath,
+    conversationName: unauthenticatedGuestConversationName,
+  }),
+  200,
+  'admin replies to visitor without changing the guest contract',
+);
+expectStatus(
+  await firestoreRequest(
+    `${unauthenticatedGuestConversationPath}/messages/${unauthenticatedGuestAdminReplyId}`,
+  ),
+  200,
+  'visitor reads admin reply without authentication',
 );
 expectStatus(
   await supportReplyCommit({

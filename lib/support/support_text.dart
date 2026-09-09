@@ -73,18 +73,6 @@ const _supportLabels = <String, List<String>>{
     'Sign in to chat with customer support in the app.',
     'Konekte pou pale ak sèvis kliyan nan aplikasyon an.'
   ],
-  'guestStartTitle': [
-    'Discutez sans créer de compte',
-    'Chat without creating an account',
-    'Pale san ou pa kreye kont'
-  ],
-  'guestStartBody': [
-    'Une session privée sera créée uniquement pour conserver vos messages et les réponses de l’équipe CHOLOTO.',
-    'A private session will be created only to keep your messages and replies from the CHOLOTO team.',
-    'N ap kreye yon sesyon prive sèlman pou konsève mesaj ou ak repons ekip CHOLOTO a.'
-  ],
-  'guestStartAction': ['Commencer le chat', 'Start chat', 'Kòmanse chat la'],
-  'guestStarting': ['Ouverture…', 'Opening…', 'N ap ouvri…'],
   'phoneOptionalLabel': [
     'Téléphone (facultatif)',
     'Phone (optional)',
