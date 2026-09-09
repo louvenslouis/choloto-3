@@ -140,8 +140,7 @@ class _PaymentSubmissionFormState extends State<PaymentSubmissionForm> {
       _message = null;
     });
     try {
-      final bytes =
-          await pickPreparedPrivateImage(pickImage: widget.pickImage);
+      final bytes = await pickPreparedPrivateImage(pickImage: widget.pickImage);
       if (bytes == null) return;
       if (mounted) setState(() => _image = bytes);
     } catch (_) {

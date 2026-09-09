@@ -57,22 +57,14 @@ const _supportLabels = <String, List<String>>{
   'sending': ['Envoi…', 'Sending…', 'N ap voye…'],
   'attachImage': ['Ajouter une image', 'Attach an image', 'Ajoute yon imaj'],
   'removeImage': ['Retirer l’image', 'Remove image', 'Retire imaj la'],
-  'selectedImage': [
-    'Image sélectionnée',
-    'Selected image',
-    'Imaj ki chwazi a'
-  ],
+  'selectedImage': ['Image sélectionnée', 'Selected image', 'Imaj ki chwazi a'],
   'imageMessage': ['Photo', 'Photo', 'Foto'],
   'messageImage': [
     'Image jointe au message',
     'Image attached to the message',
     'Imaj ki tache ak mesaj la'
   ],
-  'openImage': [
-    'Ouvrir l’image',
-    'Open image',
-    'Ouvri imaj la'
-  ],
+  'openImage': ['Ouvrir l’image', 'Open image', 'Ouvri imaj la'],
   'close': ['Fermer', 'Close', 'Fèmen'],
   'imageError': [
     'Cette image ne peut pas être ajoutée. Choisissez un fichier JPEG ou PNG valide.',

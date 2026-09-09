@@ -223,15 +223,14 @@ void main() {
 
     expect(find.byKey(const ValueKey('support-attach-image-button')),
         findsOneWidget);
-    await tester.tap(
-        find.byKey(const ValueKey('support-attach-image-button')));
+    await tester.tap(find.byKey(const ValueKey('support-attach-image-button')));
     await tester.runAsync(() async {
       await Future<void>.delayed(const Duration(milliseconds: 300));
     });
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('support-selected-image')),
-        findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('support-selected-image')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('support-send-button')));
     await tester.pumpAndSettle();
 
@@ -243,8 +242,8 @@ void main() {
 
   testWidgets('chat renders an attached image from the private loader',
       (tester) async {
-    final encoded = Uint8List.fromList(
-        img.encodeJpg(img.Image(width: 32, height: 24)));
+    final encoded =
+        Uint8List.fromList(img.encodeJpg(img.Image(width: 32, height: 24)));
     await tester.pumpWidget(localizedApp(
       locale: const Locale('en'),
       brightness: Brightness.light,
@@ -267,8 +266,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('support-image-image-1')),
-        findsOneWidget);
+    expect(find.byKey(const ValueKey('support-image-image-1')), findsOneWidget);
     expect(find.text('Photo'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

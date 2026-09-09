@@ -115,8 +115,7 @@ class _SupportChatViewState extends State<SupportChatView> {
       _error = null;
     });
     try {
-      final image =
-          await pickPreparedPrivateImage(pickImage: widget.pickImage);
+      final image = await pickPreparedPrivateImage(pickImage: widget.pickImage);
       if (mounted && image != null) setState(() => _image = image);
     } catch (_) {
       if (mounted) setState(() => _error = supportText(context, 'imageError'));
@@ -306,9 +305,8 @@ class _SupportChatViewState extends State<SupportChatView> {
                   if (_image != null) ...[
                     _SelectedImagePreview(
                       bytes: _image!,
-                      onRemove: _sending
-                          ? null
-                          : () => setState(() => _image = null),
+                      onRemove:
+                          _sending ? null : () => setState(() => _image = null),
                     ),
                     SizedBox(height: tokens.spacing.sm),
                   ],
@@ -567,7 +565,8 @@ class _SupportMessageImage extends StatefulWidget {
 class _SupportMessageImageState extends State<_SupportMessageImage> {
   late Future<Uint8List> _image = _load();
 
-  Future<Uint8List> _load() => widget.loadImage?.call(widget.messageId) ??
+  Future<Uint8List> _load() =>
+      widget.loadImage?.call(widget.messageId) ??
       Future<Uint8List>.error(const FormatException('image-unavailable'));
 
   @override
@@ -590,8 +589,7 @@ class _SupportMessageImageState extends State<_SupportMessageImage> {
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.broken_image_outlined,
-                  size: 20, color: theme.error),
+              Icon(Icons.broken_image_outlined, size: 20, color: theme.error),
               SizedBox(width: tokens.spacing.xs),
               Flexible(
                 child: Text(supportText(context, 'imageLoadError'),
