@@ -1287,6 +1287,8 @@ function supportReplyCommit({
   imageMimeType = 'image/jpeg',
   imageByteLength = 4,
   includeImageDocument = true,
+  audioData,
+  includeAudioDocument = true,
 }) {
   const messagePath = `${conversationPath}/messages/${messageId}`;
   const writes = [
@@ -1323,6 +1325,7 @@ function supportReplyCommit({
             ...(imageBase64 === undefined
               ? {}
               : {attachment_type: stringValue('image')}),
+            ...(audioData ? {attachment_type: stringValue('audio')} : {}),
           },
         },
         updateTransforms: [
@@ -1342,6 +1345,12 @@ function supportReplyCommit({
         },
       },
     });
+  }
+  if (audioData && includeAudioDocument) {
+    writes.push({update: {
+      name: `projects/${projectId}/databases/(default)/documents/${messagePath}/attachments/audio`,
+      fields: audioData,
+    }});
   }
   return firestoreCommit(writes, {token: actor.token});
 }
@@ -1794,3 +1803,66 @@ console.log('Firestore compatibility rules: all checks passed.');
 
 const {testPaymentRequests} = await import('./payment_requests_rules.mjs');
 await testPaymentRequests({admin});
+
+// Complete voice-note read-before-write sequence, including absent documents.
+const audioFields = {
+  base64: stringValue(Buffer.alloc(16044).toString('base64')),
+  mime_type: stringValue('audio/wav'),
+  byte_length: integerValue(16044),
+  duration_ms: integerValue(1000),
+};
+for (const guest of [false, true]) {
+  const actor = guest ? {uid: '00b18a16-4935-4de7-9bc5-dfa33bc8a644'} : await createTestUser('voice-first');
+  const path = `support_conversations/${actor.uid}`;
+  const messagePath = `${path}/messages/voice-first`;
+  const attachmentPath = `${messagePath}/attachments/audio`;
+  const name = `projects/${projectId}/databases/(default)/documents/${path}`;
+  if (!guest) {
+    expectStatus(await firestoreRequest(`user/${actor.uid}`, {token: actor.token}), 404, 'voice first login reads absent profile');
+    expectStatus(await firestoreRequest(`user/${actor.uid}`, {method: 'PATCH', token: actor.token, fields: {email: stringValue(actor.email)}}), 200, 'voice legacy profile without uid/phone');
+  }
+  expectStatus(await supportMessagesQuery(actor.uid, {token: actor.token}), 200, 'voice watches empty conversation');
+  for (const read of [path, messagePath, attachmentPath]) {
+    expectStatus(await firestoreRequest(read, {token: actor.token}), 404, `voice pre-read ${read}`);
+  }
+  if (!guest) expectStatus(await firestoreRequest(`user/${actor.uid}`, {token: actor.token}), 200, 'voice transaction reads historical profile');
+  const writes = [
+    {update: {name, fields: {
+      user_uid: stringValue(actor.uid), ...(guest ? {guest_access: boolValue(true)} : {}),
+      topic: stringValue('subscription'), status: stringValue('open'),
+      last_message: stringValue('Note vocale'), last_message_id: stringValue('voice-first'), last_sender_role: stringValue('user'),
+    }}, updateTransforms: [{fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'}, {fieldPath: 'updated_at', setToServerValue: 'REQUEST_TIME'}]},
+    {update: {name: `${name}/messages/voice-first`, fields: {
+      sender_uid: stringValue(actor.uid), sender_role: stringValue('user'), text: stringValue('Note vocale'), attachment_type: stringValue('audio'),
+    }}, updateTransforms: [{fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'}]},
+    {update: {name: `${name}/messages/voice-first/attachments/audio`, fields: audioFields}},
+  ];
+  expectStatus(await firestoreCommit(writes, {token: actor.token}), 200, 'first voice atomically creates conversation, message and attachment');
+  for (const read of [path, messagePath, attachmentPath]) {
+    expectStatus(await firestoreRequest(read, {token: actor.token}), 200, 'voice retry reads committed document');
+  }
+  expectStatus(await firestoreRequest(attachmentPath, {token: admin.token}), 200, 'admin reads voice note');
+  expectStatus(await firestoreRequest(attachmentPath, {token: other.token}), 403, 'foreign member cannot read voice note');
+  if (!guest) expectStatus(await firestoreRequest(attachmentPath), 403, 'signed-out visitor cannot read member voice note');
+  expectStatus(await firestoreRequest(attachmentPath, {method: 'PATCH', token: actor.token, fields: audioFields}), 403, 'voice attachment is immutable');
+  expectStatus(await firestoreRequest(attachmentPath, {method: 'DELETE', token: actor.token}), 403, 'voice attachment cannot be deleted');
+  expectStatus(await supportReplyCommit({actor: admin, conversationPath: path, conversationName: name, messageId: 'admin-voice', role: 'admin', text: 'Note vocale', audioData: audioFields}), 200, 'admin voice works in member and guest conversations');
+}
+for (const [label, changes] of [
+  ['wrong MIME', {mime_type: stringValue('text/html')}],
+  ['oversize', {byte_length: integerValue(480046)}],
+  ['duration zero', {duration_ms: integerValue(0)}],
+  ['duration too long', {duration_ms: integerValue(30001)}],
+  ['duration inconsistent', {duration_ms: integerValue(999)}],
+  ['invalid base64', {base64: stringValue('!invalid')}],
+  ['extra field', {public: boolValue(true)}],
+]) {
+  expectStatus(await supportReplyCommit({actor: owner, messageId: `invalid-audio-${label.replaceAll(' ', '-')}`, role: 'user', text: 'Note vocale', audioData: {...audioFields, ...changes}}), 403, `voice rejects ${label}`);
+}
+expectStatus(await supportReplyCommit({actor: owner, messageId: 'audio-missing-document', role: 'user', text: 'Note vocale', audioData: audioFields, includeAudioDocument: false}), 403, 'audio marker requires attachment in same commit');
+for (const actor of [other, {uid: owner.uid}]) {
+  expectStatus(await supportReplyCommit({actor, messageId: 'foreign-audio', role: 'user', text: 'Note vocale', audioData: audioFields}), 403, 'foreign or unauthenticated audio write refused');
+}
+expectStatus(await supportReplyCommit({actor: owner, messageId: 'spoofed-admin-audio', role: 'admin', text: 'Note vocale', audioData: audioFields}), 403, 'voice cannot spoof admin role');
+expectStatus(await firestoreRequest(`${firstSupportMessagePath}/attachments/audio`, {method: 'PATCH', token: owner.token, fields: audioFields}), 403, 'audio cannot be injected into historical text message');
+console.log('Voice-note compatibility checks passed.');

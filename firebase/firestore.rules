@@ -266,7 +266,7 @@ service cloud.firestore {
           data.text is string && data.text.size() > 0 &&
           data.text.size() <= 1000 &&
           (!data.keys().hasAny(['attachment_type']) ||
-            data.attachment_type == 'image') &&
+            data.attachment_type in ['image', 'audio']) &&
           data.created_at is timestamp;
     }
 
@@ -285,11 +285,32 @@ service cloud.firestore {
           data.byte_length <= 600000;
     }
 
+    function validSupportAudioAttachment(data) {
+      return data.keys().hasOnly(['base64', 'mime_type', 'byte_length', 'duration_ms']) &&
+          data.keys().hasAll(['base64', 'mime_type', 'byte_length', 'duration_ms']) &&
+          data.base64 is string && data.base64.size() > 0 &&
+          data.base64.size() <= 640060 &&
+          data.base64.matches('^[A-Za-z0-9+/]+={0,2}$') &&
+          data.mime_type == 'audio/wav' &&
+          data.byte_length is int && data.byte_length > 44 &&
+          data.byte_length <= 480044 && data.byte_length % 2 == 0 &&
+          data.base64.size() >= data.byte_length * 4 / 3 &&
+          data.base64.size() < data.byte_length * 4 / 3 + 4 &&
+          data.duration_ms is int && data.duration_ms > 0 &&
+          data.duration_ms <= 30000 &&
+          data.duration_ms <= (data.byte_length - 44) / 16 &&
+          data.duration_ms > (data.byte_length - 44) / 16 - 1;
+    }
+
     function supportImageMatchesMessage(userId, messageId, data) {
       return !data.keys().hasAny(['attachment_type']) ||
           (data.attachment_type == 'image' &&
             validSupportImageAttachment(getAfter(
               /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)/attachments/image
+            ).data)) ||
+          (data.attachment_type == 'audio' &&
+            validSupportAudioAttachment(getAfter(
+              /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)/attachments/audio
             ).data));
     }
 
@@ -819,11 +840,19 @@ service cloud.firestore {
                 get(
                   /databases/$(database)/documents/support_conversations/$(userId)
                 ).data.guest_access == true);
-          allow create: if attachmentId == 'image' &&
-              validSupportImageAttachment(request.resource.data) &&
+          // The guest transaction reads the absent audio before its first write.
+          allow get: if attachmentId == 'audio' && request.auth == null &&
+              validGuestSupportId(userId) && !exists(
+                /databases/$(database)/documents/support_conversations/$(userId)
+              );
+          allow create: if (
+                (attachmentId == 'image' && validSupportImageAttachment(request.resource.data)) ||
+                (attachmentId == 'audio' && validSupportAudioAttachment(request.resource.data) &&
+                  !exists(/databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)))
+              ) &&
               getAfter(
                 /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)
-              ).data.attachment_type == 'image' &&
+              ).data.attachment_type == attachmentId &&
               (
                 (signedIn() &&
                   getAfter(

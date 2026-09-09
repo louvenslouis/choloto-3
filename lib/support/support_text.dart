@@ -53,6 +53,44 @@ const _supportLabels = <String, List<String>>{
     'Your subscription question…',
     'Kesyon ou sou abònman an…'
   ],
+  'audioMessage': ['Note vocale', 'Voice message', 'Nòt vokal'],
+  'recordAudio': [
+    'Enregistrer une note vocale (30 s max.)',
+    'Record a voice message (max. 30 s)',
+    'Anrejistre yon nòt vokal (30 s maksimòm)'
+  ],
+  'recording': ['Enregistrement…', 'Recording…', 'N ap anrejistre…'],
+  'stopAudio': [
+    'Arrêter l’enregistrement',
+    'Stop recording',
+    'Sispann anrejistreman an'
+  ],
+  'removeAudio': [
+    'Supprimer la note vocale',
+    'Delete voice message',
+    'Efase nòt vokal la'
+  ],
+  'playAudio': [
+    'Écouter la note vocale',
+    'Play voice message',
+    'Koute nòt vokal la'
+  ],
+  'pauseAudio': ['Mettre en pause', 'Pause', 'Mete sou poz'],
+  'audioPermission': [
+    'Autorisez le microphone dans les réglages de l’application ou du navigateur.',
+    'Allow microphone access in your app or browser settings.',
+    'Bay mikwofòn nan pèmisyon nan paramèt aplikasyon an oswa navigatè a.'
+  ],
+  'audioError': [
+    'Enregistrement impossible. Vérifiez le microphone puis réessayez.',
+    'Unable to record. Check your microphone and try again.',
+    'Nou pa ka anrejistre. Verifye mikwofòn nan epi eseye ankò.'
+  ],
+  'audioLoadError': [
+    'Lecture impossible. Vérifiez votre connexion puis réessayez.',
+    'Unable to play. Check your connection and try again.',
+    'Nou pa ka jwe nòt la. Verifye koneksyon ou epi eseye ankò.'
+  ],
   'send': ['Envoyer', 'Send', 'Voye'],
   'sending': ['Envoi…', 'Sending…', 'N ap voye…'],
   'attachImage': ['Ajouter une image', 'Attach an image', 'Ajoute yon imaj'],

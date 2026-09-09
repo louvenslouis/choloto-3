@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,10 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/payments/proof_image.dart';
 import 'support_conversation.dart';
 import 'support_text.dart';
+import 'support_audio.dart';
+import 'support_audio_player.dart';
+import 'support_voice_recorder.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 
 typedef SendSupportMessage = Future<void> Function(
     String text, Uint8List? image);
@@ -18,6 +23,9 @@ class SupportChatView extends StatefulWidget {
     required this.messages,
     required this.onSend,
     this.loadImage,
+    this.loadAudio,
+    this.onSendAudio,
+    this.recorderFactory,
     this.pickImage,
     this.showOptionalPhoneOnFirstMessage = false,
   });
@@ -25,6 +33,9 @@ class SupportChatView extends StatefulWidget {
   final Stream<List<SupportMessage>> messages;
   final SendSupportMessage onSend;
   final LoadSupportImage? loadImage;
+  final Future<SupportAudio> Function(String messageId)? loadAudio;
+  final Future<void> Function(String text, SupportAudio audio)? onSendAudio;
+  final SupportVoiceRecorder Function()? recorderFactory;
   final Future<Uint8List?> Function()? pickImage;
   final bool showOptionalPhoneOnFirstMessage;
 
@@ -32,7 +43,108 @@ class SupportChatView extends StatefulWidget {
   State<SupportChatView> createState() => _SupportChatViewState();
 }
 
-class _SupportChatViewState extends State<SupportChatView> {
+class _SupportChatViewState extends State<SupportChatView>
+    with WidgetsBindingObserver {
+  SupportVoiceRecorder? _recorder;
+  SupportAudio? _audio;
+  bool _recording = false;
+  bool _voiceBusy = false;
+  Timer? _recordingTimer;
+  final _recordingWatch = Stopwatch();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if ((state == AppLifecycleState.paused ||
+            state == AppLifecycleState.hidden) &&
+        _recording) {
+      unawaited(_finishVoice());
+    }
+  }
+
+  Future<void> _startVoice() async {
+    if (_voiceBusy ||
+        _recording ||
+        _sending ||
+        _preparingImage ||
+        _image != null ||
+        _audio != null) {
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    SupportAudioPlayer.active.value = null;
+    setState(() {
+      _voiceBusy = true;
+      _error = null;
+    });
+    try {
+      _recorder ??=
+          widget.recorderFactory?.call() ?? DeviceSupportVoiceRecorder();
+      await _recorder!.start(() => unawaited(_finishVoice()));
+      if (!mounted) return;
+      final lifecycle = WidgetsBinding.instance.lifecycleState;
+      if (lifecycle == AppLifecycleState.hidden || lifecycle == AppLifecycleState.paused || lifecycle == AppLifecycleState.detached) {
+        await _recorder!.cancel();
+        return;
+      }
+      _recordingWatch.reset();
+      _recordingWatch.start();
+      setState(() => _recording = true);
+      _recordingTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+        if (_recordingWatch.elapsed.inSeconds >= maxSupportAudioSeconds) {
+          unawaited(_finishVoice());
+        } else if (mounted) {
+          setState(() {});
+        }
+      });
+    } catch (error) {
+      try {
+        await _recorder?.cancel();
+      } catch (_) {}
+      if (mounted) {
+        setState(() => _error = supportText(
+            context,
+            error is MicrophonePermissionDenied
+                ? 'audioPermission'
+                : 'audioError'));
+      }
+    } finally {
+      if (mounted) setState(() => _voiceBusy = false);
+    }
+  }
+
+  Future<void> _finishVoice({bool discard = false}) async {
+    if (!_recording || _voiceBusy) return;
+    _recordingTimer?.cancel();
+    _recordingWatch.stop();
+    setState(() => _voiceBusy = true);
+    try {
+      if (discard) {
+        await _recorder!.cancel();
+      } else {
+        final audio = await _recorder!.stop();
+        if (mounted) setState(() => _audio = audio);
+      }
+    } catch (_) {
+      try {
+        await _recorder?.cancel();
+      } catch (_) {}
+      if (mounted) setState(() => _error = supportText(context, 'audioError'));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _recording = false;
+          _voiceBusy = false;
+        });
+      }
+    }
+  }
+
   final _controller = TextEditingController();
   final _phoneController = TextEditingController();
   final _scrollController = ScrollController();
@@ -51,6 +163,9 @@ class _SupportChatViewState extends State<SupportChatView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _recordingTimer?.cancel();
+    unawaited(_recorder?.dispose().catchError((Object _) {}));
     _controller.dispose();
     _phoneController.dispose();
     _scrollController.dispose();
@@ -75,15 +190,19 @@ class _SupportChatViewState extends State<SupportChatView> {
     final phone = _phoneController.text.trim();
     final messageText = text.isNotEmpty
         ? text
-        : _image != null
-            ? supportText(context, 'imageMessage')
-            : '';
+        : _audio != null
+            ? supportText(context, 'audioMessage')
+            : _image != null
+                ? supportText(context, 'imageMessage')
+                : '';
     final outgoingText = _showOptionalPhone && phone.isNotEmpty
         ? '${supportText(context, 'phoneMessageLabel')}: $phone\n\n$messageText'
         : messageText;
     if (_sending ||
         _preparingImage ||
-        (text.isEmpty && _image == null) ||
+        _recording ||
+        _voiceBusy ||
+        (text.isEmpty && _image == null && _audio == null) ||
         outgoingText.isEmpty ||
         outgoingText.length > 1000) {
       return;
@@ -93,12 +212,18 @@ class _SupportChatViewState extends State<SupportChatView> {
       _error = null;
     });
     try {
-      await widget.onSend(outgoingText, _image);
+      SupportAudioPlayer.active.value = null;
+      if (_audio != null) {
+        await widget.onSendAudio!(outgoingText, _audio!);
+      } else {
+        await widget.onSend(outgoingText, _image);
+      }
       if (mounted) {
         _controller.clear();
         _phoneController.clear();
         setState(() {
           _image = null;
+          _audio = null;
           _firstMessageSent = true;
         });
       }
@@ -110,7 +235,13 @@ class _SupportChatViewState extends State<SupportChatView> {
   }
 
   Future<void> _pickImage() async {
-    if (_sending || _preparingImage) return;
+    if (_sending ||
+        _preparingImage ||
+        _recording ||
+        _voiceBusy ||
+        _audio != null) {
+      return;
+    }
     setState(() {
       _preparingImage = true;
       _error = null;
@@ -131,70 +262,73 @@ class _SupportChatViewState extends State<SupportChatView> {
     final tokens = theme.designToken;
     return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-            tokens.spacing.md,
-            tokens.spacing.sm,
-            tokens.spacing.md,
-            tokens.spacing.sm,
-          ),
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(tokens.spacing.md),
-            decoration: BoxDecoration(
-              color: theme.secondaryBackground,
-              borderRadius: BorderRadius.circular(tokens.radius.md),
-              border: Border.all(color: theme.alternate.withValues(alpha: .35)),
+        if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
+            MediaQuery.sizeOf(context).height >= 500)
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              tokens.spacing.md,
+              tokens.spacing.sm,
+              tokens.spacing.md,
+              tokens.spacing.sm,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: theme.primary,
-                    borderRadius: BorderRadius.circular(tokens.radius.full),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(tokens.spacing.md),
+              decoration: BoxDecoration(
+                color: theme.secondaryBackground,
+                borderRadius: BorderRadius.circular(tokens.radius.md),
+                border:
+                    Border.all(color: theme.alternate.withValues(alpha: .35)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: theme.primary,
+                      borderRadius: BorderRadius.circular(tokens.radius.full),
+                    ),
+                    child: Icon(
+                      Icons.support_agent_rounded,
+                      color: theme.onPrimary,
+                      size: 24,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.support_agent_rounded,
-                    color: theme.onPrimary,
-                    size: 24,
-                  ),
-                ),
-                SizedBox(width: tokens.spacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(supportText(context, 'admin'),
-                          style: theme.titleMedium),
-                      SizedBox(height: tokens.spacing.xs),
-                      Text(supportText(context, 'intro'),
-                          style: theme.bodyMedium
-                              .override(color: theme.secondaryText)),
-                      SizedBox(height: tokens.spacing.sm),
-                      Row(
-                        children: [
-                          Icon(Icons.schedule_rounded,
-                              size: 16, color: theme.primary),
-                          SizedBox(width: tokens.spacing.xs),
-                          Expanded(
-                            child: Text(
-                              supportText(context, 'responseTime'),
-                              style: theme.labelMedium
-                                  .override(color: theme.secondaryText),
+                  SizedBox(width: tokens.spacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(supportText(context, 'admin'),
+                            style: theme.titleMedium),
+                        SizedBox(height: tokens.spacing.xs),
+                        Text(supportText(context, 'intro'),
+                            style: theme.bodyMedium
+                                .override(color: theme.secondaryText)),
+                        SizedBox(height: tokens.spacing.sm),
+                        Row(
+                          children: [
+                            Icon(Icons.schedule_rounded,
+                                size: 16, color: theme.primary),
+                            SizedBox(width: tokens.spacing.xs),
+                            Expanded(
+                              child: Text(
+                                supportText(context, 'responseTime'),
+                                style: theme.labelMedium
+                                    .override(color: theme.secondaryText),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
         Expanded(
           child: StreamBuilder<List<SupportMessage>>(
             stream: widget.messages,
@@ -236,10 +370,13 @@ class _SupportChatViewState extends State<SupportChatView> {
                   tokens.spacing.md,
                 ),
                 itemCount: messages.length,
-                itemBuilder: (context, index) => _MessageBubble(
+                itemBuilder: (context, index) => IgnorePointer(
+                  ignoring: _recording || _voiceBusy,
+                  child: _MessageBubble(
                   message: messages[index],
                   loadImage: widget.loadImage,
-                ),
+                  loadAudio: widget.loadAudio,
+                )),
               );
             },
           ),
@@ -272,7 +409,7 @@ class _SupportChatViewState extends State<SupportChatView> {
                     TextField(
                       key: const ValueKey('support-optional-phone-field'),
                       controller: _phoneController,
-                      enabled: !_sending,
+                      enabled: !_sending && !_recording && !_voiceBusy,
                       keyboardType: TextInputType.phone,
                       maxLength: 32,
                       style: theme.bodyLarge,
@@ -303,6 +440,50 @@ class _SupportChatViewState extends State<SupportChatView> {
                     ),
                     SizedBox(height: tokens.spacing.sm),
                   ],
+                  if (_recording) ...[
+                    Row(children: [
+                      Icon(Icons.mic_rounded, color: theme.error),
+                      SizedBox(width: tokens.spacing.sm),
+                      Expanded(
+                          child: Text(
+                              '${supportText(context, 'recording')} ${supportAudioTime(_recordingWatch.elapsed)} / 0:30',
+                              style: theme.bodyMedium)),
+                      IconButton(
+                          key: const ValueKey('support-cancel-recording'),
+                          tooltip: supportText(context, 'removeAudio'),
+                          onPressed: _voiceBusy
+                              ? null
+                              : () => _finishVoice(discard: true),
+                          icon: Icon(Icons.delete_outline_rounded,
+                              color: theme.secondaryText)),
+                      IconButton(
+                          key: const ValueKey('support-stop-recording'),
+                          tooltip: supportText(context, 'stopAudio'),
+                          onPressed: _voiceBusy ? null : _finishVoice,
+                          icon: Icon(Icons.stop_circle_outlined,
+                              color: theme.primary)),
+                    ]),
+                    SizedBox(height: tokens.spacing.sm),
+                  ],
+                  if (_audio != null) ...[
+                    Row(children: [
+                      Expanded(
+                          child: IgnorePointer(
+                              ignoring: _sending,
+                              child: SupportAudioPlayer(
+                                  key: ObjectKey(_audio),
+                                  load: () async => _audio!))),
+                      IconButton(
+                          key: const ValueKey('support-remove-audio'),
+                          tooltip: supportText(context, 'removeAudio'),
+                          onPressed: _sending
+                              ? null
+                              : () => setState(() => _audio = null),
+                          icon: Icon(Icons.delete_outline_rounded,
+                              color: theme.secondaryText)),
+                    ]),
+                    SizedBox(height: tokens.spacing.sm),
+                  ],
                   if (_image != null) ...[
                     _SelectedImagePreview(
                       bytes: _image!,
@@ -319,8 +500,13 @@ class _SupportChatViewState extends State<SupportChatView> {
                         label: supportText(context, 'attachImage'),
                         child: IconButton(
                           key: const ValueKey('support-attach-image-button'),
-                          onPressed:
-                              _sending || _preparingImage ? null : _pickImage,
+                          onPressed: _sending ||
+                                  _preparingImage ||
+                                  _recording ||
+                                  _voiceBusy ||
+                                  _audio != null
+                              ? null
+                              : _pickImage,
                           tooltip: supportText(context, 'attachImage'),
                           style: IconButton.styleFrom(
                             foregroundColor: theme.primary,
@@ -345,7 +531,7 @@ class _SupportChatViewState extends State<SupportChatView> {
                         child: TextField(
                           key: const ValueKey('support-message-field'),
                           controller: _controller,
-                          enabled: !_sending,
+                          enabled: !_sending && !_recording && !_voiceBusy,
                           minLines: 1,
                           maxLines: 4,
                           maxLength: 1000,
@@ -386,13 +572,41 @@ class _SupportChatViewState extends State<SupportChatView> {
                         ),
                       ),
                       SizedBox(width: tokens.spacing.sm),
+                      if (widget.onSendAudio != null)
+                        Tooltip(
+                            message: supportText(context, 'recordAudio'),
+                            child: Semantics(
+                                button: true,
+                                label: supportText(context, 'recordAudio'),
+                                child: FlutterFlowIconButton(
+                                  key: const ValueKey('support-record-audio'),
+                                  buttonSize: 48,
+                                  borderRadius: tokens.radius.full,
+                                  icon: Icon(Icons.mic_none_rounded,
+                                      color: theme.primary),
+                                  disabledIconColor: theme.secondaryText
+                                      .withValues(alpha: .45),
+                                  onPressed: _sending ||
+                                          _recording ||
+                                          _voiceBusy ||
+                                          _preparingImage ||
+                                          _image != null ||
+                                          _audio != null
+                                      ? null
+                                      : _startVoice,
+                                ))),
                       Semantics(
                         button: true,
                         label:
                             supportText(context, _sending ? 'sending' : 'send'),
                         child: IconButton.filled(
                           key: const ValueKey('support-send-button'),
-                          onPressed: _sending ? null : _send,
+                          onPressed: _sending ||
+                                  _recording ||
+                                  _voiceBusy ||
+                                  _preparingImage
+                              ? null
+                              : _send,
                           style: IconButton.styleFrom(
                             backgroundColor: theme.primary,
                             foregroundColor: theme.onPrimary,
@@ -425,10 +639,12 @@ class _SupportChatViewState extends State<SupportChatView> {
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message, required this.loadImage});
+  const _MessageBubble(
+      {required this.message, required this.loadImage, this.loadAudio});
 
   final SupportMessage message;
   final LoadSupportImage? loadImage;
+  final Future<SupportAudio> Function(String messageId)? loadAudio;
 
   @override
   Widget build(BuildContext context) {
@@ -471,6 +687,16 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
             SizedBox(height: tokens.spacing.xs),
+            if (message.hasAudio) ...[
+              SupportAudioPlayer(
+                key: ValueKey('support-audio-${message.id}'),
+                onPrimary: !fromAdmin,
+                load: () =>
+                    loadAudio?.call(message.id) ??
+                    Future.error(const FormatException('audio-unavailable')),
+              ),
+              SizedBox(height: tokens.spacing.sm),
+            ],
             if (message.hasImage) ...[
               _SupportMessageImage(
                 key: ValueKey('support-image-${message.id}'),
@@ -675,23 +901,26 @@ class _SupportState extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(spacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 44, color: theme.primary),
-            SizedBox(height: spacing.md),
-            Text(title, textAlign: TextAlign.center, style: theme.titleMedium),
-            if (body != null) ...[
-              SizedBox(height: spacing.sm),
-              Text(
-                body!,
-                textAlign: TextAlign.center,
-                style: theme.bodyMedium.override(color: theme.secondaryText),
-              ),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(spacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 44, color: theme.primary),
+              SizedBox(height: spacing.md),
+              Text(title,
+                  textAlign: TextAlign.center, style: theme.titleMedium),
+              if (body != null) ...[
+                SizedBox(height: spacing.sm),
+                Text(
+                  body!,
+                  textAlign: TextAlign.center,
+                  style: theme.bodyMedium.override(color: theme.secondaryText),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

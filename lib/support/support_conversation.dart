@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '/payments/payment_request.dart' show maxProofBytes;
 import 'support_guest_session.dart';
+import 'support_audio.dart';
 
 DateTime? supportDate(Object? value) => value is Timestamp
     ? value.toDate()
@@ -38,6 +39,7 @@ class SupportMessage {
   String get senderRole => data['sender_role'] as String? ?? '';
   String get text => data['text'] as String? ?? '';
   bool get hasImage => data['attachment_type'] == 'image';
+  bool get hasAudio => data['attachment_type'] == 'audio';
   DateTime? get createdAt => supportDate(data['created_at']);
   bool get sentByAdmin => senderRole == 'admin';
 }
@@ -106,10 +108,25 @@ class SupportConversationRepository {
     return bytes;
   }
 
+  Future<SupportAudio> loadMessageAudio({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    final snapshot = await conversations
+        .doc(conversationId)
+        .collection('messages')
+        .doc(messageId)
+        .collection('attachments')
+        .doc('audio')
+        .get();
+    return SupportAudio.fromData(snapshot.data());
+  }
+
   Future<void> sendGuestMessage({
     required String guestId,
     required String text,
     Uint8List? image,
+    SupportAudio? audio,
     String? messageId,
   }) async {
     if (!GuestSupportSession.isValidId(guestId)) {
@@ -118,6 +135,7 @@ class SupportConversationRepository {
     final normalized = text.trim();
     if (normalized.isEmpty ||
         normalized.length > 1000 ||
+        (image != null && audio != null) ||
         (image != null && (image.isEmpty || image.length > maxProofBytes)) ||
         (messageId != null &&
             (messageId.isEmpty ||
@@ -132,22 +150,33 @@ class SupportConversationRepository {
     final messageRef =
         conversationRef.collection('messages').doc(resolvedMessageId);
     final imageRef = messageRef.collection('attachments').doc('image');
+    final audioRef = messageRef.collection('attachments').doc('audio');
 
     await db.runTransaction((transaction) async {
       final conversation = await transaction.get(conversationRef);
       final existingMessage = await transaction.get(messageRef);
       final existingImage =
           image == null ? null : await transaction.get(imageRef);
+      final existingAudio =
+          audio == null ? null : await transaction.get(audioRef);
       if (existingMessage.exists) {
         final data = existingMessage.data();
         if (data?['sender_uid'] == guestId &&
             data?['sender_role'] == 'user' &&
             data?['text'] == normalized &&
-            ((image == null && data?['attachment_type'] == null) ||
+            ((image == null &&
+                    audio == null &&
+                    data?['attachment_type'] == null) ||
+                (audio != null &&
+                    data?['attachment_type'] == 'audio' &&
+                    existingAudio?.data()?['base64'] ==
+                        base64Encode(audio.bytes) &&
+                    existingAudio?.data()?['duration_ms'] ==
+                        audio.durationMs) ||
                 (image != null &&
                     data?['attachment_type'] == 'image' &&
                     existingImage?.data()?['base64'] == base64Encode(image))) &&
-            conversation.data()?['last_message_id'] == resolvedMessageId) {
+            (audio != null || conversation.data()?['last_message_id'] == resolvedMessageId)) {
           return;
         }
         throw StateError('support-message-id');
@@ -182,8 +211,10 @@ class SupportConversationRepository {
         'sender_role': 'user',
         'text': normalized,
         if (image != null) 'attachment_type': 'image',
+        if (audio != null) 'attachment_type': 'audio',
         'created_at': FieldValue.serverTimestamp(),
       });
+      if (audio != null) transaction.set(audioRef, audio.toData());
       if (image != null) {
         transaction.set(imageRef, {
           'base64': base64Encode(image),
@@ -200,6 +231,7 @@ class SupportConversationRepository {
     required String userUid,
     required String text,
     Uint8List? image,
+    SupportAudio? audio,
     String userEmail = '',
     String userDisplayName = '',
     String? messageId,
@@ -208,6 +240,7 @@ class SupportConversationRepository {
     if (userUid.isEmpty ||
         normalized.isEmpty ||
         normalized.length > 1000 ||
+        (image != null && audio != null) ||
         (image != null && (image.isEmpty || image.length > maxProofBytes)) ||
         (messageId != null &&
             (messageId.isEmpty ||
@@ -222,6 +255,7 @@ class SupportConversationRepository {
     final messageRef =
         conversationRef.collection('messages').doc(resolvedMessageId);
     final imageRef = messageRef.collection('attachments').doc('image');
+    final audioRef = messageRef.collection('attachments').doc('audio');
     final normalizedEmail = userEmail.trim();
     final normalizedName = userDisplayName.trim();
 
@@ -230,16 +264,26 @@ class SupportConversationRepository {
       final existingMessage = await transaction.get(messageRef);
       final existingImage =
           image == null ? null : await transaction.get(imageRef);
+      final existingAudio =
+          audio == null ? null : await transaction.get(audioRef);
       if (existingMessage.exists) {
         final data = existingMessage.data();
         if (data?['sender_uid'] == userUid &&
             data?['sender_role'] == 'user' &&
             data?['text'] == normalized &&
-            ((image == null && data?['attachment_type'] == null) ||
+            ((image == null &&
+                    audio == null &&
+                    data?['attachment_type'] == null) ||
+                (audio != null &&
+                    data?['attachment_type'] == 'audio' &&
+                    existingAudio?.data()?['base64'] ==
+                        base64Encode(audio.bytes) &&
+                    existingAudio?.data()?['duration_ms'] ==
+                        audio.durationMs) ||
                 (image != null &&
                     data?['attachment_type'] == 'image' &&
                     existingImage?.data()?['base64'] == base64Encode(image))) &&
-            conversation.data()?['last_message_id'] == resolvedMessageId) {
+            (audio != null || conversation.data()?['last_message_id'] == resolvedMessageId)) {
           return;
         }
         throw StateError('support-message-id');
@@ -281,8 +325,10 @@ class SupportConversationRepository {
         'sender_role': 'user',
         'text': normalized,
         if (image != null) 'attachment_type': 'image',
+        if (audio != null) 'attachment_type': 'audio',
         'created_at': FieldValue.serverTimestamp(),
       });
+      if (audio != null) transaction.set(audioRef, audio.toData());
       if (image != null) {
         transaction.set(imageRef, {
           'base64': base64Encode(image),

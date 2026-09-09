@@ -7,6 +7,8 @@ import '/support/support_chat_view.dart';
 import '/support/support_conversation.dart';
 import '/support/support_guest_session.dart';
 import '/support/support_text.dart';
+import '/support/support_audio.dart';
+import 'package:uuid/uuid.dart';
 
 class CustomerserviceWidget extends StatefulWidget {
   const CustomerserviceWidget({
@@ -31,6 +33,40 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
   late final Future<String> _guestId =
       (widget.guestIdLoader ?? GuestSupportSession.loadOrCreateId)();
 
+  SupportAudio? _pendingAudio;
+  String? _pendingAudioText;
+  String? _pendingAudioConversation;
+  String? _pendingAudioId;
+
+  Future<void> _sendAudio(String conversationId, bool guest, String text,
+      SupportAudio audio) async {
+    if (!identical(_pendingAudio, audio) ||
+        _pendingAudioText != text ||
+        _pendingAudioConversation != conversationId) {
+      _pendingAudio = audio;
+      _pendingAudioText = text;
+      _pendingAudioConversation = conversationId;
+      _pendingAudioId = const Uuid().v4();
+    }
+    if (guest) {
+      await _repository.sendGuestMessage(
+          guestId: conversationId,
+          text: text,
+          audio: audio,
+          messageId: _pendingAudioId);
+    } else {
+      await _repository.sendUserMessage(
+          userUid: conversationId,
+          userEmail: currentUserEmail,
+          userDisplayName: currentUserDisplayName,
+          text: text,
+          audio: audio,
+          messageId: _pendingAudioId);
+    }
+    _pendingAudio = null;
+    _pendingAudioId = null;
+  }
+
   Widget _chat({
     required String conversationId,
     required bool guestWithoutAuth,
@@ -39,6 +75,7 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 760),
         child: SupportChatView(
+          key: ValueKey('$conversationId-$guestWithoutAuth'),
           messages: guestWithoutAuth
               ? _repository.watchGuestMessages(conversationId)
               : _repository.watchMessages(conversationId),
@@ -55,6 +92,10 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
                   text: text,
                   image: image,
                 ),
+          onSendAudio: (text, audio) =>
+              _sendAudio(conversationId, guestWithoutAuth, text, audio),
+          loadAudio: (messageId) => _repository.loadMessageAudio(
+              conversationId: conversationId, messageId: messageId),
           loadImage: (messageId) => _repository.loadMessageImage(
             conversationId: conversationId,
             messageId: messageId,
