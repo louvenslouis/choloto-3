@@ -1209,23 +1209,8 @@ expectStatus(
 );
 expectStatus(
   await firestoreCommit(firstSupportCommit, {token: owner.token}),
-  403,
-  'owner cannot start support conversation without phone',
-);
-expectStatus(
-  await firestoreRequest(`user/${owner.uid}`, {
-    method: 'PATCH',
-    token: owner.token,
-    fields: {phone_number: stringValue('+50937000000')},
-    updateMaskFields: ['phone_number'],
-  }),
   200,
-  'owner adds phone before starting support conversation',
-);
-expectStatus(
-  await firestoreCommit(firstSupportCommit, {token: owner.token}),
-  200,
-  'owner creates support conversation and first message atomically',
+  'owner creates support conversation without phone',
 );
 expectStatus(
   await firestoreRequest(supportConversationPath, {token: owner.token}),
@@ -1387,8 +1372,8 @@ expectStatus(
 );
 
 // A signed-out visitor receives a Firebase anonymous uid behind the scenes.
-// The real flow creates its private profile, requires a phone number, then
-// starts a conversation that remains unreadable to every other member.
+// The real flow creates a private profile, then starts a conversation without
+// requiring a phone number. A phone can be included as ordinary message text.
 const guestProfilePath = `user/${anonymousGuest.uid}`;
 const guestConversationPath =
   `support_conversations/${anonymousGuest.uid}`;
@@ -1403,14 +1388,18 @@ const guestConversationFields = {
   user_uid: stringValue(anonymousGuest.uid),
   topic: stringValue('subscription'),
   status: stringValue('open'),
-  last_message: stringValue('Mwen bezwen èd pou abònman an.'),
+  last_message: stringValue(
+    'Telefòn (opsyonèl): +50938000000\n\nMwen bezwen èd pou abònman an.',
+  ),
   last_message_id: stringValue(guestMessageId),
   last_sender_role: stringValue('user'),
 };
 const guestMessageFields = {
   sender_uid: stringValue(anonymousGuest.uid),
   sender_role: stringValue('user'),
-  text: stringValue('Mwen bezwen èd pou abònman an.'),
+  text: stringValue(
+    'Telefòn (opsyonèl): +50938000000\n\nMwen bezwen èd pou abònman an.',
+  ),
 };
 const guestFirstCommit = [
   {
@@ -1460,23 +1449,8 @@ expectStatus(
 );
 expectStatus(
   await firestoreCommit(guestFirstCommit, {token: anonymousGuest.token}),
-  403,
-  'anonymous guest cannot start support without phone',
-);
-expectStatus(
-  await firestoreRequest(guestProfilePath, {
-    method: 'PATCH',
-    token: anonymousGuest.token,
-    fields: {phone_number: stringValue('+50938000000')},
-    updateMaskFields: ['phone_number'],
-  }),
   200,
-  'anonymous guest adds required phone',
-);
-expectStatus(
-  await firestoreCommit(guestFirstCommit, {token: anonymousGuest.token}),
-  200,
-  'anonymous guest starts private support conversation',
+  'anonymous guest starts support without profile phone',
 );
 expectStatus(
   await firestoreRequest(guestMessagePath, {token: anonymousGuest.token}),

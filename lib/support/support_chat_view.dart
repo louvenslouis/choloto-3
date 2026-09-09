@@ -12,10 +12,12 @@ class SupportChatView extends StatefulWidget {
     super.key,
     required this.messages,
     required this.onSend,
+    this.showOptionalPhoneOnFirstMessage = false,
   });
 
   final Stream<List<SupportMessage>> messages;
   final SendSupportMessage onSend;
+  final bool showOptionalPhoneOnFirstMessage;
 
   @override
   State<SupportChatView> createState() => _SupportChatViewState();
@@ -23,14 +25,23 @@ class SupportChatView extends StatefulWidget {
 
 class _SupportChatViewState extends State<SupportChatView> {
   final _controller = TextEditingController();
+  final _phoneController = TextEditingController();
   final _scrollController = ScrollController();
   bool _sending = false;
   String? _error;
   int _messageCount = 0;
+  bool _hasExistingMessages = false;
+  bool _firstMessageSent = false;
+
+  bool get _showOptionalPhone =>
+      widget.showOptionalPhoneOnFirstMessage &&
+      !_hasExistingMessages &&
+      !_firstMessageSent;
 
   @override
   void dispose() {
     _controller.dispose();
+    _phoneController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -50,14 +61,22 @@ class _SupportChatViewState extends State<SupportChatView> {
 
   Future<void> _send() async {
     final text = _controller.text.trim();
-    if (_sending || text.isEmpty || text.length > 1000) return;
+    final phone = _phoneController.text.trim();
+    final outgoingText = _showOptionalPhone && phone.isNotEmpty
+        ? '${supportText(context, 'phoneMessageLabel')}: $phone\n\n$text'
+        : text;
+    if (_sending || text.isEmpty || outgoingText.length > 1000) return;
     setState(() {
       _sending = true;
       _error = null;
     });
     try {
-      await widget.onSend(text);
-      if (mounted) _controller.clear();
+      await widget.onSend(outgoingText);
+      if (mounted) {
+        _controller.clear();
+        _phoneController.clear();
+        setState(() => _firstMessageSent = true);
+      }
     } catch (_) {
       if (mounted) setState(() => _error = supportText(context, 'sendError'));
     } finally {
@@ -150,6 +169,14 @@ class _SupportChatViewState extends State<SupportChatView> {
                     child: CircularProgressIndicator(color: theme.primary));
               }
               final messages = snapshot.data!;
+              final hasMessages = messages.isNotEmpty;
+              if (hasMessages != _hasExistingMessages) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && hasMessages != _hasExistingMessages) {
+                    setState(() => _hasExistingMessages = hasMessages);
+                  }
+                });
+              }
               _scrollToLatest(messages.length);
               if (messages.isEmpty) {
                 return _SupportState(
@@ -199,6 +226,41 @@ class _SupportChatViewState extends State<SupportChatView> {
                                 theme.bodySmall.override(color: theme.error)),
                       ),
                     ),
+                  if (_showOptionalPhone) ...[
+                    TextField(
+                      key: const ValueKey('support-optional-phone-field'),
+                      controller: _phoneController,
+                      enabled: !_sending,
+                      keyboardType: TextInputType.phone,
+                      maxLength: 32,
+                      style: theme.bodyLarge,
+                      decoration: InputDecoration(
+                        labelText: supportText(context, 'phoneOptionalLabel'),
+                        hintText: supportText(context, 'phoneOptionalHint'),
+                        counterText: '',
+                        filled: true,
+                        fillColor: theme.primaryBackground,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: tokens.spacing.md,
+                          vertical: tokens.spacing.sm,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(tokens.radius.md),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(tokens.radius.md),
+                          borderSide: BorderSide(
+                            color: theme.alternate.withValues(alpha: .45),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(tokens.radius.md),
+                          borderSide: BorderSide(color: theme.primary),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: tokens.spacing.sm),
+                  ],
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [

@@ -4,10 +4,15 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'support_text.dart';
 
-class SupportPhoneGate extends StatelessWidget {
-  const SupportPhoneGate({super.key, required this.onAddPhone});
+class SupportGuestGate extends StatelessWidget {
+  const SupportGuestGate({
+    super.key,
+    required this.onStart,
+    required this.starting,
+  });
 
-  final Future<void> Function() onAddPhone;
+  final Future<void> Function() onStart;
+  final bool starting;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +25,7 @@ class SupportPhoneGate extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560.0),
           child: Container(
-            key: const ValueKey('support-phone-gate'),
+            key: const ValueKey('support-guest-gate'),
             padding: EdgeInsets.all(tokens.spacing.lg),
             decoration: BoxDecoration(
               color: theme.secondaryBackground,
@@ -41,34 +46,43 @@ class SupportPhoneGate extends StatelessWidget {
                     borderRadius: BorderRadius.circular(tokens.radius.full),
                   ),
                   child: Icon(
-                    Icons.phone_outlined,
+                    Icons.support_agent_rounded,
                     color: theme.primary,
                     size: 28.0,
                   ),
                 ),
                 SizedBox(height: tokens.spacing.md),
                 Text(
-                  supportText(context, 'phoneRequiredTitle'),
+                  supportText(context, 'guestStartTitle'),
                   textAlign: TextAlign.center,
                   style: theme.titleLarge,
                 ),
                 SizedBox(height: tokens.spacing.sm),
                 Text(
-                  supportText(context, 'phoneRequiredBody'),
+                  supportText(context, 'guestStartBody'),
                   textAlign: TextAlign.center,
                   style: theme.bodyMedium.override(color: theme.secondaryText),
                 ),
                 SizedBox(height: tokens.spacing.lg),
                 FFButtonWidget(
-                  key: const ValueKey('support-add-phone-button'),
-                  onPressed: onAddPhone,
-                  text: supportText(context, 'phoneRequiredAction'),
-                  icon: Icon(Icons.add_call, color: theme.onPrimary),
+                  key: const ValueKey('support-start-guest-button'),
+                  onPressed: starting ? null : onStart,
+                  text: supportText(
+                    context,
+                    starting ? 'guestStarting' : 'guestStartAction',
+                  ),
+                  icon: Icon(
+                    starting
+                        ? Icons.hourglass_top_rounded
+                        : Icons.forum_rounded,
+                    color: theme.onPrimary,
+                  ),
                   options: FFButtonOptions(
                     width: double.infinity,
                     height: 52.0,
                     padding: EdgeInsets.zero,
                     color: theme.primary,
+                    disabledColor: theme.primary.withValues(alpha: 0.45),
                     textStyle: theme.titleSmall.copyWith(
                       color: theme.onPrimary,
                       fontWeight: FontWeight.w700,

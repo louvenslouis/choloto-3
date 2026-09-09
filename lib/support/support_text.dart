@@ -73,20 +73,28 @@ const _supportLabels = <String, List<String>>{
     'Sign in to chat with customer support in the app.',
     'Konekte pou pale ak sèvis kliyan nan aplikasyon an.'
   ],
-  'phoneRequiredTitle': [
-    'Ajoutez votre numéro de téléphone',
-    'Add your phone number',
-    'Ajoute nimewo telefòn ou'
+  'guestStartTitle': [
+    'Discutez sans créer de compte',
+    'Chat without creating an account',
+    'Pale san ou pa kreye kont'
   ],
-  'phoneRequiredBody': [
-    'Un numéro de téléphone est obligatoire avant de commencer une conversation avec le service client.',
-    'A phone number is required before starting a conversation with customer support.',
-    'Yon nimewo telefòn obligatwa anvan ou kòmanse pale ak sèvis kliyan an.'
+  'guestStartBody': [
+    'Une session privée sera créée uniquement pour conserver vos messages et les réponses de l’équipe CHOLOTO.',
+    'A private session will be created only to keep your messages and replies from the CHOLOTO team.',
+    'N ap kreye yon sesyon prive sèlman pou konsève mesaj ou ak repons ekip CHOLOTO a.'
   ],
-  'phoneRequiredAction': [
-    'Ajouter mon numéro',
-    'Add my phone number',
-    'Ajoute nimewo mwen'
+  'guestStartAction': ['Commencer le chat', 'Start chat', 'Kòmanse chat la'],
+  'guestStarting': ['Ouverture…', 'Opening…', 'N ap ouvri…'],
+  'phoneOptionalLabel': [
+    'Téléphone (facultatif)',
+    'Phone (optional)',
+    'Telefòn (opsyonèl)'
   ],
+  'phoneOptionalHint': [
+    'Ex. +509 37 00 00 00',
+    'E.g. +509 37 00 00 00',
+    'Eg. +509 37 00 00 00'
+  ],
+  'phoneMessageLabel': ['Téléphone', 'Phone', 'Telefòn'],
   'emailFallback': ['Écrire par e-mail', 'Write by email', 'Ekri pa imèl'],
 };

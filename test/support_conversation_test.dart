@@ -9,7 +9,6 @@ void main() {
     final db = MemoryFirestore();
     db.rows['user/member'] = {
       'email': 'member@example.test',
-      'phone_number': '+50937000000',
     };
     final repository = SupportConversationRepository(firestore: db);
 
@@ -90,7 +89,7 @@ void main() {
     );
   });
 
-  test('invalid message, missing profile and mismatched owner write nothing',
+  test('missing phone is allowed but invalid messages and owners are refused',
       () async {
     final db = MemoryFirestore();
     final repository = SupportConversationRepository(firestore: db);
@@ -103,32 +102,34 @@ void main() {
     expect(db.rows, isEmpty);
 
     db.rows['user/member'] = {'email': 'member@example.test'};
-    await expectLater(
-      repository.sendUserMessage(
-          userUid: 'member', text: 'Bonjour', messageId: 'm1'),
-      throwsA(
-        isA<StateError>().having(
-          (error) => error.message,
-          'message',
-          'support-phone-required',
-        ),
-      ),
+    await repository.sendUserMessage(
+      userUid: 'member',
+      text: 'Bonjour',
+      messageId: 'm1',
     );
-    expect(db.rows.keys, ['user/member']);
+    expect(
+      db.rows['support_conversations/member/messages/m1']?['text'],
+      'Bonjour',
+    );
 
     await expectLater(
-      repository.sendUserMessage(userUid: 'member', text: ' ', messageId: 'm1'),
+      repository.sendUserMessage(userUid: 'member', text: ' ', messageId: 'm2'),
       throwsArgumentError,
     );
-    db.rows['support_conversations/member'] = {'user_uid': 'foreign'};
+    db.rows['support_conversations/other'] = {'user_uid': 'foreign'};
     await expectLater(
       repository.sendUserMessage(
-          userUid: 'member', text: 'Bonjour', messageId: 'm2'),
+          userUid: 'other', text: 'Bonjour', messageId: 'm2'),
       throwsStateError,
     );
     expect(
       db.rows.keys.toSet(),
-      {'user/member', 'support_conversations/member'},
+      {
+        'user/member',
+        'support_conversations/member',
+        'support_conversations/member/messages/m1',
+        'support_conversations/other',
+      },
     );
   });
 }

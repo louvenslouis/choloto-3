@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'support_phone_requirement.dart';
-
 DateTime? supportDate(Object? value) => value is Timestamp
     ? value.toDate()
     : value is DateTime
@@ -119,9 +117,6 @@ class SupportConversationRepository {
             await transaction.get(db.collection('user').doc(userUid));
         if (!profile.exists) {
           throw StateError('profile-missing');
-        }
-        if (!hasRequiredSupportPhone(profile.data()?['phone_number'])) {
-          throw StateError('support-phone-required');
         }
         transaction.set(conversationRef, {
           'user_uid': userUid,

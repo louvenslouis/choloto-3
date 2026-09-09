@@ -304,15 +304,6 @@ service cloud.firestore {
           message.created_at == request.time;
     }
 
-    function supportProfileHasPhone(userId) {
-      let profile = get(
-        /databases/$(database)/documents/user/$(userId)
-      ).data;
-      return profile.phone_number is string &&
-          profile.phone_number.size() >= 7 &&
-          profile.phone_number.size() <= 32;
-    }
-
     function validWebPushToken(data, userId) {
       return data.keys().hasOnly([
             'token', 'userId', 'locale', 'createdAt', 'updatedAt'
@@ -639,7 +630,6 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create: if signedIn() && request.auth.uid == userId &&
           exists(/databases/$(database)/documents/user/$(userId)) &&
-          supportProfileHasPhone(userId) &&
           validSupportConversation(request.resource.data, userId) &&
           request.resource.data.created_at == request.time &&
           supportSummaryMatchesMessage(userId, request.resource.data, 'user');
