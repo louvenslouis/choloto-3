@@ -83,6 +83,7 @@ class _SupportChatViewState extends State<SupportChatView> {
         : messageText;
     if (_sending ||
         _preparingImage ||
+        (text.isEmpty && _image == null) ||
         outgoingText.isEmpty ||
         outgoingText.length > 1000) {
       return;

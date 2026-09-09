@@ -139,6 +139,9 @@ void main() {
       find.byKey(const ValueKey('support-optional-phone-field')),
       '+509 37 00 00 00',
     );
+    await tester.tap(find.byKey(const ValueKey('support-send-button')));
+    await tester.pump();
+    expect(sent, isNull, reason: 'a phone alone is not a chat message');
     await tester.enterText(
       find.byKey(const ValueKey('support-message-field')),
       'Je veux m’abonner',
