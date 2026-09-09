@@ -147,6 +147,10 @@ void main() {
     await tester.pumpWidget(scene());
     await _finishCardTransitions(tester);
     final sparkles = find.byKey(const ValueKey('home-vip-sparkles'));
+    final cardRect = tester.getRect(
+      find.byKey(const ValueKey('home-feature-card-vip')),
+    );
+    expect(tester.getRect(sparkles), cardRect);
     var repaints = 0;
     final painter = tester.widget<CustomPaint>(sparkles).painter!;
     void onRepaint() => repaints++;

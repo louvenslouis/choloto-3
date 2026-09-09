@@ -339,121 +339,129 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                           foreground.withValues(alpha: _hovered ? 0.22 : 0.10),
                     ),
                   ),
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: InkWell(
-                      key: ValueKey('home-feature-card-${widget.semanticId}'),
-                      borderRadius: cardRadius,
-                      splashColor: foreground.withValues(alpha: 0.10),
-                      highlightColor: foreground.withValues(alpha: 0.06),
-                      hoverColor: foreground.withValues(alpha: 0.035),
-                      onHighlightChanged: (pressed) {
-                        if (_pressed != pressed) {
-                          setState(() => _pressed = pressed);
-                        }
-                      },
-                      onTap: widget.onTap,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: tokens.spacing.md,
-                          vertical:
-                              compact ? tokens.spacing.xs : tokens.spacing.sm,
-                        ),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            // Give enlarged text the full card width; the artwork
-                            // is decorative and may sit above it when space is tight.
-                            final stacked =
-                                MediaQuery.textScalerOf(context).scale(14.0) >
-                                    20.0;
-                            final artworkSize = compact
-                                ? 40.0
-                                : (constraints.maxWidth < 300.0 ? 56.0 : 72.0);
-                            final artwork = ExcludeSemantics(
-                              child: AnimatedScale(
-                                key: ValueKey(
-                                  'home-feature-artwork-motion-${widget.semanticId}',
-                                ),
-                                scale: reduceMotion
-                                    ? 1.0
-                                    : (_pressed
-                                        ? 0.97
-                                        : (_hovered ? 1.03 : 1.0)),
-                                duration: duration,
-                                child: SizedBox.square(
-                                  dimension: artworkSize,
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      _artwork(
-                                        size: artworkSize,
-                                        cacheWidth: (artworkSize *
-                                                MediaQuery.devicePixelRatioOf(
-                                                    context))
-                                            .ceil(),
-                                        foreground: foreground,
-                                      ),
-                                      if (widget.tone == HomeFeatureTone.vip)
-                                        const Positioned.fill(
-                                          child: _VipSparkles(),
-                                        ),
-                                    ],
-                                  ),
-                                ),
+                  child: ClipRRect(
+                    borderRadius: cardRadius,
+                    child: Stack(
+                      children: [
+                        if (widget.tone == HomeFeatureTone.vip)
+                          const Positioned.fill(child: _VipSparkles()),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: InkWell(
+                            key: ValueKey(
+                                'home-feature-card-${widget.semanticId}'),
+                            borderRadius: cardRadius,
+                            splashColor: foreground.withValues(alpha: 0.10),
+                            highlightColor: foreground.withValues(alpha: 0.06),
+                            hoverColor: foreground.withValues(alpha: 0.035),
+                            onHighlightChanged: (pressed) {
+                              if (_pressed != pressed) {
+                                setState(() => _pressed = pressed);
+                              }
+                            },
+                            onTap: widget.onTap,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: tokens.spacing.md,
+                                vertical: compact
+                                    ? tokens.spacing.xs
+                                    : tokens.spacing.sm,
                               ),
-                            );
-                            final copy = Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.title,
-                                  key: ValueKey(
-                                    'home-feature-title-${widget.semanticId}',
-                                  ),
-                                  style: theme.titleLarge.override(
-                                    color: foreground,
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.w700,
-                                    lineHeight: 1.15,
-                                  ),
-                                ),
-                                if (!compact) ...[
-                                  SizedBox(height: tokens.spacing.xs),
-                                  Text(
-                                    widget.description,
-                                    key: ValueKey(
-                                      'home-feature-description-${widget.semanticId}',
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  // Give enlarged text the full card width; the artwork
+                                  // is decorative and may sit above it when space is tight.
+                                  final stacked =
+                                      MediaQuery.textScalerOf(context)
+                                              .scale(14.0) >
+                                          20.0;
+                                  final artworkSize = compact
+                                      ? 40.0
+                                      : (constraints.maxWidth < 300.0
+                                          ? 56.0
+                                          : 72.0);
+                                  final artwork = ExcludeSemantics(
+                                    child: AnimatedScale(
+                                      key: ValueKey(
+                                        'home-feature-artwork-motion-${widget.semanticId}',
+                                      ),
+                                      scale: reduceMotion
+                                          ? 1.0
+                                          : (_pressed
+                                              ? 0.97
+                                              : (_hovered ? 1.03 : 1.0)),
+                                      duration: duration,
+                                      child: SizedBox.square(
+                                        dimension: artworkSize,
+                                        child: _artwork(
+                                          size: artworkSize,
+                                          cacheWidth: (artworkSize *
+                                                  MediaQuery.devicePixelRatioOf(
+                                                      context))
+                                              .ceil(),
+                                          foreground: foreground,
+                                        ),
+                                      ),
                                     ),
-                                    style: theme.bodyMedium.override(
-                                      color: foreground.withValues(alpha: 0.82),
-                                      fontSize: 14.0,
-                                      lineHeight: 1.3,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            );
-                            if (stacked) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  artwork,
-                                  SizedBox(height: tokens.spacing.md),
-                                  copy,
-                                ],
-                              );
-                            }
-                            return Row(
-                              children: [
-                                Expanded(child: copy),
-                                SizedBox(width: tokens.spacing.sm),
-                                artwork,
-                              ],
-                            );
-                          },
+                                  );
+                                  final copy = Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.title,
+                                        key: ValueKey(
+                                          'home-feature-title-${widget.semanticId}',
+                                        ),
+                                        style: theme.titleLarge.override(
+                                          color: foreground,
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.w700,
+                                          lineHeight: 1.15,
+                                        ),
+                                      ),
+                                      if (!compact) ...[
+                                        SizedBox(height: tokens.spacing.xs),
+                                        Text(
+                                          widget.description,
+                                          key: ValueKey(
+                                            'home-feature-description-${widget.semanticId}',
+                                          ),
+                                          style: theme.bodyMedium.override(
+                                            color: foreground.withValues(
+                                                alpha: 0.82),
+                                            fontSize: 14.0,
+                                            lineHeight: 1.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  );
+                                  if (stacked) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        artwork,
+                                        SizedBox(height: tokens.spacing.md),
+                                        copy,
+                                      ],
+                                    );
+                                  }
+                                  return Row(
+                                    children: [
+                                      Expanded(child: copy),
+                                      SizedBox(width: tokens.spacing.sm),
+                                      artwork,
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
@@ -466,7 +474,7 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
   }
 }
 
-/// Decorative stars stay inside the artwork so they never obscure the copy.
+/// Stars cover the card background, behind its text and artwork.
 class _VipSparkles extends StatefulWidget {
   const _VipSparkles();
 
@@ -525,12 +533,20 @@ class _VipSparklePainter extends CustomPainter {
 
   // Relative positions keep the same constellation on compact and wide cards.
   static const _stars = [
-    (Offset(0.13, 0.20), 4.0, 0.0),
-    (Offset(0.47, 0.09), 3.0, 0.38),
-    (Offset(0.85, 0.18), 4.5, 0.70),
-    (Offset(0.91, 0.61), 3.0, 0.18),
-    (Offset(0.70, 0.88), 3.5, 0.54),
-    (Offset(0.12, 0.74), 3.0, 0.84),
+    (Offset(0.05, 0.23), 3.0, 0.0),
+    (Offset(0.13, 0.82), 3.5, 0.54),
+    (Offset(0.22, 0.13), 3.0, 0.38),
+    (Offset(0.29, 0.66), 2.5, 0.84),
+    (Offset(0.37, 0.88), 3.5, 0.18),
+    (Offset(0.43, 0.27), 3.0, 0.70),
+    (Offset(0.52, 0.76), 3.0, 0.44),
+    (Offset(0.60, 0.12), 4.0, 0.10),
+    (Offset(0.66, 0.53), 2.5, 0.62),
+    (Offset(0.73, 0.86), 3.5, 0.30),
+    (Offset(0.81, 0.21), 3.0, 0.92),
+    (Offset(0.87, 0.68), 3.0, 0.48),
+    (Offset(0.95, 0.32), 3.5, 0.76),
+    (Offset(0.94, 0.85), 2.5, 0.24),
   ];
 
   @override
@@ -553,7 +569,7 @@ class _VipSparklePainter extends CustomPainter {
           ..lineTo(-extent, 0)
           ..lineTo(-inset, -inset)
           ..close(),
-        paint..color = color.withValues(alpha: 0.18 + pulse * 0.72),
+        paint..color = color.withValues(alpha: 0.10 + pulse * 0.48),
       );
       canvas.restore();
     }
