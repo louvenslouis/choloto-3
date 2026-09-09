@@ -55,6 +55,35 @@ const _supportLabels = <String, List<String>>{
   ],
   'send': ['Envoyer', 'Send', 'Voye'],
   'sending': ['Envoi…', 'Sending…', 'N ap voye…'],
+  'attachImage': ['Ajouter une image', 'Attach an image', 'Ajoute yon imaj'],
+  'removeImage': ['Retirer l’image', 'Remove image', 'Retire imaj la'],
+  'selectedImage': [
+    'Image sélectionnée',
+    'Selected image',
+    'Imaj ki chwazi a'
+  ],
+  'imageMessage': ['Photo', 'Photo', 'Foto'],
+  'messageImage': [
+    'Image jointe au message',
+    'Image attached to the message',
+    'Imaj ki tache ak mesaj la'
+  ],
+  'openImage': [
+    'Ouvrir l’image',
+    'Open image',
+    'Ouvri imaj la'
+  ],
+  'close': ['Fermer', 'Close', 'Fèmen'],
+  'imageError': [
+    'Cette image ne peut pas être ajoutée. Choisissez un fichier JPEG ou PNG valide.',
+    'This image cannot be attached. Choose a valid JPEG or PNG file.',
+    'Nou pa ka ajoute imaj sa a. Chwazi yon fichye JPEG oswa PNG ki valid.'
+  ],
+  'imageLoadError': [
+    'Impossible de charger l’image.',
+    'Unable to load the image.',
+    'Nou pa ka chaje imaj la.'
+  ],
   'admin': ['Équipe CHOLOTO', 'CHOLOTO team', 'Ekip CHOLOTO'],
   'you': ['Vous', 'You', 'Ou'],
   'error': [

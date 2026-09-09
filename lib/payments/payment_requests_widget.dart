@@ -1,6 +1,4 @@
-import 'dart:typed_data' show BytesBuilder;
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -142,33 +140,10 @@ class _PaymentSubmissionFormState extends State<PaymentSubmissionForm> {
       _message = null;
     });
     try {
-      Uint8List? bytes;
-      if (widget.pickImage != null) {
-        bytes = await widget.pickImage!();
-      } else {
-        final result = await FilePicker.platform.pickFiles(
-            type: FileType.custom,
-            allowedExtensions: ['jpg', 'jpeg', 'png'],
-            withData: false,
-            withReadStream: true);
-        if (result == null) return;
-        if (result.files.single.size > 12 * 1024 * 1024) {
-          throw const FormatException('size');
-        }
-        final stream = result.files.single.readStream;
-        if (stream == null) throw const FormatException('image');
-        final buffer = BytesBuilder(copy: false);
-        await for (final chunk in stream) {
-          if (buffer.length + chunk.length > 12 * 1024 * 1024) {
-            throw const FormatException('size');
-          }
-          buffer.add(chunk);
-        }
-        bytes = buffer.takeBytes();
-      }
+      final bytes =
+          await pickPreparedPrivateImage(pickImage: widget.pickImage);
       if (bytes == null) return;
-      final image = await compute(preparePaymentProof, bytes);
-      if (mounted) setState(() => _image = image);
+      if (mounted) setState(() => _image = bytes);
     } catch (_) {
       if (mounted) setState(() => _message = 'imageError');
     } finally {

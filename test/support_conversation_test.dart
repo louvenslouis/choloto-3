@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:choloto/payments/payment_request.dart';
 import 'package:choloto/support/support_conversation.dart';
 import 'package:choloto/support/support_guest_session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -151,6 +155,59 @@ void main() {
     );
   });
 
+  test('image is committed with its message and an exact retry is idempotent',
+      () async {
+    final db = MemoryFirestore();
+    db.rows['support_conversations/member'] = {
+      'user_uid': 'member',
+      'topic': 'subscription',
+      'status': 'open',
+      'created_at': DateTime(2026),
+      'updated_at': DateTime(2026),
+      'last_message': 'Premier',
+      'last_message_id': 'm1',
+      'last_sender_role': 'admin',
+    };
+    final repository = SupportConversationRepository(firestore: db);
+    final image = Uint8List.fromList([255, 216, 255, 217]);
+
+    Future<void> send() => repository.sendUserMessage(
+          userUid: 'member',
+          text: 'Photo',
+          image: image,
+          messageId: 'm-image',
+        );
+    await send();
+
+    expect(db.reads, [
+      'support_conversations/member',
+      'support_conversations/member/messages/m-image',
+      'support_conversations/member/messages/m-image/attachments/image',
+    ]);
+    expect(db.rows['support_conversations/member/messages/m-image'], {
+      'sender_uid': 'member',
+      'sender_role': 'user',
+      'text': 'Photo',
+      'attachment_type': 'image',
+      'created_at': isNotNull,
+    });
+    expect(
+      db.rows[
+          'support_conversations/member/messages/m-image/attachments/image'],
+      {
+        'base64': base64Encode(image),
+        'mime_type': 'image/jpeg',
+        'byte_length': image.length,
+      },
+    );
+
+    await send();
+    expect(
+      db.rows.keys.where((path) => path.endsWith('/attachments/image')),
+      hasLength(1),
+    );
+  });
+
   test('missing phone is allowed but invalid messages and owners are refused',
       () async {
     final db = MemoryFirestore();
@@ -176,6 +233,15 @@ void main() {
 
     await expectLater(
       repository.sendUserMessage(userUid: 'member', text: ' ', messageId: 'm2'),
+      throwsArgumentError,
+    );
+    await expectLater(
+      repository.sendUserMessage(
+        userUid: 'member',
+        text: 'Photo',
+        image: Uint8List(maxProofBytes + 1),
+        messageId: 'm-image-too-large',
+      ),
       throwsArgumentError,
     );
     db.rows['support_conversations/other'] = {'user_uid': 'foreign'};

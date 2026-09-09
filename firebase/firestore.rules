@@ -254,7 +254,8 @@ service cloud.firestore {
     // conversation summary must point to the message written in the same commit.
     function validSupportMessage(data) {
       return data.keys().hasOnly([
-            'sender_uid', 'sender_role', 'text', 'created_at'
+            'sender_uid', 'sender_role', 'text', 'attachment_type',
+            'created_at'
           ]) &&
           data.keys().hasAll([
             'sender_uid', 'sender_role', 'text', 'created_at'
@@ -264,7 +265,32 @@ service cloud.firestore {
           data.sender_role in ['user', 'admin'] &&
           data.text is string && data.text.size() > 0 &&
           data.text.size() <= 1000 &&
+          (!data.keys().hasAny(['attachment_type']) ||
+            data.attachment_type == 'image') &&
           data.created_at is timestamp;
+    }
+
+    function validSupportImageAttachment(data) {
+      return data.keys().hasOnly([
+            'base64', 'mime_type', 'byte_length'
+          ]) &&
+          data.keys().hasAll([
+            'base64', 'mime_type', 'byte_length'
+          ]) &&
+          data.base64 is string && data.base64.size() > 0 &&
+          data.base64.size() <= 800000 &&
+          data.base64.matches('^[A-Za-z0-9+/]+={0,2}$') &&
+          data.mime_type == 'image/jpeg' &&
+          data.byte_length is int && data.byte_length > 0 &&
+          data.byte_length <= 600000;
+    }
+
+    function supportImageMatchesMessage(userId, messageId, data) {
+      return !data.keys().hasAny(['attachment_type']) ||
+          (data.attachment_type == 'image' &&
+            validSupportImageAttachment(getAfter(
+              /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)/attachments/image
+            ).data));
     }
 
     function validSupportConversation(data, userId) {
@@ -743,6 +769,9 @@ service cloud.firestore {
                 ).data.guest_access == true));
         allow create: if signedIn() &&
             validSupportMessage(request.resource.data) &&
+            supportImageMatchesMessage(
+              userId, messageId, request.resource.data
+            ) &&
             request.resource.data.created_at == request.time &&
             getAfter(
               /databases/$(database)/documents/support_conversations/$(userId)
@@ -763,6 +792,9 @@ service cloud.firestore {
             ) ||
             (request.auth == null && validGuestSupportId(userId) &&
               validSupportMessage(request.resource.data) &&
+              supportImageMatchesMessage(
+                userId, messageId, request.resource.data
+              ) &&
               request.resource.data.created_at == request.time &&
               request.resource.data.sender_uid == userId &&
               request.resource.data.sender_role == 'user' &&
@@ -779,6 +811,47 @@ service cloud.firestore {
                 /databases/$(database)/documents/support_conversations/$(userId)
               ).data.updated_at == request.time);
         allow update, delete: if false;
+
+        match /attachments/{attachmentId} {
+          allow get: if
+              (signedIn() && (request.auth.uid == userId || isAdmin())) ||
+              (request.auth == null && validGuestSupportId(userId) &&
+                get(
+                  /databases/$(database)/documents/support_conversations/$(userId)
+                ).data.guest_access == true);
+          allow create: if attachmentId == 'image' &&
+              validSupportImageAttachment(request.resource.data) &&
+              getAfter(
+                /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)
+              ).data.attachment_type == 'image' &&
+              (
+                (signedIn() &&
+                  getAfter(
+                    /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)
+                  ).data.sender_uid == request.auth.uid &&
+                  (
+                    (request.auth.uid == userId &&
+                      getAfter(
+                        /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)
+                      ).data.sender_role == 'user') ||
+                    (isAdmin() &&
+                      getAfter(
+                        /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)
+                      ).data.sender_role == 'admin')
+                  )) ||
+                (request.auth == null && validGuestSupportId(userId) &&
+                  getAfter(
+                    /databases/$(database)/documents/support_conversations/$(userId)
+                  ).data.guest_access == true &&
+                  getAfter(
+                    /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)
+                  ).data.sender_uid == userId &&
+                  getAfter(
+                    /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)
+                  ).data.sender_role == 'user')
+              );
+          allow list, update, delete: if false;
+        }
       }
     }
 

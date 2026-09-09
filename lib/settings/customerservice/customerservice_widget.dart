@@ -42,17 +42,23 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
           messages: guestWithoutAuth
               ? _repository.watchGuestMessages(conversationId)
               : _repository.watchMessages(conversationId),
-          onSend: (text) => guestWithoutAuth
+          onSend: (text, image) => guestWithoutAuth
               ? _repository.sendGuestMessage(
                   guestId: conversationId,
                   text: text,
+                  image: image,
                 )
               : _repository.sendUserMessage(
                   userUid: conversationId,
                   userEmail: currentUserEmail,
                   userDisplayName: currentUserDisplayName,
                   text: text,
+                  image: image,
                 ),
+          loadImage: (messageId) => _repository.loadMessageImage(
+            conversationId: conversationId,
+            messageId: messageId,
+          ),
           showOptionalPhoneOnFirstMessage:
               guestWithoutAuth || currentUserIsAnonymous,
         ),

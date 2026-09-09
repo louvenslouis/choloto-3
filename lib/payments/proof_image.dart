@@ -1,6 +1,44 @@
 import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
+
 import 'payment_request.dart';
+
+/// Uses the same picker, limits and privacy-preserving conversion for payment
+/// proofs and other private image attachments.
+Future<Uint8List?> pickPreparedPrivateImage({
+  Future<Uint8List?> Function()? pickImage,
+}) async {
+  Uint8List? bytes;
+  if (pickImage != null) {
+    bytes = await pickImage();
+  } else {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['jpg', 'jpeg', 'png'],
+      withData: false,
+      withReadStream: true,
+    );
+    if (result == null) return null;
+    if (result.files.single.size > 12 * 1024 * 1024) {
+      throw const FormatException('size');
+    }
+    final stream = result.files.single.readStream;
+    if (stream == null) throw const FormatException('image');
+    final buffer = BytesBuilder(copy: false);
+    await for (final chunk in stream) {
+      if (buffer.length + chunk.length > 12 * 1024 * 1024) {
+        throw const FormatException('size');
+      }
+      buffer.add(chunk);
+    }
+    bytes = buffer.takeBytes();
+  }
+  if (bytes == null) return null;
+  return compute(preparePaymentProof, bytes);
+}
 
 /// Decode only still JPEG/PNG images. Re-encoding strips private EXIF metadata.
 /// Header limits avoid allocating unbounded bitmaps for a small compressed file.

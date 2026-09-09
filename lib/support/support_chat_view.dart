@@ -1,22 +1,31 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/payments/proof_image.dart';
 import 'support_conversation.dart';
 import 'support_text.dart';
 
-typedef SendSupportMessage = Future<void> Function(String text);
+typedef SendSupportMessage = Future<void> Function(
+    String text, Uint8List? image);
+typedef LoadSupportImage = Future<Uint8List> Function(String messageId);
 
 class SupportChatView extends StatefulWidget {
   const SupportChatView({
     super.key,
     required this.messages,
     required this.onSend,
+    this.loadImage,
+    this.pickImage,
     this.showOptionalPhoneOnFirstMessage = false,
   });
 
   final Stream<List<SupportMessage>> messages;
   final SendSupportMessage onSend;
+  final LoadSupportImage? loadImage;
+  final Future<Uint8List?> Function()? pickImage;
   final bool showOptionalPhoneOnFirstMessage;
 
   @override
@@ -28,6 +37,8 @@ class _SupportChatViewState extends State<SupportChatView> {
   final _phoneController = TextEditingController();
   final _scrollController = ScrollController();
   bool _sending = false;
+  bool _preparingImage = false;
+  Uint8List? _image;
   String? _error;
   int _messageCount = 0;
   bool _hasExistingMessages = false;
@@ -62,25 +73,55 @@ class _SupportChatViewState extends State<SupportChatView> {
   Future<void> _send() async {
     final text = _controller.text.trim();
     final phone = _phoneController.text.trim();
+    final messageText = text.isNotEmpty
+        ? text
+        : _image != null
+            ? supportText(context, 'imageMessage')
+            : '';
     final outgoingText = _showOptionalPhone && phone.isNotEmpty
-        ? '${supportText(context, 'phoneMessageLabel')}: $phone\n\n$text'
-        : text;
-    if (_sending || text.isEmpty || outgoingText.length > 1000) return;
+        ? '${supportText(context, 'phoneMessageLabel')}: $phone\n\n$messageText'
+        : messageText;
+    if (_sending ||
+        _preparingImage ||
+        outgoingText.isEmpty ||
+        outgoingText.length > 1000) {
+      return;
+    }
     setState(() {
       _sending = true;
       _error = null;
     });
     try {
-      await widget.onSend(outgoingText);
+      await widget.onSend(outgoingText, _image);
       if (mounted) {
         _controller.clear();
         _phoneController.clear();
-        setState(() => _firstMessageSent = true);
+        setState(() {
+          _image = null;
+          _firstMessageSent = true;
+        });
       }
     } catch (_) {
       if (mounted) setState(() => _error = supportText(context, 'sendError'));
     } finally {
       if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _pickImage() async {
+    if (_sending || _preparingImage) return;
+    setState(() {
+      _preparingImage = true;
+      _error = null;
+    });
+    try {
+      final image =
+          await pickPreparedPrivateImage(pickImage: widget.pickImage);
+      if (mounted && image != null) setState(() => _image = image);
+    } catch (_) {
+      if (mounted) setState(() => _error = supportText(context, 'imageError'));
+    } finally {
+      if (mounted) setState(() => _preparingImage = false);
     }
   }
 
@@ -197,6 +238,7 @@ class _SupportChatViewState extends State<SupportChatView> {
                 itemCount: messages.length,
                 itemBuilder: (context, index) => _MessageBubble(
                   message: messages[index],
+                  loadImage: widget.loadImage,
                 ),
               );
             },
@@ -261,9 +303,45 @@ class _SupportChatViewState extends State<SupportChatView> {
                     ),
                     SizedBox(height: tokens.spacing.sm),
                   ],
+                  if (_image != null) ...[
+                    _SelectedImagePreview(
+                      bytes: _image!,
+                      onRemove: _sending
+                          ? null
+                          : () => setState(() => _image = null),
+                    ),
+                    SizedBox(height: tokens.spacing.sm),
+                  ],
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
+                      Semantics(
+                        button: true,
+                        label: supportText(context, 'attachImage'),
+                        child: IconButton(
+                          key: const ValueKey('support-attach-image-button'),
+                          onPressed:
+                              _sending || _preparingImage ? null : _pickImage,
+                          tooltip: supportText(context, 'attachImage'),
+                          style: IconButton.styleFrom(
+                            foregroundColor: theme.primary,
+                            disabledForegroundColor:
+                                theme.secondaryText.withValues(alpha: .45),
+                            minimumSize: const Size(48, 48),
+                          ),
+                          icon: _preparingImage
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: theme.primary,
+                                  ),
+                                )
+                              : const Icon(Icons.attach_file_rounded),
+                        ),
+                      ),
+                      SizedBox(width: tokens.spacing.sm),
                       Expanded(
                         child: TextField(
                           key: const ValueKey('support-message-field'),
@@ -348,9 +426,10 @@ class _SupportChatViewState extends State<SupportChatView> {
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
+  const _MessageBubble({required this.message, required this.loadImage});
 
   final SupportMessage message;
+  final LoadSupportImage? loadImage;
 
   @override
   Widget build(BuildContext context) {
@@ -393,6 +472,14 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
             SizedBox(height: tokens.spacing.xs),
+            if (message.hasImage) ...[
+              _SupportMessageImage(
+                key: ValueKey('support-image-${message.id}'),
+                messageId: message.id,
+                loadImage: loadImage,
+              ),
+              SizedBox(height: tokens.spacing.sm),
+            ],
             Text(
               message.text,
               style: theme.bodyLarge.override(
@@ -416,6 +503,166 @@ class _MessageBubble extends StatelessWidget {
     );
   }
 }
+
+class _SelectedImagePreview extends StatelessWidget {
+  const _SelectedImagePreview({required this.bytes, required this.onRemove});
+
+  final Uint8List bytes;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(tokens.radius.md),
+            child: Image.memory(
+              bytes,
+              key: const ValueKey('support-selected-image'),
+              width: 144,
+              height: 112,
+              fit: BoxFit.cover,
+              semanticLabel: supportText(context, 'selectedImage'),
+            ),
+          ),
+          Positioned(
+            top: tokens.spacing.xs,
+            right: tokens.spacing.xs,
+            child: IconButton.filled(
+              key: const ValueKey('support-remove-image-button'),
+              onPressed: onRemove,
+              tooltip: supportText(context, 'removeImage'),
+              style: IconButton.styleFrom(
+                backgroundColor: theme.secondaryBackground,
+                foregroundColor: theme.primaryText,
+                minimumSize: const Size(40, 40),
+              ),
+              icon: const Icon(Icons.close_rounded, size: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SupportMessageImage extends StatefulWidget {
+  const _SupportMessageImage({
+    super.key,
+    required this.messageId,
+    required this.loadImage,
+  });
+
+  final String messageId;
+  final LoadSupportImage? loadImage;
+
+  @override
+  State<_SupportMessageImage> createState() => _SupportMessageImageState();
+}
+
+class _SupportMessageImageState extends State<_SupportMessageImage> {
+  late Future<Uint8List> _image = _load();
+
+  Future<Uint8List> _load() => widget.loadImage?.call(widget.messageId) ??
+      Future<Uint8List>.error(const FormatException('image-unavailable'));
+
+  @override
+  void didUpdateWidget(covariant _SupportMessageImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.messageId != oldWidget.messageId ||
+        widget.loadImage != oldWidget.loadImage) {
+      _image = _load();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    return FutureBuilder<Uint8List>(
+      future: _image,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.broken_image_outlined,
+                  size: 20, color: theme.error),
+              SizedBox(width: tokens.spacing.xs),
+              Flexible(
+                child: Text(supportText(context, 'imageLoadError'),
+                    style: theme.bodySmall.override(color: theme.error)),
+              ),
+            ],
+          );
+        }
+        if (!snapshot.hasData) {
+          return SizedBox(
+            width: 48,
+            height: 48,
+            child: Padding(
+              padding: EdgeInsets.all(tokens.spacing.sm),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: theme.primary),
+            ),
+          );
+        }
+        final bytes = snapshot.data!;
+        return Semantics(
+          button: true,
+          label: supportText(context, 'openImage'),
+          child: InkWell(
+            onTap: () => _showSupportImage(context, bytes),
+            borderRadius: BorderRadius.circular(tokens.radius.sm),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(tokens.radius.sm),
+              child: Image.memory(
+                bytes,
+                width: 260,
+                height: 220,
+                fit: BoxFit.cover,
+                semanticLabel: supportText(context, 'messageImage'),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+Future<void> _showSupportImage(BuildContext context, Uint8List bytes) =>
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        final theme = FlutterFlowTheme.of(context);
+        return AlertDialog(
+          backgroundColor: theme.secondaryBackground,
+          content: SizedBox(
+            width: 760,
+            child: InteractiveViewer(
+              minScale: 1,
+              maxScale: 5,
+              child: Image.memory(
+                bytes,
+                fit: BoxFit.contain,
+                semanticLabel: supportText(context, 'messageImage'),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(supportText(context, 'close')),
+            ),
+          ],
+        );
+      },
+    );
 
 class _SupportState extends StatelessWidget {
   const _SupportState({required this.icon, required this.title, this.body});

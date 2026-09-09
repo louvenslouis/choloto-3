@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/support/subscription_support_card.dart';
 import 'package:choloto/support/support_chat_view.dart';
@@ -5,6 +7,7 @@ import 'package:choloto/support/support_conversation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 
 Widget localizedApp({
   required Locale locale,
@@ -67,7 +70,7 @@ void main() {
           brightness: width == 320 ? Brightness.dark : Brightness.light,
           child: SupportChatView(
             messages: Stream.value(const []),
-            onSend: (_) async {},
+            onSend: (_, __) async {},
           ),
         ));
         await tester.pumpAndSettle();
@@ -100,7 +103,7 @@ void main() {
       brightness: Brightness.dark,
       child: SupportChatView(
         messages: Stream.value(messages),
-        onSend: (value) async => sent = value,
+        onSend: (value, _) async => sent = value,
       ),
     ));
     await tester.pumpAndSettle();
@@ -123,7 +126,7 @@ void main() {
       child: SupportChatView(
         messages: Stream.value(const []),
         showOptionalPhoneOnFirstMessage: true,
-        onSend: (value) async => sent = value,
+        onSend: (value, _) async => sent = value,
       ),
     ));
     await tester.pumpAndSettle();
@@ -159,7 +162,7 @@ void main() {
       child: SupportChatView(
         messages: Stream.value(const []),
         showOptionalPhoneOnFirstMessage: true,
-        onSend: (value) async => sent = value,
+        onSend: (value, _) async => sent = value,
       ),
     ));
     await tester.pumpAndSettle();
@@ -181,7 +184,7 @@ void main() {
       brightness: Brightness.light,
       child: SupportChatView(
         messages: Stream.value(const []),
-        onSend: (_) async {},
+        onSend: (_, __) async {},
       ),
     ));
     await tester.pumpAndSettle();
@@ -192,10 +195,81 @@ void main() {
       brightness: Brightness.light,
       child: SupportChatView(
         messages: Stream.error(StateError('offline')),
-        onSend: (_) async {},
+        onSend: (_, __) async {},
       ),
     ));
     await tester.pump();
     expect(find.textContaining('Nou pa ka chaje'), findsOneWidget);
+  });
+
+  testWidgets('paperclip prepares, previews and sends an image without text',
+      (tester) async {
+    String? sentText;
+    Uint8List? sentImage;
+    final source = img.encodePng(img.Image(width: 40, height: 30));
+    await tester.pumpWidget(localizedApp(
+      locale: const Locale('fr'),
+      brightness: Brightness.dark,
+      child: SupportChatView(
+        messages: Stream.value(const []),
+        pickImage: () async => source,
+        onSend: (text, image) async {
+          sentText = text;
+          sentImage = image;
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('support-attach-image-button')),
+        findsOneWidget);
+    await tester.tap(
+        find.byKey(const ValueKey('support-attach-image-button')));
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('support-selected-image')),
+        findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('support-send-button')));
+    await tester.pumpAndSettle();
+
+    expect(sentText, 'Photo');
+    expect(sentImage, isNotNull);
+    expect(img.decodeJpg(sentImage!), isNotNull);
+    expect(find.byKey(const ValueKey('support-selected-image')), findsNothing);
+  });
+
+  testWidgets('chat renders an attached image from the private loader',
+      (tester) async {
+    final encoded = Uint8List.fromList(
+        img.encodeJpg(img.Image(width: 32, height: 24)));
+    await tester.pumpWidget(localizedApp(
+      locale: const Locale('en'),
+      brightness: Brightness.light,
+      child: SupportChatView(
+        messages: Stream.value([
+          SupportMessage('image-1', {
+            'sender_uid': 'member',
+            'sender_role': 'user',
+            'text': 'Photo',
+            'attachment_type': 'image',
+            'created_at': DateTime(2026, 9, 8),
+          }),
+        ]),
+        loadImage: (messageId) async {
+          expect(messageId, 'image-1');
+          return encoded;
+        },
+        onSend: (_, __) async {},
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('support-image-image-1')),
+        findsOneWidget);
+    expect(find.text('Photo'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

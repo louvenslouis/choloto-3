@@ -1283,10 +1283,13 @@ function supportReplyCommit({
   senderUid = actor.uid,
   conversationPath = supportConversationPath,
   conversationName = supportConversationName,
+  imageBase64,
+  imageMimeType = 'image/jpeg',
+  imageByteLength = 4,
+  includeImageDocument = true,
 }) {
   const messagePath = `${conversationPath}/messages/${messageId}`;
-  return firestoreCommit(
-    [
+  const writes = [
       {
         update: {
           name: conversationName,
@@ -1317,15 +1320,30 @@ function supportReplyCommit({
             sender_uid: stringValue(senderUid),
             sender_role: stringValue(role),
             text: stringValue(text),
+            ...(imageBase64 === undefined
+              ? {}
+              : {attachment_type: stringValue('image')}),
           },
         },
         updateTransforms: [
           {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
         ],
       },
-    ],
-    {token: actor.token},
-  );
+    ];
+  if (imageBase64 !== undefined && includeImageDocument) {
+    writes.push({
+      update: {
+        name:
+          `projects/${projectId}/databases/(default)/documents/${messagePath}/attachments/image`,
+        fields: {
+          base64: stringValue(imageBase64),
+          mime_type: stringValue(imageMimeType),
+          byte_length: integerValue(imageByteLength),
+        },
+      },
+    });
+  }
+  return firestoreCommit(writes, {token: actor.token});
 }
 
 const adminSupportReplyId = 'message-admin-reply';
@@ -1386,6 +1404,80 @@ expectStatus(
   }),
   200,
   'released client continues existing support conversation without phone',
+);
+const ownerSupportImageId = 'message-owner-image';
+const ownerSupportImagePath =
+  `${supportConversationPath}/messages/${ownerSupportImageId}/attachments/image`;
+expectStatus(
+  await supportReplyCommit({
+    actor: owner,
+    messageId: ownerSupportImageId,
+    role: 'user',
+    text: 'Photo',
+    imageBase64: '/9j/2Q==',
+  }),
+  200,
+  'owner atomically sends a private support image',
+);
+expectStatus(
+  await firestoreRequest(ownerSupportImagePath, {token: owner.token}),
+  200,
+  'owner reads own support image',
+);
+expectStatus(
+  await firestoreRequest(ownerSupportImagePath, {token: admin.token}),
+  200,
+  'admin reads member support image',
+);
+expectStatus(
+  await firestoreRequest(ownerSupportImagePath, {token: other.token}),
+  403,
+  'foreign member cannot read support image',
+);
+expectStatus(
+  await firestoreRequest(ownerSupportImagePath),
+  403,
+  'signed-out visitor cannot read member support image',
+);
+expectStatus(
+  await supportReplyCommit({
+    actor: owner,
+    messageId: 'message-owner-image-missing',
+    role: 'user',
+    text: 'Photo',
+    imageBase64: '/9j/2Q==',
+    includeImageDocument: false,
+  }),
+  403,
+  'support image marker requires an atomic image document',
+);
+expectStatus(
+  await supportReplyCommit({
+    actor: owner,
+    messageId: 'message-owner-image-invalid',
+    role: 'user',
+    text: 'Photo',
+    imageBase64: '/9j/2Q==',
+    imageMimeType: 'text/html',
+  }),
+  403,
+  'support attachment rejects non-JPEG content metadata',
+);
+expectStatus(
+  await firestoreRequest(
+    `${firstSupportMessagePath}/attachments/image`,
+    {
+      method: 'PATCH',
+      token: owner.token,
+      fields: {
+        base64: stringValue('/9j/2Q=='),
+        mime_type: stringValue('image/jpeg'),
+        byte_length: integerValue(4),
+      },
+    },
+  ),
+  403,
+  'an image cannot be injected into a historical text-only message',
 );
 
 // A signed-out visitor receives a Firebase anonymous uid behind the scenes.
@@ -1583,6 +1675,32 @@ expectStatus(
   await supportMessagesQuery(unauthenticatedGuestId),
   200,
   'visitor watches private chat messages without authentication',
+);
+const unauthenticatedGuestImageId = 'message-no-auth-image';
+const unauthenticatedGuestImagePath =
+  `${unauthenticatedGuestConversationPath}/messages/${unauthenticatedGuestImageId}/attachments/image`;
+expectStatus(
+  await supportReplyCommit({
+    actor: {uid: unauthenticatedGuestId},
+    messageId: unauthenticatedGuestImageId,
+    role: 'user',
+    text: 'Foto',
+    imageBase64: '/9j/2Q==',
+    conversationPath: unauthenticatedGuestConversationPath,
+    conversationName: unauthenticatedGuestConversationName,
+  }),
+  200,
+  'visitor sends a private support image without authentication',
+);
+expectStatus(
+  await firestoreRequest(unauthenticatedGuestImagePath),
+  200,
+  'visitor reads the support image through the private conversation id',
+);
+expectStatus(
+  await firestoreRequest(unauthenticatedGuestImagePath, {token: admin.token}),
+  200,
+  'admin reads visitor support image',
 );
 expectStatus(
   await firestoreRequest(unauthenticatedGuestConversationPath, {
