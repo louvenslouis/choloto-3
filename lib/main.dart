@@ -143,7 +143,7 @@ class _MyAppState extends State<MyApp> {
     _authenticatedUserSubscription = authenticatedUserStream.listen((_) {});
     _firebaseUserSubscription = cholotoFirebaseUserStream().listen((user) {
       _appStateNotifier.update(user);
-      if (user.loggedIn) {
+      if (user.loggedIn && !user.isAnonymous) {
         unawaited(
           PushNotificationService.instance.syncAuthorizedSubscription(),
         );

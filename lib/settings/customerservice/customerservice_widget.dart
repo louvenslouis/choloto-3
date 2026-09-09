@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/settings/profil/edit_profil_texts/edit_profil_texts_widget.dart';
 import '/support/support_chat_view.dart';
 import '/support/support_conversation.dart';
+import '/support/support_phone_gate.dart';
+import '/support/support_phone_requirement.dart';
 import '/support/support_text.dart';
 
 class CustomerserviceWidget extends StatefulWidget {
@@ -24,6 +25,42 @@ class CustomerserviceWidget extends StatefulWidget {
 class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
   late final SupportConversationRepository _repository =
       widget.repository ?? SupportConversationRepository();
+
+  Future<void> _startGuestSupport(BuildContext context) async {
+    final appState = GoRouter.of(context).appState;
+    appState.updateNotifyOnAuthChange(false);
+    try {
+      final guest = await authManager.signInAnonymously(context);
+      if (guest == null || !context.mounted) {
+        return;
+      }
+      await _addPhoneNumber(context);
+    } finally {
+      appState.updateNotifyOnAuthChange(true);
+    }
+  }
+
+  Future<void> _addPhoneNumber(BuildContext context) async {
+    final theme = FlutterFlowTheme.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.secondaryBackground,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(theme.designToken.radius.lg),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      builder: (sheetContext) => Padding(
+        padding: MediaQuery.viewInsetsOf(sheetContext),
+        child: EditProfilTextsWidget(
+          champ: 3,
+          initialValue: currentPhoneNumber,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +85,20 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
         top: false,
         child: AuthUserStreamWidget(
           builder: (context) {
-            if (!loggedIn || currentUserUid.isEmpty) {
-              return const _SignedOutSupport();
+            final accessState = resolveSupportAccess(
+              hasAuthenticatedSession: hasFirebaseSession,
+              userUid: currentUserUid,
+              profilePhoneNumber: currentUserDocument?.phoneNumber,
+            );
+            if (accessState == SupportAccessState.signedOut) {
+              return SupportPhoneGate(
+                onAddPhone: () => _startGuestSupport(context),
+              );
+            }
+            if (accessState == SupportAccessState.phoneRequired) {
+              return SupportPhoneGate(
+                onAddPhone: () => _addPhoneNumber(context),
+              );
             }
             final uid = currentUserUid;
             return Center(
@@ -67,41 +116,6 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _SignedOutSupport extends StatelessWidget {
-  const _SignedOutSupport();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(spacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.lock_outline_rounded, size: 48, color: theme.primary),
-            SizedBox(height: spacing.md),
-            Text(
-              supportText(context, 'signin'),
-              textAlign: TextAlign.center,
-              style: theme.bodyLarge,
-            ),
-            SizedBox(height: spacing.md),
-            OutlinedButton.icon(
-              onPressed: () => launchUrl(
-                Uri(scheme: 'mailto', path: 'contact@choloto.com'),
-              ),
-              icon: const Icon(Icons.email_outlined),
-              label: Text(supportText(context, 'emailFallback')),
-            ),
-          ],
         ),
       ),
     );

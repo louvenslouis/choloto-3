@@ -24,6 +24,20 @@ async function createTestUser(label, email = `${label}@compatibility.test`) {
   return {uid: body.localId, token: body.idToken, email};
 }
 
+async function createAnonymousTestUser() {
+  const response = await fetch(
+    `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`,
+    {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({returnSecureToken: true}),
+    },
+  );
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
+  return {uid: body.localId, token: body.idToken};
+}
+
 async function signInTestUser(email) {
   const response = await fetch(
     `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`,
@@ -161,6 +175,7 @@ const admin = await createTestUser('admin', 'sanonmaeva064@gmail.com');
 const owner = await createTestUser('owner');
 const other = await createTestUser('other');
 const legacy = await createTestUser('legacy');
+const anonymousGuest = await createAnonymousTestUser();
 const emailAccount = await createTestUser('email-owner');
 const emailOwner = await signInTestUser(emailAccount.email);
 assert.equal(emailOwner.uid, emailAccount.uid);
@@ -1173,6 +1188,16 @@ const firstSupportCommit = [
   },
 ];
 expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {},
+    updateMaskFields: ['phone_number'],
+  }),
+  200,
+  'owner removes phone before starting support conversation',
+);
+expectStatus(
   await firestoreCommit(firstSupportCommit),
   403,
   'unauthenticated support conversation creation',
@@ -1181,6 +1206,21 @@ expectStatus(
   await firestoreCommit(firstSupportCommit, {token: other.token}),
   403,
   'foreign support conversation creation',
+);
+expectStatus(
+  await firestoreCommit(firstSupportCommit, {token: owner.token}),
+  403,
+  'owner cannot start support conversation without phone',
+);
+expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {phone_number: stringValue('+50937000000')},
+    updateMaskFields: ['phone_number'],
+  }),
+  200,
+  'owner adds phone before starting support conversation',
 );
 expectStatus(
   await firestoreCommit(firstSupportCommit, {token: owner.token}),
@@ -1239,13 +1279,15 @@ function supportReplyCommit({
   role,
   text,
   senderUid = actor.uid,
+  conversationPath = supportConversationPath,
+  conversationName = supportConversationName,
 }) {
-  const messagePath = `${supportConversationPath}/messages/${messageId}`;
+  const messagePath = `${conversationPath}/messages/${messageId}`;
   return firestoreCommit(
     [
       {
         update: {
-          name: supportConversationName,
+          name: conversationName,
           fields: {
             status: stringValue('open'),
             last_message: stringValue(text),
@@ -1324,6 +1366,16 @@ expectStatus(
   'owner reads admin support reply',
 );
 expectStatus(
+  await firestoreRequest(`user/${owner.uid}`, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {},
+    updateMaskFields: ['phone_number'],
+  }),
+  200,
+  'owner removes phone after support conversation exists',
+);
+expectStatus(
   await supportReplyCommit({
     actor: owner,
     messageId: 'message-owner-second',
@@ -1331,7 +1383,136 @@ expectStatus(
     text: 'Merci. Je souhaite payer par MonCash.',
   }),
   200,
-  'owner continues support conversation after admin reply',
+  'released client continues existing support conversation without phone',
+);
+
+// A signed-out visitor receives a Firebase anonymous uid behind the scenes.
+// The real flow creates its private profile, requires a phone number, then
+// starts a conversation that remains unreadable to every other member.
+const guestProfilePath = `user/${anonymousGuest.uid}`;
+const guestConversationPath =
+  `support_conversations/${anonymousGuest.uid}`;
+const guestMessageId = 'message-anonymous-first';
+const guestMessagePath =
+  `${guestConversationPath}/messages/${guestMessageId}`;
+const guestConversationName =
+  `projects/${projectId}/databases/(default)/documents/${guestConversationPath}`;
+const guestMessageName =
+  `projects/${projectId}/databases/(default)/documents/${guestMessagePath}`;
+const guestConversationFields = {
+  user_uid: stringValue(anonymousGuest.uid),
+  topic: stringValue('subscription'),
+  status: stringValue('open'),
+  last_message: stringValue('Mwen bezwen èd pou abònman an.'),
+  last_message_id: stringValue(guestMessageId),
+  last_sender_role: stringValue('user'),
+};
+const guestMessageFields = {
+  sender_uid: stringValue(anonymousGuest.uid),
+  sender_role: stringValue('user'),
+  text: stringValue('Mwen bezwen èd pou abònman an.'),
+};
+const guestFirstCommit = [
+  {
+    update: {
+      name: guestConversationName,
+      fields: guestConversationFields,
+    },
+    updateTransforms: [
+      {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
+      {fieldPath: 'updated_at', setToServerValue: 'REQUEST_TIME'},
+    ],
+  },
+  {
+    update: {
+      name: guestMessageName,
+      fields: guestMessageFields,
+    },
+    updateTransforms: [
+      {fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME'},
+    ],
+  },
+];
+expectStatus(
+  await firestoreRequest(guestProfilePath, {token: anonymousGuest.token}),
+  404,
+  'anonymous guest reads missing own profile before creation',
+);
+expectStatus(
+  await firestoreRequest(guestProfilePath, {
+    method: 'PATCH',
+    token: anonymousGuest.token,
+    fields: {
+      uid: stringValue(anonymousGuest.uid),
+      onboarding_pending: boolValue(true),
+      created_time: timestampValue(),
+    },
+  }),
+  200,
+  'anonymous guest creates private profile',
+);
+expectStatus(
+  await firestoreRequest(guestConversationPath, {
+    token: anonymousGuest.token,
+  }),
+  404,
+  'anonymous guest reads missing own support conversation',
+);
+expectStatus(
+  await firestoreCommit(guestFirstCommit, {token: anonymousGuest.token}),
+  403,
+  'anonymous guest cannot start support without phone',
+);
+expectStatus(
+  await firestoreRequest(guestProfilePath, {
+    method: 'PATCH',
+    token: anonymousGuest.token,
+    fields: {phone_number: stringValue('+50938000000')},
+    updateMaskFields: ['phone_number'],
+  }),
+  200,
+  'anonymous guest adds required phone',
+);
+expectStatus(
+  await firestoreCommit(guestFirstCommit, {token: anonymousGuest.token}),
+  200,
+  'anonymous guest starts private support conversation',
+);
+expectStatus(
+  await firestoreRequest(guestMessagePath, {token: anonymousGuest.token}),
+  200,
+  'anonymous guest reads own support message',
+);
+expectStatus(
+  await firestoreRequest(guestConversationPath, {token: admin.token}),
+  200,
+  'admin reads anonymous guest support conversation',
+);
+const guestAdminReplyId = 'message-anonymous-admin-reply';
+expectStatus(
+  await supportReplyCommit({
+    actor: admin,
+    messageId: guestAdminReplyId,
+    role: 'admin',
+    text: 'Nou la pou ede w ak abònman an.',
+    conversationPath: guestConversationPath,
+    conversationName: guestConversationName,
+  }),
+  200,
+  'admin replies to anonymous guest support conversation',
+);
+expectStatus(
+  await firestoreRequest(
+    `${guestConversationPath}/messages/${guestAdminReplyId}`,
+    {token: anonymousGuest.token},
+  ),
+  200,
+  'anonymous guest reads admin support reply',
+);
+expectStatus(
+  await firestoreRequest(guestConversationPath, {token: other.token}),
+  403,
+  'other member cannot read anonymous guest support conversation',
 );
 expectStatus(
   await supportReplyCommit({

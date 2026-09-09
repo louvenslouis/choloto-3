@@ -44,7 +44,7 @@ final jwtTokenStream = FirebaseAuth.instance
     .asBroadcastStream();
 
 DocumentReference? get currentUserReference =>
-    loggedIn ? UserRecord.collection.doc(currentUser!.uid) : null;
+    hasFirebaseSession ? UserRecord.collection.doc(currentUser!.uid) : null;
 
 UserRecord? currentUserDocument;
 final authenticatedUserStream = FirebaseAuth.instance

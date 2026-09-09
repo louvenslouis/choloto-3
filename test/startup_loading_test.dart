@@ -3,11 +3,17 @@ import 'package:choloto/flutter_flow/nav/nav.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _TestAuthUser extends BaseAuthUser {
-  _TestAuthUser({required this.loggedIn, String? uid})
-      : _authUserInfo = AuthUserInfo(uid: uid);
+  _TestAuthUser({
+    required this.loggedIn,
+    this.isAnonymous = false,
+    String? uid,
+  }) : _authUserInfo = AuthUserInfo(uid: uid);
 
   @override
   final bool loggedIn;
+
+  @override
+  final bool isAnonymous;
 
   final AuthUserInfo _authUserInfo;
 
@@ -56,5 +62,35 @@ void main() {
     expect(notifier.loading, isFalse);
     expect(notifier.loggedIn, isFalse);
     expect(notifier.initiallyLoggedIn, isFalse);
+  });
+
+  test('anonymous support session does not unlock the member application', () {
+    final notifier = AppStateNotifier.createForTesting();
+
+    notifier.update(
+      _TestAuthUser(
+        loggedIn: true,
+        isAnonymous: true,
+        uid: 'anonymous-support-guest',
+      ),
+    );
+
+    expect(notifier.loading, isFalse);
+    expect(notifier.loggedIn, isFalse);
+    expect(notifier.initiallyLoggedIn, isFalse);
+  });
+
+  test('anonymous support identity remains a private Firebase session', () {
+    final previousUser = currentUser;
+    addTearDown(() => currentUser = previousUser);
+    currentUser = _TestAuthUser(
+      loggedIn: true,
+      isAnonymous: true,
+      uid: 'anonymous-support-guest',
+    );
+
+    expect(hasFirebaseSession, isTrue);
+    expect(currentUserIsAnonymous, isTrue);
+    expect(loggedIn, isFalse);
   });
 }

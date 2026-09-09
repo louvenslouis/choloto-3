@@ -2,6 +2,8 @@ import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/support/subscription_support_card.dart';
 import 'package:choloto/support/support_chat_view.dart';
 import 'package:choloto/support/support_conversation.dart';
+import 'package:choloto/support/support_phone_gate.dart';
+import 'package:choloto/support/support_phone_requirement.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,6 +29,86 @@ Widget localizedApp({
     );
 
 void main() {
+  test('support access requires a valid profile phone number', () {
+    expect(
+      resolveSupportAccess(
+        hasAuthenticatedSession: false,
+        userUid: '',
+        profilePhoneNumber: null,
+      ),
+      SupportAccessState.signedOut,
+    );
+    expect(
+      resolveSupportAccess(
+        hasAuthenticatedSession: true,
+        userUid: 'member',
+        profilePhoneNumber: '',
+      ),
+      SupportAccessState.phoneRequired,
+    );
+    expect(
+      resolveSupportAccess(
+        hasAuthenticatedSession: true,
+        userUid: 'member',
+        profilePhoneNumber: '123',
+      ),
+      SupportAccessState.phoneRequired,
+    );
+    expect(
+      resolveSupportAccess(
+        hasAuthenticatedSession: true,
+        userUid: 'member',
+        profilePhoneNumber: '+509 37 00 00 00',
+      ),
+      SupportAccessState.ready,
+    );
+  });
+
+  const phoneActions = {
+    'fr': 'Ajouter mon numéro',
+    'en': 'Add my phone number',
+    'cr': 'Ajoute nimewo mwen',
+  };
+  for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
+    for (final variant in const [
+      (320.0, Brightness.dark),
+      (1280.0, Brightness.light),
+    ]) {
+      testWidgets(
+        'phone gate fits ${locale.languageCode} at ${variant.$1.toInt()} px',
+        (tester) async {
+          tester.view.physicalSize = Size(variant.$1, 720);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          var opened = false;
+
+          await tester.pumpWidget(
+            localizedApp(
+              locale: locale,
+              brightness: variant.$2,
+              child: SupportPhoneGate(
+                onAddPhone: () async {
+                  opened = true;
+                },
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(find.byKey(const ValueKey('support-phone-gate')), findsOne);
+          expect(find.text(phoneActions[locale.languageCode]!), findsOneWidget);
+          await tester.tap(
+            find.byKey(const ValueKey('support-add-phone-button')),
+          );
+          await tester.pump();
+          expect(opened, isTrue);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final brightness in Brightness.values) {
       testWidgets(

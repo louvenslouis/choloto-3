@@ -16,6 +16,7 @@ class AuthUserInfo {
 
 abstract class BaseAuthUser {
   bool get loggedIn;
+  bool get isAnonymous => false;
   bool get emailVerified;
 
   AuthUserInfo get authUserInfo;
@@ -34,4 +35,7 @@ abstract class BaseAuthUser {
 }
 
 BaseAuthUser? currentUser;
-bool get loggedIn => currentUser?.loggedIn ?? false;
+bool get hasFirebaseSession => currentUser?.loggedIn ?? false;
+bool get currentUserIsAnonymous =>
+    hasFirebaseSession && (currentUser?.isAnonymous ?? false);
+bool get loggedIn => hasFirebaseSession && !currentUserIsAnonymous;

@@ -73,5 +73,20 @@ const _supportLabels = <String, List<String>>{
     'Sign in to chat with customer support in the app.',
     'Konekte pou pale ak sèvis kliyan nan aplikasyon an.'
   ],
+  'phoneRequiredTitle': [
+    'Ajoutez votre numéro de téléphone',
+    'Add your phone number',
+    'Ajoute nimewo telefòn ou'
+  ],
+  'phoneRequiredBody': [
+    'Un numéro de téléphone est obligatoire avant de commencer une conversation avec le service client.',
+    'A phone number is required before starting a conversation with customer support.',
+    'Yon nimewo telefòn obligatwa anvan ou kòmanse pale ak sèvis kliyan an.'
+  ],
+  'phoneRequiredAction': [
+    'Ajouter mon numéro',
+    'Add my phone number',
+    'Ajoute nimewo mwen'
+  ],
   'emailFallback': ['Écrire par e-mail', 'Write by email', 'Ekri pa imèl'],
 };

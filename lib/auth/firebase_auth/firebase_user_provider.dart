@@ -11,7 +11,10 @@ export '../base_auth_user_provider.dart';
 class CholotoFirebaseUser extends BaseAuthUser {
   CholotoFirebaseUser(this.user);
   User? user;
+  @override
   bool get loggedIn => user != null;
+  @override
+  bool get isAnonymous => user?.isAnonymous ?? false;
 
   @override
   AuthUserInfo get authUserInfo => AuthUserInfo(

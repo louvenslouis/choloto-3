@@ -7,7 +7,10 @@ void main() {
   test('first message reads absence/profile and writes one atomic conversation',
       () async {
     final db = MemoryFirestore();
-    db.rows['user/member'] = {'email': 'member@example.test'};
+    db.rows['user/member'] = {
+      'email': 'member@example.test',
+      'phone_number': '+50937000000',
+    };
     final repository = SupportConversationRepository(firestore: db);
 
     await repository.sendUserMessage(
@@ -99,6 +102,20 @@ void main() {
     );
     expect(db.rows, isEmpty);
 
+    db.rows['user/member'] = {'email': 'member@example.test'};
+    await expectLater(
+      repository.sendUserMessage(
+          userUid: 'member', text: 'Bonjour', messageId: 'm1'),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          'support-phone-required',
+        ),
+      ),
+    );
+    expect(db.rows.keys, ['user/member']);
+
     await expectLater(
       repository.sendUserMessage(userUid: 'member', text: ' ', messageId: 'm1'),
       throwsArgumentError,
@@ -109,6 +126,9 @@ void main() {
           userUid: 'member', text: 'Bonjour', messageId: 'm2'),
       throwsStateError,
     );
-    expect(db.rows.keys, ['support_conversations/member']);
+    expect(
+      db.rows.keys.toSet(),
+      {'user/member', 'support_conversations/member'},
+    );
   });
 }
