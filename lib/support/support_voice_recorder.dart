@@ -39,7 +39,11 @@ class DeviceSupportVoiceRecorder implements SupportVoiceRecorder {
       await _recorder.cancel();
       return;
     }
-    void failed(Object error) { _streamError = error; onLimit(); }
+    void failed(Object error) {
+      _streamError = error;
+      onLimit();
+    }
+
     _states = _recorder.onStateChanged().listen((state) {
       if (state == RecordState.pause || state == RecordState.stop) onLimit();
     }, onError: failed);
@@ -61,7 +65,8 @@ class DeviceSupportVoiceRecorder implements SupportVoiceRecorder {
     _subscription = null;
     await _states?.cancel();
     _states = null;
-    if (_streamError != null) throw const FormatException('support-recording-interrupted');
+    if (_streamError != null)
+      throw const FormatException('support-recording-interrupted');
     return SupportAudio.fromPcm(_pcm.takeBytes());
   }
 

@@ -145,3 +145,6 @@ const _supportLabels = <String, List<String>>{
   'phoneMessageLabel': ['Téléphone', 'Phone', 'Telefòn'],
   'emailFallback': ['Écrire par e-mail', 'Write by email', 'Ekri pa imèl'],
 };
+
+bool isSupportAudioPlaceholder(String text) =>
+    _supportLabels['audioMessage']!.contains(text);

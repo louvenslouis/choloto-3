@@ -11,7 +11,10 @@ import 'support_text.dart';
 /// One active player across the chat, including the unsent preview.
 class SupportAudioPlayer extends StatefulWidget {
   const SupportAudioPlayer(
-      {super.key, required this.load, this.onPrimary = false, this.playerFactory});
+      {super.key,
+      required this.load,
+      this.onPrimary = false,
+      this.playerFactory});
 
   final Future<SupportAudio> Function() load;
   final bool onPrimary;
@@ -160,6 +163,7 @@ class _SupportAudioPlayerState extends State<SupportAudioPlayer>
                 ))
           else
             Tooltip(
+                excludeFromSemantics: true,
                 message: label,
                 child: Semantics(
                   button: true,

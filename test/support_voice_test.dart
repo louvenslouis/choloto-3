@@ -43,16 +43,33 @@ class FakeAudioPlayer extends Fake implements AudioPlayer {
   final positions = StreamController<Duration>.broadcast();
   final completions = StreamController<void>.broadcast();
   int plays = 0, pauses = 0, disposals = 0;
-  @override Stream<Duration> get onPositionChanged => positions.stream;
-  @override Stream<void> get onPlayerComplete => completions.stream;
-  @override Stream<AudioEvent> get eventStream => const Stream.empty();
-  @override Future<void> play(Source source, {double? volume, double? balance, AudioContext? ctx, Duration? position, PlayerMode? mode}) async {
+  @override
+  Stream<Duration> get onPositionChanged => positions.stream;
+  @override
+  Stream<void> get onPlayerComplete => completions.stream;
+  @override
+  Stream<AudioEvent> get eventStream => const Stream.empty();
+  @override
+  Future<void> play(Source source,
+      {double? volume,
+      double? balance,
+      AudioContext? ctx,
+      Duration? position,
+      PlayerMode? mode}) async {
     expect(source, isA<BytesSource>());
     expect((source as BytesSource).mimeType, 'audio/wav');
     plays++;
   }
-  @override Future<void> pause() async { pauses++; }
-  @override Future<void> dispose() async { disposals++; }
+
+  @override
+  Future<void> pause() async {
+    pauses++;
+  }
+
+  @override
+  Future<void> dispose() async {
+    disposals++;
+  }
 }
 
 void main() {
@@ -240,27 +257,48 @@ void main() {
     await tester.pumpAndSettle();
     expect(loads, 2);
   });
-  testWidgets('play/pause, progress, completion and single active audio', (tester) async {
+  testWidgets('play/pause, progress, completion and single active audio',
+      (tester) async {
     final first = FakeAudioPlayer(), second = FakeAudioPlayer();
     final audio = SupportAudio.fromPcm(Uint8List(16000));
-    await tester.pumpWidget(localizedApp(locale: const Locale('fr'), brightness: Brightness.dark, child: Column(children: [
-      SupportAudioPlayer(load: () async => audio, playerFactory: () => first),
-      SupportAudioPlayer(load: () async => audio, playerFactory: () => second),
-    ])));
+    await tester.pumpWidget(localizedApp(
+        locale: const Locale('fr'),
+        brightness: Brightness.dark,
+        child: Column(children: [
+          SupportAudioPlayer(
+              load: () async => audio, playerFactory: () => first),
+          SupportAudioPlayer(
+              load: () async => audio, playerFactory: () => second),
+        ])));
     final buttons = find.byKey(const ValueKey('support-audio-play'));
-    await tester.tap(buttons.at(0)); await tester.pumpAndSettle();
+    await tester.tap(buttons.at(0));
+    await tester.pumpAndSettle();
     expect(first.plays, 1);
-    first.positions.add(const Duration(milliseconds: 500)); await tester.pump(); await tester.pump();
-    expect(tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator).first).value, .5);
-    await tester.tap(buttons.at(1)); await tester.pumpAndSettle();
-    expect(first.pauses, 1); expect(second.plays, 1);
-    await tester.tap(buttons.at(1)); await tester.pumpAndSettle();
+    first.positions.add(const Duration(milliseconds: 500));
+    await tester.pump();
+    await tester.pump();
+    expect(
+        tester
+            .widget<LinearProgressIndicator>(
+                find.byType(LinearProgressIndicator).first)
+            .value,
+        .5);
+    await tester.tap(buttons.at(1));
+    await tester.pumpAndSettle();
+    expect(first.pauses, 1);
+    expect(second.plays, 1);
+    await tester.tap(buttons.at(1));
+    await tester.pumpAndSettle();
     expect(second.pauses, 1);
-    await tester.tap(buttons.at(1)); await tester.pumpAndSettle();
-    second.completions.add(null); await tester.pump(); await tester.pump();
+    await tester.tap(buttons.at(1));
+    await tester.pumpAndSettle();
+    second.completions.add(null);
+    await tester.pump();
+    await tester.pump();
     expect(find.byIcon(Icons.pause_rounded), findsNothing);
-    await tester.pumpWidget(const SizedBox()); await tester.pump();
-    expect(first.disposals, 1); expect(second.disposals, 1);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+    expect(first.disposals, 1);
+    expect(second.disposals, 1);
   });
-
 }

@@ -176,7 +176,8 @@ class SupportConversationRepository {
                 (image != null &&
                     data?['attachment_type'] == 'image' &&
                     existingImage?.data()?['base64'] == base64Encode(image))) &&
-            (audio != null || conversation.data()?['last_message_id'] == resolvedMessageId)) {
+            (audio != null ||
+                conversation.data()?['last_message_id'] == resolvedMessageId)) {
           return;
         }
         throw StateError('support-message-id');
@@ -283,7 +284,8 @@ class SupportConversationRepository {
                 (image != null &&
                     data?['attachment_type'] == 'image' &&
                     existingImage?.data()?['base64'] == base64Encode(image))) &&
-            (audio != null || conversation.data()?['last_message_id'] == resolvedMessageId)) {
+            (audio != null ||
+                conversation.data()?['last_message_id'] == resolvedMessageId)) {
           return;
         }
         throw StateError('support-message-id');

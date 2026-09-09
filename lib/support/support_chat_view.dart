@@ -88,7 +88,9 @@ class _SupportChatViewState extends State<SupportChatView>
       await _recorder!.start(() => unawaited(_finishVoice()));
       if (!mounted) return;
       final lifecycle = WidgetsBinding.instance.lifecycleState;
-      if (lifecycle == AppLifecycleState.hidden || lifecycle == AppLifecycleState.paused || lifecycle == AppLifecycleState.detached) {
+      if (lifecycle == AppLifecycleState.hidden ||
+          lifecycle == AppLifecycleState.paused ||
+          lifecycle == AppLifecycleState.detached) {
         await _recorder!.cancel();
         return;
       }
@@ -371,12 +373,12 @@ class _SupportChatViewState extends State<SupportChatView>
                 ),
                 itemCount: messages.length,
                 itemBuilder: (context, index) => IgnorePointer(
-                  ignoring: _recording || _voiceBusy,
-                  child: _MessageBubble(
-                  message: messages[index],
-                  loadImage: widget.loadImage,
-                  loadAudio: widget.loadAudio,
-                )),
+                    ignoring: _recording || _voiceBusy,
+                    child: _MessageBubble(
+                      message: messages[index],
+                      loadImage: widget.loadImage,
+                      loadAudio: widget.loadAudio,
+                    )),
               );
             },
           ),
@@ -574,6 +576,7 @@ class _SupportChatViewState extends State<SupportChatView>
                       SizedBox(width: tokens.spacing.sm),
                       if (widget.onSendAudio != null)
                         Tooltip(
+                            excludeFromSemantics: true,
                             message: supportText(context, 'recordAudio'),
                             child: Semantics(
                                 button: true,
@@ -705,12 +708,13 @@ class _MessageBubble extends StatelessWidget {
               ),
               SizedBox(height: tokens.spacing.sm),
             ],
-            Text(
-              message.text,
-              style: theme.bodyLarge.override(
-                color: fromAdmin ? theme.primaryText : theme.onPrimary,
+            if (!message.hasAudio || !isSupportAudioPlaceholder(message.text))
+              Text(
+                message.text,
+                style: theme.bodyLarge.override(
+                  color: fromAdmin ? theme.primaryText : theme.onPrimary,
+                ),
               ),
-            ),
             if (time.isNotEmpty) ...[
               SizedBox(height: tokens.spacing.xs),
               Text(
