@@ -36,7 +36,10 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   late HomeModel _model;
 
   StreamSubscription<UserRecord?>? _subscriptionReminderSubscription;
+  StreamSubscription<List<BingoRecord>>? _bingoStoriesSubscription;
   Timer? _subscriptionExpirationTimer;
+  Timer? _bingoExpirationTimer;
+  List<BingoRecord> _bingoRecords = const [];
   DateTime? _latestSubscriptionExpiration;
   bool _homeDialogsReady = false;
   bool _subscriptionReminderHandled = false;
@@ -70,75 +73,17 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
 
     logFirebaseEvent('screen_view', parameters: {'screen_name': 'Home'});
     // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      logFirebaseEvent('HOME_PAGE_Home_ON_INIT_STATE');
-      // bingo requette
-      logFirebaseEvent('Home_bingorequette');
-      final bingoRecords = await queryBingoRecordOnce(
-        queryBuilder: (bingoRecord) =>
-            bingoRecord.orderBy('date', descending: true),
-      );
-      _model.bingooutput = bingoRecords.firstOrNull;
-      _model.bingoStories = bingoRecords
-          .where(
-            (record) => isBingoActive(
-              bingoDate: record.date,
-              expiration: record.expiration,
-              now: getCurrentTimestamp,
-            ),
-          )
-          .toList(growable: false);
-      if (!mounted) {
-        return;
-      }
-      if (_model.bingooutput?.hasDate() ?? false) {
-        if (FFAppState().bingo.date != _model.bingooutput?.date) {
-          logFirebaseEvent('Home_update_app_state');
-          FFAppState().updateBingoStruct(
-            (e) => e
-              ..date = _model.bingooutput?.date
-              ..vue = false
-              ..doc = _model.bingooutput?.reference
-              ..gagner = null
-              ..refGain = null
-              ..dataStack = _model.bingooutput!.dataStack.toList()
-              ..expiration = _model.bingooutput?.expiration,
-          );
-          safeSetState(() {});
-        }
-        if ((FFAppState().bingo.vue == false) &&
-            (_model.bingooutput?.hasExpiration() ?? false) &&
-            (_model.bingooutput!.expiration! >= getCurrentTimestamp)) {
-          logFirebaseEvent('Home_alert_dialog');
-          await showBingoDialog(
-            context: context,
-            bingos: _model.bingoStories,
-          );
-
-          logFirebaseEvent('Home_update_app_state');
-          FFAppState().updateBingoStruct(
-            (e) => e..vue = true,
-          );
-          safeSetState(() {});
-        }
-      } else {
-        logFirebaseEvent('Home_update_app_state');
-        FFAppState().bingo = BingoStruct();
-        safeSetState(() {});
-      }
-
-      _homeDialogsReady = true;
-      await _maybeShowSubscriptionExpirationReminder();
-      if (!mounted) {
-        return;
-      }
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      unawaited(_initializeBingoStories());
     });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _bingoExpirationTimer?.cancel();
     _subscriptionExpirationTimer?.cancel();
+    unawaited(_bingoStoriesSubscription?.cancel());
     unawaited(_subscriptionReminderSubscription?.cancel());
     _model.dispose();
 
@@ -149,8 +94,123 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(recordDailyEngagement(userReference: currentUserReference));
+      unawaited(_loadYoutubeStories());
       safeSetState(() {});
     }
+  }
+
+  Future<void> _initializeBingoStories() async {
+    logFirebaseEvent('HOME_PAGE_Home_ON_INIT_STATE');
+    logFirebaseEvent('Home_bingorequette');
+    try {
+      final records = await queryBingoRecordOnce(
+        queryBuilder: (bingoRecord) =>
+            bingoRecord.orderBy('date', descending: true),
+      );
+      await _applyBingoRecords(records, showAutomaticDialog: true);
+    } catch (error) {
+      debugPrint('Bingo story feed error: $error');
+    } finally {
+      if (mounted) {
+        _homeDialogsReady = true;
+        await _maybeShowSubscriptionExpirationReminder();
+        if (mounted) _subscribeToBingoStories();
+      }
+    }
+  }
+
+  void _subscribeToBingoStories() {
+    if (_bingoStoriesSubscription != null) return;
+    _bingoStoriesSubscription = queryBingoRecord(
+      queryBuilder: (bingoRecord) =>
+          bingoRecord.orderBy('date', descending: true),
+    ).listen(
+      (records) => unawaited(_applyBingoRecords(records)),
+      onError: (Object error) {
+        debugPrint('Bingo story stream error: $error');
+      },
+    );
+  }
+
+  Future<void> _applyBingoRecords(
+    List<BingoRecord> records, {
+    bool showAutomaticDialog = false,
+  }) async {
+    if (!mounted) return;
+    final now = getCurrentTimestamp;
+    _bingoRecords = List.unmodifiable(records);
+    _model.bingooutput = records.firstOrNull;
+    _model.bingoStories = _activeBingoRecords(now);
+    _scheduleBingoExpirationRefresh(now);
+
+    final latest = _model.bingooutput;
+    if (latest?.hasDate() ?? false) {
+      if (FFAppState().bingo.date != latest?.date) {
+        logFirebaseEvent('Home_update_app_state');
+        FFAppState().updateBingoStruct(
+          (bingo) => bingo
+            ..date = latest?.date
+            ..vue = false
+            ..doc = latest?.reference
+            ..gagner = null
+            ..refGain = null
+            ..dataStack = latest!.dataStack.toList()
+            ..expiration = latest.expiration,
+        );
+      }
+    } else if (FFAppState().bingo.hasDate()) {
+      logFirebaseEvent('Home_update_app_state');
+      FFAppState().bingo = BingoStruct();
+    }
+    safeSetState(() {});
+
+    final latestIsActive = latest != null &&
+        _model.bingoStories
+            .any((record) => record.reference == latest.reference);
+    if (!showAutomaticDialog ||
+        !latestIsActive ||
+        FFAppState().bingo.vue ||
+        !mounted) {
+      return;
+    }
+
+    logFirebaseEvent('Home_alert_dialog');
+    await showBingoDialog(context: context, bingos: _model.bingoStories);
+    if (!mounted) return;
+    logFirebaseEvent('Home_update_app_state');
+    FFAppState().updateBingoStruct((bingo) => bingo..vue = true);
+    safeSetState(() {});
+  }
+
+  List<BingoRecord> _activeBingoRecords(DateTime now) => _bingoRecords
+      .where(
+        (record) => isBingoActive(
+          bingoDate: record.date,
+          expiration: record.expiration,
+          now: now,
+        ),
+      )
+      .toList(growable: false);
+
+  void _scheduleBingoExpirationRefresh(DateTime now) {
+    _bingoExpirationTimer?.cancel();
+    final nextExpiration = _bingoRecords
+        .map((record) => record.expiration)
+        .whereType<DateTime>()
+        .where((expiration) => !expiration.isBefore(now))
+        .minOrNull;
+    if (nextExpiration == null) return;
+
+    _bingoExpirationTimer = Timer(
+      nextExpiration.difference(now) + const Duration(milliseconds: 1),
+      () {
+        if (!mounted) return;
+        final refreshedAt = getCurrentTimestamp;
+        _model.bingoStories = _activeBingoRecords(refreshedAt);
+        _scheduleBingoExpirationRefresh(refreshedAt);
+        safeSetState(() {});
+      },
+    );
   }
 
   void _updateSubscriptionExpiration(
@@ -237,18 +297,16 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       });
     }
     try {
-      final videos = await loadYoutubeVideos(
+      final videos = await loadYoutubeStoryVideos(
         fallbackTitle: FFLocalizations.of(context).getText('ytfallback'),
+        now: getCurrentTimestamp,
       );
       if (!mounted) {
         return;
       }
 
       safeSetState(() {
-        _model.youtubeStories = youtubeVideosPublishedWithin(
-          videos,
-          now: getCurrentTimestamp,
-        );
+        _model.youtubeStories = videos;
         _youtubeStoriesLoading = false;
         _youtubeStoriesLoadFailed = false;
       });
@@ -274,19 +332,13 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       }
 
       _model.beta = beta;
-      if (beta?.betaFeatures.stories != FFAppState().betaFeatures.stories) {
+      if (beta?.betaFeatures != FFAppState().betaFeatures) {
         logFirebaseEvent('Home_betaFeatures');
         FFAppState().betaFeatures = BetaFeaturesStruct(
           stories: valueOrDefault<bool>(
             beta?.betaFeatures.stories,
             false,
           ),
-        );
-        safeSetState(() {});
-      } else if (beta?.betaFeatures.statsBingo !=
-          FFAppState().betaFeatures.statsBingo) {
-        logFirebaseEvent('Home_betaFeatures');
-        FFAppState().betaFeatures = BetaFeaturesStruct(
           statsBingo: valueOrDefault<bool>(
             beta?.betaFeatures.statsBingo,
             false,
@@ -304,7 +356,6 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         _youtubeStoriesLoadFailed ||
         _model.youtubeStories.isNotEmpty ||
         isBingoStoryCollectionAvailable(
-          viewed: FFAppState().bingo.vue,
           activeStoryCount: _model.bingoStories.length,
         ))) {
       return null;
@@ -315,7 +366,6 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       onRetry: () => unawaited(_loadYoutubeStories()),
       stories: [
         if (isBingoStoryCollectionAvailable(
-          viewed: FFAppState().bingo.vue,
           activeStoryCount: _model.bingoStories.length,
         ))
           BingoStoryButton(

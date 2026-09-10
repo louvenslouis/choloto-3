@@ -25,10 +25,9 @@ bool isBingoActive({
 }
 
 bool isBingoStoryCollectionAvailable({
-  required bool viewed,
   required int activeStoryCount,
 }) =>
-    viewed && activeStoryCount > 0;
+    activeStoryCount > 0;
 
 class BingoStoryButton extends StatelessWidget {
   const BingoStoryButton({

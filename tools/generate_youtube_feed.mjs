@@ -1,7 +1,10 @@
 import {readFile, writeFile} from "node:fs/promises";
+import {pathToFileURL} from "node:url";
 
 const channelId = "UC6N0qcctRmlaUEYdzhR0-Hw";
 const channelUrl = `https://www.youtube.com/channel/${channelId}/videos`;
+const channelFeedUrl =
+  `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
 const outputPath = process.argv[2] || "web/youtube-feed.json";
 const maxVideos = 24;
 
@@ -79,6 +82,46 @@ function videoItem(videoId, title, pubDate) {
   };
 }
 
+function decodeXmlText(value) {
+  return value
+    .replace(/^<!\[CDATA\[|\]\]>$/g, "")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\da-f]+);/gi, (_, code) =>
+      String.fromCodePoint(Number.parseInt(code, 16)),
+    )
+    .replaceAll("&quot;", '"')
+    .replaceAll("&apos;", "'")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&amp;", "&");
+}
+
+function xmlElement(source, elementName) {
+  const escapedName = elementName.replace(":", "\\:");
+  const match = source.match(
+    new RegExp(`<${escapedName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${escapedName}>`),
+  );
+  return match ? decodeXmlText(match[1].trim()) : "";
+}
+
+export function parseYoutubeAtomFeed(xml) {
+  const entries = xml.match(/<entry\b[\s\S]*?<\/entry>/g) || [];
+  const items = entries
+    .map((entry) =>
+      videoItem(
+        xmlElement(entry, "yt:videoId"),
+        xmlElement(entry, "title"),
+        xmlElement(entry, "published"),
+      ),
+    )
+    .filter(Boolean)
+    .filter((item) => !Number.isNaN(Date.parse(item.pubDate)))
+    .slice(0, maxVideos);
+
+  if (items.length === 0) throw new Error("No Atom feed videos were found.");
+  return items;
+}
+
 function fromLockup(model, now) {
   const metadata = model.metadata?.lockupMetadataViewModel;
   const videoId = model.rendererContext?.commandContext?.onTap
@@ -146,18 +189,42 @@ export function parseYoutubeVideos(html, now = new Date()) {
 }
 
 async function generateFeed() {
-  const response = await fetch(channelUrl, {
-    headers: {
-      Accept: "text/html,application/xhtml+xml",
-      "Accept-Language": "en-US,en;q=0.9",
-      "User-Agent":
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 " +
-        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    },
-  });
-  if (!response.ok) throw new Error(`YouTube returned HTTP ${response.status}.`);
+  let items;
+  let feedError;
+  try {
+    const feedResponse = await fetch(channelFeedUrl, {
+      headers: {Accept: "application/atom+xml,application/xml"},
+    });
+    if (!feedResponse.ok) {
+      throw new Error(`YouTube feed returned HTTP ${feedResponse.status}.`);
+    }
+    items = parseYoutubeAtomFeed(await feedResponse.text());
+  } catch (error) {
+    feedError = error;
+  }
 
-  const items = parseYoutubeVideos(await response.text());
+  if (!items) {
+    try {
+      const response = await fetch(channelUrl, {
+        headers: {
+          Accept: "text/html,application/xhtml+xml",
+          "Accept-Language": "en-US,en;q=0.9",
+          "User-Agent":
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 " +
+            "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`YouTube returned HTTP ${response.status}.`);
+      }
+      items = parseYoutubeVideos(await response.text());
+    } catch (htmlError) {
+      throw new Error(
+        `Atom feed failed (${feedError}); HTML fallback failed (${htmlError}).`,
+      );
+    }
+  }
+
   await writeFile(
     outputPath,
     `${JSON.stringify({items, updatedAt: new Date().toISOString()}, null, 2)}\n`,
@@ -165,13 +232,20 @@ async function generateFeed() {
   console.log(`Wrote ${items.length} videos to ${outputPath}.`);
 }
 
-try {
-  await generateFeed();
-} catch (error) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   try {
-    JSON.parse(await readFile(outputPath, "utf8"));
-    console.warn(`Feed refresh failed; keeping ${outputPath}: ${error.message}`);
-  } catch (_) {
-    throw error;
+    await generateFeed();
+  } catch (error) {
+    try {
+      JSON.parse(await readFile(outputPath, "utf8"));
+      console.warn(
+        `Feed refresh failed; keeping ${outputPath}: ${error.message}`,
+      );
+    } catch (_) {
+      throw error;
+    }
   }
 }

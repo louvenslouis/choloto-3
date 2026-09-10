@@ -106,7 +106,8 @@ void main() {
     expect(scheduledCallbacks, isEmpty);
   });
 
-  test('the Bingo story is available only after viewing an active Bingo', () {
+  test('Bingo visibility follows active content without hiding unviewed items',
+      () {
     final now = DateTime(2026, 8, 21, 12);
     final activeExpiration = now.add(const Duration(hours: 1));
 
@@ -121,14 +122,13 @@ void main() {
     );
     expect(
       isBingoStoryCollectionAvailable(
-        viewed: true,
         activeStoryCount: 3,
       ),
       isTrue,
+      reason: 'an unviewed active story must stay discoverable',
     );
     expect(
       isBingoStoryCollectionAvailable(
-        viewed: true,
         activeStoryCount: 0,
       ),
       isFalse,

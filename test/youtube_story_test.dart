@@ -22,6 +22,21 @@ YoutubeItemStruct _video({
   );
 }
 
+class _MemoryYoutubeStoryCache implements YoutubeStoryCacheStore {
+  _MemoryYoutubeStoryCache([List<YoutubeItemStruct>? videos])
+      : videos = videos ?? [];
+
+  List<YoutubeItemStruct> videos;
+
+  @override
+  Future<List<YoutubeItemStruct>> read() async => videos;
+
+  @override
+  Future<void> write(List<YoutubeItemStruct> videos) async {
+    this.videos = List.of(videos);
+  }
+}
+
 Widget _app({
   required Locale locale,
   required ThemeMode themeMode,
@@ -85,6 +100,75 @@ void main() {
     expect(
       result.map((video) => video.title),
       ['Most recent', 'Less recent', 'Boundary'],
+    );
+  });
+
+  test('a stale public feed falls back to current Firestore stories', () async {
+    final now = DateTime.utc(2026, 9, 10, 12);
+    final stale = _video(
+      title: 'Stale public video',
+      publishedAt: now.subtract(const Duration(days: 2)),
+    );
+    final current = _video(
+      title: 'Current fallback video',
+      publishedAt: now.subtract(const Duration(minutes: 10)),
+    );
+    final cache = _MemoryYoutubeStoryCache();
+    var firestoreLoads = 0;
+
+    final result = await loadYoutubeStoryVideos(
+      fallbackTitle: 'Video',
+      now: now,
+      publicSource: () async => [stale],
+      firestoreSource: () async {
+        firestoreLoads += 1;
+        return [current];
+      },
+      cache: cache,
+    );
+
+    expect(result.map((video) => video.title), ['Current fallback video']);
+    expect(firestoreLoads, 1);
+    expect(cache.videos.map((video) => video.title), [
+      'Current fallback video',
+    ]);
+  });
+
+  test('a recent cache keeps stories visible during a transient outage',
+      () async {
+    final now = DateTime.utc(2026, 9, 10, 12);
+    final cached = _video(
+      title: 'Cached current video',
+      publishedAt: now.subtract(const Duration(hours: 2)),
+    );
+
+    final result = await loadYoutubeStoryVideos(
+      fallbackTitle: 'Video',
+      now: now,
+      publicSource: () async => throw StateError('offline'),
+      firestoreSource: () async => throw StateError('offline'),
+      cache: _MemoryYoutubeStoryCache([cached]),
+    );
+
+    expect(result.map((video) => video.title), ['Cached current video']);
+  });
+
+  test('an expired cache is never presented as an active story', () async {
+    final now = DateTime.utc(2026, 9, 10, 12);
+    final expired = _video(
+      title: 'Expired cached video',
+      publishedAt: now.subtract(const Duration(days: 2)),
+    );
+
+    await expectLater(
+      loadYoutubeStoryVideos(
+        fallbackTitle: 'Video',
+        now: now,
+        publicSource: () async => throw StateError('offline'),
+        firestoreSource: () async => const [],
+        cache: _MemoryYoutubeStoryCache([expired]),
+      ),
+      throwsA(isA<YoutubeFeedLoadException>()),
     );
   });
 
