@@ -14,10 +14,12 @@ import 'support/memory_firestore.dart';
 class FakeVoiceRecorder implements SupportVoiceRecorder {
   int starts = 0, stops = 0, cancels = 0, disposals = 0;
   bool denied = false;
+  void Function()? finishAtLimit;
   Completer<void>? startWait;
   @override
   Future<void> start(void Function() onLimit) async {
     starts++;
+    finishAtLimit = onLimit;
     if (denied) throw MicrophonePermissionDenied();
     await startWait?.future;
   }
@@ -300,5 +302,51 @@ void main() {
     await tester.pump();
     expect(first.disposals, 1);
     expect(second.disposals, 1);
+  });
+  testWidgets('automatic limit creates a draft without sending',
+      (tester) async {
+    final recorder = FakeVoiceRecorder();
+    var sent = false;
+    await mount(tester, recorder, send: (_, __) async {
+      sent = true;
+    });
+    await tester.tap(find.byKey(const ValueKey('support-record-audio')));
+    await tester.pump();
+    recorder.finishAtLimit!();
+    await tester.pumpAndSettle();
+    expect(recorder.stops, 1);
+    expect(find.byType(SupportAudioPlayer), findsOneWidget);
+    expect(sent, isFalse);
+  });
+
+  testWidgets('voice draft and optional phone fit above small-screen keyboard',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+    final recorder = FakeVoiceRecorder();
+    await tester.pumpWidget(localizedApp(
+        locale: const Locale('fr'),
+        brightness: Brightness.dark,
+        child: SupportChatView(
+          messages: Stream.value(const []),
+          onSend: (_, __) async {},
+          onSendAudio: (_, __) async {},
+          showOptionalPhoneOnFirstMessage: true,
+          recorderFactory: () => recorder,
+        )));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('support-record-audio')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('support-stop-recording')));
+    await tester.pumpAndSettle();
+    tester.view.viewInsets = const FakeViewPadding(bottom: 280);
+    await tester.enterText(find.byKey(const ValueKey('support-message-field')),
+        'Une longue question sur mon abonnement et les moyens de paiement disponibles.');
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('support-send-button')), findsOneWidget);
   });
 }

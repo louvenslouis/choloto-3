@@ -262,382 +262,388 @@ class _SupportChatViewState extends State<SupportChatView>
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
-    return Column(
-      children: [
-        if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
-            MediaQuery.sizeOf(context).height >= 500)
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              tokens.spacing.md,
-              tokens.spacing.sm,
-              tokens.spacing.md,
-              tokens.spacing.sm,
-            ),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(tokens.spacing.md),
-              decoration: BoxDecoration(
-                color: theme.secondaryBackground,
-                borderRadius: BorderRadius.circular(tokens.radius.md),
-                border:
-                    Border.all(color: theme.alternate.withValues(alpha: .35)),
+    return LayoutBuilder(builder: (context, constraints) {
+      return Column(
+        children: [
+          if (constraints.maxHeight >= 500)
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                tokens.spacing.md,
+                tokens.spacing.sm,
+                tokens.spacing.md,
+                tokens.spacing.sm,
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: theme.primary,
-                      borderRadius: BorderRadius.circular(tokens.radius.full),
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(tokens.spacing.md),
+                decoration: BoxDecoration(
+                  color: theme.secondaryBackground,
+                  borderRadius: BorderRadius.circular(tokens.radius.md),
+                  border:
+                      Border.all(color: theme.alternate.withValues(alpha: .35)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: theme.primary,
+                        borderRadius: BorderRadius.circular(tokens.radius.full),
+                      ),
+                      child: Icon(
+                        Icons.support_agent_rounded,
+                        color: theme.onPrimary,
+                        size: 24,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.support_agent_rounded,
-                      color: theme.onPrimary,
-                      size: 24,
+                    SizedBox(width: tokens.spacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(supportText(context, 'admin'),
+                              style: theme.titleMedium),
+                          SizedBox(height: tokens.spacing.xs),
+                          Text(supportText(context, 'intro'),
+                              style: theme.bodyMedium
+                                  .override(color: theme.secondaryText)),
+                          SizedBox(height: tokens.spacing.sm),
+                          Row(
+                            children: [
+                              Icon(Icons.schedule_rounded,
+                                  size: 16, color: theme.primary),
+                              SizedBox(width: tokens.spacing.xs),
+                              Expanded(
+                                child: Text(
+                                  supportText(context, 'responseTime'),
+                                  style: theme.labelMedium
+                                      .override(color: theme.secondaryText),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: StreamBuilder<List<SupportMessage>>(
+              stream: widget.messages,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return _SupportState(
+                    icon: Icons.cloud_off_rounded,
+                    title: supportText(context, 'error'),
+                  );
+                }
+                if (!snapshot.hasData) {
+                  return Center(
+                      child: CircularProgressIndicator(color: theme.primary));
+                }
+                final messages = snapshot.data!;
+                final hasMessages = messages.isNotEmpty;
+                if (hasMessages != _hasExistingMessages) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && hasMessages != _hasExistingMessages) {
+                      setState(() => _hasExistingMessages = hasMessages);
+                    }
+                  });
+                }
+                _scrollToLatest(messages.length);
+                if (messages.isEmpty) {
+                  return _SupportState(
+                    icon: Icons.forum_outlined,
+                    title: supportText(context, 'emptyTitle'),
+                    body: supportText(context, 'emptyBody'),
+                  );
+                }
+                return ListView.builder(
+                  key: const ValueKey('support-message-list'),
+                  controller: _scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    tokens.spacing.md,
+                    tokens.spacing.sm,
+                    tokens.spacing.md,
+                    tokens.spacing.md,
                   ),
-                  SizedBox(width: tokens.spacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) => IgnorePointer(
+                      ignoring: _recording || _voiceBusy,
+                      child: _MessageBubble(
+                        message: messages[index],
+                        loadImage: widget.loadImage,
+                        loadAudio: widget.loadAudio,
+                      )),
+                );
+              },
+            ),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.secondaryBackground,
+              border: Border(
+                top: BorderSide(color: theme.alternate.withValues(alpha: .35)),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.all(tokens.spacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_error != null)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: tokens.spacing.sm),
+                        child: Semantics(
+                          liveRegion: true,
+                          child: Text(_error!,
+                              style:
+                                  theme.bodySmall.override(color: theme.error)),
+                        ),
+                      ),
+                    if (_showOptionalPhone) ...[
+                      TextField(
+                        key: const ValueKey('support-optional-phone-field'),
+                        controller: _phoneController,
+                        enabled: !_sending && !_recording && !_voiceBusy,
+                        keyboardType: TextInputType.phone,
+                        maxLength: 32,
+                        style: theme.bodyLarge,
+                        decoration: InputDecoration(
+                          labelText: supportText(context, 'phoneOptionalLabel'),
+                          hintText: supportText(context, 'phoneOptionalHint'),
+                          counterText: '',
+                          filled: true,
+                          fillColor: theme.primaryBackground,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: tokens.spacing.md,
+                            vertical: tokens.spacing.sm,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(tokens.radius.md),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(tokens.radius.md),
+                            borderSide: BorderSide(
+                              color: theme.alternate.withValues(alpha: .45),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(tokens.radius.md),
+                            borderSide: BorderSide(color: theme.primary),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: tokens.spacing.sm),
+                    ],
+                    if (_recording) ...[
+                      Row(children: [
+                        Icon(Icons.mic_rounded, color: theme.error),
+                        SizedBox(width: tokens.spacing.sm),
+                        Expanded(
+                            child: Text(
+                                '${supportText(context, 'recording')} ${supportAudioTime(_recordingWatch.elapsed)} / 0:30',
+                                style: theme.bodyMedium)),
+                        IconButton(
+                            key: const ValueKey('support-cancel-recording'),
+                            tooltip: supportText(context, 'removeAudio'),
+                            onPressed: _voiceBusy
+                                ? null
+                                : () => _finishVoice(discard: true),
+                            icon: Icon(Icons.delete_outline_rounded,
+                                color: theme.primaryText)),
+                        IconButton(
+                            key: const ValueKey('support-stop-recording'),
+                            tooltip: supportText(context, 'stopAudio'),
+                            onPressed: _voiceBusy ? null : _finishVoice,
+                            icon: Icon(Icons.stop_circle_outlined,
+                                color: theme.primary)),
+                      ]),
+                      SizedBox(height: tokens.spacing.sm),
+                    ],
+                    if (_audio != null) ...[
+                      Row(children: [
+                        Expanded(
+                            child: IgnorePointer(
+                                ignoring: _sending,
+                                child: SupportAudioPlayer(
+                                    key: ObjectKey(_audio),
+                                    load: () async => _audio!))),
+                        IconButton(
+                            key: const ValueKey('support-remove-audio'),
+                            tooltip: supportText(context, 'removeAudio'),
+                            onPressed: _sending
+                                ? null
+                                : () => setState(() => _audio = null),
+                            icon: Icon(Icons.delete_outline_rounded,
+                                color: theme.primaryText)),
+                      ]),
+                      SizedBox(height: tokens.spacing.sm),
+                    ],
+                    if (_image != null) ...[
+                      _SelectedImagePreview(
+                        bytes: _image!,
+                        onRemove: _sending
+                            ? null
+                            : () => setState(() => _image = null),
+                      ),
+                      SizedBox(height: tokens.spacing.sm),
+                    ],
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(supportText(context, 'admin'),
-                            style: theme.titleMedium),
-                        SizedBox(height: tokens.spacing.xs),
-                        Text(supportText(context, 'intro'),
-                            style: theme.bodyMedium
-                                .override(color: theme.secondaryText)),
-                        SizedBox(height: tokens.spacing.sm),
-                        Row(
-                          children: [
-                            Icon(Icons.schedule_rounded,
-                                size: 16, color: theme.primary),
-                            SizedBox(width: tokens.spacing.xs),
-                            Expanded(
-                              child: Text(
-                                supportText(context, 'responseTime'),
-                                style: theme.labelMedium
-                                    .override(color: theme.secondaryText),
+                        Semantics(
+                          button: true,
+                          label: supportText(context, 'attachImage'),
+                          child: IconButton(
+                            key: const ValueKey('support-attach-image-button'),
+                            onPressed: _sending ||
+                                    _preparingImage ||
+                                    _recording ||
+                                    _voiceBusy ||
+                                    _audio != null
+                                ? null
+                                : _pickImage,
+                            tooltip: supportText(context, 'attachImage'),
+                            style: IconButton.styleFrom(
+                              foregroundColor: theme.primary,
+                              disabledForegroundColor:
+                                  theme.secondaryText.withValues(alpha: .45),
+                              minimumSize: const Size(48, 48),
+                            ),
+                            icon: _preparingImage
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: theme.primary,
+                                    ),
+                                  )
+                                : const Icon(Icons.attach_file_rounded),
+                          ),
+                        ),
+                        SizedBox(width: tokens.spacing.sm),
+                        Expanded(
+                          child: TextField(
+                            key: const ValueKey('support-message-field'),
+                            controller: _controller,
+                            enabled: !_sending && !_recording && !_voiceBusy,
+                            minLines: 1,
+                            maxLines: 4,
+                            maxLength: 1000,
+                            textCapitalization: TextCapitalization.sentences,
+                            style: theme.bodyLarge,
+                            decoration: InputDecoration(
+                              hintText: supportText(context, 'hint'),
+                              hintMaxLines: 1,
+                              hintStyle: theme.bodyMedium
+                                  .override(color: theme.secondaryText),
+                              counterText: '',
+                              filled: true,
+                              fillColor: theme.primaryBackground,
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: tokens.spacing.md,
+                                vertical: tokens.spacing.sm,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(tokens.radius.md),
+                                borderSide: BorderSide(
+                                  color: theme.alternate.withValues(alpha: .45),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(tokens.radius.md),
+                                borderSide: BorderSide(color: theme.primary),
+                              ),
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(tokens.radius.md),
+                                borderSide: BorderSide(
+                                  color: theme.alternate.withValues(alpha: .25),
+                                ),
                               ),
                             ),
-                          ],
+                            onSubmitted: (_) => _send(),
+                          ),
+                        ),
+                        SizedBox(width: tokens.spacing.sm),
+                        if (widget.onSendAudio != null)
+                          Tooltip(
+                              excludeFromSemantics: true,
+                              message: supportText(context, 'recordAudio'),
+                              child: Semantics(
+                                  button: true,
+                                  label: supportText(context, 'recordAudio'),
+                                  child: FlutterFlowIconButton(
+                                    key: const ValueKey('support-record-audio'),
+                                    buttonSize: 48,
+                                    borderRadius: tokens.radius.full,
+                                    icon: Icon(Icons.mic_none_rounded,
+                                        color: theme.primary),
+                                    disabledIconColor: theme.secondaryText
+                                        .withValues(alpha: .45),
+                                    onPressed: _sending ||
+                                            _recording ||
+                                            _voiceBusy ||
+                                            _preparingImage ||
+                                            _image != null ||
+                                            _audio != null
+                                        ? null
+                                        : _startVoice,
+                                  ))),
+                        Semantics(
+                          button: true,
+                          label: supportText(
+                              context, _sending ? 'sending' : 'send'),
+                          child: IconButton.filled(
+                            key: const ValueKey('support-send-button'),
+                            onPressed: _sending ||
+                                    _recording ||
+                                    _voiceBusy ||
+                                    _preparingImage
+                                ? null
+                                : _send,
+                            style: IconButton.styleFrom(
+                              backgroundColor: theme.primary,
+                              foregroundColor: theme.onPrimary,
+                              disabledBackgroundColor:
+                                  theme.primary.withValues(alpha: .45),
+                              minimumSize: const Size(48, 48),
+                            ),
+                            icon: _sending
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: theme.onPrimary,
+                                    ),
+                                  )
+                                : const Icon(Icons.send_rounded),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        Expanded(
-          child: StreamBuilder<List<SupportMessage>>(
-            stream: widget.messages,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return _SupportState(
-                  icon: Icons.cloud_off_rounded,
-                  title: supportText(context, 'error'),
-                );
-              }
-              if (!snapshot.hasData) {
-                return Center(
-                    child: CircularProgressIndicator(color: theme.primary));
-              }
-              final messages = snapshot.data!;
-              final hasMessages = messages.isNotEmpty;
-              if (hasMessages != _hasExistingMessages) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted && hasMessages != _hasExistingMessages) {
-                    setState(() => _hasExistingMessages = hasMessages);
-                  }
-                });
-              }
-              _scrollToLatest(messages.length);
-              if (messages.isEmpty) {
-                return _SupportState(
-                  icon: Icons.forum_outlined,
-                  title: supportText(context, 'emptyTitle'),
-                  body: supportText(context, 'emptyBody'),
-                );
-              }
-              return ListView.builder(
-                key: const ValueKey('support-message-list'),
-                controller: _scrollController,
-                padding: EdgeInsets.fromLTRB(
-                  tokens.spacing.md,
-                  tokens.spacing.sm,
-                  tokens.spacing.md,
-                  tokens.spacing.md,
+                  ],
                 ),
-                itemCount: messages.length,
-                itemBuilder: (context, index) => IgnorePointer(
-                    ignoring: _recording || _voiceBusy,
-                    child: _MessageBubble(
-                      message: messages[index],
-                      loadImage: widget.loadImage,
-                      loadAudio: widget.loadAudio,
-                    )),
-              );
-            },
-          ),
-        ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: theme.secondaryBackground,
-            border: Border(
-              top: BorderSide(color: theme.alternate.withValues(alpha: .35)),
-            ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: EdgeInsets.all(tokens.spacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (_error != null)
-                    Padding(
-                      padding: EdgeInsets.only(bottom: tokens.spacing.sm),
-                      child: Semantics(
-                        liveRegion: true,
-                        child: Text(_error!,
-                            style:
-                                theme.bodySmall.override(color: theme.error)),
-                      ),
-                    ),
-                  if (_showOptionalPhone) ...[
-                    TextField(
-                      key: const ValueKey('support-optional-phone-field'),
-                      controller: _phoneController,
-                      enabled: !_sending && !_recording && !_voiceBusy,
-                      keyboardType: TextInputType.phone,
-                      maxLength: 32,
-                      style: theme.bodyLarge,
-                      decoration: InputDecoration(
-                        labelText: supportText(context, 'phoneOptionalLabel'),
-                        hintText: supportText(context, 'phoneOptionalHint'),
-                        counterText: '',
-                        filled: true,
-                        fillColor: theme.primaryBackground,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: tokens.spacing.md,
-                          vertical: tokens.spacing.sm,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(tokens.radius.md),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(tokens.radius.md),
-                          borderSide: BorderSide(
-                            color: theme.alternate.withValues(alpha: .45),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(tokens.radius.md),
-                          borderSide: BorderSide(color: theme.primary),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: tokens.spacing.sm),
-                  ],
-                  if (_recording) ...[
-                    Row(children: [
-                      Icon(Icons.mic_rounded, color: theme.error),
-                      SizedBox(width: tokens.spacing.sm),
-                      Expanded(
-                          child: Text(
-                              '${supportText(context, 'recording')} ${supportAudioTime(_recordingWatch.elapsed)} / 0:30',
-                              style: theme.bodyMedium)),
-                      IconButton(
-                          key: const ValueKey('support-cancel-recording'),
-                          tooltip: supportText(context, 'removeAudio'),
-                          onPressed: _voiceBusy
-                              ? null
-                              : () => _finishVoice(discard: true),
-                          icon: Icon(Icons.delete_outline_rounded,
-                              color: theme.secondaryText)),
-                      IconButton(
-                          key: const ValueKey('support-stop-recording'),
-                          tooltip: supportText(context, 'stopAudio'),
-                          onPressed: _voiceBusy ? null : _finishVoice,
-                          icon: Icon(Icons.stop_circle_outlined,
-                              color: theme.primary)),
-                    ]),
-                    SizedBox(height: tokens.spacing.sm),
-                  ],
-                  if (_audio != null) ...[
-                    Row(children: [
-                      Expanded(
-                          child: IgnorePointer(
-                              ignoring: _sending,
-                              child: SupportAudioPlayer(
-                                  key: ObjectKey(_audio),
-                                  load: () async => _audio!))),
-                      IconButton(
-                          key: const ValueKey('support-remove-audio'),
-                          tooltip: supportText(context, 'removeAudio'),
-                          onPressed: _sending
-                              ? null
-                              : () => setState(() => _audio = null),
-                          icon: Icon(Icons.delete_outline_rounded,
-                              color: theme.secondaryText)),
-                    ]),
-                    SizedBox(height: tokens.spacing.sm),
-                  ],
-                  if (_image != null) ...[
-                    _SelectedImagePreview(
-                      bytes: _image!,
-                      onRemove:
-                          _sending ? null : () => setState(() => _image = null),
-                    ),
-                    SizedBox(height: tokens.spacing.sm),
-                  ],
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Semantics(
-                        button: true,
-                        label: supportText(context, 'attachImage'),
-                        child: IconButton(
-                          key: const ValueKey('support-attach-image-button'),
-                          onPressed: _sending ||
-                                  _preparingImage ||
-                                  _recording ||
-                                  _voiceBusy ||
-                                  _audio != null
-                              ? null
-                              : _pickImage,
-                          tooltip: supportText(context, 'attachImage'),
-                          style: IconButton.styleFrom(
-                            foregroundColor: theme.primary,
-                            disabledForegroundColor:
-                                theme.secondaryText.withValues(alpha: .45),
-                            minimumSize: const Size(48, 48),
-                          ),
-                          icon: _preparingImage
-                              ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: theme.primary,
-                                  ),
-                                )
-                              : const Icon(Icons.attach_file_rounded),
-                        ),
-                      ),
-                      SizedBox(width: tokens.spacing.sm),
-                      Expanded(
-                        child: TextField(
-                          key: const ValueKey('support-message-field'),
-                          controller: _controller,
-                          enabled: !_sending && !_recording && !_voiceBusy,
-                          minLines: 1,
-                          maxLines: 4,
-                          maxLength: 1000,
-                          textCapitalization: TextCapitalization.sentences,
-                          style: theme.bodyLarge,
-                          decoration: InputDecoration(
-                            hintText: supportText(context, 'hint'),
-                            hintStyle: theme.bodyMedium
-                                .override(color: theme.secondaryText),
-                            counterText: '',
-                            filled: true,
-                            fillColor: theme.primaryBackground,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: tokens.spacing.md,
-                              vertical: tokens.spacing.sm,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(tokens.radius.md),
-                              borderSide: BorderSide(
-                                color: theme.alternate.withValues(alpha: .45),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(tokens.radius.md),
-                              borderSide: BorderSide(color: theme.primary),
-                            ),
-                            disabledBorder: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(tokens.radius.md),
-                              borderSide: BorderSide(
-                                color: theme.alternate.withValues(alpha: .25),
-                              ),
-                            ),
-                          ),
-                          onSubmitted: (_) => _send(),
-                        ),
-                      ),
-                      SizedBox(width: tokens.spacing.sm),
-                      if (widget.onSendAudio != null)
-                        Tooltip(
-                            excludeFromSemantics: true,
-                            message: supportText(context, 'recordAudio'),
-                            child: Semantics(
-                                button: true,
-                                label: supportText(context, 'recordAudio'),
-                                child: FlutterFlowIconButton(
-                                  key: const ValueKey('support-record-audio'),
-                                  buttonSize: 48,
-                                  borderRadius: tokens.radius.full,
-                                  icon: Icon(Icons.mic_none_rounded,
-                                      color: theme.primary),
-                                  disabledIconColor: theme.secondaryText
-                                      .withValues(alpha: .45),
-                                  onPressed: _sending ||
-                                          _recording ||
-                                          _voiceBusy ||
-                                          _preparingImage ||
-                                          _image != null ||
-                                          _audio != null
-                                      ? null
-                                      : _startVoice,
-                                ))),
-                      Semantics(
-                        button: true,
-                        label:
-                            supportText(context, _sending ? 'sending' : 'send'),
-                        child: IconButton.filled(
-                          key: const ValueKey('support-send-button'),
-                          onPressed: _sending ||
-                                  _recording ||
-                                  _voiceBusy ||
-                                  _preparingImage
-                              ? null
-                              : _send,
-                          style: IconButton.styleFrom(
-                            backgroundColor: theme.primary,
-                            foregroundColor: theme.onPrimary,
-                            disabledBackgroundColor:
-                                theme.primary.withValues(alpha: .45),
-                            minimumSize: const Size(48, 48),
-                          ),
-                          icon: _sending
-                              ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: theme.onPrimary,
-                                  ),
-                                )
-                              : const Icon(Icons.send_rounded),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
             ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }
 

@@ -65,8 +65,9 @@ class DeviceSupportVoiceRecorder implements SupportVoiceRecorder {
     _subscription = null;
     await _states?.cancel();
     _states = null;
-    if (_streamError != null)
+    if (_streamError != null) {
       throw const FormatException('support-recording-interrupted');
+    }
     return SupportAudio.fromPcm(_pcm.takeBytes());
   }
 
