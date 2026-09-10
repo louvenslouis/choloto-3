@@ -21,6 +21,7 @@ class BingoStoryCommentInput extends StatefulWidget {
     required this.onSubmitted,
     this.onFocusChanged,
     this.autofocus = false,
+    this.showSendButton = true,
   });
 
   final TextEditingController controller;
@@ -28,6 +29,7 @@ class BingoStoryCommentInput extends StatefulWidget {
   final ValueChanged<String> onSubmitted;
   final ValueChanged<bool>? onFocusChanged;
   final bool autofocus;
+  final bool showSendButton;
 
   @override
   State<BingoStoryCommentInput> createState() => _BingoStoryCommentInputState();
@@ -170,6 +172,10 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
       ..addEventListener('keydown', _keyDownListener);
     sendButton.addEventListener('click', _submitListener);
 
+    final style = web.HTMLStyleElement()
+      ..textContent =
+          '[data-bingo-comment-input]::placeholder { color: var(--bingo-placeholder); opacity: 1; }';
+    root.appendChild(style);
     sendButton.appendChild(sendIcon);
     root
       ..appendChild(input)
@@ -270,6 +276,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
       ..borderRadius = _radius
       ..border =
           _hasFocus ? '2px solid $_primaryColor' : '2px solid transparent';
+    root.style.setProperty('--bingo-placeholder', _secondaryTextColor);
     input.style
       ..color = _textColor
       ..caretColor = _primaryColor
@@ -285,7 +292,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
     final canSubmit = widget.enabled && hasComment;
     button
       ..disabled = !canSubmit
-      ..style.display = hasComment ? 'flex' : 'none';
+      ..style.display = widget.showSendButton && hasComment ? 'flex' : 'none';
     button.style.cursor = canSubmit ? 'pointer' : 'default';
     icon.style.backgroundColor =
         canSubmit ? _primaryColor : _secondaryTextColor;
@@ -296,11 +303,17 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
     final tokens = theme.designToken;
     final localizations = FFLocalizations.of(context);
 
-    _placeholder = localizations.getText('bingo_story_comment_hint');
+    _placeholder = localizations.getText(widget.showSendButton
+        ? 'bingo_story_comment_hint'
+        : 'bingo_comment_compact_hint');
     _sendLabel = localizations.getText('bingo_story_comment_send');
-    _surfaceColor = _cssColor(theme.secondaryBackground);
+    _surfaceColor = _cssColor(widget.showSendButton
+        ? theme.secondaryBackground
+        : theme.primaryBackground);
     _textColor = _cssColor(theme.primaryText);
-    _secondaryTextColor = _cssColor(theme.secondaryText);
+    _secondaryTextColor = _cssColor(widget.showSendButton
+        ? theme.secondaryText
+        : theme.primaryText.withValues(alpha: 0.72));
     _primaryColor = _cssColor(theme.primary);
     _radius = '${tokens.radius.full}px';
     _horizontalPadding = '${tokens.spacing.md}px';

@@ -14,6 +14,7 @@ class BingoStoryCommentInput extends StatefulWidget {
     required this.onSubmitted,
     this.onFocusChanged,
     this.autofocus = false,
+    this.showSendButton = true,
   });
 
   final TextEditingController controller;
@@ -21,6 +22,7 @@ class BingoStoryCommentInput extends StatefulWidget {
   final ValueChanged<String> onSubmitted;
   final ValueChanged<bool>? onFocusChanged;
   final bool autofocus;
+  final bool showSendButton;
 
   @override
   State<BingoStoryCommentInput> createState() => _BingoStoryCommentInputState();
@@ -109,13 +111,19 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
           onTapOutside: (_) => _focusNode.unfocus(),
           onSubmitted: (_) => _submit(),
           decoration: InputDecoration(
-            hintText: localizations.getText('bingo_story_comment_hint'),
+            hintText: localizations.getText(widget.showSendButton
+                ? 'bingo_story_comment_hint'
+                : 'bingo_comment_compact_hint'),
             hintStyle: theme.labelMedium.copyWith(
-              color: theme.secondaryText,
+              color: widget.showSendButton
+                  ? theme.secondaryText
+                  : theme.primaryText.withValues(alpha: 0.72),
             ),
             counterText: '',
             filled: true,
-            fillColor: theme.secondaryBackground,
+            fillColor: widget.showSendButton
+                ? theme.secondaryBackground
+                : theme.primaryBackground,
             contentPadding: EdgeInsetsDirectional.only(
               start: tokens.spacing.md,
             ),
@@ -134,7 +142,7 @@ class _BingoStoryCommentInputState extends State<BingoStoryCommentInput> {
                 width: 2.0,
               ),
             ),
-            suffixIcon: hasComment
+            suffixIcon: widget.showSendButton && hasComment
                 ? Semantics(
                     label: localizations.getText('bingo_story_comment_send'),
                     button: true,

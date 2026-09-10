@@ -1585,6 +1585,21 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Nou pa ka chaje kòmantè yo.',
       'en': 'Comments could not be loaded.',
     },
+    'bingo_comment_compact_hint': {
+      'fr': 'Votre commentaire…',
+      'cr': 'Kòmantè ou…',
+      'en': 'Your comment…',
+    },
+    'bingo_comments_empty_title': {
+      'fr': 'Lancez la discussion',
+      'cr': 'Kòmanse diskisyon an',
+      'en': 'Start the conversation',
+    },
+    'bingo_comments_empty_invitation': {
+      'fr': 'Un gain, une question ou un encouragement ? Partagez-le ici.',
+      'cr': 'Yon gany, yon kesyon oswa yon ankourajman? Pataje li isit la.',
+      'en': 'A win, a question or a word of encouragement? Share it here.',
+    },
     'bingo_comments_empty': {
       'fr': 'Aucun commentaire pour ce BINGO.',
       'cr': 'Pa gen kòmantè pou Bingo sa a.',

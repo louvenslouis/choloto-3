@@ -1,5 +1,6 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 
@@ -58,6 +59,7 @@ Future<void> showBingoPublicCommentsSheet({
   String? initialCommentId,
   bool autofocus = false,
   bool canComment = true,
+  Future<List<BingoPublicComment>> Function()? commentsLoader,
 }) async {
   if (bingoReference == null && onSubmitted == null) return;
   final theme = FlutterFlowTheme.of(context);
@@ -66,6 +68,7 @@ Future<void> showBingoPublicCommentsSheet({
     isScrollControlled: true,
     useSafeArea: true,
     requestFocus: true,
+    constraints: const BoxConstraints(maxWidth: 640),
     backgroundColor: theme.primaryBackground.withValues(alpha: 0.0),
     barrierColor: theme.primaryBackground.withValues(alpha: 0.72),
     builder: (sheetContext) => AnimatedPadding(
@@ -75,7 +78,8 @@ Future<void> showBingoPublicCommentsSheet({
         bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
       ),
       child: FractionallySizedBox(
-        heightFactor: 0.82,
+        heightFactor:
+            MediaQuery.viewInsetsOf(sheetContext).bottom > 0 ? 1 : 0.86,
         child: _BingoPublicCommentsSheet(
           bingoReference: bingoReference,
           controller: controller,
@@ -83,6 +87,7 @@ Future<void> showBingoPublicCommentsSheet({
           initialCommentId: initialCommentId,
           autofocus: autofocus,
           canComment: canComment,
+          commentsLoader: commentsLoader,
         ),
       ),
     ),
@@ -97,6 +102,7 @@ class _BingoPublicCommentsSheet extends StatefulWidget {
     required this.initialCommentId,
     required this.autofocus,
     required this.canComment,
+    this.commentsLoader,
   });
 
   final DocumentReference? bingoReference;
@@ -105,6 +111,7 @@ class _BingoPublicCommentsSheet extends StatefulWidget {
   final String? initialCommentId;
   final bool autofocus;
   final bool canComment;
+  final Future<List<BingoPublicComment>> Function()? commentsLoader;
 
   @override
   State<_BingoPublicCommentsSheet> createState() =>
@@ -115,6 +122,8 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
   final List<BingoPublicComment> _comments = [];
   final Set<String> _pendingLikes = {};
   final Set<String> _pendingDeletes = {};
+  final ScrollController _scrollController = ScrollController();
+  bool _didRevealHighlight = false;
   final GlobalKey _highlightedCommentKey = GlobalKey();
   var _loading = true;
   var _loadFailed = false;
@@ -132,6 +141,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     widget.controller?.removeListener(_onDraftChanged);
     super.dispose();
   }
@@ -141,6 +151,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
       setState(() {
         _commentFailed = false;
         _commentSent = false;
+        if (!_commentPending) _optimisticComment = null;
       });
     }
   }
@@ -153,9 +164,8 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
       });
     }
     try {
-      final comments = await loadPublicBingoComments(
-        bingoReference: widget.bingoReference,
-      );
+      final comments = await (widget.commentsLoader?.call() ??
+          loadPublicBingoComments(bingoReference: widget.bingoReference));
       if (!mounted) return;
       setState(() {
         _comments
@@ -166,7 +176,8 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final highlightedContext = _highlightedCommentKey.currentContext;
-        if (mounted && highlightedContext != null) {
+        if (mounted && !_didRevealHighlight && highlightedContext != null) {
+          _didRevealHighlight = true;
           Scrollable.ensureVisible(
             highlightedContext,
             duration: const Duration(milliseconds: 260),
@@ -187,7 +198,13 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
     final controller = widget.controller;
     final submitter = widget.onSubmitted;
     final draft = controller?.text.trim() ?? '';
-    if (_commentPending || submitter == null || draft.isEmpty) return;
+    if (_commentPending ||
+        !widget.canComment ||
+        submitter == null ||
+        draft.isEmpty ||
+        draft.length > bingoCommentMaxLength) {
+      return;
+    }
 
     setState(() {
       _commentPending = true;
@@ -195,7 +212,16 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
       _commentSent = false;
       _optimisticComment = draft;
     });
-    final succeeded = await submitter(draft);
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(0,
+          duration: const Duration(milliseconds: 220), curve: Curves.easeOut);
+    }
+    var succeeded = false;
+    try {
+      succeeded = await submitter(draft);
+    } catch (_) {
+      // Preserve the draft and restore the composer after an interrupted send.
+    }
     if (!mounted) return;
     if (!succeeded) {
       setState(() {
@@ -305,12 +331,15 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final localizations = FFLocalizations.of(context);
+    // Derive muted text from primaryText: secondaryText is too dark on
+    // this dark surface. Keep the shared palette unchanged.
     final controller = widget.controller;
-    final draftLength = controller?.text.characters.length ?? 0;
+    final draftLength = controller?.text.length ?? 0;
     final canSubmit = widget.canComment &&
         widget.onSubmitted != null &&
         !_commentPending &&
-        (controller?.text.trim().isNotEmpty ?? false);
+        (controller?.text.trim().isNotEmpty ?? false) &&
+        (controller?.text.trim().length ?? 0) <= bingoCommentMaxLength;
 
     return Material(
       key: const ValueKey('bingo-comment-sheet'),
@@ -326,7 +355,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
             width: 42.0,
             height: tokens.spacing.xs,
             decoration: BoxDecoration(
-              color: theme.alternate,
+              color: theme.primaryText.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(tokens.radius.full),
             ),
           ),
@@ -345,8 +374,8 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
                     children: [
                       Text(
                         _comments.isEmpty
-                            ? localizations.getText('bingo_comments_title')
-                            : '${localizations.getText('bingo_comments_title')} · ${_comments.length}',
+                            ? localizations.getText('bingo_story_comments')
+                            : '${localizations.getText('bingo_story_comments')} · ${_comments.length}',
                         style: theme.titleLarge.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -355,7 +384,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
                       Text(
                         localizations.getText('bingo_comments_anonymous'),
                         style: theme.bodySmall.copyWith(
-                          color: theme.secondaryText,
+                          color: theme.primaryText.withValues(alpha: 0.72),
                         ),
                       ),
                     ],
@@ -365,113 +394,134 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
                   key: const ValueKey('bingo-comment-sheet-close'),
                   tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded,
+                      color: theme.primaryText.withValues(alpha: 0.72)),
                 ),
               ],
             ),
           ),
-          Divider(height: 1.0, color: theme.alternate),
+          Divider(
+              height: 1.0, color: theme.primaryText.withValues(alpha: 0.12)),
           Expanded(
             child: _buildComments(context),
           ),
           if (controller != null && widget.onSubmitted != null) ...[
-            Divider(height: 1.0, color: theme.alternate),
-            Container(
-              padding: EdgeInsets.all(tokens.spacing.md),
-              color: theme.secondaryBackground,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!widget.canComment) ...[
-                    _CommentInlineMessage(
-                      key: const ValueKey('bingo-comment-sign-in-message'),
-                      color: theme.info,
-                      icon: Icons.lock_outline_rounded,
-                      message: localizations.getText(
-                        'bingo_comment_sign_in_required',
-                      ),
-                    ),
-                    SizedBox(height: tokens.spacing.sm),
-                  ],
-                  BingoStoryCommentInput(
-                    controller: controller,
-                    enabled: widget.canComment && !_commentPending,
-                    autofocus: widget.autofocus,
-                    onSubmitted: (_) => _submitComment(),
-                  ),
-                  if (draftLength >= 450) ...[
-                    SizedBox(height: tokens.spacing.xs),
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Text(
-                        '$draftLength / $bingoCommentMaxLength',
-                        key: const ValueKey('bingo-comment-character-count'),
-                        style: theme.labelSmall.copyWith(
-                          color: draftLength > bingoCommentMaxLength
-                              ? theme.error
-                              : theme.secondaryText,
+            Divider(
+                height: 1.0, color: theme.primaryText.withValues(alpha: 0.12)),
+            SafeArea(
+              top: false,
+              child: Container(
+                padding: EdgeInsets.all(tokens.spacing.md),
+                color: theme.secondaryBackground,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (!widget.canComment) ...[
+                      _CommentInlineMessage(
+                        key: const ValueKey('bingo-comment-sign-in-message'),
+                        color: theme.info,
+                        icon: Icons.lock_outline_rounded,
+                        message: localizations.getText(
+                          'bingo_comment_sign_in_required',
                         ),
                       ),
+                      SizedBox(height: tokens.spacing.sm),
+                    ],
+                    Row(
+                      children: [
+                        Expanded(
+                          child: BingoStoryCommentInput(
+                            controller: controller,
+                            enabled: widget.canComment && !_commentPending,
+                            autofocus: widget.autofocus,
+                            showSendButton: false,
+                            onSubmitted: (_) => _submitComment(),
+                          ),
+                        ),
+                        SizedBox(width: tokens.spacing.sm),
+                        Tooltip(
+                          message: localizations.getText(_commentPending
+                              ? 'bingo_comment_sending'
+                              : 'bingo_story_comment_send'),
+                          child: Semantics(
+                            label: localizations.getText(_commentPending
+                                ? 'bingo_comment_sending'
+                                : 'bingo_story_comment_send'),
+                            button: true,
+                            enabled: canSubmit,
+                            child: _commentPending
+                                ? SizedBox.square(
+                                    dimension: 48,
+                                    child: Center(
+                                      child: SizedBox.square(
+                                        dimension: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: theme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : FlutterFlowIconButton(
+                                    key: const ValueKey(
+                                        'bingo-comment-sheet-submit'),
+                                    buttonSize: 48,
+                                    borderRadius: tokens.radius.full,
+                                    fillColor: theme.primary,
+                                    disabledColor: theme.primaryText
+                                        .withValues(alpha: 0.08),
+                                    disabledIconColor: theme.primaryText
+                                        .withValues(alpha: 0.48),
+                                    icon: Icon(Icons.arrow_upward_rounded,
+                                        color: theme.onPrimary, size: 24),
+                                    onPressed:
+                                        canSubmit ? _submitComment : null,
+                                  ),
+                          ),
+                        ),
+                      ],
                     ),
+                    if (draftLength >= 450) ...[
+                      SizedBox(height: tokens.spacing.xs),
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Text(
+                          '$draftLength / $bingoCommentMaxLength',
+                          key: const ValueKey('bingo-comment-character-count'),
+                          style: theme.labelSmall.copyWith(
+                            color: draftLength > bingoCommentMaxLength
+                                ? theme.error
+                                : theme.primaryText.withValues(alpha: 0.72),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (_commentFailed) ...[
+                      SizedBox(height: tokens.spacing.sm),
+                      _CommentInlineMessage(
+                        key: const ValueKey('bingo-comment-sheet-error'),
+                        color: theme.error,
+                        icon: Icons.error_outline_rounded,
+                        message: localizations.getText(
+                          'bingo_story_comment_error',
+                        ),
+                        actionLabel: localizations.getText('story_retry'),
+                        onAction: _submitComment,
+                      ),
+                    ],
+                    if (_commentSent) ...[
+                      SizedBox(height: tokens.spacing.sm),
+                      _CommentInlineMessage(
+                        key: const ValueKey('bingo-comment-sheet-success'),
+                        color: theme.success,
+                        icon: Icons.check_circle_outline_rounded,
+                        message: localizations.getText(
+                          'bingo_story_comment_success',
+                        ),
+                      ),
+                    ],
                   ],
-                  if (_commentFailed) ...[
-                    SizedBox(height: tokens.spacing.sm),
-                    _CommentInlineMessage(
-                      key: const ValueKey('bingo-comment-sheet-error'),
-                      color: theme.error,
-                      icon: Icons.error_outline_rounded,
-                      message: localizations.getText(
-                        'bingo_story_comment_error',
-                      ),
-                      actionLabel: localizations.getText('story_retry'),
-                      onAction: _submitComment,
-                    ),
-                  ],
-                  if (_commentSent) ...[
-                    SizedBox(height: tokens.spacing.sm),
-                    _CommentInlineMessage(
-                      key: const ValueKey('bingo-comment-sheet-success'),
-                      color: theme.success,
-                      icon: Icons.check_circle_outline_rounded,
-                      message: localizations.getText(
-                        'bingo_story_comment_success',
-                      ),
-                    ),
-                  ],
-                  SizedBox(height: tokens.spacing.sm),
-                  FilledButton.icon(
-                    key: const ValueKey('bingo-comment-sheet-submit'),
-                    onPressed: canSubmit ? _submitComment : null,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48.0),
-                      backgroundColor: theme.primary,
-                      foregroundColor: theme.onPrimary,
-                      disabledBackgroundColor:
-                          theme.primary.withValues(alpha: 0.28),
-                      disabledForegroundColor:
-                          theme.onPrimary.withValues(alpha: 0.48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(tokens.radius.full),
-                      ),
-                    ),
-                    icon: _commentPending
-                        ? SizedBox.square(
-                            dimension: 18.0,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.0,
-                              color: theme.onPrimary,
-                            ),
-                          )
-                        : const Icon(Icons.send_rounded, size: 20.0),
-                    label: Text(
-                      localizations.getText('bingo_story_comment_send'),
-                      style: theme.labelLarge.copyWith(
-                        color: theme.onPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
@@ -496,7 +546,8 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
     if (_comments.isEmpty && _optimisticComment == null) {
       return _CommentsMessage(
         icon: Icons.forum_outlined,
-        message: localizations.getText('bingo_comments_empty'),
+        title: localizations.getText('bingo_comments_empty_title'),
+        message: localizations.getText('bingo_comments_empty_invitation'),
       );
     }
 
@@ -504,6 +555,9 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
     return RefreshIndicator(
       onRefresh: () => _reload(showLoading: false),
       child: ListView.separated(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: EdgeInsetsDirectional.fromSTEB(
           tokens.spacing.md,
           tokens.spacing.md,
@@ -511,13 +565,16 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
           tokens.spacing.lg,
         ),
         itemCount: _comments.length + optimisticOffset,
-        separatorBuilder: (_, __) => SizedBox(height: tokens.spacing.sm),
+        separatorBuilder: (_, __) => Padding(
+          padding: EdgeInsets.symmetric(vertical: tokens.spacing.sm),
+          child: Divider(
+              height: 1, color: theme.primaryText.withValues(alpha: 0.12)),
+        ),
         itemBuilder: (context, index) {
           if (optimisticOffset == 1 && index == 0) {
             return _OptimisticCommentCard(
               text: _optimisticComment!,
               failed: _commentFailed,
-              onRetry: _submitComment,
             );
           }
           final comment = _comments[index - optimisticOffset];
@@ -566,19 +623,16 @@ class BingoPublicCommentCard extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final localizations = FFLocalizations.of(context);
-    final commentDate = comment.updatedAt ?? comment.createdAt;
+    final commentDate = comment.createdAt ?? comment.updatedAt;
 
     return Container(
       padding: EdgeInsets.all(tokens.spacing.md),
       decoration: BoxDecoration(
-        color: theme.primaryBackground.withValues(alpha: 0.72),
+        color: highlighted
+            ? theme.primary.withValues(alpha: 0.08)
+            : theme.secondaryBackground,
         borderRadius: BorderRadius.circular(tokens.radius.md),
-        border: Border.all(
-          color: highlighted
-              ? theme.primary.withValues(alpha: 0.58)
-              : theme.primaryText.withValues(alpha: 0.08),
-          width: highlighted ? 2.0 : 1.0,
-        ),
+        border: highlighted ? Border.all(color: theme.primary) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -590,32 +644,34 @@ class BingoPublicCommentCard extends StatelessWidget {
                 backgroundColor: theme.primary.withValues(alpha: 0.1),
                 child: Icon(
                   Icons.person_outline_rounded,
-                  color: theme.primary,
+                  color: theme.primaryText,
                   size: 19.0,
                 ),
               ),
               SizedBox(width: tokens.spacing.sm),
               Expanded(
-                child: Text(
-                  canDelete
-                      ? localizations.getText('bingo_comment_you')
-                      : localizations.getText('bingo_comment_member'),
-                  style: theme.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      localizations.getText(canDelete
+                          ? 'bingo_comment_you'
+                          : 'bingo_comment_member'),
+                      style: theme.labelLarge.copyWith(
+                        color: theme.primaryText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (commentDate != null)
+                      Text(
+                        dateTimeFormat('relative', commentDate,
+                            locale: localizations.languageCode),
+                        style: theme.labelSmall.copyWith(
+                            color: theme.primaryText.withValues(alpha: 0.72)),
+                      ),
+                  ],
                 ),
               ),
-              if (commentDate != null)
-                Text(
-                  dateTimeFormat(
-                    'relative',
-                    commentDate,
-                    locale: localizations.languageCode,
-                  ),
-                  style: theme.labelSmall.copyWith(
-                    color: theme.secondaryText,
-                  ),
-                ),
             ],
           ),
           SizedBox(height: tokens.spacing.sm),
@@ -643,15 +699,16 @@ class BingoPublicCommentCard extends StatelessWidget {
                         size: 16.0,
                       ),
                       SizedBox(width: tokens.spacing.sm),
-                      Text(
+                      Expanded(
+                          child: Text(
                         localizations.getText(
                           'bingo_story_comment_reply_label',
                         ),
                         style: theme.labelMedium.copyWith(
-                          color: theme.primary,
+                          color: theme.primaryText,
                           fontWeight: FontWeight.w800,
                         ),
-                      ),
+                      )),
                     ],
                   ),
                   SizedBox(height: tokens.spacing.sm),
@@ -666,25 +723,36 @@ class BingoPublicCommentCard extends StatelessWidget {
           SizedBox(height: tokens.spacing.xs),
           Row(
             children: [
-              TextButton.icon(
-                onPressed: likePending ? null : onLike,
-                icon: likePending
-                    ? const SizedBox(
-                        width: 16.0,
-                        height: 16.0,
-                        child: CircularProgressIndicator(strokeWidth: 2.0),
-                      )
-                    : Icon(
-                        comment.likedByCurrentUser
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: comment.likedByCurrentUser ? theme.error : null,
-                      ),
-                label: Text(
-                  '${localizations.getText(comment.likedByCurrentUser ? 'bingo_comment_liked' : 'bingo_comment_like')} · ${comment.likeCount}',
-                ),
-              ),
-              const Spacer(),
+              Expanded(
+                  child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor:
+                              theme.primaryText.withValues(alpha: 0.72),
+                          minimumSize: const Size(48, 48),
+                          textStyle: theme.labelMedium,
+                        ),
+                        onPressed: likePending ? null : onLike,
+                        icon: likePending
+                            ? const SizedBox(
+                                width: 16.0,
+                                height: 16.0,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2.0),
+                              )
+                            : Icon(
+                                comment.likedByCurrentUser
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                color: comment.likedByCurrentUser
+                                    ? theme.error
+                                    : null,
+                              ),
+                        label: Text(
+                          '${localizations.getText(comment.likedByCurrentUser ? 'bingo_comment_liked' : 'bingo_comment_like')} · ${comment.likeCount}',
+                        ),
+                      ))),
               if (canDelete)
                 SizedBox.square(
                   key: ValueKey('bingo-comment-delete-${comment.id}'),
@@ -730,7 +798,7 @@ class BingoPublicCommentCard extends StatelessWidget {
                           ],
                           icon: Icon(
                             Icons.more_horiz_rounded,
-                            color: theme.secondaryText,
+                            color: theme.primaryText.withValues(alpha: 0.72),
                           ),
                         ),
                 ),
@@ -746,12 +814,10 @@ class _OptimisticCommentCard extends StatelessWidget {
   const _OptimisticCommentCard({
     required this.text,
     required this.failed,
-    required this.onRetry,
   });
 
   final String text;
   final bool failed;
-  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -791,11 +857,6 @@ class _OptimisticCommentCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (failed)
-                TextButton(
-                  onPressed: onRetry,
-                  child: Text(localizations.getText('story_retry')),
-                ),
             ],
           ),
           SizedBox(height: tokens.spacing.sm),
@@ -843,7 +904,15 @@ class _CommentInlineMessage extends StatelessWidget {
             ),
           ),
           if (actionLabel != null && onAction != null)
-            TextButton(onPressed: onAction, child: Text(actionLabel!)),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: theme.primaryText,
+                textStyle: theme.labelMedium,
+                minimumSize: const Size(48, 48),
+              ),
+              onPressed: onAction,
+              child: Text(actionLabel!),
+            ),
         ],
       ),
     );
@@ -877,10 +946,12 @@ class _CommentsMessage extends StatelessWidget {
   const _CommentsMessage({
     required this.icon,
     required this.message,
+    this.title,
     this.actionLabel,
     this.onAction,
   });
 
+  final String? title;
   final IconData icon;
   final String message;
   final String? actionLabel;
@@ -889,22 +960,41 @@ class _CommentsMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28.0),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(tokens.spacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 34.0, color: theme.secondaryText),
-            const SizedBox(height: 10.0),
+            CircleAvatar(
+              radius: tokens.spacing.xl,
+              backgroundColor: theme.primary.withValues(alpha: 0.12),
+              child: Icon(icon, size: 32, color: theme.primaryText),
+            ),
+            SizedBox(height: tokens.spacing.md),
+            if (title != null) ...[
+              Text(title!,
+                  textAlign: TextAlign.center, style: theme.titleMedium),
+              SizedBox(height: tokens.spacing.sm),
+            ],
             Text(
               message,
               textAlign: TextAlign.center,
-              style: theme.bodyMedium.copyWith(color: theme.secondaryText),
+              style: theme.bodyMedium
+                  .copyWith(color: theme.primaryText.withValues(alpha: 0.72)),
             ),
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 10.0),
-              TextButton(onPressed: onAction, child: Text(actionLabel!)),
+              SizedBox(height: tokens.spacing.sm),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: theme.primaryText,
+                  textStyle: theme.labelMedium,
+                  minimumSize: const Size(48, 48),
+                ),
+                onPressed: onAction,
+                child: Text(actionLabel!),
+              ),
             ],
           ],
         ),
