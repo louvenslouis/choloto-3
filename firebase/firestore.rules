@@ -769,7 +769,7 @@ service cloud.firestore {
             guestSupportSummaryMatchesMessage(
               userId, request.resource.data
             ));
-      allow delete: if false;
+      allow delete: if isAdmin();
 
       match /messages/{messageId} {
         allow get: if
@@ -831,7 +831,8 @@ service cloud.firestore {
               getAfter(
                 /databases/$(database)/documents/support_conversations/$(userId)
               ).data.updated_at == request.time);
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if isAdmin();
 
         match /attachments/{attachmentId} {
           allow get: if
@@ -879,7 +880,8 @@ service cloud.firestore {
                     /databases/$(database)/documents/support_conversations/$(userId)/messages/$(messageId)
                   ).data.sender_role == 'user')
               );
-          allow list, update, delete: if false;
+          allow list, update: if false;
+          allow delete: if isAdmin();
         }
       }
     }

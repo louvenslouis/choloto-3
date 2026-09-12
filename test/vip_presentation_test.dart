@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:choloto/app_state.dart';
 import 'package:choloto/components/vip_prediction_header.dart';
+import 'package:choloto/components/vip_page_header.dart';
 import 'package:choloto/components/vip_motion.dart';
 import 'package:choloto/components/vip_casino_card.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
@@ -106,6 +107,65 @@ void main() {
       }
     }
   });
+
+  for (final language in ['fr', 'en', 'cr']) {
+    for (final brightness in [Brightness.dark, Brightness.light]) {
+      testWidgets(
+          'account header $language $brightness enlarged text and profile',
+          (tester) async {
+        tester.view.physicalSize = const Size(320, 568);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        var profileOpened = false;
+        await tester.pumpWidget(MaterialApp(
+          locale: Locale(language),
+          supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+          localizationsDelegates: const [
+            FFLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            FallbackMaterialLocalizationDelegate(),
+            FallbackCupertinoLocalizationDelegate(),
+          ],
+          theme: ThemeData(brightness: brightness),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(2),
+              disableAnimations: true,
+            ),
+            child: child!,
+          ),
+          home: Builder(
+              builder: (context) => Scaffold(
+                    appBar: PreferredSize(
+                      preferredSize:
+                          Size.fromHeight(VipPageHeader.heightFor(context)),
+                      child: VipPageHeader(
+                        avatar: const Icon(Icons.person_rounded),
+                        onProfile: () => profileOpened = true,
+                      ),
+                    ),
+                    body: const SizedBox(key: ValueKey('header-body')),
+                  )),
+        ));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        final subtitle =
+            find.text(FFLocalizations(Locale(language)).getText('pubct0u4'));
+        expect(
+            tester.getBottomLeft(subtitle).dy,
+            lessThanOrEqualTo(tester
+                .getTopLeft(find.byKey(const ValueKey('header-body')))
+                .dy));
+        final profile = find.byType(InkWell);
+        expect(tester.getSize(profile).shortestSide, greaterThanOrEqualTo(48));
+        await tester.tap(profile);
+        expect(profileOpened, isTrue);
+      });
+    }
+  }
 
   for (final brightness in [Brightness.dark, Brightness.light]) {
     for (final percentage in [null, '100%']) {

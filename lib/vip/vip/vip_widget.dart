@@ -1,4 +1,5 @@
 import '/components/vip_prediction_header.dart';
+import '/components/vip_page_header.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
@@ -117,7 +118,9 @@ class _VipWidgetState extends State<VipWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(builder: _buildPage);
+
+  Widget _buildPage(BuildContext context, BoxConstraints constraints) {
     context.watch<FFAppState>();
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
@@ -201,203 +204,36 @@ class _VipWidgetState extends State<VipWidget> {
           ],
         ),
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(120.0),
-          child: AppBar(
-            backgroundColor: theme.secondaryBackground,
-            flexibleSpace: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    theme.secondaryBackground,
-                    Color.alphaBlend(theme.primary.withValues(alpha: 0.10),
-                        theme.secondaryBackground),
-                    theme.secondaryBackground,
-                  ],
+          preferredSize: Size.fromHeight(
+              VipPageHeader.heightFor(context, width: constraints.maxWidth)),
+          child: DecoratedBox(
+            decoration: BoxDecoration(gradient: tokens.vip.felt),
+            child: SafeArea(
+              bottom: false,
+              child: VipPageHeader(
+                onProfile: () {
+                  logFirebaseEvent('VIP_PAGE_Card_elizvnyh_ON_TAP');
+                  logFirebaseEvent('Card_navigate_to');
+                  context.pushNamed(ProfilWidget.routeName);
+                },
+                avatar: AuthUserStreamWidget(
+                  builder: (context) => currentUserPhoto.isEmpty
+                      ? Icon(Icons.person_rounded,
+                          color: theme.onPrimary, size: 30)
+                      : CachedNetworkImage(
+                          fadeInDuration: const Duration(milliseconds: 500),
+                          fadeOutDuration: const Duration(milliseconds: 500),
+                          imageUrl: currentUserPhoto,
+                          errorWidget: (context, url, error) => Icon(
+                            Icons.person_rounded,
+                            color: theme.onPrimary,
+                            size: 30,
+                          ),
+                          fit: BoxFit.cover,
+                        ),
                 ),
-                border: Border(
-                    bottom: BorderSide(
-                  color: theme.primary.withValues(alpha: 0.24),
-                )),
               ),
             ),
-            automaticallyImplyLeading: false,
-            actions: [],
-            bottom: PreferredSize(
-              preferredSize: Size.fromHeight(70.0),
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(13.0, 6.0, 0.0, 6.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    InkWell(
-                      splashColor: Colors.transparent,
-                      focusColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      onTap: () async {
-                        logFirebaseEvent('VIP_PAGE_Card_elizvnyh_ON_TAP');
-                        logFirebaseEvent('Card_navigate_to');
-
-                        context.pushNamed(ProfilWidget.routeName);
-                      },
-                      child: Card(
-                        clipBehavior: Clip.antiAliasWithSaveLayer,
-                        color: FlutterFlowTheme.of(context).primary,
-                        elevation: 0.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(tokens.radius.full),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.all(0.9),
-                              child: Container(
-                                width: 45.0,
-                                height: 45.0,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color:
-                                        FlutterFlowTheme.of(context).onPrimary,
-                                  ),
-                                ),
-                                child: AuthUserStreamWidget(
-                                  builder: (context) => Container(
-                                    width: 200.0,
-                                    height: 200.0,
-                                    clipBehavior: Clip.antiAlias,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: currentUserPhoto.isEmpty
-                                        ? Icon(Icons.person_rounded,
-                                            color: theme.onPrimary, size: 30)
-                                        : CachedNetworkImage(
-                                            fadeInDuration:
-                                                Duration(milliseconds: 500),
-                                            fadeOutDuration:
-                                                Duration(milliseconds: 500),
-                                            imageUrl: currentUserPhoto,
-                                            errorWidget:
-                                                (context, url, error) => Icon(
-                                              Icons.person_rounded,
-                                              color: theme.onPrimary,
-                                              size: 30,
-                                            ),
-                                            fit: BoxFit.cover,
-                                          ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 2.0, 0.0, 2.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Icon(
-                                    Icons.stars_sharp,
-                                    color:
-                                        FlutterFlowTheme.of(context).onPrimary,
-                                    size: 15.0,
-                                  ),
-                                  Icon(
-                                    Icons.stars_sharp,
-                                    color:
-                                        FlutterFlowTheme.of(context).onPrimary,
-                                    size: 15.0,
-                                  ),
-                                  Icon(
-                                    Icons.stars_sharp,
-                                    color:
-                                        FlutterFlowTheme.of(context).onPrimary,
-                                    size: 15.0,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 6.0),
-                              child: Text(
-                                FFLocalizations.of(context).getText(
-                                  'qzn6e3c5' /* VIP */,
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      letterSpacing: 1.0,
-                                      fontWeight: FontWeight.w900,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                      color: theme.onPrimary,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ).vipActionFeedback(),
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            FFLocalizations.of(context).getText(
-                              'gfj3b9xn' /* Compte VIP */,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: FlutterFlowTheme.of(context)
-                                .titleMedium
-                                .override(
-                                  letterSpacing: 0.0,
-                                  color:
-                                      FlutterFlowTheme.of(context).primaryText,
-                                  fontWeight: FontWeight.bold,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                          Text(
-                            FFLocalizations.of(context).getText(
-                              'pubct0u4' /* Accès aux prédictions Premium */,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  letterSpacing: 0.0,
-                                  color:
-                                      FlutterFlowTheme.of(context).primaryText,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ].divide(SizedBox(width: 10.0)),
-                ).vipEntrance(),
-              ),
-            ),
-            centerTitle: false,
-            elevation: 0.0,
           ),
         ),
         body: SafeArea(

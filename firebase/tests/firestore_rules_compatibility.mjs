@@ -1779,10 +1779,18 @@ expectStatus(
 expectStatus(
   await firestoreRequest(firstSupportMessagePath, {
     method: 'DELETE',
-    token: admin.token,
+    token: owner.token,
   }),
   403,
-  'admin cannot delete support history',
+  'member cannot delete support history',
+);
+expectStatus(
+  await firestoreRequest(firstSupportMessagePath, {
+    method: 'DELETE',
+    token: admin.token,
+  }),
+  200,
+  'admin can delete expired support history',
 );
 
 expectStatus(
@@ -1865,4 +1873,17 @@ for (const actor of [other, {uid: owner.uid}]) {
 }
 expectStatus(await supportReplyCommit({actor: owner, messageId: 'spoofed-admin-audio', role: 'admin', text: 'Note vocale', audioData: audioFields}), 403, 'voice cannot spoof admin role');
 expectStatus(await firestoreRequest(`${firstSupportMessagePath}/attachments/audio`, {method: 'PATCH', token: owner.token, fields: audioFields}), 403, 'audio cannot be injected into historical text message');
+
+const unauthenticatedGuestImageMessagePath =
+  `${unauthenticatedGuestConversationPath}/messages/${unauthenticatedGuestImageId}`;
+const unauthenticatedGuestAdminReplyPath =
+  `${unauthenticatedGuestConversationPath}/messages/${unauthenticatedGuestAdminReplyId}`;
+expectStatus(await firestoreRequest(unauthenticatedGuestImagePath, {method: 'DELETE'}), 403, 'visitor cannot delete a support attachment');
+expectStatus(await firestoreRequest(unauthenticatedGuestImagePath, {method: 'DELETE', token: admin.token}), 200, 'admin cleanup deletes a support attachment');
+expectStatus(await firestoreRequest(unauthenticatedGuestImageMessagePath, {method: 'DELETE', token: admin.token}), 200, 'admin cleanup deletes an image message');
+expectStatus(await firestoreRequest(unauthenticatedGuestMessagePath, {method: 'DELETE', token: admin.token}), 200, 'admin cleanup deletes a guest message');
+expectStatus(await firestoreRequest(unauthenticatedGuestAdminReplyPath, {method: 'DELETE', token: admin.token}), 200, 'admin cleanup deletes an admin reply');
+expectStatus(await firestoreRequest(unauthenticatedGuestConversationPath, {method: 'DELETE'}), 403, 'visitor cannot delete a support conversation');
+expectStatus(await firestoreRequest(unauthenticatedGuestConversationPath, {method: 'DELETE', token: admin.token}), 200, 'admin cleanup deletes an empty support conversation');
+expectStatus(await firestoreRequest(unauthenticatedGuestConversationPath, {token: admin.token}), 404, 'expired support conversation is gone after cleanup');
 console.log('Voice-note compatibility checks passed.');

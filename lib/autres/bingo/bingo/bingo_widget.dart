@@ -2,10 +2,7 @@ import '/autres/bingo/stackbingo/stackbingo_widget.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -42,19 +39,6 @@ class _BingoWidgetState extends State<BingoWidget>
     super.initState();
     _model = createModel(context, () => BingoModel());
 
-    // On component load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      logFirebaseEvent('BINGO_COMP_bingo_ON_INIT_STATE');
-      logFirebaseEvent('bingo_wait__delay');
-      await Future.delayed(
-        Duration(
-          milliseconds: 45,
-        ),
-      );
-      logFirebaseEvent('bingo_haptic_feedback');
-      HapticFeedback.mediumImpact();
-    });
-
     tapconfetiController = AnimationController(vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -80,15 +64,12 @@ class _BingoWidgetState extends State<BingoWidget>
         onTap: () async {
           logFirebaseEvent('BINGO_COMP_Card_99wwwxl3_ON_TAP');
           await Future.wait([
-            Future(() async {
+            () async {
               logFirebaseEvent('Card_lottie_animation');
               await tapconfetiController.forward();
               tapconfetiController.reset();
-            }),
-            Future(() async {
-              logFirebaseEvent('Card_haptic_feedback');
-              HapticFeedback.heavyImpact();
-            }),
+            }(),
+            SystemSound.play(SystemSoundType.click),
           ]);
         },
         child: Card(
