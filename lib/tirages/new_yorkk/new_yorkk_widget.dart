@@ -1,14 +1,10 @@
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'new_yorkk_model.dart';
 export 'new_yorkk_model.dart';
 
@@ -55,6 +51,19 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final lotteryCode = widget.infos?.tirage ?? 'ny';
+    final lotteryLabel = switch (lotteryCode) {
+      'tx' => 'TEXAS',
+      'md' => 'MARYLAND',
+      'ga' => 'GEORGIA',
+      'tn' => 'TENNESSEE',
+      'pa' => 'PENNSYLVANIA',
+      'nj' => 'NEW JERSEY',
+      _ => FFLocalizations.of(context).getText('m917towe' /* NEW YORK */),
+    };
+    final lotteryAsset = lotteryCode == 'ny'
+        ? 'assets/images/New_york.png'
+        : 'assets/images/CHOLOTO_new_logo.png';
     return Card(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -83,7 +92,7 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(0.0),
                           child: Image.asset(
-                            'assets/images/New_york.png',
+                            lotteryAsset,
                             height: 75.0,
                             fit: BoxFit.cover,
                           ),
@@ -95,9 +104,7 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            FFLocalizations.of(context).getText(
-                              'm917towe' /* NEW YORK */,
-                            ),
+                            lotteryLabel,
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
@@ -127,7 +134,7 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
                               Text(
                                 '${dateTimeFormat(
                                   "MMMEd",
-                                  widget!.infos?.date,
+                                  widget.infos?.date,
                                   locale:
                                       FFLocalizations.of(context).languageCode,
                                 )}',
@@ -162,7 +169,7 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
                                 size: 20.0,
                               ),
                               Text(
-                                widget!.infos!.periode,
+                                widget.infos!.periode,
                                 style: FlutterFlowTheme.of(context)
                                     .bodyMedium
                                     .override(
@@ -209,7 +216,7 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
                         children: [
                           Text(
                             valueOrDefault<String>(
-                              widget!.infos?.numeros?.elementAtOrNull(0),
+                              widget.infos?.numeros.elementAtOrNull(0),
                               '-',
                             ),
                             style: FlutterFlowTheme.of(context)
@@ -239,7 +246,7 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
                           ),
                           Text(
                             valueOrDefault<String>(
-                              widget!.infos?.numeros?.elementAtOrNull(1),
+                              widget.infos?.numeros.elementAtOrNull(1),
                               '-',
                             ),
                             style: FlutterFlowTheme.of(context)
@@ -269,7 +276,7 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
                           ),
                           Text(
                             valueOrDefault<String>(
-                              widget!.infos?.numeros?.elementAtOrNull(2),
+                              widget.infos?.numeros.elementAtOrNull(2),
                               '-',
                             ),
                             style: FlutterFlowTheme.of(context)

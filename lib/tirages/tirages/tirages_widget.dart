@@ -20,6 +20,17 @@ class TiragesWidget extends StatefulWidget {
 }
 
 class _TiragesWidgetState extends State<TiragesWidget> {
+  static const _supportedLotteryCodes = {
+    'ny',
+    'fl',
+    'tx',
+    'md',
+    'ga',
+    'tn',
+    'pa',
+    'nj',
+  };
+
   late TiragesModel _model;
   late Future<List<ResultatsRecord>> _tiragesFuture;
 
@@ -41,7 +52,7 @@ class _TiragesWidgetState extends State<TiragesWidget> {
     );
 
     return results
-        .where((result) => result.tirage == 'ny' || result.tirage == 'fl')
+        .where((result) => _supportedLotteryCodes.contains(result.tirage))
         .toList();
   }
 
@@ -175,11 +186,11 @@ class _TiragesWidgetState extends State<TiragesWidget> {
                                         : theme.designToken.spacing.sm,
                               ),
                               child:
-                                  dayGroup.results[resultIndex].tirage == 'ny'
-                                      ? NewYorkkWidget(
+                                  dayGroup.results[resultIndex].tirage == 'fl'
+                                      ? FlWidget(
                                           infos: dayGroup.results[resultIndex],
                                         )
-                                      : FlWidget(
+                                      : NewYorkkWidget(
                                           infos: dayGroup.results[resultIndex],
                                         ),
                             ),
