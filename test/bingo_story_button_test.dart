@@ -1101,10 +1101,9 @@ void main() {
         ],
         home: Scaffold(
           body: BingoStatusFrame(
-            navigationPassthroughKey: stackInteractionKey,
             onPreviousStory: () => storySwipeCount += 1,
             onNextStory: () => storySwipeCount += 1,
-            child: Align(
+            foregroundChild: Align(
               alignment: Alignment.bottomCenter,
               child: SizedBox(
                 key: stackInteractionKey,
@@ -1120,6 +1119,7 @@ void main() {
                 ),
               ),
             ),
+            child: const SizedBox.expand(),
           ),
         ),
       ),

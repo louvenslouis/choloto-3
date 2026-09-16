@@ -28,6 +28,7 @@ class BingoStatusFrame extends StatelessWidget {
   const BingoStatusFrame({
     super.key,
     required this.child,
+    this.foregroundChild,
     this.onClose,
     this.publishedAt,
     this.selectedReaction,
@@ -49,10 +50,10 @@ class BingoStatusFrame extends StatelessWidget {
     this.onNextStory,
     this.onPause,
     this.onResume,
-    this.navigationPassthroughKey,
   });
 
   final Widget child;
+  final Widget? foregroundChild;
   final VoidCallback? onClose;
   final DateTime? publishedAt;
   final BingoReaction? selectedReaction;
@@ -74,7 +75,6 @@ class BingoStatusFrame extends StatelessWidget {
   final VoidCallback? onNextStory;
   final VoidCallback? onPause;
   final VoidCallback? onResume;
-  final GlobalKey? navigationPassthroughKey;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +84,17 @@ class BingoStatusFrame extends StatelessWidget {
     String localized(String key, String fallback) =>
         localizations?.getText(key) ?? fallback;
     final navigationEnabled = onPreviousStory != null || onNextStory != null;
+    Widget present(Widget content, {Key? key}) => Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: SizedBox(
+              key: key,
+              width: bingoCardPresentationSize.width,
+              height: bingoCardPresentationSize.height,
+              child: content,
+            ),
+          ),
+        );
 
     return StoryViewerShell(
       frameKey: const ValueKey('bingo-status-frame'),
@@ -110,7 +121,8 @@ class BingoStatusFrame extends StatelessWidget {
           progressAnimation ?? const AlwaysStoppedAnimation<double>(0.0),
       navigationEnabled: navigationEnabled,
       navigationAboveChild: true,
-      navigationPassthroughKey: navigationPassthroughKey,
+      foregroundChild:
+          foregroundChild == null ? null : present(foregroundChild!),
       showHeader: publishedAt != null,
       showClose: onClose != null,
       onPreviousStory: onPreviousStory ?? () {},
@@ -141,16 +153,9 @@ class BingoStatusFrame extends StatelessWidget {
               commentPreview: commentPreview,
             )
           : null,
-      child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: SizedBox(
-            key: const ValueKey('bingo-status-content-area'),
-            width: bingoCardPresentationSize.width,
-            height: bingoCardPresentationSize.height,
-            child: child,
-          ),
-        ),
+      child: present(
+        child,
+        key: const ValueKey('bingo-status-content-area'),
       ),
     );
   }
@@ -632,9 +637,6 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
   late final List<int?> _commentCounts;
   late final List<BingoPublicComment?> _commentPreviews;
   final _commentController = TextEditingController();
-  final _stackInteractionKey = GlobalKey(
-    debugLabel: 'Bingo Story stacked-card interaction',
-  );
   var _currentIndex = 0;
   var _reactionPending = false;
   var _commentPending = false;
@@ -969,14 +971,16 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       onNextStory: _showNextStory,
       onPause: _pauseProgress,
       onResume: _resumeProgress,
-      navigationPassthroughKey:
-          hasInteractiveStack ? _stackInteractionKey : null,
+      foregroundChild: hasInteractiveStack
+          ? BingoStackLayer(
+              dataStack: story.dataStack,
+            )
+          : null,
       child: story.content ??
           BingoWidget(
             key: ValueKey('bingo-story-content-$_currentIndex'),
             dataStack: story.dataStack,
-            stackInteractionKey:
-                hasInteractiveStack ? _stackInteractionKey : null,
+            showStackLayer: !hasInteractiveStack,
           ),
     );
   }

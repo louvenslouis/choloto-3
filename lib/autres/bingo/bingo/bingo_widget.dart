@@ -14,11 +14,11 @@ class BingoWidget extends StatefulWidget {
   const BingoWidget({
     super.key,
     this.dataStack,
-    this.stackInteractionKey,
+    this.showStackLayer = true,
   });
 
   final List<DataStackStruct>? dataStack;
-  final GlobalKey? stackInteractionKey;
+  final bool showStackLayer;
 
   @override
   State<BingoWidget> createState() => _BingoWidgetState();
@@ -55,6 +55,7 @@ class _BingoWidgetState extends State<BingoWidget>
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+    final dataStack = widget.dataStack ?? FFAppState().bingo.dataStack;
 
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 10.0, 0.0),
@@ -121,74 +122,13 @@ class _BingoWidgetState extends State<BingoWidget>
                     animate: true,
                   ),
                 ),
-                Align(
-                  alignment: AlignmentDirectional(0.0, 1.0),
-                  child: Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 30.0),
-                    child: Container(
-                      width: MediaQuery.sizeOf(context).width * 1.0,
-                      height: 125.3,
-                      decoration: BoxDecoration(),
-                      child: wrapWithModel(
-                        model: _model.stackbingoModel,
-                        updateCallback: () => safeSetState(() {}),
-                        child: StackbingoWidget(
-                          key: widget.stackInteractionKey,
-                          dataStack:
-                              widget.dataStack ?? FFAppState().bingo.dataStack,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                if ((widget.dataStack ?? FFAppState().bingo.dataStack).length >
-                    1)
-                  Align(
-                    alignment: AlignmentDirectional(-0.01, 0.34),
-                    child: Container(
-                      width: 75.0,
-                      height: 50.0,
-                      decoration: BoxDecoration(),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'x${(widget.dataStack ?? FFAppState().bingo.dataStack).length}',
-                            style: FlutterFlowTheme.of(context)
-                                .displayLarge
-                                .override(
-                              font: GoogleFonts.raleway(
-                                fontWeight: FontWeight.w900,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .displayLarge
-                                    .fontStyle,
-                              ),
-                              color: Colors.white,
-                              fontSize: 20.0,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w900,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .displayLarge
-                                  .fontStyle,
-                              shadows: [
-                                Shadow(
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryText,
-                                  offset: Offset(1.0, 1.0),
-                                  blurRadius: 2.0,
-                                )
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            Icons.swipe_sharp,
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            size: 12.0,
-                          ),
-                        ].divide(SizedBox(width: 10.0)),
-                      ),
+                if (widget.showStackLayer)
+                  _BingoStackContent(
+                    dataStack: dataStack,
+                    stack: wrapWithModel(
+                      model: _model.stackbingoModel,
+                      updateCallback: () => safeSetState(() {}),
+                      child: StackbingoWidget(dataStack: dataStack),
                     ),
                   ),
               ],
@@ -198,4 +138,111 @@ class _BingoWidgetState extends State<BingoWidget>
       ),
     );
   }
+}
+
+/// The stacked Bingo lot rendered independently from the card background.
+///
+/// Bingo Stories use this layer above their left/right navigation targets so
+/// the card swiper receives the gesture first. The presentation dimensions
+/// mirror the original Card margin and horizontal padding exactly.
+class BingoStackLayer extends StatelessWidget {
+  const BingoStackLayer({
+    super.key,
+    required this.dataStack,
+  });
+
+  final List<DataStackStruct> dataStack;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: SizedBox(
+            width: 400.0,
+            height: 400.0,
+            child: _BingoStackContent(
+              dataStack: dataStack,
+              stack: StackbingoWidget(
+                dataStack: dataStack,
+              ),
+            ),
+          ),
+        ),
+      );
+}
+
+class _BingoStackContent extends StatelessWidget {
+  const _BingoStackContent({
+    required this.dataStack,
+    required this.stack,
+  });
+
+  final List<DataStackStruct> dataStack;
+  final Widget stack;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        fit: StackFit.expand,
+        children: [
+          Align(
+            alignment: const AlignmentDirectional(0.0, 1.0),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(bottom: 30.0),
+              child: SizedBox(
+                width: MediaQuery.sizeOf(context).width,
+                height: 125.3,
+                child: stack,
+              ),
+            ),
+          ),
+          if (dataStack.length > 1)
+            IgnorePointer(
+              child: Align(
+                alignment: const AlignmentDirectional(-0.01, 0.34),
+                child: SizedBox(
+                  width: 75.0,
+                  height: 50.0,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'x${dataStack.length}',
+                        style:
+                            FlutterFlowTheme.of(context).displayLarge.override(
+                          font: GoogleFonts.raleway(
+                            fontWeight: FontWeight.w900,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .displayLarge
+                                .fontStyle,
+                          ),
+                          color: Colors.white,
+                          fontSize: 20.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w900,
+                          fontStyle: FlutterFlowTheme.of(context)
+                              .displayLarge
+                              .fontStyle,
+                          shadows: [
+                            Shadow(
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              offset: const Offset(1.0, 1.0),
+                              blurRadius: 2.0,
+                            )
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.swipe_sharp,
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        size: 12.0,
+                      ),
+                    ].divide(const SizedBox(width: 10.0)),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
 }
