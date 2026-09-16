@@ -160,6 +160,21 @@ void main() {
           expect(tester.getSize(sheet).width, lessThanOrEqualTo(640));
           expect(
               find.text(FFLocalizations(Locale(language))
+                  .getText('bingo_comment_member')),
+              findsNothing);
+          final visibleAvatars = find.descendant(
+            of: find.byType(BingoCommentAvatar),
+            matching: find.byType(CircleAvatar),
+          );
+          expect(visibleAvatars, findsAtLeastNWidgets(2));
+          final avatarColors = visibleAvatars
+              .evaluate()
+              .map(
+                  (element) => (element.widget as CircleAvatar).backgroundColor)
+              .toSet();
+          expect(avatarColors.length, greaterThan(1));
+          expect(
+              find.text(FFLocalizations(Locale(language))
                   .getText('bingo_story_comment_reply_label')),
               findsOneWidget);
           expect(tester.takeException(), isNull);

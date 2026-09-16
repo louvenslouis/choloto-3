@@ -14,9 +14,11 @@ class BingoWidget extends StatefulWidget {
   const BingoWidget({
     super.key,
     this.dataStack,
+    this.stackInteractionKey,
   });
 
   final List<DataStackStruct>? dataStack;
+  final GlobalKey? stackInteractionKey;
 
   @override
   State<BingoWidget> createState() => _BingoWidgetState();
@@ -132,6 +134,7 @@ class _BingoWidgetState extends State<BingoWidget>
                         model: _model.stackbingoModel,
                         updateCallback: () => safeSetState(() {}),
                         child: StackbingoWidget(
+                          key: widget.stackInteractionKey,
                           dataStack:
                               widget.dataStack ?? FFAppState().bingo.dataStack,
                         ),

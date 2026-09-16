@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:choloto/app_state.dart';
 import 'package:choloto/auth/base_auth_user_provider.dart';
 import 'package:choloto/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
+import 'package:choloto/autres/bingo/bingo/bingo_reaction_button.dart';
 import 'package:choloto/autres/bingo/stackbingo/stackbingo_widget.dart';
 import 'package:choloto/components/vip_prediction_header.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
@@ -24,6 +25,8 @@ import 'package:google_fonts/src/google_fonts_base.dart' as font_testing;
 class _SignedInUser extends Fake implements BaseAuthUser {
   @override
   bool get loggedIn => true;
+  @override
+  bool get isAnonymous => false;
 }
 
 class _TestFontManifest extends Fake implements AssetManifest {
@@ -221,8 +224,8 @@ void main() {
           await tester.pump(const Duration(milliseconds: 250));
           expect(find.byType(StackbingoWidget), findsOneWidget);
           expect(find.text(strings.getText('ch00aogu')), findsOneWidget);
-          expect(find.text(strings.getText('ksh6eozy')), findsOneWidget);
-          expect(find.text(strings.getText('7ccuyv05')), findsOneWidget);
+          expect(find.byIcon(Icons.thumbs_up_down_outlined), findsOneWidget);
+          expect(find.text(strings.getText('bingo_story_like')), findsNothing);
           // Feed the existing Firestore stream a local result fixture.
           tester.binding.defaultBinaryMessenger.handlePlatformMessage(
             'plugins.flutter.io/firebase_firestore/query/bingo-vip-test',
@@ -255,6 +258,16 @@ void main() {
           expect(find.text('12'), findsOneWidget);
           expect(tester.takeException(), isNull);
           await capture('expanded');
+          await tester.tap(find.byType(BingoReactionButton));
+          await tester.pumpAndSettle();
+          expect(
+              find.text(strings.getText('bingo_story_like')), findsOneWidget);
+          expect(find.text(strings.getText('bingo_story_dislike')),
+              findsOneWidget);
+          expect(tester.takeException(), isNull);
+          await capture('reaction-menu');
+          await tester.tapAt(const Offset(4, 4));
+          await tester.pumpAndSettle();
           await tester.tap(find.text(strings.getText('bngreduce')));
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 250));

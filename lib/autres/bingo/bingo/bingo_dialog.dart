@@ -2,7 +2,6 @@ import 'dart:async';
 
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/stories/story_viewer_shell.dart';
@@ -11,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'bingo_comment_service.dart';
 import 'bingo_public_comments_sheet.dart';
 import 'bingo_reaction_service.dart';
+import 'bingo_reaction_button.dart';
 import 'bingo_widget.dart';
 
 const bingoStatusAspectRatio = cholotoStoryAspectRatio;
@@ -33,6 +33,7 @@ class BingoStatusFrame extends StatelessWidget {
     this.selectedReaction,
     this.onReaction,
     this.reactionPending = false,
+    this.reactionReference,
     this.onCommentPressed,
     this.commentPending = false,
     this.commentFeedback,
@@ -48,6 +49,7 @@ class BingoStatusFrame extends StatelessWidget {
     this.onNextStory,
     this.onPause,
     this.onResume,
+    this.navigationPassthroughKey,
   });
 
   final Widget child;
@@ -56,6 +58,7 @@ class BingoStatusFrame extends StatelessWidget {
   final BingoReaction? selectedReaction;
   final ValueChanged<BingoReaction>? onReaction;
   final bool reactionPending;
+  final DocumentReference? reactionReference;
   final VoidCallback? onCommentPressed;
   final bool commentPending;
   final String? commentFeedback;
@@ -71,6 +74,7 @@ class BingoStatusFrame extends StatelessWidget {
   final VoidCallback? onNextStory;
   final VoidCallback? onPause;
   final VoidCallback? onResume;
+  final GlobalKey? navigationPassthroughKey;
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +110,7 @@ class BingoStatusFrame extends StatelessWidget {
           progressAnimation ?? const AlwaysStoppedAnimation<double>(0.0),
       navigationEnabled: navigationEnabled,
       navigationAboveChild: true,
+      navigationPassthroughKey: navigationPassthroughKey,
       showHeader: publishedAt != null,
       showClose: onClose != null,
       onPreviousStory: onPreviousStory ?? () {},
@@ -120,6 +125,9 @@ class BingoStatusFrame extends StatelessWidget {
               onCommentPressed != null ||
               onViewComments != null
           ? _BingoStoryEngagementBar(
+              reactionReference: reactionReference,
+              onMenuOpened: onPause,
+              onMenuClosed: onResume,
               selectedReaction: selectedReaction,
               reactionEnabled: !reactionPending,
               onReaction: onReaction,
@@ -150,6 +158,9 @@ class BingoStatusFrame extends StatelessWidget {
 
 class _BingoStoryEngagementBar extends StatelessWidget {
   const _BingoStoryEngagementBar({
+    required this.reactionReference,
+    this.onMenuOpened,
+    this.onMenuClosed,
     required this.selectedReaction,
     required this.reactionEnabled,
     required this.onReaction,
@@ -163,6 +174,9 @@ class _BingoStoryEngagementBar extends StatelessWidget {
     required this.commentPreview,
   });
 
+  final DocumentReference? reactionReference;
+  final VoidCallback? onMenuOpened;
+  final VoidCallback? onMenuClosed;
   final BingoReaction? selectedReaction;
   final bool reactionEnabled;
   final ValueChanged<BingoReaction>? onReaction;
@@ -185,48 +199,6 @@ class _BingoStoryEngagementBar extends StatelessWidget {
         theme.secondaryBackground.withValues(alpha: 0.48);
     final engagementButtonHoverColor =
         theme.secondaryBackground.withValues(alpha: 0.72);
-    final selectedReactionColor = theme.primary.withValues(alpha: 0.16);
-
-    Widget reactionButton({
-      required BingoReaction reaction,
-      required IconData icon,
-      required String labelKey,
-      required Key key,
-    }) {
-      final selected = selectedReaction == reaction;
-
-      return AnimatedScale(
-        scale: selected ? 1.06 : 1.0,
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOutCubic,
-        child: Semantics(
-          label: localizations.getText(labelKey),
-          button: true,
-          selected: selected,
-          child: FlutterFlowIconButton(
-            key: key,
-            borderRadius: tokens.radius.full,
-            buttonSize: 48.0,
-            fillColor: selected ? selectedReactionColor : engagementButtonColor,
-            disabledColor: engagementButtonColor,
-            disabledIconColor: theme.secondaryText,
-            hoverColor: selected
-                ? theme.primary.withValues(alpha: 0.24)
-                : engagementButtonHoverColor,
-            hoverIconColor: theme.primaryText,
-            icon: Icon(
-              icon,
-              color: selected ? theme.primaryText : theme.secondaryText,
-              size: 20.0,
-            ),
-            onPressed: reactionEnabled && onReaction != null
-                ? () => onReaction!(reaction)
-                : null,
-          ),
-        ),
-      );
-    }
-
     final commentAction = onCommentPressed ?? onViewComments;
     final adminInteractionAction = onViewComments ?? commentAction;
     final commentHint = localizations.getText('bingo_story_comment_hint');
@@ -400,24 +372,14 @@ class _BingoStoryEngagementBar extends StatelessWidget {
                     if (onReaction != null) SizedBox(width: tokens.spacing.sm),
                   ],
                   if (onReaction != null)
-                    Row(
+                    BingoReactionButton(
                       key: const ValueKey('bingo-story-reactions'),
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        reactionButton(
-                          reaction: BingoReaction.positive,
-                          icon: Icons.thumb_up_alt_outlined,
-                          labelKey: 'bingo_story_like',
-                          key: const ValueKey('bingo-story-like'),
-                        ),
-                        SizedBox(width: tokens.spacing.xs),
-                        reactionButton(
-                          reaction: BingoReaction.negative,
-                          icon: Icons.thumb_down_alt_outlined,
-                          labelKey: 'bingo_story_dislike',
-                          key: const ValueKey('bingo-story-dislike'),
-                        ),
-                      ],
+                      reference: reactionReference,
+                      selectedReaction: selectedReaction,
+                      enabled: reactionEnabled,
+                      onReaction: onReaction!,
+                      onMenuOpened: onMenuOpened,
+                      onMenuClosed: onMenuClosed,
                     ),
                 ],
               ),
@@ -443,9 +405,7 @@ class _BingoCommentPreview extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final localizations = FFLocalizations.of(context);
-    final author = comment.isOwnedBy(currentUserUid)
-        ? localizations.getText('bingo_comment_you')
-        : localizations.getText('bingo_comment_member');
+    final isOwned = comment.isOwnedBy(currentUserUid);
 
     return Semantics(
       button: onTap != null,
@@ -467,10 +427,10 @@ class _BingoCommentPreview extends StatelessWidget {
               children: [
                 Padding(
                   padding: EdgeInsetsDirectional.only(top: tokens.spacing.xs),
-                  child: Icon(
-                    Icons.person_outline_rounded,
-                    color: theme.secondaryText,
-                    size: 16.0,
+                  child: BingoCommentAvatar(
+                    key: const ValueKey('bingo-story-comment-preview-avatar'),
+                    comment: comment,
+                    radius: 11.0,
                   ),
                 ),
                 SizedBox(width: tokens.spacing.sm),
@@ -478,13 +438,15 @@ class _BingoCommentPreview extends StatelessWidget {
                   child: Text.rich(
                     TextSpan(
                       children: [
-                        TextSpan(
-                          text: '$author  ',
-                          style: theme.bodySmall.copyWith(
-                            color: theme.primaryText,
-                            fontWeight: FontWeight.w800,
+                        if (isOwned)
+                          TextSpan(
+                            text:
+                                '${localizations.getText('bingo_comment_you')}  ',
+                            style: theme.bodySmall.copyWith(
+                              color: theme.primaryText,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
                         TextSpan(
                           text: comment.text,
                           style: theme.bodySmall.copyWith(
@@ -670,6 +632,9 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
   late final List<int?> _commentCounts;
   late final List<BingoPublicComment?> _commentPreviews;
   final _commentController = TextEditingController();
+  final _stackInteractionKey = GlobalKey(
+    debugLabel: 'Bingo Story stacked-card interaction',
+  );
   var _currentIndex = 0;
   var _reactionPending = false;
   var _commentPending = false;
@@ -980,11 +945,14 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
   @override
   Widget build(BuildContext context) {
     final story = widget.stories[_currentIndex];
+    final hasInteractiveStack =
+        story.content == null && story.dataStack.length > 1;
     return BingoStatusFrame(
       onClose: _close,
       publishedAt: story.publishedAt,
       selectedReaction: _selectedReactions[_currentIndex],
       reactionPending: _reactionPending,
+      reactionReference: story.reference,
       onReaction: _react,
       commentPending: _commentPending,
       onCommentPressed: () => _showComments(autofocus: true),
@@ -1001,10 +969,14 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       onNextStory: _showNextStory,
       onPause: _pauseProgress,
       onResume: _resumeProgress,
+      navigationPassthroughKey:
+          hasInteractiveStack ? _stackInteractionKey : null,
       child: story.content ??
           BingoWidget(
             key: ValueKey('bingo-story-content-$_currentIndex'),
             dataStack: story.dataStack,
+            stackInteractionKey:
+                hasInteractiveStack ? _stackInteractionKey : null,
           ),
     );
   }

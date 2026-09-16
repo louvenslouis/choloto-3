@@ -1510,15 +1510,20 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Kounye a',
       'en': 'Happening now',
     },
+    'bingo_reactions': {
+      'fr': 'Réactions',
+      'en': 'Reactions',
+      'cr': 'Reyaksyon',
+    },
     'bingo_story_like': {
-      'fr': 'J’aime ce Bingo',
-      'cr': 'Mwen renmen Bingo sa a',
-      'en': 'Like this Bingo',
+      'fr': 'J’ai joué et j’ai gagné',
+      'cr': 'Mwen te jwe e mwen te genyen',
+      'en': 'I played and won',
     },
     'bingo_story_dislike': {
-      'fr': 'Je n’aime pas ce Bingo',
-      'cr': 'Mwen pa renmen Bingo sa a',
-      'en': 'Dislike this Bingo',
+      'fr': 'Je n’ai pas joué, j’ai raté ma chance',
+      'cr': 'Mwen pa t jwe, mwen rate chans mwen',
+      'en': 'I didn’t play and missed my chance',
     },
     'bingo_story_reaction_error': {
       'fr': 'Impossible d’enregistrer votre réaction pour le moment.',

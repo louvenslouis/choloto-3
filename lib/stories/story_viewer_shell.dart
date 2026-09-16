@@ -2,6 +2,7 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 const cholotoStoryAspectRatio = 9.0 / 16.0;
@@ -35,6 +36,7 @@ class StoryViewerShell extends StatefulWidget {
     this.onResume,
     this.navigationEnabled = true,
     this.navigationAboveChild = false,
+    this.navigationPassthroughKey,
     this.showHeader = true,
     this.showClose = true,
     this.aspectRatio = cholotoStoryAspectRatio,
@@ -59,6 +61,7 @@ class StoryViewerShell extends StatefulWidget {
   final VoidCallback? onResume;
   final bool navigationEnabled;
   final bool navigationAboveChild;
+  final GlobalKey? navigationPassthroughKey;
   final bool showHeader;
   final bool showClose;
   final String previousLabel;
@@ -118,35 +121,38 @@ class _StoryViewerShellState extends State<StoryViewerShell> {
   Widget _buildNavigationOverlay() => Positioned.fill(
         top: 80.0,
         bottom: 80.0,
-        child: Row(
-          children: [
-            Expanded(
-              child: Semantics(
-                label: widget.previousLabel,
-                button: true,
-                child: GestureDetector(
-                  key: ValueKey(
-                    '${widget.keyPrefix}-story-previous-area',
+        child: _NavigationHitTestPassthrough(
+          passthroughKey: widget.navigationPassthroughKey,
+          child: Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  label: widget.previousLabel,
+                  button: true,
+                  child: GestureDetector(
+                    key: ValueKey(
+                      '${widget.keyPrefix}-story-previous-area',
+                    ),
+                    behavior: HitTestBehavior.translucent,
+                    onTap: widget.onPreviousStory,
                   ),
-                  behavior: HitTestBehavior.translucent,
-                  onTap: widget.onPreviousStory,
                 ),
               ),
-            ),
-            Expanded(
-              child: Semantics(
-                label: widget.nextLabel,
-                button: true,
-                child: GestureDetector(
-                  key: ValueKey(
-                    '${widget.keyPrefix}-story-next-area',
+              Expanded(
+                child: Semantics(
+                  label: widget.nextLabel,
+                  button: true,
+                  child: GestureDetector(
+                    key: ValueKey(
+                      '${widget.keyPrefix}-story-next-area',
+                    ),
+                    behavior: HitTestBehavior.translucent,
+                    onTap: widget.onNextStory,
                   ),
-                  behavior: HitTestBehavior.translucent,
-                  onTap: widget.onNextStory,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
 
@@ -219,6 +225,56 @@ class _StoryViewerShellState extends State<StoryViewerShell> {
         );
       },
     );
+  }
+}
+
+/// Leaves one child control reachable through the Story navigation overlay.
+///
+/// The overlay otherwise keeps its existing full-width tap targets. The target
+/// is resolved at hit-test time so the opening follows responsive scaling and
+/// never relies on hard-coded Story coordinates.
+class _NavigationHitTestPassthrough extends SingleChildRenderObjectWidget {
+  const _NavigationHitTestPassthrough({
+    required this.passthroughKey,
+    required super.child,
+  });
+
+  final GlobalKey? passthroughKey;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderNavigationHitTestPassthrough(passthroughKey);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderNavigationHitTestPassthrough renderObject,
+  ) {
+    renderObject.passthroughKey = passthroughKey;
+  }
+}
+
+class _RenderNavigationHitTestPassthrough extends RenderProxyBox {
+  _RenderNavigationHitTestPassthrough(this._passthroughKey);
+
+  GlobalKey? _passthroughKey;
+
+  set passthroughKey(GlobalKey? value) {
+    if (_passthroughKey == value) return;
+    _passthroughKey = value;
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    final target = _passthroughKey?.currentContext?.findRenderObject();
+    if (target is RenderBox && target.attached && target.hasSize) {
+      final targetPosition = target.globalToLocal(localToGlobal(position));
+      if ((Offset.zero & target.size).contains(targetPosition)) {
+        return false;
+      }
+    }
+    return super.hitTest(result, position: position);
   }
 }
 

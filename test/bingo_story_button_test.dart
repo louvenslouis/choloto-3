@@ -4,8 +4,6 @@ import 'package:choloto/autres/bingo/bingo/bingo_comment_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_reaction_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_public_comments_sheet.dart';
-import 'package:choloto/flutter_flow/flutter_flow_icon_button.dart';
-import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/flutter_flow_util.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/foundation.dart';
@@ -421,6 +419,16 @@ void main() {
       find.byKey(const ValueKey('bingo-comment-delete-comment-foreign')),
       findsNothing,
     );
+    expect(
+      find.text(
+        FFLocalizations(const Locale('fr')).getText('bingo_comment_member'),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('bingo-comment-avatar-comment-foreign')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Bingo comment deletion requires confirmation', (tester) async {
@@ -700,11 +708,11 @@ void main() {
             expect(publicationAge.data, isNotEmpty);
             expect(
               find.byKey(const ValueKey('bingo-story-like')),
-              findsOneWidget,
+              findsNothing,
             );
             expect(
               find.byKey(const ValueKey('bingo-story-dislike')),
-              findsOneWidget,
+              findsNothing,
             );
             expect(
               find.byKey(const ValueKey('bingo-story-comment-open')),
@@ -728,6 +736,18 @@ void main() {
             expect(
               previewText.textSpan?.toPlainText(),
               contains('Une combinaison vraiment gagnante !'),
+            );
+            expect(
+              previewText.textSpan?.toPlainText(),
+              isNot(contains(
+                FFLocalizations(locale).getText('bingo_comment_member'),
+              )),
+            );
+            expect(
+              find.byKey(
+                const ValueKey('bingo-story-comment-preview-avatar'),
+              ),
+              findsOneWidget,
             );
             expect(
               find.text(
@@ -774,43 +794,33 @@ void main() {
               lessThan(1.0),
             );
 
-            final likeButton = tester.widget<FlutterFlowIconButton>(
-              find.byKey(const ValueKey('bingo-story-like')),
-            );
-            final commentsButton =
-                find.byKey(const ValueKey('bingo-story-comments-open'));
-            final dislikeButton = tester.widget<FlutterFlowIconButton>(
-              find.byKey(const ValueKey('bingo-story-dislike')),
-            );
-            final storyTheme = FlutterFlowTheme.of(
-              tester.element(find.byKey(const ValueKey('bingo-story-like'))),
-            );
-            expect(likeButton.buttonSize, 48.0);
-            expect(tester.getSize(commentsButton).height, 48.0);
-            expect(dislikeButton.buttonSize, 48.0);
+            expect(find.byIcon(Icons.thumbs_up_down_outlined), findsOneWidget);
+            expect(find.text('0'), findsOneWidget);
+            await tester
+                .tap(find.byKey(const ValueKey('bingo-story-reactions')));
+            await tester.pumpAndSettle();
+            final like = find.byKey(const ValueKey('bingo-story-like'));
+            final dislike = find.byKey(const ValueKey('bingo-story-dislike'));
+            expect(like, findsOneWidget);
+            expect(dislike, findsOneWidget);
+            expect(tester.getRect(like).bottom,
+                lessThanOrEqualTo(tester.getRect(dislike).top));
             expect(
-              likeButton.fillColor,
-              storyTheme.primary.withValues(alpha: 0.16),
-            );
-            expect((likeButton.icon as Icon).size, 20.0);
+                find.text(FFLocalizations(locale).getText('bingo_story_like')),
+                findsOneWidget);
             expect(
-              tester
-                  .widget<Material>(
-                    find.descendant(
-                      of: commentsButton,
-                      matching: find.byType(Material),
-                    ),
-                  )
-                  .color,
-              storyTheme.secondaryBackground.withValues(alpha: 0.48),
-            );
-            expect((dislikeButton.icon as Icon).size, 20.0);
+                find.text(
+                    FFLocalizations(locale).getText('bingo_story_dislike')),
+                findsOneWidget);
+            expect(tappedReaction, isNull);
+            expect(tester.takeException(), isNull);
 
             await tester.tap(
               find.byKey(const ValueKey('bingo-story-dislike')),
             );
             await tester.pump();
             expect(tappedReaction, BingoReaction.negative);
+            await tester.pumpAndSettle();
 
             await tester.tap(
               find.byKey(const ValueKey('bingo-story-comments-preview-open')),
@@ -1063,6 +1073,80 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1100));
     await tester.pump();
     expect(find.byKey(const ValueKey('third-bingo-status')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'stacked Bingo cards own swipes in their zone without changing Story swipes',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final stackInteractionKey = GlobalKey();
+    var stackSwipeCount = 0;
+    var storySwipeCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fr'),
+        supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+        localizationsDelegates: const [
+          FFLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          FallbackMaterialLocalizationDelegate(),
+          FallbackCupertinoLocalizationDelegate(),
+        ],
+        home: Scaffold(
+          body: BingoStatusFrame(
+            navigationPassthroughKey: stackInteractionKey,
+            onPreviousStory: () => storySwipeCount += 1,
+            onNextStory: () => storySwipeCount += 1,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                key: stackInteractionKey,
+                width: 400.0,
+                height: 126.0,
+                child: GestureDetector(
+                  key: const ValueKey('stacked-bingo-swipe-zone'),
+                  behavior: HitTestBehavior.opaque,
+                  onHorizontalDragEnd: (_) => stackSwipeCount += 1,
+                  child: const ColoredBox(
+                    color: Colors.amber,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.fling(
+      find.byKey(const ValueKey('stacked-bingo-swipe-zone')),
+      const Offset(-240.0, 0.0),
+      1200.0,
+    );
+    await tester.pump();
+
+    expect(stackSwipeCount, 1);
+    expect(storySwipeCount, 0);
+
+    final frame = tester.getRect(
+      find.byKey(const ValueKey('bingo-status-frame')),
+    );
+    await tester.flingFrom(
+      Offset(frame.center.dx, frame.top + 160.0),
+      const Offset(-240.0, 0.0),
+      1200.0,
+    );
+    await tester.pump();
+
+    expect(stackSwipeCount, 1);
+    expect(storySwipeCount, 1);
     expect(tester.takeException(), isNull);
   });
 

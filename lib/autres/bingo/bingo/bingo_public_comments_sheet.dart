@@ -639,39 +639,37 @@ class BingoPublicCommentCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
+              BingoCommentAvatar(
+                key: ValueKey('bingo-comment-avatar-${comment.id}'),
+                comment: comment,
                 radius: 18.0,
-                backgroundColor: theme.primary.withValues(alpha: 0.1),
-                child: Icon(
-                  Icons.person_outline_rounded,
-                  color: theme.primaryText,
-                  size: 19.0,
-                ),
               ),
-              SizedBox(width: tokens.spacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizations.getText(canDelete
-                          ? 'bingo_comment_you'
-                          : 'bingo_comment_member'),
-                      style: theme.labelLarge.copyWith(
-                        color: theme.primaryText,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (commentDate != null)
-                      Text(
-                        dateTimeFormat('relative', commentDate,
-                            locale: localizations.languageCode),
-                        style: theme.labelSmall.copyWith(
-                            color: theme.primaryText.withValues(alpha: 0.72)),
-                      ),
-                  ],
+              if (canDelete || commentDate != null) ...[
+                SizedBox(width: tokens.spacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (canDelete)
+                        Text(
+                          localizations.getText('bingo_comment_you'),
+                          style: theme.labelLarge.copyWith(
+                            color: theme.primaryText,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      if (commentDate != null)
+                        Text(
+                          dateTimeFormat('relative', commentDate,
+                              locale: localizations.languageCode),
+                          style: theme.labelSmall.copyWith(
+                            color: theme.primaryText.withValues(alpha: 0.72),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           SizedBox(height: tokens.spacing.sm),
@@ -808,6 +806,54 @@ class BingoPublicCommentCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class BingoCommentAvatar extends StatelessWidget {
+  const BingoCommentAvatar({
+    super.key,
+    required this.comment,
+    this.radius = 18.0,
+  });
+
+  final BingoPublicComment comment;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final colors = [
+      theme.primary,
+      theme.secondary,
+      theme.tertiary,
+      theme.success,
+      theme.error,
+    ];
+    final identity = comment.userId.isNotEmpty ? comment.userId : comment.id;
+    final backgroundColor = colors[_stableAvatarIndex(identity, colors.length)];
+    final foregroundColor =
+        ThemeData.estimateBrightnessForColor(backgroundColor) == Brightness.dark
+            ? theme.onDecorative
+            : theme.onPrimary;
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: backgroundColor,
+      child: Icon(
+        Icons.person_rounded,
+        color: foregroundColor,
+        size: radius * 1.08,
+        semanticLabel: null,
+      ),
+    );
+  }
+}
+
+int _stableAvatarIndex(String identity, int colorCount) {
+  var hash = 0;
+  for (final codeUnit in identity.codeUnits) {
+    hash = (hash * 31 + codeUnit) & 0x7fffffff;
+  }
+  return hash % colorCount;
 }
 
 class _OptimisticCommentCard extends StatelessWidget {

@@ -251,6 +251,26 @@ expectStatus(
   'malformed bingo publication',
 );
 
+// Both choices contribute to the public total displayed by the Bingo button.
+async function expectReactionTotal(expected, token, bingo = 'public-bingo') {
+  const response = await fetch(`${documentsUrl}/bingo/${bingo}:runAggregationQuery`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? {authorization: `Bearer ${token}`} : {}),
+    },
+    body: JSON.stringify({structuredAggregationQuery: {
+      structuredQuery: {from: [{collectionId: 'bingostats'}]},
+      aggregations: [{alias: 'total', count: {}}],
+    }}),
+  });
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
+  assert.equal(Number(body[0].result.aggregateFields.total.integerValue), expected);
+}
+await expectReactionTotal(0);
+await expectReactionTotal(0, undefined, 'missing-bingo');
+
 // Released mobile clients can still create, update and remove their own vote.
 const votePath = 'bingo/public-bingo/bingostats/owner-vote';
 expectStatus(
@@ -270,6 +290,9 @@ expectStatus(
   200,
   'owner bingo vote creation',
 );
+await expectReactionTotal(1);
+await expectReactionTotal(1, owner.token);
+await expectReactionTotal(1, other.token);
 expectStatus(
   await firestoreRequest(votePath, {
     method: 'PATCH',
@@ -288,6 +311,7 @@ expectStatus(
   200,
   'owner bingo vote update',
 );
+await expectReactionTotal(1);
 
 // Released clients keep their uid document path. New clients use a distinct
 // comment UUID for every submission so one owner can comment more than once.
@@ -1798,6 +1822,7 @@ expectStatus(
   200,
   'owner bingo vote deletion',
 );
+await expectReactionTotal(0);
 expectStatus(
   await firestoreRequest(webPushTokenPath, {
     method: 'DELETE',

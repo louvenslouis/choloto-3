@@ -3,7 +3,7 @@ import '/autres/bingo/bingo/bingo_reaction_service.dart';
 import '/autres/bingo/stackbingo/stackbingo_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/autres/bingo/bingo/bingo_reaction_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'bingo_card_v_i_p_model.dart';
@@ -188,12 +188,18 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                               FFLocalizations.of(context).getText('ch00aogu'),
                               style: theme.bodyMedium,
                             ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _reactionButton(BingoReaction.positive),
-                                _reactionButton(BingoReaction.negative),
-                              ],
+                            BingoReactionButton(
+                              reference: FFAppState().bingo.doc,
+                              selectedReaction:
+                                  bingoReactionFromState(FFAppState().bingo),
+                              enabled: !_reactionPending,
+                              onReaction: (reaction) {
+                                logFirebaseEvent(reaction ==
+                                        BingoReaction.positive
+                                    ? 'BINGO_CARD_V_I_P_COMP_WI_BTN_ON_TAP'
+                                    : 'BINGO_CARD_V_I_P_COMP_NON_BTN_ON_TAP');
+                                _react(reaction);
+                              },
                             ),
                           ],
                         ),
@@ -205,41 +211,6 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _reactionButton(BingoReaction reaction) {
-    final theme = FlutterFlowTheme.of(context);
-    final tokens = theme.designToken;
-    final positive = reaction == BingoReaction.positive;
-    final bingo = FFAppState().bingo;
-    final selected = positive
-        ? bingo.gagner == true
-        : bingo.gagner == false && bingo.refGain != null;
-    final color = selected ? theme.error : theme.primaryText;
-
-    return FFButtonWidget(
-      onPressed: _reactionPending
-          ? null
-          : () async {
-              logFirebaseEvent(positive
-                  ? 'BINGO_CARD_V_I_P_COMP_WI_BTN_ON_TAP'
-                  : 'BINGO_CARD_V_I_P_COMP_NON_BTN_ON_TAP');
-              await _react(reaction);
-            },
-      text: FFLocalizations.of(context)
-          .getText(positive ? 'ksh6eozy' : '7ccuyv05'),
-      icon: Icon(positive ? Icons.thumb_up : Icons.thumb_down_alt, size: 16),
-      options: FFButtonOptions(
-        height: 48,
-        padding: EdgeInsets.symmetric(horizontal: tokens.spacing.sm),
-        iconColor: color,
-        color: theme.secondaryBackground,
-        textStyle: theme.labelMedium.override(color: color),
-        elevation: 0,
-        borderRadius: BorderRadius.circular(tokens.radius.sm),
-      ),
-      showLoadingIndicator: false,
     );
   }
 }
