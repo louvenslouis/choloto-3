@@ -165,6 +165,7 @@ class BingoStackLayer extends StatelessWidget {
               dataStack: dataStack,
               stack: StackbingoWidget(
                 dataStack: dataStack,
+                storySwipeMode: true,
               ),
             ),
           ),

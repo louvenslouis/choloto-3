@@ -36,6 +36,7 @@ class StoryViewerShell extends StatefulWidget {
     this.onResume,
     this.navigationEnabled = true,
     this.navigationAboveChild = false,
+    this.foregroundOwnsHorizontalDrag = false,
     this.showHeader = true,
     this.showClose = true,
     this.aspectRatio = cholotoStoryAspectRatio,
@@ -61,6 +62,7 @@ class StoryViewerShell extends StatefulWidget {
   final VoidCallback? onResume;
   final bool navigationEnabled;
   final bool navigationAboveChild;
+  final bool foregroundOwnsHorizontalDrag;
   final bool showHeader;
   final bool showClose;
   final String previousLabel;
@@ -132,6 +134,9 @@ class _StoryViewerShellState extends State<StoryViewerShell> {
                   ),
                   behavior: HitTestBehavior.translucent,
                   onTap: widget.onPreviousStory,
+                  onHorizontalDragEnd: widget.foregroundOwnsHorizontalDrag
+                      ? _handleHorizontalDragEnd
+                      : null,
                 ),
               ),
             ),
@@ -145,6 +150,9 @@ class _StoryViewerShellState extends State<StoryViewerShell> {
                   ),
                   behavior: HitTestBehavior.translucent,
                   onTap: widget.onNextStory,
+                  onHorizontalDragEnd: widget.foregroundOwnsHorizontalDrag
+                      ? _handleHorizontalDragEnd
+                      : null,
                 ),
               ),
             ),
@@ -163,7 +171,9 @@ class _StoryViewerShellState extends State<StoryViewerShell> {
         onKeyEvent: _handleKeyEvent,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onHorizontalDragEnd: _handleHorizontalDragEnd,
+          onHorizontalDragEnd: widget.foregroundOwnsHorizontalDrag
+              ? null
+              : _handleHorizontalDragEnd,
           onLongPressStart: (_) => widget.onPause?.call(),
           onLongPressEnd: (_) => widget.onResume?.call(),
           child: Stack(

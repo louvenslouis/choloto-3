@@ -121,6 +121,7 @@ class BingoStatusFrame extends StatelessWidget {
           progressAnimation ?? const AlwaysStoppedAnimation<double>(0.0),
       navigationEnabled: navigationEnabled,
       navigationAboveChild: true,
+      foregroundOwnsHorizontalDrag: foregroundChild != null,
       foregroundChild:
           foregroundChild == null ? null : present(foregroundChild!),
       showHeader: publishedAt != null,

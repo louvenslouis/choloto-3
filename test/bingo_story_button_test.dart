@@ -4,12 +4,14 @@ import 'package:choloto/autres/bingo/bingo/bingo_comment_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_reaction_service.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
 import 'package:choloto/autres/bingo/bingo/bingo_public_comments_sheet.dart';
+import 'package:choloto/flutter_flow/flutter_flow_swipeable_stack.dart';
 import 'package:choloto/flutter_flow/flutter_flow_util.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
@@ -1084,6 +1086,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final stackInteractionKey = GlobalKey();
+    final stackController = CardSwiperController();
+    addTearDown(stackController.dispose);
     var stackSwipeCount = 0;
     var storySwipeCount = 0;
 
@@ -1109,13 +1113,28 @@ void main() {
                 key: stackInteractionKey,
                 width: 400.0,
                 height: 126.0,
-                child: GestureDetector(
+                child: FlutterFlowSwipeableStack(
                   key: const ValueKey('stacked-bingo-swipe-zone'),
-                  behavior: HitTestBehavior.opaque,
-                  onHorizontalDragEnd: (_) => stackSwipeCount += 1,
-                  child: const ColoredBox(
-                    color: Colors.amber,
+                  itemBuilder: (_, index) => ColoredBox(
+                    color: index == 0 ? Colors.amber : Colors.orange,
                   ),
+                  itemCount: 2,
+                  controller: stackController,
+                  onSwipeFn: (_) => stackSwipeCount += 1,
+                  onRightSwipe: (_) {},
+                  onLeftSwipe: (_) {},
+                  onUpSwipe: (_) {},
+                  onDownSwipe: (_) {},
+                  loop: true,
+                  cardDisplayCount: 2,
+                  scale: 1.0,
+                  threshold: 0.18,
+                  cardPadding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 8.0,
+                  ),
+                  allowedSwipeDirection:
+                      AllowedSwipeDirection.symmetric(horizontal: true),
                 ),
               ),
             ),
@@ -1125,12 +1144,11 @@ void main() {
       ),
     );
 
-    await tester.fling(
+    await tester.drag(
       find.byKey(const ValueKey('stacked-bingo-swipe-zone')),
-      const Offset(-240.0, 0.0),
-      1200.0,
+      const Offset(-90.0, 0.0),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(stackSwipeCount, 1);
     expect(storySwipeCount, 0);

@@ -23,9 +23,11 @@ class StackbingoWidget extends StatefulWidget {
   const StackbingoWidget({
     super.key,
     this.dataStack,
+    this.storySwipeMode = false,
   });
 
   final List<DataStackStruct>? dataStack;
+  final bool storySwipeMode;
 
   @override
   State<StackbingoWidget> createState() => _StackbingoWidgetState();
@@ -336,6 +338,16 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
                 cardDisplayCount: 3,
                 scale: 1.0,
                 backCardOffset: const Offset(0.0, 4.0),
+                threshold: widget.storySwipeMode ? 0.18 : null,
+                cardPadding: widget.storySwipeMode
+                    ? const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 8.0,
+                      )
+                    : null,
+                allowedSwipeDirection: widget.storySwipeMode
+                    ? AllowedSwipeDirection.symmetric(horizontal: true)
+                    : null,
               ).animateOnPageLoad(
                   animationsMap['swipeableStackOnPageLoadAnimation']!);
             },
