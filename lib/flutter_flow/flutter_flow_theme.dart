@@ -421,10 +421,10 @@ class FFBackgrounds {
   const FFBackgrounds(this.theme);
   final FlutterFlowTheme theme;
 
-  // Keep the surrounding chrome dark while the page itself transitions through
-  // a restrained, blackened gold derived from the CHOLOTO brand color.
+  // Keep the surrounding chrome dark while the page retains only a subtle
+  // blackened-gold transition derived from the CHOLOTO brand color.
   Color get home => theme is DarkModeTheme
-      ? Color.lerp(theme.primaryBackground, theme.secondaryBackground, 0.62)!
+      ? Color.lerp(theme.primaryBackground, theme.secondaryBackground, 0.38)!
       : theme.primaryBackground;
 
   LinearGradient get homeGradient => theme is DarkModeTheme
@@ -433,9 +433,9 @@ class FFBackgrounds {
           end: Alignment.bottomRight,
           colors: [
             home,
-            Color.lerp(theme.primaryBackground, theme.primary, 0.16)!,
+            Color.lerp(theme.primaryBackground, theme.primary, 0.08)!,
             Color.lerp(
-                theme.primaryBackground, theme.secondaryBackground, 0.78)!,
+                theme.primaryBackground, theme.secondaryBackground, 0.58)!,
           ],
           stops: const [0.0, 0.58, 1.0],
         )

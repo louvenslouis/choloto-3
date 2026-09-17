@@ -32,14 +32,17 @@ void main() {
             greaterThanOrEqualTo(4.5));
       }
     });
-    test('home uses readable blackened gold without changing the base palette',
+    test('home uses a subtle dark gradient without changing the base palette',
         () {
       final theme = DarkModeTheme();
       final background = theme.designToken.background.home;
       final gradient = theme.designToken.background.homeGradient;
       expect(background, isNot(theme.primaryBackground));
+      expect(background.computeLuminance(), lessThan(0.004));
       expect(gradient.colors, hasLength(3));
       expect(gradient.colors[1], isNot(background));
+      expect(gradient.colors[1].r, lessThanOrEqualTo(24 / 255));
+      expect(gradient.colors[1].g, lessThanOrEqualTo(20 / 255));
       for (final color in gradient.colors) {
         final contrast = (theme.primaryText.computeLuminance() + 0.05) /
             (color.computeLuminance() + 0.05);
