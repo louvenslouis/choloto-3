@@ -38,6 +38,26 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
   late StackbingoModel _model;
 
   final animationsMap = <String, AnimationInfo>{};
+  double? _storyDragStartX;
+  double _storyDragDistance = 0;
+  DateTime? _lastStoryInteraction;
+
+  void _finishStoryDrag([DragEndDetails? details]) {
+    final distance = _storyDragDistance;
+    final velocity = details?.primaryVelocity ?? 0;
+    _storyDragStartX = null;
+    _storyDragDistance = 0;
+    _lastStoryInteraction = DateTime.now();
+    if (details == null || (distance.abs() < 18 && velocity.abs() < 160)) {
+      return;
+    }
+    final direction = distance.abs() >= 18 ? distance : velocity;
+    if (direction < 0) {
+      _model.swipeableStackController.swipeLeft();
+    } else {
+      _model.swipeableStackController.swipeRight();
+    }
+  }
 
   @override
   void setState(VoidCallback callback) {
@@ -61,6 +81,15 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
             milliseconds: 3000,
           ),
         );
+        if (!mounted) return;
+        // Let a manual Story swipe finish, then leave time to read its card.
+        if (widget.storySwipeMode &&
+            (_storyDragStartX != null ||
+                (_lastStoryInteraction != null &&
+                    DateTime.now().difference(_lastStoryInteraction!) <
+                        const Duration(seconds: 3)))) {
+          continue;
+        }
         logFirebaseEvent('stackbingo_swipeable_stack');
         _model.swipeableStackController.swipeRight();
       }
@@ -138,7 +167,7 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
                   swipeableStackBingoRecord?.dataStack.toList() ??
                   [];
 
-              return FlutterFlowSwipeableStack(
+              final stack = FlutterFlowSwipeableStack(
                 onSwipeFn: (datastacklistIndex) {},
                 onLeftSwipe: (datastacklistIndex) {},
                 onRightSwipe: (datastacklistIndex) {},
@@ -344,6 +373,27 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
                     : null,
               ).animateOnPageLoad(
                   animationsMap['swipeableStackOnPageLoadAnimation']!);
+              if (!widget.storySwipeMode || datastacklist.length <= 1) {
+                return stack;
+              }
+
+              // The swiper only hit-tests its moving front card. In Stories,
+              // reserve the full small stack (including padding/rear cards)
+              // for horizontal gestures, independently of Story navigation.
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragDown: (details) {
+                  _storyDragStartX = details.globalPosition.dx;
+                  _storyDragDistance = 0;
+                },
+                onHorizontalDragUpdate: (details) {
+                  _storyDragDistance = details.globalPosition.dx -
+                      (_storyDragStartX ?? details.globalPosition.dx);
+                },
+                onHorizontalDragEnd: _finishStoryDrag,
+                onHorizontalDragCancel: _finishStoryDrag,
+                child: IgnorePointer(child: stack),
+              );
             },
           );
         },
