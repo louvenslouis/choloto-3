@@ -1129,10 +1129,6 @@ void main() {
                   cardDisplayCount: 2,
                   scale: 1.0,
                   threshold: 0.18,
-                  cardPadding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                    vertical: 8.0,
-                  ),
                   allowedSwipeDirection:
                       AllowedSwipeDirection.symmetric(horizontal: true),
                 ),
@@ -1142,6 +1138,12 @@ void main() {
           ),
         ),
       ),
+    );
+
+    final cardSwiper = tester.widget<CardSwiper>(find.byType(CardSwiper));
+    expect(
+      cardSwiper.padding,
+      const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
     );
 
     await tester.drag(
