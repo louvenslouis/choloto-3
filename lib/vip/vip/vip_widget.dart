@@ -1,5 +1,6 @@
 import '/components/vip_prediction_header.dart';
 import '/components/vip_page_header.dart';
+import '/components/vip_casino_card.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
@@ -365,7 +366,9 @@ class _VipWidgetState extends State<VipWidget> {
                                     crossAxisCount: 2,
                                     crossAxisSpacing: 0.0,
                                     mainAxisSpacing: 0.0,
-                                    childAspectRatio: 1.0,
+                                    mainAxisExtent:
+                                        VipCasinoCard.contentHeight +
+                                            tokens.spacing.sm,
                                   ),
                                   primary: false,
                                   shrinkWrap: true,

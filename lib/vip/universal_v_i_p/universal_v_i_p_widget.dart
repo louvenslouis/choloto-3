@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'universal_v_i_p_model.dart';
 export 'universal_v_i_p_model.dart';
@@ -105,7 +106,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
 
     return VipCasinoCard(
       child: Container(
-        height: 170.0,
+        height: VipCasinoCard.contentHeight,
         child: Column(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -208,6 +209,16 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                             context)
                                                         .bodyMedium
                                                         .override(
+                                                          font: GoogleFonts
+                                                              .raleway(
+                                                            fontWeight:
+                                                                FontWeight.w900,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
                                                           color: tokens
                                                               .vip.numberText,
                                                           fontSize: 32.0,
@@ -324,6 +335,16 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                             context)
                                                         .bodyMedium
                                                         .override(
+                                                          font: GoogleFonts
+                                                              .raleway(
+                                                            fontWeight:
+                                                                FontWeight.w900,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
                                                           color: tokens
                                                               .vip.numberText,
                                                           fontSize: 32.0,
@@ -406,6 +427,15 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                       context)
                                                   .bodyMedium
                                                   .override(
+                                                    font: GoogleFonts.raleway(
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                     color:
                                                         tokens.vip.numberText,
                                                     fontSize: 32.0,

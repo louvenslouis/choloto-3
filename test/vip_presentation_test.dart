@@ -12,6 +12,7 @@ import 'package:choloto/vip/vip/vip_widget.dart';
 import 'package:choloto/vip/universal_v_i_p/universal_v_i_p_widget.dart';
 import 'package:choloto/vip/v_i_pboloto/v_i_pboloto_widget.dart';
 import 'package:choloto/main.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core_platform_interface/test.dart';
@@ -22,6 +23,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 // ignore: implementation_imports
 import 'package:google_fonts/src/google_fonts_base.dart' as font_testing;
@@ -48,6 +50,7 @@ class _TestFontManifest extends Fake implements AssetManifest {
         '__test_fonts/Inter-Black.ttf',
         '__test_fonts/Inter-SemiBold.ttf',
         '__test_fonts/Inter-Bold.ttf',
+        '__test_fonts/Raleway-Black.ttf',
       ];
 }
 
@@ -106,6 +109,9 @@ void main() {
             .load();
       }
     }
+    await GoogleFonts.pendingFonts([
+      GoogleFonts.raleway(fontWeight: FontWeight.w900),
+    ]);
   });
 
   for (final language in ['fr', 'en', 'cr']) {
@@ -257,11 +263,20 @@ void main() {
                                         }}',
                                         percentage: '85%',
                                       ).vipEntrance(delayMs: 80),
-                                      GridView.count(
+                                      GridView(
                                           shrinkWrap: true,
                                           physics:
                                               const NeverScrollableScrollPhysics(),
-                                          crossAxisCount: 2,
+                                          gridDelegate:
+                                              SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            mainAxisExtent:
+                                                VipCasinoCard.contentHeight +
+                                                    FlutterFlowTheme.of(context)
+                                                        .designToken
+                                                        .spacing
+                                                        .sm,
+                                          ),
                                           children: [
                                             UniversalVIPWidget(
                                                 name: 'FAVORI',
@@ -356,6 +371,30 @@ void main() {
               expect(left.top, right.top);
               expect(left.width, right.width);
               expect(left.right, lessThanOrEqualTo(right.left));
+              final secondRow = tester.getRect(find.ancestor(
+                  of: find.text('BOLOTO'),
+                  matching: find.byType(VipCasinoCard)));
+              expect(
+                  secondRow.top - left.top, VipCasinoCard.contentHeight + 8.0);
+              final numberStyles = tester
+                  .widgetList<AutoSizeText>(find.byType(AutoSizeText))
+                  .where((text) => const {
+                        '12',
+                        '34',
+                        '56',
+                        '12 x 34',
+                        '123',
+                        '1234'
+                      }.contains(text.data));
+              expect(numberStyles, isNotEmpty);
+              expect(
+                numberStyles.every((text) =>
+                    text.style?.fontFamily?.startsWith('Raleway') ?? false),
+                isTrue,
+                reason: numberStyles
+                    .map((text) => '${text.data}: ${text.style?.fontFamily}')
+                    .join(', '),
+              );
             }
             if (exportDirectory.isNotEmpty) {
               final boundary = captureKey.currentContext!.findRenderObject()!

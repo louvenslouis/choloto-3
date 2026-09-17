@@ -7,6 +7,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'v_i_pboloto_model.dart';
 export 'v_i_pboloto_model.dart';
@@ -60,7 +61,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
 
     return VipCasinoCard(
       child: Container(
-        height: 170.0,
+        height: VipCasinoCard.contentHeight,
         decoration: BoxDecoration(),
         child: Column(
           mainAxisSize: MainAxisSize.max,
@@ -155,6 +156,14 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium
                                               .override(
+                                                font: GoogleFonts.raleway(
+                                                  fontWeight: FontWeight.w900,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontStyle,
+                                                ),
                                                 color: theme.onPrimary,
                                                 fontSize: 32.0,
                                                 letterSpacing: 0.0,

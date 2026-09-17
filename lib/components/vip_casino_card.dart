@@ -7,6 +7,10 @@ import '/flutter_flow/flutter_flow_theme.dart';
 /// from the existing VIP grid or intercepts taps and accessibility semantics.
 class VipCasinoCard extends StatelessWidget {
   const VipCasinoCard({super.key, required this.child});
+
+  /// Compact content height shared by every prediction card in the VIP grid.
+  static const double contentHeight = 158.0;
+
   final Widget child;
 
   @override
