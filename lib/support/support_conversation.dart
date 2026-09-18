@@ -44,6 +44,17 @@ class SupportMessage {
   bool get sentByAdmin => senderRole == 'admin';
 }
 
+/// Returns the consecutive admin replies waiting after the user's last message.
+/// A new user message acknowledges the previous replies for the home badge.
+int supportPendingAdminMessages(Iterable<SupportMessage> messages) {
+  var count = 0;
+  for (final message in messages.toList().reversed) {
+    if (!message.sentByAdmin) break;
+    count++;
+  }
+  return count;
+}
+
 class SupportConversationRepository {
   SupportConversationRepository({FirebaseFirestore? firestore})
       : db = firestore ?? FirebaseFirestore.instance;

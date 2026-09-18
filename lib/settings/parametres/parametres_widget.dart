@@ -253,6 +253,18 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                         );
                       },
                     ),
+                  if (loggedIn)
+                    AuthUserStreamWidget(
+                      builder: (context) => SubscriptionSettingsTile(
+                        expiration: currentUserDocument?.endSub,
+                        onTap: () {
+                          logFirebaseEvent(
+                              'PARAMETRES_PAGE_ListTile_b68hxm1x_ON_TAP');
+                          logFirebaseEvent('ListTile_navigate_to');
+                          context.pushNamed(UpgradeWidget.routeName);
+                        },
+                      ),
+                    ),
                   if (currentUserEmail != null && currentUserEmail != '')
                     InkWell(
                       splashColor: Colors.transparent,
@@ -321,18 +333,6 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                      ),
-                    ),
-                  if (loggedIn)
-                    AuthUserStreamWidget(
-                      builder: (context) => SubscriptionSettingsTile(
-                        expiration: currentUserDocument?.endSub,
-                        onTap: () {
-                          logFirebaseEvent(
-                              'PARAMETRES_PAGE_ListTile_b68hxm1x_ON_TAP');
-                          logFirebaseEvent('ListTile_navigate_to');
-                          context.pushNamed(UpgradeWidget.routeName);
-                        },
                       ),
                     ),
                   if (loggedIn)

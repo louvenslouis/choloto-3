@@ -12,6 +12,23 @@ import 'support/memory_firestore.dart';
 void main() {
   const guestId = '123e4567-e89b-42d3-a456-426614174000';
 
+  test('pending admin badge counts only replies after the last user message',
+      () {
+    const messages = [
+      SupportMessage('u1', {'sender_role': 'user'}),
+      SupportMessage('a1', {'sender_role': 'admin'}),
+      SupportMessage('a2', {'sender_role': 'admin'}),
+    ];
+    expect(supportPendingAdminMessages(messages), 2);
+    expect(
+      supportPendingAdminMessages([
+        ...messages,
+        const SupportMessage('u2', {'sender_role': 'user'}),
+      ]),
+      0,
+    );
+  });
+
   test('guest support id is private, valid and persisted without auth',
       () async {
     SharedPreferences.setMockInitialValues({});

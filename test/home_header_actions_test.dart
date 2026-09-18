@@ -96,4 +96,31 @@ void main() {
       );
     }
   }
+
+  testWidgets('home support shows the pending message badge and can shake',
+      (tester) async {
+    await tester.pumpWidget(
+      _app(
+        locale: const Locale('fr'),
+        themeMode: ThemeMode.dark,
+        support: HomeSupportFab(
+          messageCount: 3,
+          shakeTrigger: 1,
+          onSupport: () async {},
+        ),
+        actions: HomeHeaderActions(
+          onAchievements: () async {},
+          onSettings: () async {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('home-support-message-count')),
+        findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 620));
+    expect(tester.takeException(), isNull);
+  });
 }

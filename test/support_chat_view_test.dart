@@ -192,6 +192,8 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.text('Start the conversation'), findsOneWidget);
+    expect(find.text('Messages are automatically deleted after 15 days.'),
+        findsOneWidget);
 
     await tester.pumpWidget(localizedApp(
       locale: const Locale('cr'),
@@ -203,6 +205,25 @@ void main() {
     ));
     await tester.pump();
     expect(find.textContaining('Nou pa ka chaje'), findsOneWidget);
+  });
+
+  testWidgets('chat exposes the payment proof shortcut when enabled',
+      (tester) async {
+    var opened = false;
+    await tester.pumpWidget(localizedApp(
+      locale: const Locale('fr'),
+      brightness: Brightness.dark,
+      child: SupportChatView(
+        messages: Stream.value(const []),
+        onSend: (_, __) async {},
+        onPaymentProof: () => opened = true,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Envoyer une preuve de paiement'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('support-send-payment-proof')));
+    expect(opened, isTrue);
   });
 
   testWidgets('paperclip prepares, previews and sends an image without text',

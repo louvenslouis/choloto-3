@@ -13,6 +13,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import '/services/engagement_service.dart';
+import '/support/support_conversation.dart';
 import '/youtube/youtube_feed_service.dart';
 import '/youtube/youtube_story.dart';
 import 'package:collection/collection.dart';
@@ -36,6 +37,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   late HomeModel _model;
 
   StreamSubscription<UserRecord?>? _subscriptionReminderSubscription;
+  StreamSubscription<List<SupportMessage>>? _supportMessagesSubscription;
   StreamSubscription<List<BingoRecord>>? _bingoStoriesSubscription;
   Timer? _subscriptionExpirationTimer;
   Timer? _bingoExpirationTimer;
@@ -46,6 +48,10 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   bool _youtubeStoriesLoading = true;
   bool _youtubeStoriesLoadFailed = false;
   bool _youtubeStoriesViewed = false;
+  final _supportRepository = SupportConversationRepository();
+  List<SupportMessage> _supportMessages = const [];
+  String _supportSubscriptionUid = '';
+  int _supportShakeTrigger = 0;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -62,9 +68,11 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       rebuild: false,
     );
     _subscriptionReminderSubscription = authenticatedUserStream.listen((user) {
+      _subscribeToSupportMessages(currentUserUid);
       _updateSubscriptionExpiration(user?.endSub);
       unawaited(_maybeShowSubscriptionExpirationReminder());
     });
+    _subscribeToSupportMessages(currentUserUid);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(recordDailyEngagement(userReference: currentUserReference));
       unawaited(_loadYoutubeStories());
@@ -85,9 +93,47 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     _subscriptionExpirationTimer?.cancel();
     unawaited(_bingoStoriesSubscription?.cancel());
     unawaited(_subscriptionReminderSubscription?.cancel());
+    unawaited(_supportMessagesSubscription?.cancel());
     _model.dispose();
 
     super.dispose();
+  }
+
+  void _subscribeToSupportMessages(String uid) {
+    if (_supportSubscriptionUid == uid &&
+        (_supportMessagesSubscription != null || uid.isEmpty)) {
+      return;
+    }
+    unawaited(_supportMessagesSubscription?.cancel());
+    _supportMessagesSubscription = null;
+    _supportSubscriptionUid = uid;
+    _supportMessages = const [];
+    if (uid.isEmpty) {
+      if (mounted) safeSetState(() {});
+      return;
+    }
+
+    _supportMessagesSubscription = _supportRepository.watchMessages(uid).listen(
+      (messages) {
+        final previousLastMessageId =
+            _supportMessages.isEmpty ? null : _supportMessages.last.id;
+        final latestMessage = messages.isEmpty ? null : messages.last;
+        if (latestMessage != null &&
+            latestMessage.sentByAdmin &&
+            latestMessage.id != previousLastMessageId) {
+          _supportShakeTrigger++;
+        }
+        _supportMessages = List.unmodifiable(messages);
+        if (mounted) safeSetState(() {});
+      },
+      onError: (Object error) {
+        debugPrint('Support message stream error: $error');
+        if (mounted) {
+          _supportMessages = const [];
+          safeSetState(() {});
+        }
+      },
+    );
   }
 
   @override
@@ -428,6 +474,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
           backgroundColor:
               FlutterFlowTheme.of(context).designToken.background.home,
           floatingActionButton: HomeSupportFab(
+            messageCount: supportPendingAdminMessages(_supportMessages),
+            shakeTrigger: _supportShakeTrigger,
             onSupport: () async {
               logFirebaseEvent(
                 'HOME_PAGE_support_agent_ICN_ON_TAP',

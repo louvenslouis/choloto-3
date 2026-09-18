@@ -38,6 +38,16 @@ const _supportLabels = <String, List<String>>{
     'Usually replies within 24 business hours',
     'Nou reponn anjeneral nan 24 èdtan ouvrab'
   ],
+  'retention': [
+    'Les messages sont automatiquement effacés après 15 jours.',
+    'Messages are automatically deleted after 15 days.',
+    'Mesaj yo ap efase otomatikman apre 15 jou.'
+  ],
+  'sendPaymentProof': [
+    'Envoyer une preuve de paiement',
+    'Send payment proof',
+    'Voye yon prèv peman'
+  ],
   'emptyTitle': [
     'Démarrez la conversation',
     'Start the conversation',
@@ -145,6 +155,22 @@ const _supportLabels = <String, List<String>>{
   'phoneMessageLabel': ['Téléphone', 'Phone', 'Telefòn'],
   'emailFallback': ['Écrire par e-mail', 'Write by email', 'Ekri pa imèl'],
 };
+
+String supportMessageCountText(BuildContext context, int count) {
+  final localizations = FFLocalizations.of(context);
+  if (count == 1) {
+    return localizations.getVariableText(
+      frText: '1 nouveau message',
+      enText: '1 new message',
+      crText: '1 nouvo mesaj',
+    );
+  }
+  return localizations.getVariableText(
+    frText: '$count nouveaux messages',
+    enText: '$count new messages',
+    crText: '$count nouvo mesaj',
+  );
+}
 
 bool isSupportAudioPlaceholder(String text) =>
     _supportLabels['audioMessage']!.contains(text);

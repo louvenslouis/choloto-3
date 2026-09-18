@@ -28,6 +28,7 @@ class SupportChatView extends StatefulWidget {
     this.recorderFactory,
     this.pickImage,
     this.showOptionalPhoneOnFirstMessage = false,
+    this.onPaymentProof,
   });
 
   final Stream<List<SupportMessage>> messages;
@@ -38,6 +39,7 @@ class SupportChatView extends StatefulWidget {
   final SupportVoiceRecorder Function()? recorderFactory;
   final Future<Uint8List?> Function()? pickImage;
   final bool showOptionalPhoneOnFirstMessage;
+  final VoidCallback? onPaymentProof;
 
   @override
   State<SupportChatView> createState() => _SupportChatViewState();
@@ -324,6 +326,51 @@ class _SupportChatViewState extends State<SupportChatView>
                               ),
                             ],
                           ),
+                          SizedBox(height: tokens.spacing.sm),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.auto_delete_outlined,
+                                  size: 16, color: theme.primary),
+                              SizedBox(width: tokens.spacing.xs),
+                              Expanded(
+                                child: Text(
+                                  supportText(context, 'retention'),
+                                  key: const ValueKey(
+                                      'support-message-retention'),
+                                  style: theme.labelMedium
+                                      .override(color: theme.secondaryText),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (widget.onPaymentProof != null) ...[
+                            SizedBox(height: tokens.spacing.md),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: OutlinedButton.icon(
+                                key: const ValueKey(
+                                    'support-send-payment-proof'),
+                                onPressed: widget.onPaymentProof,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: theme.primaryText,
+                                  side: BorderSide(
+                                    color: theme.primary.withValues(alpha: .7),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: tokens.spacing.md,
+                                    vertical: tokens.spacing.sm,
+                                  ),
+                                ),
+                                icon: Icon(Icons.receipt_long_outlined,
+                                    color: theme.primary),
+                                label: Text(
+                                  supportText(context, 'sendPaymentProof'),
+                                  style: theme.labelLarge,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

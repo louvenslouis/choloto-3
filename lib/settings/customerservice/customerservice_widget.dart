@@ -3,6 +3,7 @@ import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/payments/payment_requests_widget.dart';
 import '/support/support_chat_view.dart';
 import '/support/support_conversation.dart';
 import '/support/support_guest_session.dart';
@@ -102,6 +103,9 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
           ),
           showOptionalPhoneOnFirstMessage:
               guestWithoutAuth || currentUserIsAnonymous,
+          onPaymentProof: loggedIn
+              ? () => context.pushNamed(PaymentRequestsWidget.routeName)
+              : null,
         ),
       ),
     );
