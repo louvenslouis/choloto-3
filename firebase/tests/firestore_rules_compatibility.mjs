@@ -1379,6 +1379,70 @@ function supportReplyCommit({
   return firestoreCommit(writes, {token: actor.token});
 }
 
+function editSupportMessageCommit({actor, messageId, text}) {
+  return firestoreCommit([
+    {
+      update: {
+        name: supportConversationName,
+        fields: {last_message: stringValue(text)},
+      },
+      updateMask: {fieldPaths: ['last_message']},
+      updateTransforms: [
+        {fieldPath: 'updated_at', setToServerValue: 'REQUEST_TIME'},
+      ],
+    },
+    {
+      update: {
+        name:
+          `projects/${projectId}/databases/(default)/documents/${supportConversationPath}/messages/${messageId}`,
+        fields: {text: stringValue(text)},
+      },
+      updateMask: {fieldPaths: ['text']},
+      updateTransforms: [
+        {fieldPath: 'edited_at', setToServerValue: 'REQUEST_TIME'},
+      ],
+    },
+  ], {token: actor.token});
+}
+
+function deleteLatestSupportMessageCommit({
+  actor,
+  messageId,
+  replacementMessageId,
+  replacementText,
+  replacementRole,
+  attachmentId,
+}) {
+  const messageName =
+    `projects/${projectId}/databases/(default)/documents/${supportConversationPath}/messages/${messageId}`;
+  return firestoreCommit([
+    {
+      update: {
+        name: supportConversationName,
+        fields: {
+          last_message: stringValue(replacementText),
+          last_message_id: stringValue(replacementMessageId),
+          last_sender_role: stringValue(replacementRole),
+        },
+      },
+      updateMask: {
+        fieldPaths: [
+          'last_message',
+          'last_message_id',
+          'last_sender_role',
+        ],
+      },
+      updateTransforms: [
+        {fieldPath: 'updated_at', setToServerValue: 'REQUEST_TIME'},
+      ],
+    },
+    ...(attachmentId
+      ? [{delete: `${messageName}/attachments/${attachmentId}`}]
+      : []),
+    {delete: messageName},
+  ], {token: actor.token});
+}
+
 const adminSupportReplyId = 'message-admin-reply';
 expectStatus(
   await supportReplyCommit({
@@ -1417,6 +1481,92 @@ expectStatus(
   ),
   200,
   'owner reads admin support reply',
+);
+const editedAdminSupportText =
+  'Bonjour, votre paiement peut être vérifié par notre équipe.';
+expectStatus(
+  await editSupportMessageCommit({
+    actor: owner,
+    messageId: adminSupportReplyId,
+    text: 'Tentative de modification par le membre.',
+  }),
+  403,
+  'member cannot edit an admin support message',
+);
+expectStatus(
+  await editSupportMessageCommit({
+    actor: admin,
+    messageId: firstSupportMessageId,
+    text: 'Tentative de modification du message membre.',
+  }),
+  403,
+  'admin cannot edit a member support message',
+);
+expectStatus(
+  await editSupportMessageCommit({
+    actor: admin,
+    messageId: adminSupportReplyId,
+    text: editedAdminSupportText,
+  }),
+  200,
+  'admin edits its latest support message and summary atomically',
+);
+
+const adminSupportImageId = 'message-admin-image';
+const adminSupportImagePath =
+  `${supportConversationPath}/messages/${adminSupportImageId}/attachments/image`;
+expectStatus(
+  await supportReplyCommit({
+    actor: admin,
+    messageId: adminSupportImageId,
+    role: 'admin',
+    text: 'Photo administrateur',
+    imageBase64: '/9j/2Q==',
+  }),
+  200,
+  'admin atomically sends a private support image',
+);
+expectStatus(
+  await firestoreRequest(adminSupportImagePath, {token: owner.token}),
+  200,
+  'member reads an image sent by the admin',
+);
+expectStatus(
+  await deleteLatestSupportMessageCommit({
+    actor: owner,
+    messageId: adminSupportImageId,
+    replacementMessageId: adminSupportReplyId,
+    replacementText: editedAdminSupportText,
+    replacementRole: 'admin',
+    attachmentId: 'image',
+  }),
+  403,
+  'member cannot delete an admin support message',
+);
+expectStatus(
+  await deleteLatestSupportMessageCommit({
+    actor: admin,
+    messageId: adminSupportImageId,
+    replacementMessageId: adminSupportReplyId,
+    replacementText: editedAdminSupportText,
+    replacementRole: 'admin',
+    attachmentId: 'image',
+  }),
+  200,
+  'admin deletes its latest support message and restores the summary',
+);
+expectStatus(
+  await firestoreRequest(
+    `${supportConversationPath}/messages/${adminSupportImageId}`,
+    {token: admin.token},
+  ),
+  404,
+  'deleted admin support message is absent',
+);
+expectStatus(
+  await firestoreRequest(adminSupportImagePath, {token: admin.token}),
+  404,
+  'deleted admin support image is absent',
 );
 expectStatus(
   await firestoreRequest(supportConversationPath, {

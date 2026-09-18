@@ -250,12 +250,12 @@ service cloud.firestore {
     }
 
     // Additive customer-support contract. A member owns the conversation whose
-    // document id is their Authentication uid. Messages are immutable and each
-    // conversation summary must point to the message written in the same commit.
+    // document id is their Authentication uid. Member messages stay immutable;
+    // administrators may correct or remove only messages sent by an admin.
     function validSupportMessage(data) {
       return data.keys().hasOnly([
             'sender_uid', 'sender_role', 'text', 'attachment_type',
-            'created_at'
+            'created_at', 'edited_at'
           ]) &&
           data.keys().hasAll([
             'sender_uid', 'sender_role', 'text', 'created_at'
@@ -267,7 +267,8 @@ service cloud.firestore {
           data.text.size() <= 1000 &&
           (!data.keys().hasAny(['attachment_type']) ||
             data.attachment_type in ['image', 'audio']) &&
-          data.created_at is timestamp;
+          data.created_at is timestamp &&
+          optionalTimestamp(data, 'edited_at');
     }
 
     function validSupportImageAttachment(data) {
@@ -380,6 +381,16 @@ service cloud.firestore {
           message.sender_role == senderRole &&
           message.text == data.last_message &&
           message.created_at == request.time;
+    }
+
+    function supportSummaryMatchesStoredMessage(userId, data) {
+      let message = getAfter(
+        /databases/$(database)/documents/support_conversations/$(userId)/messages/$(data.last_message_id)
+      ).data;
+      return data.updated_at == request.time &&
+          message.text == data.last_message &&
+          message.sender_role == data.last_sender_role &&
+          validSupportMessage(message);
     }
 
     function guestSupportSummaryMatchesMessage(guestId, data) {
@@ -765,7 +776,16 @@ service cloud.firestore {
               request.resource.data.status in ['treated', 'deleting'] &&
               request.resource.data.diff(resource.data).affectedKeys().hasOnly([
                 'status'
-              ]))
+              ])) ||
+            (isAdmin() && resource.data.status != 'deleting' &&
+              request.resource.data.status == resource.data.status &&
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'updated_at', 'last_message', 'last_message_id',
+                'last_sender_role'
+              ]) &&
+              supportSummaryMatchesStoredMessage(
+                userId, request.resource.data
+              ))
           ) ||
           (request.auth == null && validGuestSupportId(userId) &&
             resource.data.guest_access == true &&
@@ -803,6 +823,7 @@ service cloud.firestore {
                 ).data.guest_access == true));
         allow create: if signedIn() &&
             validSupportMessage(request.resource.data) &&
+            !request.resource.data.keys().hasAny(['edited_at']) &&
             supportImageMatchesMessage(
               userId, messageId, request.resource.data
             ) &&
@@ -826,6 +847,7 @@ service cloud.firestore {
             ) ||
             (request.auth == null && validGuestSupportId(userId) &&
               validSupportMessage(request.resource.data) &&
+              !request.resource.data.keys().hasAny(['edited_at']) &&
               supportImageMatchesMessage(
                 userId, messageId, request.resource.data
               ) &&
@@ -844,8 +866,35 @@ service cloud.firestore {
               getAfter(
                 /databases/$(database)/documents/support_conversations/$(userId)
               ).data.updated_at == request.time);
-        allow update: if false;
-        allow delete: if isAdmin();
+        allow update: if isAdmin() &&
+            resource.data.sender_role == 'admin' &&
+            validSupportMessage(request.resource.data) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'text', 'edited_at'
+            ]) &&
+            request.resource.data.edited_at == request.time &&
+            (
+              getAfter(
+                /databases/$(database)/documents/support_conversations/$(userId)
+              ).data.last_message_id != messageId ||
+              (
+                getAfter(
+                  /databases/$(database)/documents/support_conversations/$(userId)
+                ).data.last_message == request.resource.data.text &&
+                getAfter(
+                  /databases/$(database)/documents/support_conversations/$(userId)
+                ).data.updated_at == request.time
+              )
+            );
+        allow delete: if isAdmin() &&
+            (
+              get(
+                /databases/$(database)/documents/support_conversations/$(userId)
+              ).data.status == 'deleting' ||
+              getAfter(
+                /databases/$(database)/documents/support_conversations/$(userId)
+              ).data.last_message_id != messageId
+            );
 
         match /attachments/{attachmentId} {
           allow get: if
