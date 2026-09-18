@@ -1419,6 +1419,31 @@ expectStatus(
   'owner reads admin support reply',
 );
 expectStatus(
+  await firestoreRequest(supportConversationPath, {
+    method: 'PATCH',
+    token: owner.token,
+    fields: {status: stringValue('treated')},
+    updateMaskFields: ['status'],
+  }),
+  403,
+  'member cannot mark a support conversation as treated',
+);
+expectStatus(
+  await firestoreRequest(supportConversationPath, {
+    method: 'PATCH',
+    token: admin.token,
+    fields: {status: stringValue('treated')},
+    updateMaskFields: ['status'],
+  }),
+  200,
+  'admin marks a support conversation as treated without deleting it',
+);
+expectStatus(
+  await firestoreRequest(supportConversationPath, {token: owner.token}),
+  200,
+  'treated support conversation remains readable',
+);
+expectStatus(
   await firestoreRequest(`user/${owner.uid}`, {
     method: 'PATCH',
     token: owner.token,
@@ -1903,6 +1928,16 @@ const unauthenticatedGuestImageMessagePath =
   `${unauthenticatedGuestConversationPath}/messages/${unauthenticatedGuestImageId}`;
 const unauthenticatedGuestAdminReplyPath =
   `${unauthenticatedGuestConversationPath}/messages/${unauthenticatedGuestAdminReplyId}`;
+expectStatus(
+  await firestoreRequest(unauthenticatedGuestConversationPath, {
+    method: 'PATCH',
+    token: admin.token,
+    fields: {status: stringValue('deleting')},
+    updateMaskFields: ['status'],
+  }),
+  200,
+  'admin locks a support conversation before immediate deletion',
+);
 expectStatus(await firestoreRequest(unauthenticatedGuestImagePath, {method: 'DELETE'}), 403, 'visitor cannot delete a support attachment');
 expectStatus(await firestoreRequest(unauthenticatedGuestImagePath, {method: 'DELETE', token: admin.token}), 200, 'admin cleanup deletes a support attachment');
 expectStatus(await firestoreRequest(unauthenticatedGuestImageMessagePath, {method: 'DELETE', token: admin.token}), 200, 'admin cleanup deletes an image message');

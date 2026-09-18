@@ -328,7 +328,7 @@ service cloud.firestore {
           optionalString(data, 'user_email', 320) &&
           optionalString(data, 'user_display_name', 256) &&
           data.topic == 'subscription' &&
-          data.status == 'open' &&
+          data.status in ['open', 'treated', 'deleting'] &&
           data.created_at is timestamp &&
           data.updated_at is timestamp &&
           data.last_message is string && data.last_message.size() > 0 &&
@@ -359,7 +359,7 @@ service cloud.firestore {
           data.user_uid == guestId &&
           data.guest_access == true &&
           data.topic == 'subscription' &&
-          data.status == 'open' &&
+          data.status in ['open', 'treated', 'deleting'] &&
           data.created_at is timestamp &&
           data.updated_at is timestamp &&
           data.last_message is string && data.last_message.size() > 0 &&
@@ -726,12 +726,14 @@ service cloud.firestore {
           (signedIn() && request.auth.uid == userId &&
             exists(/databases/$(database)/documents/user/$(userId)) &&
             validSupportConversation(request.resource.data, userId) &&
+            request.resource.data.status == 'open' &&
             request.resource.data.created_at == request.time &&
             supportSummaryMatchesMessage(
               userId, request.resource.data, 'user'
             )) ||
           (request.auth == null && validGuestSupportId(userId) &&
             validGuestSupportConversation(request.resource.data, userId) &&
+            request.resource.data.status == 'open' &&
             request.resource.data.created_at == request.time &&
             guestSupportSummaryMatchesMessage(
               userId, request.resource.data
@@ -742,19 +744,28 @@ service cloud.firestore {
           request.resource.data.user_uid == resource.data.user_uid &&
           request.resource.data.topic == resource.data.topic &&
           request.resource.data.created_at == resource.data.created_at &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'status', 'updated_at', 'last_message', 'last_message_id',
-            'last_sender_role'
-          ]) &&
           (
-            (request.auth.uid == userId &&
-              supportSummaryMatchesMessage(
-                userId, request.resource.data, 'user'
+            (resource.data.status != 'deleting' &&
+              request.resource.data.status == 'open' &&
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'status', 'updated_at', 'last_message', 'last_message_id',
+                'last_sender_role'
+              ]) &&
+              (
+                (request.auth.uid == userId &&
+                  supportSummaryMatchesMessage(
+                    userId, request.resource.data, 'user'
+                  )) ||
+                (isAdmin() &&
+                  supportSummaryMatchesMessage(
+                    userId, request.resource.data, 'admin'
+                  ))
               )) ||
             (isAdmin() &&
-              supportSummaryMatchesMessage(
-                userId, request.resource.data, 'admin'
-              ))
+              request.resource.data.status in ['treated', 'deleting'] &&
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'status'
+              ]))
           ) ||
           (request.auth == null && validGuestSupportId(userId) &&
             resource.data.guest_access == true &&
@@ -762,6 +773,8 @@ service cloud.firestore {
             request.resource.data.user_uid == resource.data.user_uid &&
             request.resource.data.topic == resource.data.topic &&
             request.resource.data.created_at == resource.data.created_at &&
+            resource.data.status != 'deleting' &&
+            request.resource.data.status == 'open' &&
             request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'status', 'updated_at', 'last_message', 'last_message_id',
               'last_sender_role'
