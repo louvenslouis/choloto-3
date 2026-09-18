@@ -71,6 +71,7 @@ void main() {
           child: SupportChatView(
             messages: Stream.value(const []),
             onSend: (_, __) async {},
+            onPaymentProof: () {},
           ),
         ));
         await tester.pumpAndSettle();
@@ -110,6 +111,8 @@ void main() {
 
     expect(find.text('Bonjour'), findsOneWidget);
     expect(find.text('Bonjour, comment pouvons-nous aider ?'), findsOneWidget);
+    expect(find.byKey(const ValueKey('support-conversation-guidance')),
+        findsNothing);
     await tester.enterText(
         find.byKey(const ValueKey('support-message-field')), '  MonCash  ');
     await tester.tap(find.byKey(const ValueKey('support-send-button')));
@@ -192,6 +195,8 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.text('Start the conversation'), findsOneWidget);
+    expect(find.byKey(const ValueKey('support-conversation-guidance')),
+        findsOneWidget);
     expect(find.text('Messages are automatically deleted after 15 days.'),
         findsOneWidget);
 

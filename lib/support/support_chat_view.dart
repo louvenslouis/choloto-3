@@ -267,49 +267,81 @@ class _SupportChatViewState extends State<SupportChatView>
     return LayoutBuilder(builder: (context, constraints) {
       return Column(
         children: [
-          if (constraints.maxHeight >= 500)
+          if (widget.onPaymentProof != null)
             Padding(
               padding: EdgeInsets.fromLTRB(
                 tokens.spacing.md,
+                tokens.spacing.xs,
+                tokens.spacing.md,
                 tokens.spacing.sm,
+              ),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: OutlinedButton.icon(
+                  key: const ValueKey('support-send-payment-proof'),
+                  onPressed: widget.onPaymentProof,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.primaryText,
+                    side: BorderSide(
+                      color: theme.primary.withValues(alpha: .7),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: tokens.spacing.md,
+                      vertical: tokens.spacing.sm,
+                    ),
+                  ),
+                  icon: Icon(Icons.receipt_long_outlined, color: theme.primary),
+                  label: Text(
+                    supportText(context, 'sendPaymentProof'),
+                    style: theme.labelLarge,
+                  ),
+                ),
+              ),
+            ),
+          if (constraints.maxHeight >= 500 && !_hasExistingMessages)
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                tokens.spacing.md,
+                tokens.spacing.xs,
                 tokens.spacing.md,
                 tokens.spacing.sm,
               ),
               child: Container(
+                key: const ValueKey('support-conversation-guidance'),
                 width: double.infinity,
-                padding: EdgeInsets.all(tokens.spacing.md),
+                padding: EdgeInsets.all(tokens.spacing.sm),
                 decoration: BoxDecoration(
                   color: theme.secondaryBackground,
-                  borderRadius: BorderRadius.circular(tokens.radius.md),
+                  borderRadius: BorderRadius.circular(tokens.radius.sm),
                   border:
-                      Border.all(color: theme.alternate.withValues(alpha: .35)),
+                      Border.all(color: theme.alternate.withValues(alpha: .2)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
-                        color: theme.primary,
+                        color: theme.primary.withValues(alpha: .14),
                         borderRadius: BorderRadius.circular(tokens.radius.full),
                       ),
                       child: Icon(
                         Icons.support_agent_rounded,
-                        color: theme.onPrimary,
-                        size: 24,
+                        color: theme.primary,
+                        size: 20,
                       ),
                     ),
-                    SizedBox(width: tokens.spacing.md),
+                    SizedBox(width: tokens.spacing.sm),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(supportText(context, 'admin'),
-                              style: theme.titleMedium),
+                              style: theme.titleSmall),
                           SizedBox(height: tokens.spacing.xs),
                           Text(supportText(context, 'intro'),
-                              style: theme.bodyMedium
+                              style: theme.bodySmall
                                   .override(color: theme.secondaryText)),
                           SizedBox(height: tokens.spacing.sm),
                           Row(
@@ -320,13 +352,13 @@ class _SupportChatViewState extends State<SupportChatView>
                               Expanded(
                                 child: Text(
                                   supportText(context, 'responseTime'),
-                                  style: theme.labelMedium
+                                  style: theme.labelSmall
                                       .override(color: theme.secondaryText),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: tokens.spacing.sm),
+                          SizedBox(height: tokens.spacing.xs),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -338,39 +370,12 @@ class _SupportChatViewState extends State<SupportChatView>
                                   supportText(context, 'retention'),
                                   key: const ValueKey(
                                       'support-message-retention'),
-                                  style: theme.labelMedium
+                                  style: theme.labelSmall
                                       .override(color: theme.secondaryText),
                                 ),
                               ),
                             ],
                           ),
-                          if (widget.onPaymentProof != null) ...[
-                            SizedBox(height: tokens.spacing.md),
-                            Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: OutlinedButton.icon(
-                                key: const ValueKey(
-                                    'support-send-payment-proof'),
-                                onPressed: widget.onPaymentProof,
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: theme.primaryText,
-                                  side: BorderSide(
-                                    color: theme.primary.withValues(alpha: .7),
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: tokens.spacing.md,
-                                    vertical: tokens.spacing.sm,
-                                  ),
-                                ),
-                                icon: Icon(Icons.receipt_long_outlined,
-                                    color: theme.primary),
-                                label: Text(
-                                  supportText(context, 'sendPaymentProof'),
-                                  style: theme.labelLarge,
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),

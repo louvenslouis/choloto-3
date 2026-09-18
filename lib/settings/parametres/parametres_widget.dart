@@ -175,84 +175,6 @@ class _ParametresWidgetState extends State<ParametresWidget> {
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  if (kIsWeb)
-                    AnimatedBuilder(
-                      animation: PushNotificationService.instance,
-                      builder: (context, _) {
-                        final service = PushNotificationService.instance;
-                        final subtitle = service.busy
-                            ? FFLocalizations.of(context).getVariableText(
-                                frText: 'Mise à jour en cours…',
-                                enText: 'Updating…',
-                                crText: 'Mizajou ap fèt…',
-                              )
-                            : service.enabled
-                                ? FFLocalizations.of(context).getVariableText(
-                                    frText:
-                                        'Vous serez alerté à chaque nouvelle prédiction.',
-                                    enText:
-                                        'You will be alerted for every new prediction.',
-                                    crText:
-                                        'W ap resevwa alèt pou chak nouvo prediksyon.',
-                                  )
-                                : _notificationStatusText(service.status) ??
-                                    FFLocalizations.of(context).getVariableText(
-                                      frText:
-                                          'Activez les alertes dans ce navigateur.',
-                                      enText: 'Enable alerts in this browser.',
-                                      crText: 'Aktive alèt nan navigatè sa a.',
-                                    );
-
-                        return Material(
-                          color: Colors.transparent,
-                          child: SwitchListTile(
-                            secondary: Icon(
-                              Icons.notifications_active_outlined,
-                              color: FlutterFlowTheme.of(context).alternate,
-                            ),
-                            title: Text(
-                              FFLocalizations.of(context).getVariableText(
-                                frText: 'Nouvelles prédictions',
-                                enText: 'New predictions',
-                                crText: 'Nouvo prediksyon',
-                              ),
-                              style: FlutterFlowTheme.of(context)
-                                  .titleLarge
-                                  .override(
-                                    fontFamily: 'Google sans flex',
-                                    letterSpacing: 0.0,
-                                  ),
-                            ),
-                            subtitle: Text(
-                              subtitle,
-                              style: FlutterFlowTheme.of(context)
-                                  .labelMedium
-                                  .override(
-                                    color:
-                                        FlutterFlowTheme.of(context).alternate,
-                                    letterSpacing: 0.0,
-                                  ),
-                            ),
-                            value: service.enabled,
-                            onChanged: service.supported && !service.busy
-                                ? _toggleWebNotifications
-                                : null,
-                            tileColor: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            contentPadding:
-                                const EdgeInsetsDirectional.fromSTEB(
-                              12.0,
-                              0.0,
-                              12.0,
-                              0.0,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
                   if (loggedIn)
                     AuthUserStreamWidget(
                       builder: (context) => SubscriptionSettingsTile(
@@ -519,6 +441,84 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                       ),
                     ),
                   ),
+                  if (kIsWeb)
+                    AnimatedBuilder(
+                      animation: PushNotificationService.instance,
+                      builder: (context, _) {
+                        final service = PushNotificationService.instance;
+                        final subtitle = service.busy
+                            ? FFLocalizations.of(context).getVariableText(
+                                frText: 'Mise à jour en cours…',
+                                enText: 'Updating…',
+                                crText: 'Mizajou ap fèt…',
+                              )
+                            : service.enabled
+                                ? FFLocalizations.of(context).getVariableText(
+                                    frText:
+                                        'Vous serez alerté à chaque nouvelle prédiction.',
+                                    enText:
+                                        'You will be alerted for every new prediction.',
+                                    crText:
+                                        'W ap resevwa alèt pou chak nouvo prediksyon.',
+                                  )
+                                : _notificationStatusText(service.status) ??
+                                    FFLocalizations.of(context).getVariableText(
+                                      frText:
+                                          'Activez les alertes dans ce navigateur.',
+                                      enText: 'Enable alerts in this browser.',
+                                      crText: 'Aktive alèt nan navigatè sa a.',
+                                    );
+
+                        return Material(
+                          color: Colors.transparent,
+                          child: SwitchListTile(
+                            secondary: Icon(
+                              Icons.notifications_active_outlined,
+                              color: FlutterFlowTheme.of(context).alternate,
+                            ),
+                            title: Text(
+                              FFLocalizations.of(context).getVariableText(
+                                frText: 'Nouvelles prédictions',
+                                enText: 'New predictions',
+                                crText: 'Nouvo prediksyon',
+                              ),
+                              style: FlutterFlowTheme.of(context)
+                                  .titleLarge
+                                  .override(
+                                    fontFamily: 'Google sans flex',
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                            subtitle: Text(
+                              subtitle,
+                              style: FlutterFlowTheme.of(context)
+                                  .labelMedium
+                                  .override(
+                                    color:
+                                        FlutterFlowTheme.of(context).alternate,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                            value: service.enabled,
+                            onChanged: service.supported && !service.busy
+                                ? _toggleWebNotifications
+                                : null,
+                            tileColor: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
+                            contentPadding:
+                                const EdgeInsetsDirectional.fromSTEB(
+                              12.0,
+                              0.0,
+                              12.0,
+                              0.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   Material(
                     color: Colors.transparent,
                     child: ListTile(
