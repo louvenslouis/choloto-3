@@ -1,6 +1,9 @@
 import 'package:choloto/accomplissements/achievement_progress.dart';
 import 'package:choloto/services/engagement_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/memory_firestore.dart';
 
 void main() {
   group('daily engagement calculation', () {
@@ -104,6 +107,49 @@ void main() {
       expect(update.state.totalActiveDays, 1);
       expect(update.state.recentActiveDays, ['2026-08-14']);
     });
+  });
+
+  test('local daily marker avoids another Firestore read on app resume',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+    final preferences = await SharedPreferences.getInstance();
+    final db = MemoryFirestore();
+    db.rows['user/member'] = {
+      'engagement': {
+        'currentStreak': 2,
+        'longestStreak': 2,
+        'totalActiveDays': 2,
+        'lastActiveDay': '2026-09-18',
+      },
+    };
+    final userReference = db.collection('user').doc('member');
+    final now = DateTime(2026, 9, 19, 9);
+
+    expect(
+      await recordDailyEngagement(
+        userReference: userReference,
+        now: now,
+        firestore: db,
+        preferences: preferences,
+      ),
+      isTrue,
+    );
+    expect(db.reads, ['user/member']);
+
+    expect(
+      await recordDailyEngagement(
+        userReference: userReference,
+        now: now.add(const Duration(hours: 4)),
+        firestore: db,
+        preferences: preferences,
+      ),
+      isFalse,
+    );
+    expect(
+      db.reads,
+      ['user/member'],
+      reason: 'the second resume must stop at the local daily marker',
+    );
   });
 
   group('achievement progress', () {

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/flutter_flow/flutter_flow_widgets.dart';
 import '/tirages/fl/fl_widget.dart';
 import '/tirages/new_yorkk/new_yorkk_widget.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +23,7 @@ class TiragesWidget extends StatefulWidget {
 }
 
 class _TiragesWidgetState extends State<TiragesWidget> {
+  static const _pageSize = 64;
   static const _supportedLotteryCodes = {
     'ny',
     'fl',
@@ -32,7 +36,12 @@ class _TiragesWidgetState extends State<TiragesWidget> {
   };
 
   late TiragesModel _model;
-  late Future<List<ResultatsRecord>> _tiragesFuture;
+  final List<ResultatsRecord> _tirages = [];
+  QueryDocumentSnapshot? _nextPageMarker;
+  bool _loadingInitialPage = true;
+  bool _loadingMore = false;
+  bool _loadFailed = false;
+  bool _hasMore = true;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -40,27 +49,78 @@ class _TiragesWidgetState extends State<TiragesWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => TiragesModel());
-    _tiragesFuture = _loadTirages();
+    unawaited(_refreshTirages(logEvent: false));
 
     logFirebaseEvent('screen_view', parameters: {'screen_name': 'Tirages'});
   }
 
-  Future<List<ResultatsRecord>> _loadTirages() async {
-    final results = await queryResultatsRecordOnce(
-      queryBuilder: (resultatsRecord) =>
-          resultatsRecord.orderBy('date', descending: true),
-    );
+  Future<FFFirestorePage<ResultatsRecord>> _loadTiragesPage({
+    QueryDocumentSnapshot? after,
+  }) =>
+      queryCollectionPage<ResultatsRecord>(
+        ResultatsRecord.collection,
+        ResultatsRecord.fromSnapshot,
+        queryBuilder: (resultatsRecord) => resultatsRecord
+            .where(
+              'tirage',
+              whereIn: _supportedLotteryCodes.toList(growable: false),
+            )
+            .orderBy('date', descending: true),
+        nextPageMarker: after,
+        pageSize: _pageSize,
+        isStream: false,
+      );
 
-    return results
-        .where((result) => _supportedLotteryCodes.contains(result.tirage))
-        .toList();
+  Future<void> _refreshTirages({bool logEvent = true}) async {
+    if (logEvent) logFirebaseEvent('TIRAGES_RefreshLotteryResults_ON_TAP');
+    safeSetState(() {
+      _loadingInitialPage = true;
+      _loadFailed = false;
+      _hasMore = true;
+      _nextPageMarker = null;
+    });
+    try {
+      final page = await _loadTiragesPage();
+      if (!mounted) return;
+      safeSetState(() {
+        _tirages
+          ..clear()
+          ..addAll(page.data);
+        _nextPageMarker = page.nextPageMarker;
+        _hasMore = page.data.length == _pageSize && page.nextPageMarker != null;
+        _loadingInitialPage = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      safeSetState(() {
+        _loadingInitialPage = false;
+        _loadFailed = true;
+      });
+    }
   }
 
-  Future<void> _refreshTirages() async {
-    logFirebaseEvent('TIRAGES_RefreshLotteryResults_ON_TAP');
-    final refreshedResults = _loadTirages();
-    safeSetState(() => _tiragesFuture = refreshedResults);
-    await refreshedResults;
+  Future<void> _loadMoreTirages() async {
+    if (_loadingMore || !_hasMore || _nextPageMarker == null) return;
+    safeSetState(() => _loadingMore = true);
+    try {
+      final page = await _loadTiragesPage(after: _nextPageMarker);
+      if (!mounted) return;
+      final existingPaths =
+          _tirages.map((result) => result.reference.path).toSet();
+      safeSetState(() {
+        _tirages.addAll(
+          page.data.where(
+            (result) => existingPaths.add(result.reference.path),
+          ),
+        );
+        _nextPageMarker = page.nextPageMarker;
+        _hasMore = page.data.length == _pageSize && page.nextPageMarker != null;
+        _loadingMore = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      safeSetState(() => _loadingMore = false);
+    }
   }
 
   @override
@@ -109,100 +169,119 @@ class _TiragesWidgetState extends State<TiragesWidget> {
         ),
         body: SafeArea(
           top: true,
-          child: FutureBuilder<List<ResultatsRecord>>(
-            future: _tiragesFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      FlutterFlowTheme.of(context).primary,
-                    ),
-                  ),
-                );
-              }
-
-              if (snapshot.hasError) {
-                return _TiragesMessage(
-                  icon: Icons.cloud_off_outlined,
-                  message: FFLocalizations.of(context).getVariableText(
-                    frText: 'Impossible de charger les tirages.',
-                    enText: 'Unable to load draw results.',
-                    crText: 'Nou pa ka chaje rezilta tiraj yo.',
-                  ),
-                  onRetry: _refreshTirages,
-                );
-              }
-
-              final tirages = snapshot.data ?? const <ResultatsRecord>[];
-              final theme = FlutterFlowTheme.of(context);
-              if (tirages.isEmpty) {
-                return _TiragesMessage(
-                  icon: Icons.inbox_outlined,
-                  message: FFLocalizations.of(context).getVariableText(
-                    frText: 'Aucun tirage disponible pour le moment.',
-                    enText: 'No draw results are available right now.',
-                    crText: 'Pa gen rezilta tiraj ki disponib kounye a.',
-                  ),
-                  onRetry: _refreshTirages,
-                );
-              }
-
-              final tiragesByDay = _groupTiragesByDay(tirages);
-
-              return RefreshIndicator(
-                color: theme.primary,
-                onRefresh: _refreshTirages,
-                child: ListView.builder(
-                  padding: EdgeInsets.fromLTRB(
-                    theme.designToken.spacing.sm,
-                    theme.designToken.spacing.md,
-                    theme.designToken.spacing.sm,
-                    theme.designToken.spacing.lg,
-                  ),
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: tiragesByDay.length,
-                  itemBuilder: (context, index) {
-                    final dayGroup = tiragesByDay[index];
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: index == tiragesByDay.length - 1
-                            ? 0.0
-                            : theme.designToken.spacing.md,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _TiragesDateSeparator(date: dayGroup.date),
-                          SizedBox(height: theme.designToken.spacing.sm),
-                          for (var resultIndex = 0;
-                              resultIndex < dayGroup.results.length;
-                              resultIndex++)
-                            Padding(
-                              padding: EdgeInsets.only(
-                                bottom:
-                                    resultIndex == dayGroup.results.length - 1
-                                        ? 0.0
-                                        : theme.designToken.spacing.sm,
-                              ),
-                              child:
-                                  dayGroup.results[resultIndex].tirage == 'fl'
-                                      ? FlWidget(
-                                          infos: dayGroup.results[resultIndex],
-                                        )
-                                      : NewYorkkWidget(
-                                          infos: dayGroup.results[resultIndex],
-                                        ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
+          child: _buildTiragesBody(context),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTiragesBody(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final localizations = FFLocalizations.of(context);
+    if (_loadingInitialPage) {
+      return Center(
+        child: CircularProgressIndicator(color: theme.primary),
+      );
+    }
+    if (_loadFailed) {
+      return _TiragesMessage(
+        icon: Icons.cloud_off_outlined,
+        message: localizations.getVariableText(
+          frText: 'Impossible de charger les tirages.',
+          enText: 'Unable to load draw results.',
+          crText: 'Nou pa ka chaje rezilta tiraj yo.',
+        ),
+        onRetry: _refreshTirages,
+      );
+    }
+    if (_tirages.isEmpty) {
+      return _TiragesMessage(
+        icon: Icons.inbox_outlined,
+        message: localizations.getVariableText(
+          frText: 'Aucun tirage disponible pour le moment.',
+          enText: 'No draw results are available right now.',
+          crText: 'Pa gen rezilta tiraj ki disponib kounye a.',
+        ),
+        onRetry: _refreshTirages,
+      );
+    }
+
+    final tiragesByDay = _groupTiragesByDay(_tirages);
+    return RefreshIndicator(
+      color: theme.primary,
+      onRefresh: _refreshTirages,
+      child: ListView.builder(
+        padding: EdgeInsets.fromLTRB(
+          theme.designToken.spacing.sm,
+          theme.designToken.spacing.md,
+          theme.designToken.spacing.sm,
+          theme.designToken.spacing.lg,
+        ),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: tiragesByDay.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == tiragesByDay.length) {
+            return Padding(
+              padding: EdgeInsets.only(top: theme.designToken.spacing.md),
+              child: Center(
+                child: FFButtonWidget(
+                  onPressed: _loadingMore ? null : _loadMoreTirages,
+                  text: localizations.getVariableText(
+                    frText: 'Charger plus',
+                    enText: 'Load more',
+                    crText: 'Chaje plis',
+                  ),
+                  icon: const Icon(Icons.expand_more_rounded, size: 20),
+                  options: FFButtonOptions(
+                    height: 44,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: theme.designToken.spacing.md,
+                    ),
+                    color: theme.secondaryBackground,
+                    disabledColor: theme.secondaryBackground,
+                    textStyle: theme.labelLarge.copyWith(
+                      color: theme.primaryText,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      theme.designToken.radius.full,
+                    ),
+                    elevation: 0,
+                  ),
+                  showLoadingIndicator: true,
+                ),
+              ),
+            );
+          }
+
+          final dayGroup = tiragesByDay[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index == tiragesByDay.length - 1 && !_hasMore
+                  ? 0.0
+                  : theme.designToken.spacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _TiragesDateSeparator(date: dayGroup.date),
+                SizedBox(height: theme.designToken.spacing.sm),
+                for (var resultIndex = 0;
+                    resultIndex < dayGroup.results.length;
+                    resultIndex++)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: resultIndex == dayGroup.results.length - 1
+                          ? 0.0
+                          : theme.designToken.spacing.sm,
+                    ),
+                    child: dayGroup.results[resultIndex].tirage == 'fl'
+                        ? FlWidget(infos: dayGroup.results[resultIndex])
+                        : NewYorkkWidget(infos: dayGroup.results[resultIndex]),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

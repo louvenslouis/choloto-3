@@ -2,6 +2,7 @@ import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'bingo_comment_service.dart';
@@ -131,6 +132,9 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
   var _commentFailed = false;
   var _commentSent = false;
   String? _optimisticComment;
+  QueryDocumentSnapshot<Map<String, dynamic>>? _nextPageMarker;
+  var _hasMore = false;
+  var _loadingMore = false;
 
   @override
   void initState() {
@@ -164,13 +168,20 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
       });
     }
     try {
-      final comments = await (widget.commentsLoader?.call() ??
-          loadPublicBingoComments(bingoReference: widget.bingoReference));
+      final customLoader = widget.commentsLoader;
+      final page = customLoader == null
+          ? await loadPublicBingoCommentsPage(
+              bingoReference: widget.bingoReference,
+            )
+          : null;
+      final comments = page?.comments ?? await customLoader!.call();
       if (!mounted) return;
       setState(() {
         _comments
           ..clear()
           ..addAll(comments);
+        _nextPageMarker = page?.nextPageMarker;
+        _hasMore = page?.hasMore ?? false;
         _loading = false;
         _loadFailed = false;
       });
@@ -191,6 +202,40 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
         _loading = false;
         _loadFailed = true;
       });
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasMore || _nextPageMarker == null) return;
+    setState(() => _loadingMore = true);
+    try {
+      final page = await loadPublicBingoCommentsPage(
+        bingoReference: widget.bingoReference,
+        after: _nextPageMarker,
+      );
+      if (!mounted) return;
+      final knownIds = _comments.map((comment) => comment.id).toSet();
+      setState(() {
+        _comments.addAll(
+          page.comments.where((comment) => knownIds.add(comment.id)),
+        );
+        _nextPageMarker = page.nextPageMarker;
+        _hasMore = page.hasMore;
+        _loadingMore = false;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final highlightedContext = _highlightedCommentKey.currentContext;
+        if (mounted && !_didRevealHighlight && highlightedContext != null) {
+          _didRevealHighlight = true;
+          Scrollable.ensureVisible(
+            highlightedContext,
+            duration: const Duration(milliseconds: 260),
+            alignment: 0.16,
+          );
+        }
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loadingMore = false);
     }
   }
 
@@ -252,7 +297,20 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
         bingoReference: widget.bingoReference,
         commentId: comment.id,
       );
-      if (mounted) await _reload(showLoading: false);
+      if (mounted) {
+        final index = _comments.indexWhere((item) => item.id == comment.id);
+        if (index >= 0) {
+          final wasLiked = _comments[index].likedByCurrentUser;
+          setState(() {
+            _comments[index] = _comments[index].copyWithLike(
+              likeCount: (_comments[index].likeCount + (wasLiked ? -1 : 1))
+                  .clamp(0, 1 << 31)
+                  .toInt(),
+              likedByCurrentUser: !wasLiked,
+            );
+          });
+        }
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -291,8 +349,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
         commentId: comment.id,
       );
       if (mounted) {
-        await _reload(showLoading: false);
-        if (!mounted) return;
+        setState(() => _comments.removeWhere((item) => item.id == comment.id));
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -375,7 +432,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
                       Text(
                         _comments.isEmpty
                             ? localizations.getText('bingo_story_comments')
-                            : '${localizations.getText('bingo_story_comments')} · ${_comments.length}',
+                            : '${localizations.getText('bingo_story_comments')} · ${_comments.length}${_hasMore ? '+' : ''}',
                         style: theme.titleLarge.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -552,6 +609,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
     }
 
     final optimisticOffset = _optimisticComment == null ? 0 : 1;
+    final loadMoreOffset = _hasMore ? 1 : 0;
     return RefreshIndicator(
       onRefresh: () => _reload(showLoading: false),
       child: ListView.separated(
@@ -564,7 +622,7 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
           tokens.spacing.md,
           tokens.spacing.lg,
         ),
-        itemCount: _comments.length + optimisticOffset,
+        itemCount: _comments.length + optimisticOffset + loadMoreOffset,
         separatorBuilder: (_, __) => Padding(
           padding: EdgeInsets.symmetric(vertical: tokens.spacing.sm),
           child: Divider(
@@ -575,6 +633,30 @@ class _BingoPublicCommentsSheetState extends State<_BingoPublicCommentsSheet> {
             return _OptimisticCommentCard(
               text: _optimisticComment!,
               failed: _commentFailed,
+            );
+          }
+          if (_hasMore && index == _comments.length + optimisticOffset) {
+            return Center(
+              child: TextButton.icon(
+                key: const ValueKey('bingo-comments-load-more'),
+                onPressed: _loadingMore ? null : _loadMore,
+                icon: _loadingMore
+                    ? SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.primary,
+                        ),
+                      )
+                    : const Icon(Icons.expand_more_rounded),
+                label: Text(
+                  localizations.getVariableText(
+                    frText: 'Charger plus',
+                    enText: 'Load more',
+                    crText: 'Chaje plis',
+                  ),
+                ),
+              ),
             );
           }
           final comment = _comments[index - optimisticOffset];

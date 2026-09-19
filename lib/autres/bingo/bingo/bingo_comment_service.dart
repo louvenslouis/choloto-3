@@ -4,6 +4,7 @@ import '/backend/backend.dart';
 import 'package:uuid/uuid.dart';
 
 const bingoCommentMaxLength = 500;
+const bingoPublicCommentsPageSize = 20;
 const _bingoCommentDocumentPrefix = 'comment_';
 const _uuid = Uuid();
 
@@ -55,6 +56,35 @@ class BingoPublicComment {
 
   bool isOwnedBy(String viewerUserId) =>
       viewerUserId.isNotEmpty && userId == viewerUserId;
+
+  BingoPublicComment copyWithLike({
+    required int likeCount,
+    required bool likedByCurrentUser,
+  }) =>
+      BingoPublicComment(
+        id: id,
+        userId: userId,
+        text: text,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        adminLiked: adminLiked,
+        adminReply: adminReply,
+        adminReplyAt: adminReplyAt,
+        likeCount: likeCount,
+        likedByCurrentUser: likedByCurrentUser,
+      );
+}
+
+class BingoPublicCommentPage {
+  const BingoPublicCommentPage({
+    required this.comments,
+    required this.nextPageMarker,
+    required this.hasMore,
+  });
+
+  final List<BingoPublicComment> comments;
+  final QueryDocumentSnapshot<Map<String, dynamic>>? nextPageMarker;
+  final bool hasMore;
 }
 
 BingoPublicComment? parseBingoPublicComment({
@@ -195,13 +225,29 @@ Future<BingoPublicComment?> loadBingoCommentPreview({
 
 Future<List<BingoPublicComment>> loadPublicBingoComments({
   required DocumentReference? bingoReference,
-}) async {
-  if (bingoReference == null) return const [];
+}) async =>
+    (await loadPublicBingoCommentsPage(bingoReference: bingoReference))
+        .comments;
 
-  final commentsSnapshot = await bingoReference
+Future<BingoPublicCommentPage> loadPublicBingoCommentsPage({
+  required DocumentReference? bingoReference,
+  QueryDocumentSnapshot<Map<String, dynamic>>? after,
+  int pageSize = bingoPublicCommentsPageSize,
+}) async {
+  if (bingoReference == null) {
+    return const BingoPublicCommentPage(
+      comments: [],
+      nextPageMarker: null,
+      hasMore: false,
+    );
+  }
+
+  var commentsQuery = bingoReference
       .collection('comments')
       .orderBy('updatedAt', descending: true)
-      .get();
+      .limit(pageSize);
+  if (after != null) commentsQuery = commentsQuery.startAfterDocument(after);
+  final commentsSnapshot = await commentsQuery.get();
   final userId = currentUserUid;
   final comments = await Future.wait(
     commentsSnapshot.docs.map((document) async {
@@ -222,7 +268,12 @@ Future<List<BingoPublicComment>> loadPublicBingoComments({
       );
     }),
   );
-  return comments.whereType<BingoPublicComment>().toList(growable: false);
+  return BingoPublicCommentPage(
+    comments: comments.whereType<BingoPublicComment>().toList(growable: false),
+    nextPageMarker:
+        commentsSnapshot.docs.isEmpty ? null : commentsSnapshot.docs.last,
+    hasMore: commentsSnapshot.docs.length == pageSize,
+  );
 }
 
 Future<void> togglePublicBingoCommentLike({

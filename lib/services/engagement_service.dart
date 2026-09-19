@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @immutable
 class EngagementState {
@@ -67,6 +68,9 @@ String engagementDayKey(DateTime value) {
   String twoDigits(int number) => number.toString().padLeft(2, '0');
   return '${local.year}-${twoDigits(local.month)}-${twoDigits(local.day)}';
 }
+
+String engagementLocalDayPreferenceKey(String userId) =>
+    'engagement_last_recorded_day_v1_$userId';
 
 DateTime? _parseDayKey(String value) {
   final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(value);
@@ -135,13 +139,29 @@ EngagementUpdate calculateEngagementUpdate({
 Future<bool> recordDailyEngagement({
   required DocumentReference? userReference,
   DateTime? now,
+  FirebaseFirestore? firestore,
+  SharedPreferences? preferences,
 }) async {
   if (userReference == null) {
     return false;
   }
 
+  final recordedAt = now ?? DateTime.now();
+  final todayKey = engagementDayKey(recordedAt);
+  final localDayKey = engagementLocalDayPreferenceKey(userReference.id);
+  SharedPreferences? localPreferences = preferences;
   try {
-    return await FirebaseFirestore.instance
+    localPreferences ??= await SharedPreferences.getInstance();
+  } catch (error) {
+    debugPrint('Engagement local cache unavailable: $error');
+  }
+  if (localPreferences?.getString(localDayKey) == todayKey) {
+    return false;
+  }
+
+  var profileExists = false;
+  try {
+    final wroteEngagement = await (firestore ?? FirebaseFirestore.instance)
         .runTransaction<bool>((transaction) async {
       final snapshot = await transaction.get(userReference);
       if (!snapshot.exists) {
@@ -149,6 +169,7 @@ Future<bool> recordDailyEngagement({
         // competing profile and therefore cannot alter the historical flow.
         return false;
       }
+      profileExists = true;
       final data = snapshot.data() as Map<String, dynamic>?;
       final engagementData = data?['engagement'];
       final current = EngagementState.fromMap(
@@ -158,7 +179,7 @@ Future<bool> recordDailyEngagement({
       );
       final update = calculateEngagementUpdate(
         current: current,
-        now: now ?? DateTime.now(),
+        now: recordedAt,
       );
       if (!update.shouldWrite) {
         return false;
@@ -172,6 +193,14 @@ Future<bool> recordDailyEngagement({
       });
       return true;
     });
+    if (profileExists && localPreferences != null) {
+      try {
+        await localPreferences.setString(localDayKey, todayKey);
+      } catch (error) {
+        debugPrint('Engagement local cache update skipped: $error');
+      }
+    }
+    return wroteEngagement;
   } catch (error, stackTrace) {
     debugPrint('Daily engagement tracking skipped: $error');
     debugPrintStack(stackTrace: stackTrace);

@@ -215,6 +215,28 @@ void main() {
     );
   });
 
+  test('free accounts do not keep a transaction listener alive', () {
+    final now = DateTime.utc(2026, 9, 19);
+    expect(
+      shouldWatchSubscriptionTransactions(
+        loggedIn: true,
+        userUid: 'free-member',
+        profileEnd: DateTime.utc(2026, 9, 18),
+        now: now,
+      ),
+      isFalse,
+    );
+    expect(
+      shouldWatchSubscriptionTransactions(
+        loggedIn: true,
+        userUid: 'vip-member',
+        profileEnd: DateTime.utc(2026, 9, 20),
+        now: now,
+      ),
+      isTrue,
+    );
+  });
+
   for (final locale in _locales) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
       testWidgets(

@@ -140,6 +140,21 @@ bool latestSubscriptionTransactionIsCancellation(
   return iterator.moveNext() && iterator.current.isCancellation;
 }
 
+/// Transaction history is only a short-lived consistency fallback for an
+/// already active membership. Free accounts rely on `/user/{uid}` becoming
+/// current after a first purchase and therefore do not keep this extra
+/// Firestore listener alive merely by visiting the VIP tab.
+bool shouldWatchSubscriptionTransactions({
+  required bool loggedIn,
+  required String userUid,
+  required DateTime? profileEnd,
+  required DateTime now,
+}) =>
+    loggedIn &&
+    userUid.isNotEmpty &&
+    profileEnd != null &&
+    !profileEnd.isBefore(now);
+
 /// Uses the profile as the source of truth, while allowing a freshly recorded
 /// payment to bridge a short-lived auth-stream lag after a renewal.
 DateTime? effectiveSubscriptionEnd({

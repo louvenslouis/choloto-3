@@ -81,9 +81,23 @@ class _VipWidgetState extends State<VipWidget> {
   }
 
   void _ensureTransactionMembershipStream() {
-    if (!loggedIn ||
-        currentUserUid.isEmpty ||
-        _transactionsUserUid == currentUserUid) {
+    final shouldWatch = shouldWatchSubscriptionTransactions(
+      loggedIn: loggedIn,
+      userUid: currentUserUid,
+      profileEnd: currentUserDocument?.endSub,
+      now: getCurrentTimestamp,
+    );
+    if (!shouldWatch) {
+      if (_transactionMembershipSubscription != null) {
+        unawaited(_transactionMembershipSubscription?.cancel());
+        _transactionMembershipSubscription = null;
+        _transactionsUserUid = null;
+        _latestRecordedSubscriptionEnd = null;
+        _latestTransactionIsCancellation = false;
+      }
+      return;
+    }
+    if (_transactionsUserUid == currentUserUid) {
       return;
     }
 

@@ -37,7 +37,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   late HomeModel _model;
 
   StreamSubscription<UserRecord?>? _subscriptionReminderSubscription;
-  StreamSubscription<List<SupportMessage>>? _supportMessagesSubscription;
+  StreamSubscription<SupportConversation?>? _supportConversationSubscription;
   StreamSubscription<List<BingoRecord>>? _bingoStoriesSubscription;
   Timer? _subscriptionExpirationTimer;
   Timer? _bingoExpirationTimer;
@@ -49,9 +49,10 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   bool _youtubeStoriesLoadFailed = false;
   bool _youtubeStoriesViewed = false;
   final _supportRepository = SupportConversationRepository();
-  List<SupportMessage> _supportMessages = const [];
+  SupportConversation? _supportConversation;
   String _supportSubscriptionUid = '';
   int _supportShakeTrigger = 0;
+  bool _bingoInitialSnapshotHandled = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -68,11 +69,11 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       rebuild: false,
     );
     _subscriptionReminderSubscription = authenticatedUserStream.listen((user) {
-      _subscribeToSupportMessages(currentUserUid);
+      _subscribeToSupportConversation(currentUserUid);
       _updateSubscriptionExpiration(user?.endSub);
       unawaited(_maybeShowSubscriptionExpirationReminder());
     });
-    _subscribeToSupportMessages(currentUserUid);
+    _subscribeToSupportConversation(currentUserUid);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(recordDailyEngagement(userReference: currentUserReference));
       unawaited(_loadYoutubeStories());
@@ -93,43 +94,44 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     _subscriptionExpirationTimer?.cancel();
     unawaited(_bingoStoriesSubscription?.cancel());
     unawaited(_subscriptionReminderSubscription?.cancel());
-    unawaited(_supportMessagesSubscription?.cancel());
+    unawaited(_supportConversationSubscription?.cancel());
     _model.dispose();
 
     super.dispose();
   }
 
-  void _subscribeToSupportMessages(String uid) {
+  void _subscribeToSupportConversation(String uid) {
     if (_supportSubscriptionUid == uid &&
-        (_supportMessagesSubscription != null || uid.isEmpty)) {
+        (_supportConversationSubscription != null || uid.isEmpty)) {
       return;
     }
-    unawaited(_supportMessagesSubscription?.cancel());
-    _supportMessagesSubscription = null;
+    unawaited(_supportConversationSubscription?.cancel());
+    _supportConversationSubscription = null;
     _supportSubscriptionUid = uid;
-    _supportMessages = const [];
+    _supportConversation = null;
     if (uid.isEmpty) {
       if (mounted) safeSetState(() {});
       return;
     }
 
-    _supportMessagesSubscription = _supportRepository.watchMessages(uid).listen(
-      (messages) {
+    _supportConversationSubscription =
+        _supportRepository.watchConversation(uid).listen(
+      (conversation) {
         final previousLastMessageId =
-            _supportMessages.isEmpty ? null : _supportMessages.last.id;
-        final latestMessage = messages.isEmpty ? null : messages.last;
-        if (latestMessage != null &&
-            latestMessage.sentByAdmin &&
-            latestMessage.id != previousLastMessageId) {
+            _supportConversation?.data['last_message_id'];
+        final latestLastMessageId = conversation?.data['last_message_id'];
+        if ((conversation?.pendingAdminMessages ?? 0) > 0 &&
+            latestLastMessageId != null &&
+            latestLastMessageId != previousLastMessageId) {
           _supportShakeTrigger++;
         }
-        _supportMessages = List.unmodifiable(messages);
+        _supportConversation = conversation;
         if (mounted) safeSetState(() {});
       },
       onError: (Object error) {
-        debugPrint('Support message stream error: $error');
+        debugPrint('Support conversation stream error: $error');
         if (mounted) {
-          _supportMessages = const [];
+          _supportConversation = null;
           safeSetState(() {});
         }
       },
@@ -148,34 +150,46 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   Future<void> _initializeBingoStories() async {
     logFirebaseEvent('HOME_PAGE_Home_ON_INIT_STATE');
     logFirebaseEvent('Home_bingorequette');
-    try {
-      final records = await queryBingoRecordOnce(
-        queryBuilder: (bingoRecord) =>
-            bingoRecord.orderBy('date', descending: true),
-      );
-      await _applyBingoRecords(records, showAutomaticDialog: true);
-    } catch (error) {
-      debugPrint('Bingo story feed error: $error');
-    } finally {
-      if (mounted) {
-        _homeDialogsReady = true;
-        await _maybeShowSubscriptionExpirationReminder();
-        if (mounted) _subscribeToBingoStories();
-      }
-    }
-  }
-
-  void _subscribeToBingoStories() {
     if (_bingoStoriesSubscription != null) return;
     _bingoStoriesSubscription = queryBingoRecord(
       queryBuilder: (bingoRecord) =>
           bingoRecord.orderBy('date', descending: true),
     ).listen(
-      (records) => unawaited(_applyBingoRecords(records)),
+      (records) {
+        final isInitialSnapshot = !_bingoInitialSnapshotHandled;
+        _bingoInitialSnapshotHandled = true;
+        unawaited(
+          _handleBingoRecords(
+            records,
+            showAutomaticDialog: isInitialSnapshot,
+          ),
+        );
+      },
       onError: (Object error) {
         debugPrint('Bingo story stream error: $error');
+        if (!_bingoInitialSnapshotHandled) {
+          _bingoInitialSnapshotHandled = true;
+          unawaited(_finishHomeDialogInitialization());
+        }
       },
     );
+  }
+
+  Future<void> _handleBingoRecords(
+    List<BingoRecord> records, {
+    required bool showAutomaticDialog,
+  }) async {
+    await _applyBingoRecords(
+      records,
+      showAutomaticDialog: showAutomaticDialog,
+    );
+    if (showAutomaticDialog) await _finishHomeDialogInitialization();
+  }
+
+  Future<void> _finishHomeDialogInitialization() async {
+    if (!mounted || _homeDialogsReady) return;
+    _homeDialogsReady = true;
+    await _maybeShowSubscriptionExpirationReminder();
   }
 
   Future<void> _applyBingoRecords(
@@ -368,6 +382,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   }
 
   Future<void> _loadBetaFeatures() async {
+    final loadedAt = getCurrentTimestamp;
+    if (!FFAppState().shouldRefreshBetaFeatures(loadedAt)) return;
     try {
       logFirebaseEvent('Home_Betafeatures');
       final beta = await querySettingsRecordOnce(
@@ -378,6 +394,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       }
 
       _model.beta = beta;
+      FFAppState().markBetaFeaturesFetched(loadedAt);
       if (beta?.betaFeatures != FFAppState().betaFeatures) {
         logFirebaseEvent('Home_betaFeatures');
         FFAppState().betaFeatures = BetaFeaturesStruct(
@@ -474,7 +491,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
           backgroundColor:
               FlutterFlowTheme.of(context).designToken.background.home,
           floatingActionButton: HomeSupportFab(
-            messageCount: supportPendingAdminMessages(_supportMessages),
+            messageCount: _supportConversation?.pendingAdminMessages ?? 0,
             shakeTrigger: _supportShakeTrigger,
             onSupport: () async {
               logFirebaseEvent(

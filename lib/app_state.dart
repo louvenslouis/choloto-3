@@ -72,6 +72,13 @@ class FFAppState extends ChangeNotifier {
         }
       }
     });
+    _safeInit(() {
+      _betaFeaturesFetchedAt = prefs.containsKey('ff_betaFeaturesFetchedAt')
+          ? DateTime.fromMillisecondsSinceEpoch(
+              prefs.getInt('ff_betaFeaturesFetchedAt')!,
+            )
+          : null;
+    });
   }
 
   void update(VoidCallback callback) {
@@ -210,6 +217,24 @@ class FFAppState extends ChangeNotifier {
   void updateBetaFeaturesStruct(Function(BetaFeaturesStruct) updateFn) {
     updateFn(_betaFeatures);
     prefs.setString('ff_betaFeatures', _betaFeatures.serialize());
+  }
+
+  DateTime? _betaFeaturesFetchedAt;
+  DateTime? get betaFeaturesFetchedAt => _betaFeaturesFetchedAt;
+
+  bool shouldRefreshBetaFeatures(
+    DateTime now, {
+    Duration maxAge = const Duration(hours: 1),
+  }) {
+    final fetchedAt = _betaFeaturesFetchedAt;
+    return fetchedAt == null ||
+        now.isBefore(fetchedAt) ||
+        now.difference(fetchedAt) >= maxAge;
+  }
+
+  void markBetaFeaturesFetched(DateTime value) {
+    _betaFeaturesFetchedAt = value;
+    prefs.setInt('ff_betaFeaturesFetchedAt', value.millisecondsSinceEpoch);
   }
 
   final _newYorkTirageManager = FutureRequestManager<List<ResultatsRecord>>();

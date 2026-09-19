@@ -29,6 +29,33 @@ void main() {
     );
   });
 
+  test('conversation summary avoids loading the complete message history', () {
+    const historical = SupportConversation('member', {
+      'last_sender_role': 'admin',
+      'last_message_id': 'a2',
+    });
+    const counted = SupportConversation('member', {
+      'last_sender_role': 'admin',
+      'last_message_id': 'a3',
+      'pending_admin_count': 3,
+    });
+    const acknowledged = SupportConversation('member', {
+      'last_sender_role': 'user',
+      'last_message_id': 'u2',
+    });
+    const treated = SupportConversation('member', {
+      'last_sender_role': 'admin',
+      'last_message_id': 'a4',
+      'pending_admin_count': 3,
+      'status': 'treated',
+    });
+
+    expect(historical.pendingAdminMessages, 1);
+    expect(counted.pendingAdminMessages, 3);
+    expect(acknowledged.pendingAdminMessages, 0);
+    expect(treated.pendingAdminMessages, 0);
+  });
+
   test('guest support id is private, valid and persisted without auth',
       () async {
     SharedPreferences.setMockInitialValues({});

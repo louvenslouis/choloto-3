@@ -546,11 +546,17 @@ Future<FFFirestorePage<T>> queryCollectionPage<T>(
 }
 
 // Creates a Firestore document representing the logged in user if it doesn't yet exist
-Future maybeCreateUser(User user) async {
-  final userRecord = UserRecord.collection.doc(user.uid);
-  final userExists = await userRecord.get().then((u) => u.exists);
-  if (userExists) {
-    currentUserDocument = await UserRecord.getDocumentOnce(userRecord);
+Future maybeCreateUser(
+  User user, {
+  DocumentReference? userRecordOverride,
+}) async {
+  final userRecord = userRecordOverride ?? UserRecord.collection.doc(user.uid);
+  // This owner read must remain the first operation: an absent profile is a
+  // valid first-login result. Reuse the snapshot to avoid reading an existing
+  // profile twice before navigation.
+  final userSnapshot = await userRecord.get();
+  if (userSnapshot.exists) {
+    currentUserDocument = UserRecord.fromSnapshot(userSnapshot);
     return;
   }
 

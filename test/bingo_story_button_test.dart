@@ -83,6 +83,30 @@ class _BingoReactionStateProbe extends StatelessWidget {
 }
 
 void main() {
+  test('Bingo comment like updates can stay local between paged reads', () {
+    const comment = BingoPublicComment(
+      id: 'comment-1',
+      userId: 'member',
+      text: 'Bravo',
+      createdAt: null,
+      updatedAt: null,
+      adminLiked: false,
+      adminReply: '',
+      adminReplyAt: null,
+      likeCount: 2,
+      likedByCurrentUser: false,
+    );
+
+    final liked = comment.copyWithLike(
+      likeCount: 3,
+      likedByCurrentUser: true,
+    );
+    expect(liked.id, comment.id);
+    expect(liked.text, comment.text);
+    expect(liked.likeCount, 3);
+    expect(liked.likedByCurrentUser, isTrue);
+  });
+
   test('Bingo comment autofocus waits until the input is attached', () {
     final scheduledCallbacks = <VoidCallback>[];
     var inputIsAttached = false;

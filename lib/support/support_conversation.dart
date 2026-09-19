@@ -24,9 +24,21 @@ class SupportConversation {
   String get userDisplayName => data['user_display_name'] as String? ?? '';
   String get lastMessage => data['last_message'] as String? ?? '';
   String get lastSenderRole => data['last_sender_role'] as String? ?? '';
+  String get status => data['status'] as String? ?? 'open';
   DateTime? get createdAt => supportDate(data['created_at']);
   DateTime? get updatedAt => supportDate(data['updated_at']);
-  bool get waitingForAdmin => lastSenderRole == 'user';
+  bool get isTreated => status == 'treated';
+  bool get waitingForAdmin => !isTreated && lastSenderRole == 'user';
+
+  /// The conversation summary is intentionally enough for the home badge.
+  /// Historical documents do not have a dedicated unread counter, so an
+  /// admin-authored latest message is represented as one pending notification.
+  int get pendingAdminMessages {
+    if (isTreated) return 0;
+    final storedCount = data['pending_admin_count'];
+    if (storedCount is num && storedCount >= 0) return storedCount.toInt();
+    return lastSenderRole == 'admin' ? 1 : 0;
+  }
 }
 
 class SupportMessage {
