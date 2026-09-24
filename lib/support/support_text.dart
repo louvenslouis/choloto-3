@@ -12,6 +12,38 @@ String supportText(BuildContext context, String key) {
 }
 
 const _supportLabels = <String, List<String>>{
+  'botImageWaiting': [
+    'Image envoyée. Veuillez attendre qu’un membre de l’équipe vérifie votre demande. Seul un membre de l’équipe peut la valider.',
+    'Image sent. Please wait for a team member to review your request. Only a team member can validate it.',
+    'Imaj la voye. Tanpri tann yon moun nan ekip la verifye demann ou an. Se sèlman yon moun nan ekip la ki ka valide li.'
+  ],
+  'botLoginRequired': [
+    'Connectez-vous ou créez un compte pour poursuivre cette étape.',
+    'Sign in or create an account to continue this step.',
+    'Konekte oswa kreye yon kont pou kontinye etap sa a.'
+  ],
+  'botSignIn': ['Se connecter', 'Sign in', 'Konekte'],
+  'botSendImage': ['Envoyer une image', 'Send an image', 'Voye yon imaj'],
+  'botTitle': ['Assistant CHOLOTO', 'CHOLOTO assistant', 'Asistan CHOLOTO'],
+  'botContinue': ['Continuer', 'Continue', 'Kontinye'],
+  'botBack': ['Retour', 'Back', 'Retounen'],
+  'botRestart': ['Recommencer', 'Start over', 'Rekòmanse'],
+  'botContact': ['Parler à l’équipe', 'Contact the team', 'Pale ak ekip la'],
+  'botContacted': [
+    'Demande envoyée à l’équipe.',
+    'Request sent to the team.',
+    'Demann nan voye bay ekip la.'
+  ],
+  'botUnavailable': [
+    'Assistant indisponible. Vous pouvez écrire à l’équipe.',
+    'Assistant unavailable. You can message the team.',
+    'Asistan an pa disponib. Ou ka ekri ekip la.'
+  ],
+  'botSendError': [
+    'Envoi impossible. Réessayez.',
+    'Unable to send. Try again.',
+    'Nou pa ka voye mesaj la. Eseye ankò.'
+  ],
   'title': [
     'Chat service client',
     'Customer support chat',

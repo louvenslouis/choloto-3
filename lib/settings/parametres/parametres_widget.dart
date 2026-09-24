@@ -537,7 +537,7 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                       ),
                       subtitle: Text(
                         FFLocalizations.of(context).getText(
-                          'cp8c72u7' /* 260715001 */,
+                          'cp8c72u7' /* 260920001 */,
                         ),
                         style:
                             FlutterFlowTheme.of(context).labelMedium.override(

@@ -711,6 +711,24 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Public help content, published atomically by administrators only.
+    match /support_bot/{document} {
+      allow get: if document == 'config';
+      allow list, delete: if false;
+      allow create, update: if document == 'config' && isAdmin() &&
+        request.resource.data.keys().hasOnly(['enabled', 'greeting', 'nodes', 'revision']) &&
+        request.resource.data.enabled is bool &&
+        request.resource.data.greeting is string &&
+        request.resource.data.greeting.size() > 0 &&
+        request.resource.data.greeting.size() <= 1000 &&
+        request.resource.data.nodes is list &&
+        request.resource.data.nodes.size() > 0 &&
+        request.resource.data.nodes.size() <= 80 &&
+        request.resource.data.revision is int &&
+        ((!exists(/databases/$(database)/documents/support_bot/config) && request.resource.data.revision == 1) ||
+          (exists(/databases/$(database)/documents/support_bot/config) && request.resource.data.revision == resource.data.revision + 1));
+    }
+
     match /settings/{document} {
       allow read: if true;
       allow create: if isAdmin() && validSettings(request.resource.data);

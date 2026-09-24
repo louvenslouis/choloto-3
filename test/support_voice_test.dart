@@ -52,14 +52,26 @@ class FakeAudioPlayer extends Fake implements AudioPlayer {
   @override
   Stream<AudioEvent> get eventStream => const Stream.empty();
   @override
-  Future<void> play(Source source,
-      {double? volume,
-      double? balance,
-      AudioContext? ctx,
-      Duration? position,
-      PlayerMode? mode}) async {
+  Future<void> setSource(Source source) async {
     expect(source, isA<BytesSource>());
     expect((source as BytesSource).mimeType, 'audio/wav');
+    sources++;
+  }
+
+  int sources = 0;
+  final seeks = <Duration>[];
+  @override
+  Future<void> setReleaseMode(ReleaseMode mode) async {
+    expect(mode, ReleaseMode.stop);
+  }
+
+  @override
+  Future<void> seek(Duration position) async {
+    seeks.add(position);
+  }
+
+  @override
+  Future<void> resume() async {
     plays++;
   }
 
@@ -298,6 +310,16 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.byIcon(Icons.pause_rounded), findsNothing);
+    // A late position event must not put a completed message back at its end.
+    second.positions.add(const Duration(seconds: 1));
+    await tester.pump();
+    await tester.tap(buttons.at(1));
+    await tester.pumpAndSettle();
+    expect(second.plays, 3);
+    expect(second.sources, 1);
+    expect(second.seeks, [Duration.zero]);
+    expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
+
     await tester.pumpWidget(const SizedBox());
     await tester.pump();
     expect(first.disposals, 1);

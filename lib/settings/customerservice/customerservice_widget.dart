@@ -5,6 +5,9 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/payments/payment_requests_widget.dart';
 import '/support/support_chat_view.dart';
+import '/support/support_bot_repository.dart';
+import '/support/support_bot.dart';
+import '/settings/authentification/authentification_widget.dart';
 import '/support/support_conversation.dart';
 import '/support/support_guest_session.dart';
 import '/support/support_text.dart';
@@ -33,6 +36,11 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
       widget.repository ?? SupportConversationRepository();
   late final Future<String> _guestId =
       (widget.guestIdLoader ?? GuestSupportSession.loadOrCreateId)();
+
+  late final Stream<SupportBotConfig> _botConfig =
+      SupportBotRepository(firestore: _repository.db).watch();
+
+  final List<String> _botPath = [];
 
   SupportAudio? _pendingAudio;
   String? _pendingAudioText;
@@ -77,6 +85,10 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
         constraints: const BoxConstraints(maxWidth: 760),
         child: SupportChatView(
           key: ValueKey('$conversationId-$guestWithoutAuth'),
+          botConfig: _botConfig,
+          botPath: _botPath,
+          isSignedIn: loggedIn && !currentUserIsAnonymous,
+          onSignIn: () => context.pushNamed(AuthentificationWidget.routeName),
           messages: guestWithoutAuth
               ? _repository.watchGuestMessages(conversationId)
               : _repository.watchMessages(conversationId),

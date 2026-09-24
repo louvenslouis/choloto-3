@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/payments/proof_image.dart';
 import 'support_conversation.dart';
+import 'support_bot.dart';
+import 'support_bot_view.dart';
 import 'support_text.dart';
 import 'support_audio.dart';
 import 'support_audio_player.dart';
@@ -29,9 +31,17 @@ class SupportChatView extends StatefulWidget {
     this.pickImage,
     this.showOptionalPhoneOnFirstMessage = false,
     this.onPaymentProof,
+    this.botConfig,
+    this.isSignedIn = true,
+    this.onSignIn,
+    this.botPath,
   });
 
   final Stream<List<SupportMessage>> messages;
+  final Stream<SupportBotConfig>? botConfig;
+  final bool isSignedIn;
+  final VoidCallback? onSignIn;
+  final List<String>? botPath;
   final SendSupportMessage onSend;
   final LoadSupportImage? loadImage;
   final Future<SupportAudio> Function(String messageId)? loadAudio;
@@ -159,6 +169,9 @@ class _SupportChatViewState extends State<SupportChatView>
   int _messageCount = 0;
   bool _hasExistingMessages = false;
   bool _firstMessageSent = false;
+  bool _imageSent = false;
+  String? _lastAdminId;
+  String? _adminIdAtImageSent;
 
   bool get _showOptionalPhone =>
       widget.showOptionalPhoneOnFirstMessage &&
@@ -215,6 +228,8 @@ class _SupportChatViewState extends State<SupportChatView>
       _sending = true;
       _error = null;
     });
+    final sendingImage = _image != null;
+    final adminIdBeforeSend = _lastAdminId;
     try {
       SupportAudioPlayer.active.value = null;
       if (_audio != null) {
@@ -226,6 +241,10 @@ class _SupportChatViewState extends State<SupportChatView>
         _controller.clear();
         _phoneController.clear();
         setState(() {
+          if (sendingImage) {
+            _imageSent = true;
+            _adminIdAtImageSent = adminIdBeforeSend;
+          }
           _image = null;
           _audio = null;
           _firstMessageSent = true;
@@ -398,6 +417,16 @@ class _SupportChatViewState extends State<SupportChatView>
                       child: CircularProgressIndicator(color: theme.primary));
                 }
                 final messages = snapshot.data!;
+                final adminMessages = messages.where((m) => m.sentByAdmin);
+                _lastAdminId =
+                    adminMessages.isEmpty ? null : adminMessages.last.id;
+                if (_imageSent && _lastAdminId != _adminIdAtImageSent) {
+                  _imageSent = false;
+                }
+                final awaitingImageReview = _imageSent ||
+                    messages.reversed
+                        .takeWhile((m) => !m.sentByAdmin)
+                        .any((m) => m.hasImage);
                 final hasMessages = messages.isNotEmpty;
                 if (hasMessages != _hasExistingMessages) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -407,7 +436,7 @@ class _SupportChatViewState extends State<SupportChatView>
                   });
                 }
                 _scrollToLatest(messages.length);
-                if (messages.isEmpty) {
+                if (messages.isEmpty && widget.botConfig == null) {
                   return _SupportState(
                     icon: Icons.forum_outlined,
                     title: supportText(context, 'emptyTitle'),
@@ -423,14 +452,34 @@ class _SupportChatViewState extends State<SupportChatView>
                     tokens.spacing.md,
                     tokens.spacing.md,
                   ),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) => IgnorePointer(
-                      ignoring: _recording || _voiceBusy,
-                      child: _MessageBubble(
-                        message: messages[index],
-                        loadImage: widget.loadImage,
-                        loadAudio: widget.loadAudio,
-                      )),
+                  findChildIndexCallback: (key) =>
+                      key == const ValueKey('support-bot-panel')
+                          ? messages.length
+                          : null,
+                  itemCount:
+                      messages.length + (widget.botConfig == null ? 0 : 1),
+                  itemBuilder: (context, index) {
+                    if (widget.botConfig != null && index == messages.length) {
+                      return IgnorePointer(
+                          key: const ValueKey('support-bot-panel'),
+                          ignoring: _recording || _voiceBusy || _sending,
+                          child: SupportBotView(
+                              config: widget.botConfig!,
+                              isSignedIn: widget.isSignedIn,
+                              onSignIn: widget.onSignIn,
+                              path: widget.botPath,
+                              awaitingImageReview: awaitingImageReview,
+                              onRequestImage: _pickImage,
+                              onContact: (text) => widget.onSend(text, null)));
+                    }
+                    return IgnorePointer(
+                        ignoring: _recording || _voiceBusy,
+                        child: _MessageBubble(
+                          message: messages[index],
+                          loadImage: widget.loadImage,
+                          loadAudio: widget.loadAudio,
+                        ));
+                  },
                 );
               },
             ),
