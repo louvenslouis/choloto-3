@@ -1,7 +1,7 @@
 # Lottery result card logos
 
 Source: [NASPL lottery members](https://www.naspl.org/naspl-lottery-members), retrieved 2026-09-24.
-Images are bundled locally and displayed with their original aspect ratio. The exterior white background was removed using a border-connected near-white alpha mask; logo RGB pixels, canvas dimensions and positioning are preserved.
+Images are bundled locally and displayed with their original aspect ratio. The exterior white background was removed using a border-connected near-white alpha mask; logo RGB pixels are preserved. Transparent outer margins were cropped with a 3 px margin so the marks fill their display area like the existing New York and Florida logos.
 
 | Asset | Source image |
 | --- | --- |

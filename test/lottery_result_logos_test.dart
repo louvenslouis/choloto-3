@@ -102,11 +102,16 @@ void main() {
         final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
         final frame = await codec.getNextFrame();
         final image = frame.image;
-        expect(image.width, 600);
-        expect(image.height, 450);
+        expect(image.width, lessThan(600));
+        expect(image.height, lessThan(450));
         final pixels =
             (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
-        for (final offset in [0, 599, 449 * 600, 450 * 600 - 1]) {
+        for (final offset in [
+          0,
+          image.width - 1,
+          (image.height - 1) * image.width,
+          image.height * image.width - 1,
+        ]) {
           expect(pixels.getUint8(offset * 4 + 3), 0, reason: entry.value);
         }
         image.dispose();
@@ -117,7 +122,7 @@ void main() {
 
   for (final language in ['fr', 'en', 'cr']) {
     for (final brightness in Brightness.values) {
-      for (final width in [360.0, 1440.0]) {
+      for (final width in [320.0, 360.0, 1440.0]) {
         testWidgets('lottery logos $language ${brightness.name} $width',
             (tester) async {
           tester.view.physicalSize = Size(width, 568);
@@ -125,6 +130,11 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
           for (final entry in assets.entries) {
+            // The legacy cards are unchanged; this extra-small viewport checks
+            // the six logos added to the shared result card.
+            if (width == 320.0 && (entry.key == 'ny' || entry.key == 'fl')) {
+              continue;
+            }
             final captureKey = GlobalKey();
             final record = ResultatsRecord.getDocumentFromData({
               'date': DateTime(2026, 9, 24, 12),
@@ -176,7 +186,12 @@ void main() {
             final image = tester.widget<Image>(find.byType(Image).first);
             expect((image.image as AssetImage).assetName,
                 'assets/images/${entry.value}.png');
-            expect(tester.takeException(), isNull);
+            if (entry.key != 'ny' && entry.key != 'fl') {
+              expect(image.width, 75.0);
+              expect(image.height, 75.0);
+              expect(image.fit, BoxFit.contain);
+            }
+            expect(tester.takeException(), isNull, reason: entry.key);
             expect(find.text('12'), findsOneWidget);
             if (exportDirectory.isNotEmpty) {
               await tester.runAsync(() async {
