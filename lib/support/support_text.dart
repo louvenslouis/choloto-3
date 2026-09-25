@@ -12,6 +12,16 @@ String supportText(BuildContext context, String key) {
 }
 
 const _supportLabels = <String, List<String>>{
+  'botPaymentUnavailable': [
+    'Ce moyen de paiement est indisponible. Contactez l’équipe pour obtenir les informations à jour.',
+    'This payment method is unavailable. Contact the team for current details.',
+    'Mwayen peman sa a pa disponib. Pale ak ekip la pou jwenn enfòmasyon ki ajou yo.'
+  ],
+  'botPaymentPrice': ['Prix', 'Price', 'Pri'],
+  'botPaymentDuration': ['Durée', 'Duration', 'Dire'],
+  'botPaymentMonths': ['mois', 'month(s)', 'mwa'],
+  'botPaymentAccount': ['Compte', 'Account', 'Kont'],
+  'botPaymentRecipient': ['Bénéficiaire', 'Recipient', 'Benefisyè'],
   'botImageWaiting': [
     'Image envoyée. Veuillez attendre qu’un membre de l’équipe vérifie votre demande. Seul un membre de l’équipe peut la valider.',
     'Image sent. Please wait for a team member to review your request. Only a team member can validate it.',
@@ -23,6 +33,11 @@ const _supportLabels = <String, List<String>>{
     'Konekte oswa kreye yon kont pou kontinye etap sa a.'
   ],
   'botSignIn': ['Se connecter', 'Sign in', 'Konekte'],
+  'botSendPaymentProof': [
+    'Envoyer la preuve de paiement',
+    'Send payment proof',
+    'Voye prèv peman an'
+  ],
   'botSendImage': ['Envoyer une image', 'Send an image', 'Voye yon imaj'],
   'botTitle': ['Assistant CHOLOTO', 'CHOLOTO assistant', 'Asistan CHOLOTO'],
   'botContinue': ['Continuer', 'Continue', 'Kontinye'],

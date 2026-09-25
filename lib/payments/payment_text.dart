@@ -29,7 +29,11 @@ const _labels = <String, List<String>>{
   'note': ['Message (facultatif)', 'Message (optional)', 'Mesaj (si ou vle)'],
   'send': ['Envoyer', 'Send', 'Voye'],
   'sending': ['Envoi en cours…', 'Sending…', 'N ap voye…'],
-  'sent': ['Photo envoyée.', 'Photo sent.', 'Foto a voye.'],
+  'sent': [
+    'Preuve envoyée. Veuillez attendre la validation d’un membre de l’équipe.',
+    'Proof sent. Please wait for a team member to validate it.',
+    'Prèv la voye. Tanpri tann yon moun nan ekip la valide li.'
+  ],
   'error': [
     'Opération impossible. Vérifiez votre connexion puis réessayez.',
     'Unable to complete this action. Check your connection and try again.',
@@ -55,6 +59,11 @@ const _labels = <String, List<String>>{
     'En attente de validation',
     'Awaiting review',
     'Ap tann verifikasyon'
+  ],
+  'congratulations': [
+    'Félicitations ! Votre paiement a été validé par notre équipe. Bienvenue dans la famille VIP CHOLOTO !',
+    'Congratulations! Your payment has been approved by our team. Welcome to the CHOLOTO VIP family!',
+    'Felisitasyon! Ekip nou an valide peman ou. Byenveni nan fanmi VIP CHOLOTO a!'
   ],
   'approved': ['Paiement validé', 'Payment approved', 'Peman valide'],
   'rejected': ['Demande refusée', 'Request rejected', 'Demann refize'],

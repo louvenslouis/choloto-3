@@ -1,14 +1,12 @@
 import '/payments/payment_requests_widget.dart';
 import '/payments/payment_text.dart';
 import '/auth/firebase_auth/auth_util.dart';
-import '/components/web_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/settings/customerservice/customerservice_widget.dart';
 import '/support/subscription_support_card.dart';
 import 'package:flutter/material.dart';
-import 'package:webviewx_plus/webviewx_plus.dart';
 
 import 'subscription_transaction.dart';
 import 'subscription_transactions_panel.dart';
@@ -58,22 +56,9 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
     return _transactionsStream!;
   }
 
-  Future<void> _openSubscriptionFlow() async {
+  void _openSubscriptionFlow() {
     logFirebaseEvent('UPGRADE_SUBSCRIPTION_ACTION_ON_TAP');
-    await showModalBottomSheet<void>(
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useSafeArea: true,
-      context: context,
-      builder: (context) {
-        return WebViewAware(
-          child: Padding(
-            padding: MediaQuery.viewInsetsOf(context),
-            child: const WebWidget(),
-          ),
-        );
-      },
-    );
+    context.pushNamed(PaymentRequestsWidget.routeName);
   }
 
   @override

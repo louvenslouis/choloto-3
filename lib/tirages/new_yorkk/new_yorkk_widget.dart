@@ -61,9 +61,16 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
       'nj' => 'NEW JERSEY',
       _ => FFLocalizations.of(context).getText('m917towe' /* NEW YORK */),
     };
-    final lotteryAsset = lotteryCode == 'ny'
-        ? 'assets/images/New_york.png'
-        : 'assets/images/CHOLOTO_new_logo.png';
+    final lotteryAsset = switch (lotteryCode) {
+      'ny' => 'assets/images/New_york.png',
+      'tx' => 'assets/images/Texas.png',
+      'md' => 'assets/images/Maryland.png',
+      'ga' => 'assets/images/Georgia.png',
+      'tn' => 'assets/images/Tennessee.png',
+      'pa' => 'assets/images/Pennsylvania.png',
+      'nj' => 'assets/images/NewJersey.png',
+      _ => 'assets/images/CHOLOTO_new_logo.png',
+    };
     return Card(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -93,8 +100,12 @@ class _NewYorkkWidgetState extends State<NewYorkkWidget> {
                           borderRadius: BorderRadius.circular(0.0),
                           child: Image.asset(
                             lotteryAsset,
+                            // Keep the former CHOLOTO placeholder's footprint.
+                            width: lotteryCode == 'ny' ? null : 50.0,
                             height: 75.0,
-                            fit: BoxFit.cover,
+                            fit: lotteryCode == 'ny'
+                                ? BoxFit.cover
+                                : BoxFit.contain,
                           ),
                         ),
                       ),

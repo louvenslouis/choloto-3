@@ -1,11 +1,17 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '/auth/firebase_auth/auth_util.dart';
+import '/flutter_flow/internationalization.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/settings/customerservice/customerservice_widget.dart';
+import '/support/support_bot.dart';
+import '/support/support_bot_repository.dart';
 import 'payment_request.dart';
 import 'payment_text.dart';
 import 'payment_widgets.dart';
 import 'proof_image.dart';
+import 'vip_payment_options.dart';
 
 class PaymentRequestsWidget extends StatelessWidget {
   const PaymentRequestsWidget({super.key});
@@ -19,7 +25,8 @@ class PaymentRequestsWidget extends StatelessWidget {
         appBar: AppBar(
             backgroundColor: t.primaryBackground,
             foregroundColor: t.primaryText,
-            title: Text(paymentText(context, 'title'), style: t.headlineSmall)),
+            title: Text(FFLocalizations.of(context).getText('eywbwq85'),
+                style: t.headlineSmall)),
         body: SafeArea(child: AuthUserStreamWidget(builder: (context) {
           if (!loggedIn) {
             return Center(
@@ -42,6 +49,8 @@ class _PaymentRequestsBody extends StatefulWidget {
 class _PaymentRequestsBodyState extends State<_PaymentRequestsBody> {
   final _repository = PaymentRequestRepository();
   late Stream<List<PaymentRequest>> _history;
+  late final Stream<SupportBotConfig> _paymentOptions =
+      SupportBotRepository().watch();
   String? _submissionId;
   @override
   void initState() {
@@ -58,6 +67,14 @@ class _PaymentRequestsBodyState extends State<_PaymentRequestsBody> {
             child: ListView(
                 padding: EdgeInsets.all(t.designToken.spacing.md),
                 children: [
+                  VipPaymentOptions(
+                    config: _paymentOptions,
+                    onContact: () =>
+                        context.pushNamed(CustomerserviceWidget.routeName),
+                  ),
+                  SizedBox(height: t.designToken.spacing.lg),
+                  Text(paymentText(context, 'title'), style: t.titleLarge),
+                  SizedBox(height: t.designToken.spacing.md),
                   PaymentSubmissionForm(onSubmit: (bytes, note) async {
                     _submissionId ??= _repository.newId();
                     await _repository.submit(

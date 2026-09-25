@@ -84,6 +84,8 @@ class PaymentRequestCard extends StatelessWidget {
       if (admin)
         SelectableText(request.userUid,
             style: t.bodySmall.override(color: t.secondaryText)),
+      if (!admin && request.status == 'approved')
+        Text(paymentText(context, 'congratulations'), style: t.bodyMedium),
       if (request.createdAt != null)
         Text(paymentDateLabel(context, request.createdAt!),
             style: t.bodyMedium),

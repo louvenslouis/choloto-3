@@ -198,7 +198,10 @@ void main() {
     expect(calls, 2);
     sending.complete();
     await tester.pumpAndSettle();
-    expect(find.text('Photo envoyée.'), findsOneWidget);
+    expect(
+        find.text(
+            'Preuve envoyée. Veuillez attendre la validation d’un membre de l’équipe.'),
+        findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

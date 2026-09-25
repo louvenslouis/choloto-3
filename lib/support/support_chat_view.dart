@@ -8,6 +8,8 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/payments/proof_image.dart';
 import 'support_conversation.dart';
 import 'support_bot.dart';
+import 'support_payment_notice.dart';
+import '/payments/payment_request.dart';
 import 'support_bot_view.dart';
 import 'support_text.dart';
 import 'support_audio.dart';
@@ -35,10 +37,12 @@ class SupportChatView extends StatefulWidget {
     this.isSignedIn = true,
     this.onSignIn,
     this.botPath,
+    this.paymentRequests,
   });
 
   final Stream<List<SupportMessage>> messages;
   final Stream<SupportBotConfig>? botConfig;
+  final Stream<List<PaymentRequest>>? paymentRequests;
   final bool isSignedIn;
   final VoidCallback? onSignIn;
   final List<String>? botPath;
@@ -402,6 +406,8 @@ class _SupportChatViewState extends State<SupportChatView>
                 ),
               ),
             ),
+          if (widget.paymentRequests != null)
+            SupportPaymentNotice(requests: widget.paymentRequests!),
           Expanded(
             child: StreamBuilder<List<SupportMessage>>(
               stream: widget.messages,
@@ -470,6 +476,7 @@ class _SupportChatViewState extends State<SupportChatView>
                               path: widget.botPath,
                               awaitingImageReview: awaitingImageReview,
                               onRequestImage: _pickImage,
+                              onPaymentProof: widget.onPaymentProof,
                               onContact: (text) => widget.onSend(text, null)));
                     }
                     return IgnorePointer(

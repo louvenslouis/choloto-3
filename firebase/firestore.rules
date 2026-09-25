@@ -716,7 +716,11 @@ service cloud.firestore {
       allow get: if document == 'config';
       allow list, delete: if false;
       allow create, update: if document == 'config' && isAdmin() &&
-        request.resource.data.keys().hasOnly(['enabled', 'greeting', 'nodes', 'revision']) &&
+        request.resource.data.keys().hasOnly(['enabled', 'greeting', 'nodes', 'revision', 'paymentMethods', 'plans']) &&
+        (!('paymentMethods' in request.resource.data) ||
+          (request.resource.data.paymentMethods is list && request.resource.data.paymentMethods.size() <= 20)) &&
+        (!('plans' in request.resource.data) ||
+          (request.resource.data.plans is list && request.resource.data.plans.size() <= 30)) &&
         request.resource.data.enabled is bool &&
         request.resource.data.greeting is string &&
         request.resource.data.greeting.size() > 0 &&

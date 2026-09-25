@@ -10,6 +10,7 @@ class SupportBotView extends StatefulWidget {
       this.isSignedIn = true,
       this.onSignIn,
       this.onRequestImage,
+      this.onPaymentProof,
       this.awaitingImageReview = false,
       this.path});
   final Stream<SupportBotConfig> config;
@@ -17,6 +18,7 @@ class SupportBotView extends StatefulWidget {
   final bool isSignedIn;
   final VoidCallback? onSignIn;
   final VoidCallback? onRequestImage;
+  final VoidCallback? onPaymentProof;
   final bool awaitingImageReview;
   final List<String>? path;
   @override
@@ -80,7 +82,14 @@ class _SupportBotViewState extends State<SupportBotView>
         }
         final current = _path.isEmpty ? null : config?.node(_path.last);
         final requiresLogin = !widget.isSignedIn &&
-            _path.any((id) => config?.node(id)?.requiresAuth == true);
+            _path.any((id) =>
+                config?.node(id)?.requiresAuth == true ||
+                config?.node(id)?.requestsPaymentProof == true ||
+                (config?.node(id)?.paymentMethodId.isNotEmpty ?? false));
+        final paymentId = current?.paymentMethodId ?? '';
+        final payment = config?.payment(paymentId);
+        final paymentUnavailable =
+            paymentId.isNotEmpty && payment?.enabled != true;
         if (widget.awaitingImageReview) {
           return Card(
               child: Padding(
@@ -119,22 +128,62 @@ class _SupportBotViewState extends State<SupportBotView>
                           liveRegion: true,
                           child: Text(requiresLogin
                               ? supportText(context, 'botLoginRequired')
-                              : current?.answer ?? config.greeting)),
+                              : paymentUnavailable
+                                  ? supportText(
+                                      context, 'botPaymentUnavailable')
+                                  : current?.answer ?? config.greeting)),
+                      if (!requiresLogin &&
+                          !paymentUnavailable &&
+                          payment != null)
+                        Container(
+                            key: const ValueKey('bot-payment-details'),
+                            margin: const EdgeInsets.symmetric(vertical: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: Theme.of(context).dividerColor),
+                                borderRadius: BorderRadius.circular(12)),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(payment.name,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium),
+                                  const SizedBox(height: 8),
+                                  SelectableText(
+                                      '${supportText(context, 'botPaymentPrice')}: ${payment.price}'),
+                                  Text(
+                                      '${supportText(context, 'botPaymentDuration')}: ${payment.months} ${supportText(context, 'botPaymentMonths')}'),
+                                  const SizedBox(height: 8),
+                                  SelectableText(
+                                      '${supportText(context, 'botPaymentAccount')}: ${payment.account}'),
+                                  SelectableText(
+                                      '${supportText(context, 'botPaymentRecipient')}: ${payment.recipient}'),
+                                ])),
                       if (requiresLogin)
                         FilledButton.icon(
                             onPressed: widget.onSignIn,
                             icon: const Icon(Icons.login),
                             label: Text(supportText(context, 'botSignIn'))),
-                      if (!requiresLogin && current?.requestImage == true)
+                      if (!requiresLogin &&
+                          !paymentUnavailable &&
+                          current?.requestsImage == true)
                         OutlinedButton.icon(
                             key: const ValueKey('bot-image'),
-                            onPressed: widget.onRequestImage,
+                            onPressed: current?.requestsPaymentProof == true
+                                ? widget.onPaymentProof
+                                : widget.onRequestImage,
                             icon:
                                 const Icon(Icons.add_photo_alternate_outlined),
-                            label: Text(supportText(context, 'botSendImage'))),
+                            label: Text(supportText(
+                                context,
+                                current?.requestsPaymentProof == true
+                                    ? 'botSendPaymentProof'
+                                    : 'botSendImage'))),
                       if (!_contacted) ...[
                         const SizedBox(height: 8),
-                        ...(requiresLogin || current?.requestImage == true
+                        ...(requiresLogin || current?.requestsImage == true
                                 ? <SupportBotNode>[]
                                 : choices)
                             .map((n) => CheckboxListTile(
@@ -151,7 +200,7 @@ class _SupportBotViewState extends State<SupportBotView>
                                 )),
                         if (choices.isNotEmpty &&
                             !requiresLogin &&
-                            current?.requestImage != true)
+                            current?.requestsImage != true)
                           FilledButton(
                               key: const ValueKey('bot-continue'),
                               onPressed: _selected == null || _busy

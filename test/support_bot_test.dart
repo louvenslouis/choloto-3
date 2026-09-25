@@ -2,6 +2,43 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:choloto/support/support_bot.dart';
 
 void main() {
+  test('payment amounts are exact and incomplete active profiles are rejected',
+      () {
+    expect(SupportBotPayment.parseAmount('2500,50'), 250050);
+    expect(SupportBotPayment.parseAmount('60'), 6000);
+    expect(SupportBotPayment.parseAmount('-1'), isNull);
+    expect(SupportBotPayment.parseAmount('1.234'), isNull);
+    expect(
+        () => const SupportBotPayment(
+                id: 'moncash', name: 'MonCash', currency: 'HTG', enabled: true)
+            .validate(),
+        throwsFormatException);
+  });
+  test('legacy trees load without payment configuration', () {
+    final legacy = {
+      'enabled': true,
+      'greeting': 'Hello',
+      'revision': 1,
+      'nodes': [
+        {'id': 'a', 'parent': '', 'label': 'A', 'answer': 'B'}
+      ]
+    };
+    final config = SupportBotConfig.fromJson(legacy);
+    expect(config.paymentMethods, isEmpty);
+    expect(config.nodes.single.paymentMethodId, isEmpty);
+  });
+  test('payment references survive storage and dangling links are rejected',
+      () {
+    final config = SupportBotConfig.fromJson(SupportBotConfig.initial.toJson());
+    expect(config.node('renew_mon')!.paymentMethodId, 'moncash');
+    expect(config.payment('moncash')!.enabled, false);
+    expect(
+        () => SupportBotConfig(
+                enabled: true, greeting: 'Hello', nodes: config.nodes)
+            .validate(),
+        throwsFormatException);
+  });
+
   test('initial tree is valid and survives storage roundtrip', () {
     SupportBotConfig.initial.validate();
     final config = SupportBotConfig.fromJson(SupportBotConfig.initial.toJson());

@@ -1,14 +1,11 @@
-import '/components/web_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/payments/payment_requests_widget.dart';
 import '/settings/customerservice/customerservice_widget.dart';
 import '/support/support_text.dart';
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:webviewx_plus/webviewx_plus.dart';
 import 'devenir_v_i_p_model.dart';
 export 'devenir_v_i_p_model.dart';
 
@@ -516,23 +513,10 @@ class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
           Padding(
             padding: EdgeInsets.all(12.0),
             child: FFButtonWidget(
-              onPressed: () async {
+              key: const ValueKey('become-vip-button'),
+              onPressed: () {
                 logFirebaseEvent('DEVENIR_V_I_P_DEVENIR_V_I_P_BTN_ON_TAP');
-                logFirebaseEvent('Button_bottom_sheet');
-                await showModalBottomSheet(
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  useSafeArea: true,
-                  context: context,
-                  builder: (context) {
-                    return WebViewAware(
-                      child: Padding(
-                        padding: MediaQuery.viewInsetsOf(context),
-                        child: WebWidget(),
-                      ),
-                    );
-                  },
-                ).then((value) => safeSetState(() {}));
+                context.pushNamed(PaymentRequestsWidget.routeName);
               },
               text: FFLocalizations.of(context).getText(
                 'i0zhxntw' /* Devenir VIP */,

@@ -4,6 +4,7 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/payments/payment_requests_widget.dart';
+import '/payments/payment_request.dart';
 import '/support/support_chat_view.dart';
 import '/support/support_bot_repository.dart';
 import '/support/support_bot.dart';
@@ -41,6 +42,22 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
       SupportBotRepository(firestore: _repository.db).watch();
 
   final List<String> _botPath = [];
+  String? _paymentUser;
+  Stream<List<PaymentRequest>>? _paymentRequests;
+
+  Stream<List<PaymentRequest>>? _watchPayments(String uid, bool guest) {
+    if (guest || !loggedIn || currentUserIsAnonymous) {
+      _paymentUser = null;
+      _paymentRequests = null;
+      return null;
+    }
+    if (_paymentUser != uid) {
+      _paymentUser = uid;
+      _paymentRequests = PaymentRequestRepository(firestore: _repository.db)
+          .watch(userUid: uid);
+    }
+    return _paymentRequests;
+  }
 
   SupportAudio? _pendingAudio;
   String? _pendingAudioText;
@@ -86,6 +103,7 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
         child: SupportChatView(
           key: ValueKey('$conversationId-$guestWithoutAuth'),
           botConfig: _botConfig,
+          paymentRequests: _watchPayments(conversationId, guestWithoutAuth),
           botPath: _botPath,
           isSignedIn: loggedIn && !currentUserIsAnonymous,
           onSignIn: () => context.pushNamed(AuthentificationWidget.routeName),
