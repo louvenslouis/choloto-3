@@ -1,6 +1,6 @@
 // Manual AdSense unit. The Google tag also delivers the site's published CMP.
 (() => {
-  const client = 'ca-pub-4099201352969884';
+  const client = 'ca-pub-3796372202478649';
   const listeners = new Set();
   let started = false;
   let allowed = false;
@@ -46,7 +46,7 @@
       slot.className = 'adsbygoogle';
       slot.style.cssText = 'display:block;width:100%;height:100%';
       slot.dataset.adClient = client;
-      slot.dataset.adSlot = '3584288604';
+      slot.dataset.adSlot = '4696004385';
       let disposed = false;
       const status = new MutationObserver(() => {
         if (slot.dataset.adStatus === 'unfilled') {
