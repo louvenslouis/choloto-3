@@ -1,3 +1,5 @@
+import '/ads/croix_ad_stub.dart'
+    if (dart.library.js_interop) '/ads/croix_ad_web.dart';
 import '/payments/payment_requests_widget.dart';
 import 'dart:async';
 
@@ -145,7 +147,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: CroixWidget.routeName,
           path: CroixWidget.routePath,
-          builder: (context, params) => CroixWidget(),
+          builder: (context, params) => gateCroix(const CroixWidget()),
         ),
         FFRoute(
           name: YoutubeWidget.routeName,

@@ -15,21 +15,32 @@ bool isConfirmedFreeProfile({
   return end is Timestamp && end.toDate().isBefore(now);
 }
 
-Stream<String?> watchFreeDrawAccount() =>
-    FirebaseAuth.instance.authStateChanges().switchMap<String?>((user) {
-      if (user == null || user.isAnonymous) return Stream.value(null);
+typedef DrawAdAccount = ({String? freeUid, bool checking});
+
+Stream<DrawAdAccount> watchDrawAdAccount() =>
+    FirebaseAuth.instance.authStateChanges().switchMap<DrawAdAccount>((user) {
+      const checking = (freeUid: null, checking: true);
+      if (user == null || user.isAnonymous) {
+        return Stream.value((freeUid: null, checking: false));
+      }
       return FirebaseFirestore.instance
           .collection('user')
           .doc(user.uid)
           .snapshots(includeMetadataChanges: true)
-          .map<String?>((profile) => isConfirmedFreeProfile(
-                uid: user.uid,
-                data: profile.data(),
-                fromCache: profile.metadata.isFromCache,
-                pendingWrites: profile.metadata.hasPendingWrites,
-                now: DateTime.now(),
-              )
-                  ? user.uid
-                  : null)
-          .startWith(null);
+          .map<DrawAdAccount>((profile) {
+        if (profile.metadata.isFromCache || profile.metadata.hasPendingWrites) {
+          return checking;
+        }
+        final free = isConfirmedFreeProfile(
+          uid: user.uid,
+          data: profile.data(),
+          fromCache: profile.metadata.isFromCache,
+          pendingWrites: profile.metadata.hasPendingWrites,
+          now: DateTime.now(),
+        );
+        return (freeUid: free ? user.uid : null, checking: false);
+      }).startWith(checking);
     }).distinct();
+
+Stream<String?> watchFreeDrawAccount() =>
+    watchDrawAdAccount().map((account) => account.freeUid).distinct();
