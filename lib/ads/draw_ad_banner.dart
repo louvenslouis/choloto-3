@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'draw_ad_eligibility.dart';
 import 'draw_ad_platform_stub.dart'
+    if (dart.library.io) 'draw_ad_platform_mobile.dart'
     if (dart.library.js_interop) 'draw_ad_platform_web.dart';
 
 class DrawAdBanner extends StatefulWidget {

@@ -285,9 +285,7 @@ class _TiragesWidgetState extends State<TiragesWidget> {
         },
       ),
     );
-    if (!isWeb ||
-        !Visibility.of(context) ||
-        ModalRoute.isCurrentOf(context) != true) {
+    if (!Visibility.of(context) || ModalRoute.isCurrentOf(context) != true) {
       return results;
     }
     return Column(
