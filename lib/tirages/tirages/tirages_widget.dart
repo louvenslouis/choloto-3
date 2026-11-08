@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '/ads/draw_ad_banner.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -207,7 +208,7 @@ class _TiragesWidgetState extends State<TiragesWidget> {
     }
 
     final tiragesByDay = _groupTiragesByDay(_tirages);
-    return RefreshIndicator(
+    final results = RefreshIndicator(
       color: theme.primary,
       onRefresh: _refreshTirages,
       child: ListView.builder(
@@ -283,6 +284,17 @@ class _TiragesWidgetState extends State<TiragesWidget> {
           );
         },
       ),
+    );
+    if (!isWeb ||
+        !Visibility.of(context) ||
+        ModalRoute.isCurrentOf(context) != true) {
+      return results;
+    }
+    return Column(
+      children: [
+        Expanded(child: results),
+        const DrawAdBanner(),
+      ],
     );
   }
 }
