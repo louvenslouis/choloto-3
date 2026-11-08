@@ -271,7 +271,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Version',
     },
     'cp8c72u7': {
-      'fr': '260715001',
+      'fr': '260920001',
       'cr': '0.09.4',
       'en': '0.09.4',
     },
