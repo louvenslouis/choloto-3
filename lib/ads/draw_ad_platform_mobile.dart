@@ -58,8 +58,8 @@ class _DrawAdPlacementState extends State<DrawAdPlacement> {
     final android = defaultTargetPlatform == TargetPlatform.android;
     final id = kReleaseMode
         ? (android
-            ? 'ca-app-pub-4099201352969884/8094379250'
-            : 'ca-app-pub-4099201352969884/1389370100')
+            ? 'ca-app-pub-3796372202478649/3548629580'
+            : 'ca-app-pub-3796372202478649/5105253832')
         : (android
             ? 'ca-app-pub-3940256099942544/6300978111'
             : 'ca-app-pub-3940256099942544/2934735716');
