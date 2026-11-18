@@ -115,6 +115,10 @@ void main() {
       ));
       final bingo = find.byType(BingoStoryButton);
       final youtube = find.byType(YoutubeStoryButton);
+      double captionInset(String id) =>
+          tester.getBottomLeft(find.byKey(ValueKey('$id-circle'))).dy -
+          tester.getBottomLeft(find.byKey(ValueKey('$id-caption'))).dy;
+      expect(captionInset('bingo-story'), captionInset('youtube-story'));
       expect(find.byKey(const ValueKey('bingo-story-glint')),
           viewed ? findsNothing : findsOneWidget);
       expect(find.descendant(of: bingo, matching: find.byType(VipCasinoChip)),

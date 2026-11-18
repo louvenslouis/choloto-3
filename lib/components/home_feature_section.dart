@@ -99,11 +99,11 @@ class HomeFeatureSection extends StatelessWidget {
           if (wide) ...[
             split(hero,
                 Column(children: [latestDraws, SizedBox(height: gap), chance])),
-            SizedBox(height: spacing.lg),
+            SizedBox(height: spacing.xl),
             split(draws, shortcuts),
           ] else ...[
             hero,
-            SizedBox(height: spacing.md),
+            SizedBox(height: spacing.lg),
             if (width / scale < 255) ...[
               latestDraws,
               SizedBox(height: gap),

@@ -404,43 +404,6 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                       ),
                     ),
                   ),
-                  Material(
-                    color: Colors.transparent,
-                    child: SwitchListTile(
-                      secondary: Icon(
-                        Icons.light_mode_outlined,
-                        color: FlutterFlowTheme.of(context).alternate,
-                      ),
-                      title: Text(
-                        FFLocalizations.of(context).getVariableText(
-                          frText: 'Thème clair',
-                          enText: 'Light theme',
-                          crText: 'Tèm klè',
-                        ),
-                        style: FlutterFlowTheme.of(context).titleLarge.override(
-                              fontFamily: 'Google sans flex',
-                              letterSpacing: 0.0,
-                            ),
-                      ),
-                      value: Theme.of(context).brightness == Brightness.light,
-                      onChanged: (enabled) => setDarkModeSetting(
-                        context,
-                        enabled ? ThemeMode.light : ThemeMode.dark,
-                      ),
-                      activeThumbColor: FlutterFlowTheme.of(context).primary,
-                      tileColor:
-                          FlutterFlowTheme.of(context).secondaryBackground,
-                      contentPadding: const EdgeInsetsDirectional.fromSTEB(
-                        12.0,
-                        0.0,
-                        12.0,
-                        0.0,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                  ),
                   if (kIsWeb)
                     AnimatedBuilder(
                       animation: PushNotificationService.instance,

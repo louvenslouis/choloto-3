@@ -28,65 +28,18 @@ class YoutubeStoryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final tokens = theme.designToken;
     final strings = FFLocalizations.of(context);
-    final fallback = DecoratedBox(
-      decoration: BoxDecoration(gradient: tokens.home.hero),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(tokens.spacing.sm, tokens.spacing.xs,
-            tokens.spacing.sm, tokens.spacing.md),
-        child: Image.asset('assets/images/home/video_play_3d_v2.png',
-            fit: BoxFit.contain, excludeFromSemantics: true),
-      ),
-    );
-
     return HomeStoryBubble(
       id: 'youtube-story',
       viewed: viewed,
       storyCount: storyCount,
       onTap: onTap,
       semanticLabel: "${strings.getText('youtube_story_open')}: ${video.title}",
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (video.thumbnail.isEmpty)
-            fallback
-          else
-            CachedNetworkImage(
-              key: const ValueKey('youtube-story-thumbnail'),
-              imageUrl: video.thumbnail,
-              fit: BoxFit.cover,
-              fadeInDuration: const Duration(milliseconds: 180),
-              placeholder: (context, _) => fallback,
-              errorWidget: (context, _, __) => fallback,
-            ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                  tokens.spacing.sm, 0, tokens.spacing.sm, tokens.spacing.sm),
-              child: DecoratedBox(
-                key: const ValueKey('youtube-story-caption'),
-                decoration: BoxDecoration(
-                  color: theme.onPrimary.withValues(alpha: .85),
-                  borderRadius: BorderRadius.circular(tokens.radius.full),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: tokens.spacing.xs),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(strings.getText('youtube_story_label'),
-                        key: const ValueKey('youtube-story-label'),
-                        style: theme.labelSmall.override(
-                            color: theme.onDecorative,
-                            fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+      child: HomeStoryCover(
+        id: 'youtube-story',
+        label: strings.getText('youtube_story_label'),
+        asset: 'assets/images/home/video_play_3d_v2.png',
+        thumbnailUrl: video.thumbnail,
       ),
     );
   }

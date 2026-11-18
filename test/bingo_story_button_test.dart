@@ -619,7 +619,12 @@ void main() {
           final label = tester.widget<Text>(labelFinder);
 
           expect(circleRect.contains(labelRect.center), isTrue);
-          expect(label.style?.fontWeight, FontWeight.w800);
+          expect(label.style?.fontWeight, FontWeight.w700);
+          final caption =
+              tester.getRect(find.byKey(const ValueKey('bingo-story-caption')));
+          expect(caption.center.dy, greaterThan(circleRect.center.dy));
+          expect(circleRect.bottom - caption.bottom, greaterThanOrEqualTo(8));
+          expect(circleRect.size, const Size.square(72));
           expect(tester.takeException(), isNull);
         },
       );

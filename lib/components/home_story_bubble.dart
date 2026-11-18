@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -33,9 +34,11 @@ class HomeStoryBubble extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final unread = viewed == false;
+    final rimWidth = unread ? tokens.spacing.xs : tokens.spacing.xs / 2;
     final face = Container(
-      margin: EdgeInsets.all(unread ? tokens.spacing.xs : 2),
-      padding: const EdgeInsets.all(2),
+      margin: EdgeInsets.all(rimWidth),
+      // Both reading states leave the same space for the artwork and caption.
+      padding: EdgeInsets.all(tokens.spacing.xs - rimWidth),
       decoration: BoxDecoration(
         gradient: tokens.home.surface,
         shape: BoxShape.circle,
@@ -123,6 +126,77 @@ class HomeStoryBubble extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class HomeStoryCover extends StatelessWidget {
+  const HomeStoryCover({
+    super.key,
+    required this.id,
+    required this.label,
+    required this.asset,
+    this.thumbnailUrl = '',
+  });
+
+  final String id;
+  final String label;
+  final String asset;
+  final String thumbnailUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final artwork = DecoratedBox(
+      decoration: BoxDecoration(gradient: tokens.home.hero),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(tokens.spacing.sm, tokens.spacing.xs,
+            tokens.spacing.sm, tokens.spacing.md),
+        child:
+            Image.asset(asset, fit: BoxFit.contain, excludeFromSemantics: true),
+      ),
+    );
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (thumbnailUrl.isEmpty)
+          artwork
+        else
+          CachedNetworkImage(
+            key: ValueKey('$id-thumbnail'),
+            imageUrl: thumbnailUrl,
+            fit: BoxFit.cover,
+            fadeInDuration: const Duration(milliseconds: 180),
+            placeholder: (context, _) => artwork,
+            errorWidget: (context, _, __) => artwork,
+          ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+                tokens.spacing.sm, 0, tokens.spacing.sm, tokens.spacing.sm),
+            child: DecoratedBox(
+              key: ValueKey('$id-caption'),
+              decoration: BoxDecoration(
+                color: theme.onPrimary.withValues(alpha: .85),
+                borderRadius: BorderRadius.circular(tokens.radius.full),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: tokens.spacing.xs),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(label,
+                      key: ValueKey('$id-label'),
+                      style: theme.labelSmall.override(
+                          color: theme.onDecorative,
+                          fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

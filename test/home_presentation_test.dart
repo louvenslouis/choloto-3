@@ -129,6 +129,10 @@ void main() {
       for (final width in [320.0, 390.0, 1440.0]) {
         testWidgets('home presentation $language ${brightness.name} $width',
             (tester) async {
+          tester.binding.platformDispatcher.platformBrightnessTestValue =
+              brightness;
+          addTearDown(tester
+              .binding.platformDispatcher.clearPlatformBrightnessTestValue);
           final viewport =
               Size(width, width == 320 ? 568 : (width == 390 ? 844 : 900));
           final pixelRatio = exportDirectory.isEmpty ? 1.0 : 2.0;
@@ -167,10 +171,8 @@ void main() {
                 FallbackCupertinoLocalizationDelegate(),
               ],
               debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                  brightness: brightness,
-                  useMaterial3: false,
-                  fontFamily: exportDirectory.isEmpty ? null : 'Inter'),
+              theme: DarkModeTheme().materialTheme,
+              themeMode: ThemeMode.dark,
               home: NavBarPage(
                 initialPage: 'Home',
                 page: HomePageScaffold(
@@ -224,9 +226,7 @@ void main() {
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 800));
           expect(find.text('À la une'), findsNothing);
-          final homeTheme = brightness == Brightness.dark
-              ? DarkModeTheme()
-              : LightModeTheme();
+          final homeTheme = DarkModeTheme();
           if (width < 600) {
             expect(
               tester
@@ -246,7 +246,7 @@ void main() {
           final stories = find.byType(HomeStoriesRail);
           final hero = find.byKey(const ValueKey('home-vip-hero'));
           final drawsCard =
-              find.byKey(const ValueKey('home-feature-card-draws'));
+              find.byKey(const ValueKey('home-feature-gradient-draws'));
           final draws = find.byKey(const ValueKey('home-draws-gradient-card'));
           expect(find.byType(BingoStoryButton).hitTestable(), findsOneWidget);
           expect(find.byType(YoutubeStoryButton).hitTestable(), findsOneWidget);
@@ -269,9 +269,12 @@ void main() {
                 lessThanOrEqualTo(tester.getTopRight(hero).dy));
             expect(tester.getTopLeft(drawsCard).dx,
                 greaterThanOrEqualTo(tester.getTopRight(hero).dx));
+            expect(tester.getTopLeft(draws).dy - tester.getBottomLeft(hero).dy,
+                greaterThanOrEqualTo(homeTheme.designToken.spacing.xl - 0.01));
           } else {
-            expect(tester.getTopLeft(drawsCard).dy,
-                greaterThanOrEqualTo(tester.getBottomLeft(hero).dy));
+            expect(
+                tester.getTopLeft(drawsCard).dy - tester.getBottomLeft(hero).dy,
+                closeTo(homeTheme.designToken.spacing.lg, 0.01));
           }
           expect(find.text('427'), findsOneWidget);
           expect(find.text('516'), findsOneWidget);

@@ -57,8 +57,6 @@ class MyAppScrollBehavior extends MaterialScrollBehavior {
 class _MyAppState extends State<MyApp> {
   Locale? _locale;
 
-  late ThemeMode _themeMode;
-
   late AppStateNotifier _appStateNotifier;
   late GoRouter _router;
   String getRoute([RouteMatch? routeMatch]) {
@@ -90,8 +88,6 @@ class _MyAppState extends State<MyApp> {
             ? deviceLanguage
             : 'fr');
     PushNotificationService.instance.setLanguageCode(initialLanguage);
-    _themeMode =
-        FFAppState().lightThemeEnabled ? ThemeMode.light : ThemeMode.dark;
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
     unawaited(
@@ -169,11 +165,6 @@ class _MyAppState extends State<MyApp> {
     safeSetState(() => _locale = createLocale(language));
   }
 
-  void setThemeMode(ThemeMode mode) => safeSetState(() {
-        _themeMode = mode == ThemeMode.light ? ThemeMode.light : ThemeMode.dark;
-        FFAppState().lightThemeEnabled = _themeMode == ThemeMode.light;
-      });
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
@@ -194,31 +185,8 @@ class _MyAppState extends State<MyApp> {
         Locale('en'),
         Locale('cr'),
       ],
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: const Color(0xFFEDB900),
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFFEDB900),
-          onPrimary: Color(0xFF000000),
-          surface: Color(0xFFFFFFFF),
-          onSurface: Color(0xFF14181B),
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF7F7F7),
-        useMaterial3: false,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFFEDB900),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFEDB900),
-          onPrimary: Color(0xFF000000),
-          surface: Color(0xFF1C1C1E),
-          onSurface: Color(0xFFFFFFFF),
-        ),
-        scaffoldBackgroundColor: const Color(0xFF000000),
-        useMaterial3: false,
-      ),
-      themeMode: _themeMode,
+      theme: DarkModeTheme().materialTheme,
+      themeMode: ThemeMode.dark,
       routerConfig: _router,
     );
   }
@@ -572,10 +540,7 @@ class _NavBarPageState extends State<NavBarPage> {
                 currentIndex: currentIndex,
                 onTap: _selectTab,
                 backgroundColor: navigationBackground,
-                selectedItemColor:
-                    onHome && Theme.of(context).brightness == Brightness.light
-                        ? theme.designToken.home.statsAccent
-                        : theme.primary,
+                selectedItemColor: theme.primary,
                 unselectedItemColor:
                     onHome ? theme.designToken.home.mutedText : theme.alternate,
                 selectedFontSize: onHome ? 12 : 14,

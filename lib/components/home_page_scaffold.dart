@@ -39,7 +39,6 @@ class HomePageScaffold extends StatelessWidget {
           child: CustomPaint(
             painter: _HomeSapphireHorizon(
               color: tokens.home.heroGlow,
-              dark: Theme.of(context).brightness == Brightness.dark,
               compact: showHeader,
             ),
             child: SafeArea(
@@ -104,19 +103,17 @@ class HomePageScaffold extends StatelessWidget {
 class _HomeSapphireHorizon extends CustomPainter {
   const _HomeSapphireHorizon({
     required this.color,
-    required this.dark,
     required this.compact,
   });
 
   final Color color;
-  final bool dark;
   final bool compact;
 
   @override
   void paint(Canvas canvas, Size size) {
     final radius = compact ? size.width.clamp(0.0, 540.0) : 680.0;
     if (radius == 0) return;
-    final intensity = dark ? (compact ? .68 : .23) : .16;
+    final intensity = compact ? .68 : .23;
     final glow = RadialGradient(
       radius: .5,
       colors: [
@@ -142,5 +139,5 @@ class _HomeSapphireHorizon extends CustomPainter {
 
   @override
   bool shouldRepaint(_HomeSapphireHorizon old) =>
-      old.color != color || old.dark != dark || old.compact != compact;
+      old.color != color || old.compact != compact;
 }

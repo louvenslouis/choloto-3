@@ -40,9 +40,7 @@ class HomeHeaderBrand extends StatelessWidget {
               FFLocalizations.of(context).getText('loh576na'),
               maxLines: 1,
               style: titleStyle.override(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? theme.primary
-                    : tokens.home.statsAccent,
+                color: theme.primary,
                 fontWeight: FontWeight.w900,
                 fontStyle: FontStyle.italic,
                 letterSpacing: -0.8,

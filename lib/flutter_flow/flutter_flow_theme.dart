@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 abstract class FlutterFlowTheme {
-  static FlutterFlowTheme of(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? DarkModeTheme()
-        : LightModeTheme();
-  }
+  static FlutterFlowTheme of(BuildContext context) => DarkModeTheme();
 
   @Deprecated('Use primary instead')
   Color get primaryColor => primary;
@@ -118,6 +114,19 @@ abstract class FlutterFlowTheme {
 }
 
 class DarkModeTheme extends FlutterFlowTheme {
+  ThemeData get materialTheme => ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: primary,
+        colorScheme: ColorScheme.dark(
+          primary: primary,
+          onPrimary: onPrimary,
+          surface: secondaryBackground,
+          onSurface: primaryText,
+        ),
+        scaffoldBackgroundColor: primaryBackground,
+        useMaterial3: false,
+      );
+
   @Deprecated('Use primary instead')
   Color get primaryColor => primary;
   @Deprecated('Use secondary instead')
@@ -141,32 +150,6 @@ class DarkModeTheme extends FlutterFlowTheme {
   late Color warning = const Color(0xFFF9CF58);
   late Color error = const Color(0xFFFF5963);
   late Color info = const Color(0xFFFFFFFF);
-}
-
-class LightModeTheme extends FlutterFlowTheme {
-  @Deprecated('Use primary instead')
-  Color get primaryColor => primary;
-  @Deprecated('Use secondary instead')
-  Color get secondaryColor => secondary;
-  @Deprecated('Use tertiary instead')
-  Color get tertiaryColor => tertiary;
-
-  late Color primary = const Color(0xFFEDB900);
-  late Color secondary = const Color(0xFF39D2C0);
-  late Color tertiary = const Color(0xFFEE8B60);
-  late Color alternate = const Color(0xFF57636C);
-  late Color primaryText = const Color(0xFF14181B);
-  late Color secondaryText = const Color(0xFF57636C);
-  late Color primaryBackground = const Color(0xFFF7F7F7);
-  late Color secondaryBackground = const Color(0xFFFFFFFF);
-  late Color accent1 = const Color(0x33EDB900);
-  late Color accent2 = const Color(0x3339D2C0);
-  late Color accent3 = const Color(0x33EE8B60);
-  late Color accent4 = const Color(0xCC14181B);
-  late Color success = const Color(0xFF249689);
-  late Color warning = const Color(0xFFF9CF58);
-  late Color error = const Color(0xFFFF5963);
-  late Color info = const Color(0xFF14181B);
 }
 
 abstract class Typography {
@@ -349,12 +332,10 @@ class FFDesignTokens {
   FFHomeMaterials get home => FFHomeMaterials(theme);
 }
 
-/// Sapphire glass, brushed gold and amethyst from the home artwork. The
-/// illustrated panels keep their material colors in both brightness modes.
+/// Sapphire glass, brushed gold and amethyst from the home artwork.
 class FFHomeMaterials {
   const FFHomeMaterials(this.theme);
   final FlutterFlowTheme theme;
-  bool get _dark => theme is DarkModeTheme;
 
   static const _ink = Color(0xFF070C19);
   static const _sapphire = Color(0xFF102861);
@@ -395,23 +376,18 @@ class FFHomeMaterials {
         stops: [0.0, 0.40, 0.63, 1.0],
       );
 
-  LinearGradient get surface => LinearGradient(
+  LinearGradient get surface => const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: _dark
-            ? const [Color(0xFF1B2943), Color(0xFF0D1628)]
-            : [theme.secondaryBackground, const Color(0xFFECF0F8)],
+        colors: [Color(0xFF1B2943), Color(0xFF0D1628)],
       );
 
-  Color get edge => _dark ? const Color(0xFF425472) : const Color(0xFFC2CCDC);
-  Color get mutedText => _dark ? const Color(0xFFB9C4D9) : theme.secondaryText;
-  Color get videoAccent =>
-      _dark ? const Color(0xFFFF8793) : const Color(0xFFAE233B);
-  Color get statsAccent => _dark ? theme.warning : const Color(0xFF795200);
-  Color get tchalaAccent =>
-      _dark ? const Color(0xFF70E4C3) : const Color(0xFF006B55);
-  Color get historyAccent =>
-      _dark ? const Color(0xFFD7AEFF) : const Color(0xFF7338A3);
+  Color get edge => const Color(0xFF425472);
+  Color get mutedText => const Color(0xFFB9C4D9);
+  Color get videoAccent => const Color(0xFFFF8793);
+  Color get statsAccent => theme.warning;
+  Color get tchalaAccent => const Color(0xFF70E4C3);
+  Color get historyAccent => const Color(0xFFD7AEFF);
 }
 
 // Casino materials requested for VIP. Keep this feature palette here so cards,
@@ -419,30 +395,22 @@ class FFHomeMaterials {
 class FFVipMaterials {
   const FFVipMaterials(this.theme);
   final FlutterFlowTheme theme;
-  bool get _dark => theme is DarkModeTheme;
 
   // Established CHOLOTO VIP purple, also used by the home membership artwork.
   Color get _vipPurple => const Color(0xFF5D2A78);
   Color get goldLight => Color.lerp(theme.primary, theme.onDecorative, 0.70)!;
   Color get goldShade => Color.lerp(theme.primary, theme.onPrimary, 0.48)!;
-  Color get ornament =>
-      (_dark ? goldLight : _vipPurple).withValues(alpha: 0.08);
-  Color get numberText => _dark ? goldLight : theme.primaryText;
+  Color get ornament => goldLight.withValues(alpha: 0.08);
+  Color get numberText => goldLight;
 
   LinearGradient get felt => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: _dark
-            ? [
-                Color.lerp(_vipPurple, theme.secondaryBackground, 0.25)!,
-                Color.lerp(_vipPurple, theme.primaryBackground, 0.67)!,
-                Color.lerp(_vipPurple, theme.primaryBackground, 0.82)!
-              ]
-            : [
-                theme.secondaryBackground,
-                Color.lerp(theme.secondaryBackground, _vipPurple, 0.06)!,
-                Color.lerp(theme.secondaryBackground, theme.primary, 0.10)!
-              ],
+        colors: [
+          Color.lerp(_vipPurple, theme.secondaryBackground, 0.25)!,
+          Color.lerp(_vipPurple, theme.primaryBackground, 0.67)!,
+          Color.lerp(_vipPurple, theme.primaryBackground, 0.82)!
+        ],
         stops: const [0.0, 0.55, 1.0],
       );
 
@@ -455,11 +423,9 @@ class FFVipMaterials {
 
   // A translucent satin inset follows the card's hue, without a separate
   // black-and-gold frame competing with the outer metallic card edge.
-  Color get plaqueEdge =>
-      (_dark ? goldLight : goldShade).withValues(alpha: 0.20);
+  Color get plaqueEdge => goldLight.withValues(alpha: 0.20);
   Color get badgeFill => theme.primaryText.withValues(alpha: 0.045);
-  Color get badgeEdge =>
-      (_dark ? goldLight : goldShade).withValues(alpha: 0.25);
+  Color get badgeEdge => goldLight.withValues(alpha: 0.25);
 
   LinearGradient get plaque => LinearGradient(
         begin: Alignment.topLeft,
@@ -467,8 +433,7 @@ class FFVipMaterials {
         colors: [
           for (var i = 0; i < felt.colors.length; i++)
             Color.alphaBlend(
-              (_dark ? goldLight : theme.secondaryBackground)
-                  .withValues(alpha: i == 0 ? 0.09 : 0.04),
+              goldLight.withValues(alpha: i == 0 ? 0.09 : 0.04),
               felt.colors[i],
             ),
         ],
@@ -487,23 +452,18 @@ class FFBackgrounds {
   const FFBackgrounds(this.theme);
   final FlutterFlowTheme theme;
 
-  Color get home =>
-      theme is DarkModeTheme ? FFHomeMaterials._ink : theme.primaryBackground;
+  Color get home => FFHomeMaterials._ink;
 
-  LinearGradient get homeGradient => theme is DarkModeTheme
-      ? LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            home,
-            Color.lerp(home, FFHomeMaterials._sapphire, 0.22)!,
-            theme.primaryBackground,
-          ],
-          stops: const [0.0, 0.58, 1.0],
-        )
-      : LinearGradient(
-          colors: [theme.primaryBackground, theme.primaryBackground],
-        );
+  LinearGradient get homeGradient => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          home,
+          Color.lerp(home, FFHomeMaterials._sapphire, 0.22)!,
+          theme.primaryBackground,
+        ],
+        stops: const [0.0, 0.58, 1.0],
+      );
 }
 
 class FFSpacing {

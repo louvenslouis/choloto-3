@@ -89,10 +89,8 @@ page et ne pas changer leurs valeurs globales pour résoudre un problème local.
 
 - Couleur de marque principale : jaune CHOLOTO `#EDB900` (`theme.primary`).
 - Texte ou icône posé sur le jaune : `theme.onPrimary`, actuellement noir.
-- Thème sombre, utilisé par défaut : arrière-plan `#000000`, surfaces
+- Thème exclusivement sombre : arrière-plan `#000000`, surfaces
   `#1C1C1E`, texte principal blanc.
-- Thème clair : arrière-plan `#F7F7F7`, surfaces blanches, texte principal
-  `#14181B`.
 - Employer `primaryBackground` pour le fond des pages,
   `secondaryBackground` pour les cartes et surfaces, `primaryText` et
   `secondaryText` pour les textes, puis `success`, `warning`, `error` et `info`
@@ -100,10 +98,9 @@ page et ne pas changer leurs valeurs globales pour résoudre un problème local.
 - Ne pas ajouter de `Color(0x...)`, `Colors.white`, `Colors.black` ou autre
   couleur brute dans une nouvelle interface lorsque le thème fournit la valeur.
   Une exception visuelle intentionnelle doit être rare, justifiée dans le code
-  et vérifiée dans les deux thèmes.
-- Le thème clair/sombre est une fonctionnalité, pas une préférence de l'agent.
-  Toute interface doit être lisible dans les deux modes. Ne pas supprimer le
-  thème sombre par défaut ni la persistance de `FFAppState.lightThemeEnabled`.
+  et vérifiée sur fond sombre.
+- Utiliser le thème sombre même si le système ou une ancienne installation
+  demande un thème clair.
 
 ### Typographie
 
@@ -163,15 +160,15 @@ Avant de déclarer une interface terminée :
 1. Comparer visuellement avec les écrans adjacents et confirmer la réutilisation
    des tokens et composants existants.
 2. Vérifier au moins un petit viewport mobile et un viewport Web pertinent.
-3. Vérifier les thèmes sombre et clair, y compris contraste, icônes, champs,
-   cartes, dialogues et barre de navigation.
+3. Vérifier le contraste, les icônes, champs, cartes, dialogues et la navigation
+   en sombre avec les deux réglages d’apparence du système.
 4. Vérifier les trois langues, particulièrement le débordement des libellés.
 5. Exécuter `flutter test test/theme_test.dart`, les tests du composant modifié
    et `flutter analyze`.
 6. Ajouter ou mettre à jour un test lorsque la modification touche un token,
-   la persistance du thème, la navigation ou un comportement visuel critique.
+   la sélection du thème, la navigation ou un comportement visuel critique.
 
-Une capture d'un seul écran dans un seul thème ne suffit pas à valider le design
+Une capture d'un seul écran ne suffit pas à valider le design
 system. Si une demande exige réellement un nouveau style, modifier d'abord la
 source de vérité et ses tests, puis appliquer ce changement de manière cohérente
 au lieu de coder une exception locale.

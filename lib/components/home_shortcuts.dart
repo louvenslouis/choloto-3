@@ -89,7 +89,6 @@ class _ShortcutButtonState extends State<_ShortcutButton> {
     final tokens = theme.designToken;
     final home = tokens.home;
     final accent = widget.color;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     final motion = !MediaQuery.disableAnimationsOf(context);
     final active = _hovered || _focused || _pressed;
     final wide = widget.wide;
@@ -102,10 +101,10 @@ class _ShortcutButtonState extends State<_ShortcutButton> {
         begin: const Alignment(-.65, -1),
         end: const Alignment(.64, 1),
         colors: [
-          Color.lerp(surface.first, accent, dark ? .22 : .09)!,
-          Color.lerp(surface.first, accent, dark ? .06 : .025)!,
+          Color.lerp(surface.first, accent, .22)!,
+          Color.lerp(surface.first, accent, .06)!,
           surface.last,
-          Color.lerp(surface.last, accent, dark ? .13 : .06)!,
+          Color.lerp(surface.last, accent, .13)!,
         ],
         stops: const [0, .28, .74, 1],
       ),
@@ -119,8 +118,7 @@ class _ShortcutButtonState extends State<_ShortcutButton> {
     final glyph = RepaintBoundary(
       child: CustomPaint(
         size: Size.square(glyphSize),
-        painter:
-            _ShortcutGlyph(widget.shortcut, accent, theme.onDecorative, dark),
+        painter: _ShortcutGlyph(widget.shortcut, accent, theme.onDecorative),
       ),
     );
     final label = Text(widget.label,
@@ -185,12 +183,11 @@ class _ShortcutButtonState extends State<_ShortcutButton> {
 
 /// Native paths keep the tubular outlines crisp at both shortcut sizes.
 class _ShortcutGlyph extends CustomPainter {
-  const _ShortcutGlyph(this.shortcut, this.accent, this.highlight, this.dark);
+  const _ShortcutGlyph(this.shortcut, this.accent, this.highlight);
 
   final _Shortcut shortcut;
   final Color accent;
   final Color highlight;
-  final bool dark;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -242,14 +239,12 @@ class _ShortcutGlyph extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round;
-    if (dark) {
-      canvas.drawPath(
-          path,
-          paint
-            ..strokeWidth = 5
-            ..color = accent.withValues(alpha: .30)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.5));
-    }
+    canvas.drawPath(
+        path,
+        paint
+          ..strokeWidth = 5
+          ..color = accent.withValues(alpha: .30)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.5));
     paint
       ..maskFilter = null
       ..strokeWidth = shortcut == _Shortcut.stats ? 4.3 : 3.7
@@ -258,9 +253,9 @@ class _ShortcutGlyph extends CustomPainter {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color.lerp(accent, highlight, dark ? .84 : .35)!,
+          Color.lerp(accent, highlight, .84)!,
           accent,
-          Color.lerp(accent, highlight, dark ? .37 : .12)!,
+          Color.lerp(accent, highlight, .37)!,
           accent
         ],
         stops: const [0, .42, .69, 1],
@@ -273,6 +268,5 @@ class _ShortcutGlyph extends CustomPainter {
   bool shouldRepaint(_ShortcutGlyph old) =>
       old.shortcut != shortcut ||
       old.accent != accent ||
-      old.highlight != highlight ||
-      old.dark != dark;
+      old.highlight != highlight;
 }

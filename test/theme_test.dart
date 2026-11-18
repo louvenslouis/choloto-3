@@ -1,10 +1,36 @@
 import 'package:choloto/app_state.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
+import 'package:choloto/flutter_flow/internationalization.dart';
+import 'package:choloto/main.dart' show MyApp;
+import 'package:firebase_core/firebase_core.dart';
+// ignore: depend_on_referenced_packages
+import 'package:firebase_core_platform_interface/test.dart';
+// ignore: depend_on_referenced_packages
+import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Keep the real app on its launch route while testing its theme offline.
+class _StartupAuth extends FirebaseAuthPlatform {
+  @override
+  FirebaseAuthPlatform delegateFor(
+          {required FirebaseApp app, Persistence? persistence}) =>
+      this;
+  @override
+  FirebaseAuthPlatform setInitialValues(
+          {Object? currentUser, String? languageCode}) =>
+      this;
+  @override
+  Stream<UserPlatform?> authStateChanges() => const Stream.empty();
+  @override
+  Stream<UserPlatform?> idTokenChanges() => const Stream.empty();
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setupFirebaseCoreMocks();
+
   group('application theme', () {
     double contrast(Color a, Color b) {
       final x = a.computeLuminance();
@@ -12,50 +38,44 @@ void main() {
       return (x > y ? x + 0.05 : y + 0.05) / (x > y ? y + 0.05 : x + 0.05);
     }
 
-    test('VIP casino materials retain readable text in both themes', () {
-      for (final theme in [DarkModeTheme(), LightModeTheme()]) {
-        final materials = theme.designToken.vip;
-        expect(materials.felt.colors.toSet().length, greaterThan(1));
-        for (final color in materials.felt.colors) {
-          expect(contrast(theme.primaryText, color), greaterThanOrEqualTo(4.5));
-        }
-        for (final color in materials.plaque.colors) {
-          expect(
-              contrast(materials.numberText, color), greaterThanOrEqualTo(4.5));
-        }
-        // Number insets remain close to the surrounding card material.
-        for (var i = 0; i < materials.plaque.colors.length; i++) {
-          expect(contrast(materials.plaque.colors[i], materials.felt.colors[i]),
-              lessThan(1.5));
-        }
-        expect(contrast(theme.onPrimary, theme.primary),
-            greaterThanOrEqualTo(4.5));
+    test('VIP casino materials retain readable text on dark surfaces', () {
+      final theme = DarkModeTheme();
+      final materials = theme.designToken.vip;
+      expect(materials.felt.colors.toSet().length, greaterThan(1));
+      for (final color in materials.felt.colors) {
+        expect(contrast(theme.primaryText, color), greaterThanOrEqualTo(4.5));
       }
+      for (final color in materials.plaque.colors) {
+        expect(
+            contrast(materials.numberText, color), greaterThanOrEqualTo(4.5));
+      }
+      // Number insets remain close to the surrounding card material.
+      for (var i = 0; i < materials.plaque.colors.length; i++) {
+        expect(contrast(materials.plaque.colors[i], materials.felt.colors[i]),
+            lessThan(1.5));
+      }
+      expect(
+          contrast(theme.onPrimary, theme.primary), greaterThanOrEqualTo(4.5));
     });
-    test('home cards and shortcut colors remain legible in both themes', () {
-      for (final theme in [DarkModeTheme(), LightModeTheme()]) {
-        final home = theme.designToken.home;
-        for (final color in [
-          ...home.vipAmethyst.colors,
-          ...home.chance.colors
+    test('home cards and shortcut colors remain legible on dark surfaces', () {
+      final theme = DarkModeTheme();
+      final home = theme.designToken.home;
+      for (final color in [...home.vipAmethyst.colors, ...home.chance.colors]) {
+        expect(contrast(theme.onDecorative, color), greaterThanOrEqualTo(4.5));
+      }
+      for (final color in home.membership.colors) {
+        expect(contrast(theme.onPrimary, color), greaterThanOrEqualTo(4.5));
+      }
+      for (final surface in home.surface.colors) {
+        for (final foreground in [
+          theme.primaryText,
+          home.mutedText,
+          home.videoAccent,
+          home.statsAccent,
+          home.tchalaAccent,
+          home.historyAccent,
         ]) {
-          expect(
-              contrast(theme.onDecorative, color), greaterThanOrEqualTo(4.5));
-        }
-        for (final color in home.membership.colors) {
-          expect(contrast(theme.onPrimary, color), greaterThanOrEqualTo(4.5));
-        }
-        for (final surface in home.surface.colors) {
-          for (final foreground in [
-            theme.primaryText,
-            home.mutedText,
-            home.videoAccent,
-            home.statsAccent,
-            home.tchalaAccent,
-            home.historyAccent,
-          ]) {
-            expect(contrast(foreground, surface), greaterThanOrEqualTo(4.5));
-          }
+          expect(contrast(foreground, surface), greaterThanOrEqualTo(4.5));
         }
       }
     });
@@ -78,80 +98,43 @@ void main() {
       expect(theme.primaryBackground, const Color(0xFF000000));
     });
 
-    test('home keeps the existing off-white surface in light mode', () {
-      final theme = LightModeTheme();
-      expect(theme.designToken.background.home, theme.primaryBackground);
-      expect(
-        theme.designToken.background.homeGradient.colors.toSet(),
-        {theme.primaryBackground},
-      );
-    });
-
-    testWidgets('uses the unchanged black palette in dark mode',
+    testWidgets(
+        'legacy light preference and changes to system appearance keep the app dark',
         (tester) async {
-      late FlutterFlowTheme resolvedTheme;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(brightness: Brightness.light),
-          darkTheme: ThemeData(brightness: Brightness.dark),
-          themeMode: ThemeMode.dark,
-          home: Builder(
-            builder: (context) {
-              resolvedTheme = FlutterFlowTheme.of(context);
-              return const SizedBox.shrink();
-            },
-          ),
-        ),
-      );
-
-      expect(resolvedTheme, isA<DarkModeTheme>());
-      expect(resolvedTheme.primary, const Color(0xFFEDB900));
-      expect(resolvedTheme.primaryBackground, const Color(0xFF000000));
-      expect(resolvedTheme.secondaryBackground, const Color(0xFF1C1C1E));
-      expect(resolvedTheme.primaryText, const Color(0xFFFFFFFF));
-    });
-
-    testWidgets('uses a light palette while keeping yellow as primary',
-        (tester) async {
-      late FlutterFlowTheme resolvedTheme;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(brightness: Brightness.light),
-          darkTheme: ThemeData(brightness: Brightness.dark),
-          themeMode: ThemeMode.light,
-          home: Builder(
-            builder: (context) {
-              resolvedTheme = FlutterFlowTheme.of(context);
-              return const SizedBox.shrink();
-            },
-          ),
-        ),
-      );
-
-      expect(resolvedTheme, isA<LightModeTheme>());
-      expect(resolvedTheme.primary, const Color(0xFFEDB900));
-      expect(resolvedTheme.primaryBackground, const Color(0xFFF7F7F7));
-      expect(resolvedTheme.secondaryBackground, const Color(0xFFFFFFFF));
-      expect(resolvedTheme.primaryText, const Color(0xFF14181B));
-    });
-
-    test('keeps dark as default and persists explicit light activation',
-        () async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'ff_lightThemeEnabled': true,
+        'ff_user': 'CHOLOTO',
+      });
       FFAppState.reset();
+      addTearDown(FFAppState.reset);
+      await Firebase.initializeApp();
+      FirebaseAuthPlatform.instance = _StartupAuth();
+      await FFLocalizations.initialize();
+      await FFAppState().initializePersistedState();
+      expect(FFAppState().user, 'CHOLOTO');
 
-      final initialState = FFAppState();
-      await initialState.initializePersistedState();
-      expect(initialState.lightThemeEnabled, isFalse);
-
-      initialState.lightThemeEnabled = true;
-      FFAppState.reset();
-
-      final restoredState = FFAppState();
-      await restoredState.initializePersistedState();
-      expect(restoredState.lightThemeEnabled, isTrue);
+      final dispatcher = tester.binding.platformDispatcher;
+      addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+      dispatcher.platformBrightnessTestValue = Brightness.light;
+      await tester.pumpWidget(MyApp());
+      for (final system in [
+        Brightness.light,
+        Brightness.dark,
+        Brightness.light
+      ]) {
+        dispatcher.platformBrightnessTestValue = system;
+        await tester.pumpAndSettle();
+        final context = tester.element(find.byType(Navigator).first);
+        expect(MediaQuery.platformBrightnessOf(context), system);
+        final material = Theme.of(context);
+        final palette = FlutterFlowTheme.of(context);
+        expect(material.brightness, Brightness.dark);
+        expect(material.scaffoldBackgroundColor, const Color(0xFF000000));
+        expect(palette.primary, const Color(0xFFEDB900));
+        expect(palette.primaryBackground, material.scaffoldBackgroundColor);
+        expect(palette.secondaryBackground, const Color(0xFF1C1C1E));
+        expect(palette.primaryText, const Color(0xFFFFFFFF));
+      }
     });
   });
 }

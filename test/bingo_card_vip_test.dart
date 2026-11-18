@@ -124,6 +124,10 @@ void main() {
     for (final brightness in [Brightness.dark, Brightness.light]) {
       for (final width in [320.0, 1280.0]) {
         testWidgets('VIP Bingo $language $brightness $width', (tester) async {
+          tester.binding.platformDispatcher.platformBrightnessTestValue =
+              brightness;
+          addTearDown(tester
+              .binding.platformDispatcher.clearPlatformBrightnessTestValue);
           tester.view.physicalSize = Size(width, 720);
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.resetPhysicalSize);
@@ -139,7 +143,8 @@ void main() {
               key: captureKey,
               child: MaterialApp(
                 debugShowCheckedModeBanner: false,
-                theme: ThemeData(brightness: brightness),
+                theme: DarkModeTheme().materialTheme,
+                themeMode: ThemeMode.dark,
                 locale: Locale(language),
                 supportedLocales: const [
                   Locale('fr'),
@@ -178,9 +183,7 @@ void main() {
                 tester.element(find.byType(BingoCardVIPWidget)),
               ));
           await tester.pump();
-          final theme = brightness == Brightness.dark
-              ? DarkModeTheme()
-              : LightModeTheme();
+          final theme = DarkModeTheme();
           for (final label in ['bingo_story_label', 'bngexpand']) {
             final color = tester
                 .widget<Text>(find.text(strings.getText(label)))
