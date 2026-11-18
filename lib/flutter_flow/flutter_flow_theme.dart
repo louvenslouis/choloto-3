@@ -379,7 +379,11 @@ class FFHomeMaterials {
         stops: const [0.0, 0.28, 0.56, 1.0],
       );
 
-  LinearGradient get chance => const LinearGradient(
+  LinearGradient get chance => hero;
+
+  Color get amethystGlow => const Color(0xFFD295FF);
+
+  LinearGradient get vipAmethyst => const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [

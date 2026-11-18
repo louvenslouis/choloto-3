@@ -159,7 +159,7 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                     image: DecorationImage(
                       image: AssetImage(draws
                           ? 'assets/images/home/brushed_gold.webp'
-                          : 'assets/images/home/amethyst.webp'),
+                          : 'assets/images/home/sapphire.webp'),
                       fit: BoxFit.cover,
                       opacity: draws ? 1 : 0.8,
                       colorFilter: draws

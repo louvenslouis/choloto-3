@@ -216,7 +216,7 @@ class _VipHeroState extends State<_VipHero>
       final artHeight = stacked
           ? math.min(width * .50, 180.0)
           : math.min(widget.height * 1.105, width * .62);
-      final artWidth = artHeight * 1190 / 1322;
+      final artWidth = artHeight * 1189 / 1323;
       final artRight = -artWidth * .052;
       final artTop = -artHeight * .078;
       final copy = Padding(
@@ -291,21 +291,24 @@ class _VipHeroState extends State<_VipHero>
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: tokens.home.hero,
-                  image: const DecorationImage(
-                    image: AssetImage('assets/images/home/sapphire.webp'),
+                  gradient: tokens.home.vipAmethyst,
+                  image: DecorationImage(
+                    image: const AssetImage('assets/images/home/amethyst.webp'),
+                    colorFilter: ColorFilter.mode(
+                        theme.onPrimary.withValues(alpha: .24),
+                        BlendMode.srcATop),
                     fit: BoxFit.cover,
                   ),
                   borderRadius: radius,
                   border: Border.all(
-                      color: tokens.home.heroGlow.withValues(alpha: .62)),
+                      color: tokens.home.amethystGlow.withValues(alpha: .62)),
                   boxShadow: [tokens.shadow.md],
                 ),
                 child: ClipRRect(
                   borderRadius: radius,
                   child: CustomPaint(
                     key: const ValueKey('home-vip-light-sweep'),
-                    painter: _VipLightSweep(_light, tokens.home.heroGlow),
+                    painter: _VipLightSweep(_light, tokens.home.amethystGlow),
                   ),
                 ),
               ),
@@ -319,7 +322,7 @@ class _VipHeroState extends State<_VipHero>
                 child: AnimatedBuilder(
                   animation: _light,
                   child: HomeRaisedArtwork(
-                    asset: 'assets/images/home/vip_sapphire_medal.webp',
+                    asset: 'assets/images/home/vip_amethyst_medal.webp',
                     imageKey: const ValueKey('home-vip-medal'),
                     width: artWidth,
                     fallback: Icons.workspace_premium_rounded,
@@ -366,7 +369,7 @@ class _VipHeroState extends State<_VipHero>
   }
 }
 
-/// A single soft studio light crosses the sapphire, leaving the texture still.
+/// A single soft studio light crosses the amethyst, leaving the texture still.
 class _VipLightSweep extends CustomPainter {
   _VipLightSweep(this.progress, this.tint) : super(repaint: progress);
 

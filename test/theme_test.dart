@@ -35,7 +35,10 @@ void main() {
     test('home cards and shortcut colors remain legible in both themes', () {
       for (final theme in [DarkModeTheme(), LightModeTheme()]) {
         final home = theme.designToken.home;
-        for (final color in [...home.hero.colors, ...home.chance.colors]) {
+        for (final color in [
+          ...home.vipAmethyst.colors,
+          ...home.chance.colors
+        ]) {
           expect(
               contrast(theme.onDecorative, color), greaterThanOrEqualTo(4.5));
         }

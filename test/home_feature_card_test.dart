@@ -1,5 +1,6 @@
 import 'package:choloto/components/home_feature_card.dart';
 import 'package:choloto/components/home_feature_section.dart';
+import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/gestures.dart';
@@ -7,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _drawsAsset = 'assets/images/home/lottery_drum.webp';
-const _vipAsset = 'assets/images/home/vip_sapphire_medal.webp';
+const _vipAsset = 'assets/images/home/vip_amethyst_medal.webp';
 const _chanceAsset = 'assets/images/home/lucky_cross_3d_x.png';
 
 Widget _testApp({
@@ -144,7 +145,7 @@ void main() {
   });
 
   testWidgets(
-      'VIP medal lifts above sapphire, settles and honors motion settings',
+      'VIP medal lifts above amethyst, settles and honors motion settings',
       (tester) async {
     await _setViewport(tester, const Size(390, 844));
     final tapped = <String>[];
@@ -170,6 +171,16 @@ void main() {
     final motion = find.byKey(const ValueKey('home-vip-medal-motion'));
     final light = find.byKey(const ValueKey('home-vip-light-sweep'));
     final card = find.byKey(const ValueKey('home-open-vip'));
+    final surface = tester.widget<DecoratedBox>(find
+        .ancestor(
+          of: light,
+          matching: find.byType(DecoratedBox),
+        )
+        .first);
+    final material = surface.decoration as BoxDecoration;
+    expect((material.image!.image as AssetImage).assetName,
+        'assets/images/home/amethyst.webp');
+    expect(material.gradient, DarkModeTheme().designToken.home.vipAmethyst);
     final medal = tester.widget<Image>(medalFinder);
     expect(((medal.image as ResizeImage).imageProvider as AssetImage).assetName,
         _vipAsset);
@@ -389,7 +400,7 @@ void main() {
               texture.assetName,
               tone == HomeFeatureTone.draws
                   ? 'assets/images/home/brushed_gold.webp'
-                  : 'assets/images/home/amethyst.webp');
+                  : 'assets/images/home/sapphire.webp');
           expect(
               tester
                   .getTopLeft(find.byKey(ValueKey('home-feature-image-$id')))
