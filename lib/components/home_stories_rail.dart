@@ -1,6 +1,8 @@
-import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+
+import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/internationalization.dart';
+import 'home_story_bubble.dart';
 
 class HomeStoriesRail extends StatelessWidget {
   const HomeStoriesRail({
@@ -21,107 +23,53 @@ class HomeStoriesRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!isVisible) return const SizedBox.shrink();
-
-    return Column(
-      key: const ValueKey('home-stories-rail'),
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          height: 80.0,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              ...stories,
-              if (loading)
-                const _StoryBubbleSkeleton(
-                  key: ValueKey('home-stories-loading'),
-                ),
-              if (loadFailed)
-                _StoryLoadError(
-                  key: const ValueKey('home-stories-error'),
-                  onRetry: onRetry,
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StoryBubbleSkeleton extends StatelessWidget {
-  const _StoryBubbleSkeleton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: spacing.sm,
-        vertical: spacing.xs,
-      ),
-      child: Container(
-        width: 72.0,
-        height: 72.0,
-        decoration: BoxDecoration(
-          color: theme.primaryText.withValues(alpha: 0.07),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: theme.primaryText.withValues(alpha: 0.08),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StoryLoadError extends StatelessWidget {
-  const _StoryLoadError({super.key, required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: tokens.spacing.sm,
-        vertical: tokens.spacing.xs,
-      ),
-      child: Material(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: InkWell(
-          onTap: onRetry,
-          borderRadius: BorderRadius.circular(tokens.radius.md),
-          child: Container(
-            constraints: const BoxConstraints(minWidth: 152.0),
-            padding: EdgeInsets.symmetric(horizontal: tokens.spacing.md),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(tokens.radius.md),
-              border: Border.all(
-                color: theme.error.withValues(alpha: 0.28),
+    final strings = FFLocalizations.of(context);
+
+    return SizedBox(
+      key: const ValueKey('home-stories-rail'),
+      width: double.infinity,
+      height: HomeStoryBubble.diameter + tokens.spacing.xs * 2,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.zero,
+        children: [
+          ...stories,
+          if (loading)
+            HomeStoryBubble(
+              key: const ValueKey('home-stories-loading'),
+              id: 'story-loading',
+              semanticLabel: strings.getText('ytloading'),
+              child: Icon(Icons.hourglass_empty_rounded,
+                  color: tokens.home.mutedText, size: tokens.spacing.lg),
+            ),
+          if (loadFailed)
+            HomeStoryBubble(
+              key: const ValueKey('home-stories-error'),
+              id: 'story-retry',
+              semanticLabel: strings.getText('story_retry'),
+              onTap: onRetry,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.refresh_rounded,
+                      color: tokens.home.mutedText, size: tokens.spacing.lg),
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: tokens.spacing.xs),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(strings.getText('story_retry'),
+                          style: theme.labelSmall.copyWith(
+                              color: theme.primaryText,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.cloud_off_rounded, color: theme.error, size: 20.0),
-                SizedBox(width: tokens.spacing.sm),
-                Text(
-                  FFLocalizations.of(context).getText('story_retry'),
-                  style: theme.labelLarge.copyWith(
-                    color: theme.primaryText,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }

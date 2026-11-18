@@ -2009,6 +2009,9 @@ expectStatus(
 
 console.log('Firestore compatibility rules: all checks passed.');
 
+const {testVipBadges} = await import('./vip_badges_rules.mjs');
+await testVipBadges({admin, owner});
+
 const {testPaymentRequests} = await import('./payment_requests_rules.mjs');
 await testPaymentRequests({admin});
 

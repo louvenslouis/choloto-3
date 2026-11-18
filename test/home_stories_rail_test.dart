@@ -1,5 +1,9 @@
+import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
+import 'package:choloto/backend/schema/structs/index.dart';
 import 'package:choloto/components/home_stories_rail.dart';
+import 'package:choloto/components/vip_casino_card.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
+import 'package:choloto/youtube/youtube_story.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,6 +37,49 @@ Widget _app({
 }
 
 void main() {
+  testWidgets('reading a story changes its chip rim and preserves both actions',
+      (tester) async {
+    var bingoTaps = 0;
+    var youtubeTaps = 0;
+    const locale = Locale('fr');
+    final strings = FFLocalizations(locale);
+    final video = YoutubeItemStruct(title: 'CHOLOTO');
+    for (final viewed in [false, true]) {
+      await tester.pumpWidget(_app(
+        locale: locale,
+        themeMode: ThemeMode.dark,
+        child: HomeStoriesRail(
+          loading: false,
+          loadFailed: false,
+          onRetry: () {},
+          stories: [
+            BingoStoryButton(
+                viewed: viewed, storyCount: 2, onTap: () => bingoTaps++),
+            YoutubeStoryButton(
+                video: video, viewed: !viewed, onTap: () => youtubeTaps++),
+          ],
+        ),
+      ));
+      final bingo = find.byType(BingoStoryButton);
+      final youtube = find.byType(YoutubeStoryButton);
+      expect(find.descendant(of: bingo, matching: find.byType(VipCasinoChip)),
+          viewed ? findsNothing : findsOneWidget);
+      expect(find.descendant(of: youtube, matching: find.byType(VipCasinoChip)),
+          viewed ? findsOneWidget : findsNothing);
+      expect(
+          tester
+              .getSemantics(
+                  find.bySemanticsLabel(strings.getText('bingo_story_open')))
+              .value,
+          '${strings.getText(viewed ? 'home_story_seen' : 'home_story_unseen')}, 2');
+      await tester.tap(find.byKey(const ValueKey('bingo-story-button')));
+      await tester.tap(find.byKey(const ValueKey('youtube-story-button')));
+    }
+    expect(bingoTaps, 2);
+    expect(youtubeTaps, 2);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final variant in const [
       (Size(320.0, 568.0), ThemeMode.dark),

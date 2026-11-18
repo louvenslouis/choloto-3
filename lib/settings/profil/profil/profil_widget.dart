@@ -1,11 +1,49 @@
 import '/auth/firebase_auth/auth_util.dart';
+import '/accomplissements/member_vip_badge.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'profil_model.dart';
 export 'profil_model.dart';
+
+class ProfileAvatar extends StatelessWidget {
+  const ProfileAvatar({super.key, required this.photoUrl, required this.badge});
+
+  final String photoUrl;
+  final Widget badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Icon(Icons.location_history,
+        size: 64, color: FlutterFlowTheme.of(context).primaryText);
+    return SizedBox.square(
+      dimension: 88,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          ExcludeSemantics(
+              child: SizedBox.square(
+            dimension: 64,
+            child: photoUrl.isEmpty
+                ? fallback
+                : ClipOval(
+                    child: CachedNetworkImage(
+                      imageUrl: photoUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => fallback,
+                      errorWidget: (_, __, ___) => fallback,
+                    ),
+                  ),
+          )),
+          Positioned(top: 0, right: 0, child: badge),
+        ],
+      ),
+    );
+  }
+}
 
 class ProfilWidget extends StatefulWidget {
   const ProfilWidget({super.key});
@@ -112,14 +150,21 @@ class _ProfilWidgetState extends State<ProfilWidget> {
       ),
       body: SafeArea(
         top: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
+        child: ListView(
           children: [
-            Icon(
-              Icons.location_history,
-              color: FlutterFlowTheme.of(context).primaryText,
-              size: 74.0,
-            ),
+            AuthUserStreamWidget(builder: (context) {
+              final user = currentUserDocument;
+              if (!loggedIn ||
+                  user == null ||
+                  user.reference.id != currentUserUid) {
+                return const SizedBox.shrink();
+              }
+              return Center(
+                  child: ProfileAvatar(
+                photoUrl: currentUserPhoto,
+                badge: MemberVipBadge(user: user),
+              ));
+            }),
             AuthUserStreamWidget(
               builder: (context) => InkWell(
                 splashColor: Colors.transparent,

@@ -2,7 +2,54 @@ import 'package:flutter/material.dart';
 
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/flutter_flow_util.dart';
+import '/index.dart' show AccomplissementsWidget, ParametresWidget;
 import '/support/support_text.dart';
+
+class HomeHeaderBrand extends StatelessWidget {
+  const HomeHeaderBrand({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final logoSize = tokens.spacing.xl + tokens.spacing.sm;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(tokens.radius.sm),
+          child: Image.asset(
+            'assets/images/Logo_Choloto_509.png',
+            key: const ValueKey('home-header-logo'),
+            width: logoSize,
+            height: logoSize,
+            cacheWidth:
+                (logoSize * MediaQuery.devicePixelRatioOf(context)).ceil(),
+            fit: BoxFit.contain,
+            excludeFromSemantics: true,
+          ),
+        ),
+        SizedBox(width: tokens.spacing.sm),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              FFLocalizations.of(context).getText('loh576na'),
+              maxLines: 1,
+              style: theme.headlineSmall.override(
+                color: tokens.home.statsAccent,
+                fontWeight: FontWeight.w900,
+                fontStyle: FontStyle.italic,
+                letterSpacing: -0.8,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class HomeHeaderActions extends StatelessWidget {
   const HomeHeaderActions({
@@ -14,38 +61,55 @@ class HomeHeaderActions extends StatelessWidget {
   final Future<void> Function() onAchievements;
   final Future<void> Function() onSettings;
 
+  factory HomeHeaderActions.navigation(BuildContext context) {
+    return HomeHeaderActions(
+      onAchievements: () async {
+        logFirebaseEvent('HOME_PAGE_query_stats_ICN_ON_TAP');
+        logFirebaseEvent('IconButton_navigate_to');
+        await context.pushNamed(AccomplissementsWidget.routeName);
+      },
+      onSettings: () async {
+        logFirebaseEvent('HOME_PAGE_settings_outlined_ICN_ON_TAP');
+        logFirebaseEvent('IconButton_navigate_to');
+        await context.pushNamed(ParametresWidget.routeName);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
+    final tokens = theme.designToken;
+    final strings = FFLocalizations.of(context);
+
+    Widget action(String key, String label, IconData icon,
+        Future<void> Function() onPressed) {
+      return Tooltip(
+        message: label,
+        child: FlutterFlowIconButton(
+          key: ValueKey(key),
+          buttonSize: kMinInteractiveDimension,
+          borderWidth: 1,
+          borderRadius: tokens.radius.md,
+          borderColor: tokens.home.edge,
+          hoverIconColor: tokens.home.statsAccent,
+          hoverBorderColor: tokens.home.statsAccent,
+          focusBorderSide: BorderSide(color: tokens.home.statsAccent, width: 2),
+          icon: Icon(icon, color: theme.primaryText, size: 22),
+          onPressed: onPressed,
+        ),
+      );
+    }
 
     return Row(
       key: const ValueKey('home-header-actions'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        FlutterFlowIconButton(
-          key: const ValueKey('home-achievements-button'),
-          buttonSize: 40.0,
-          hoverIconColor: theme.primary,
-          icon: Icon(
-            Icons.query_stats_rounded,
-            color: theme.primaryText,
-            size: 22.0,
-          ),
-          onPressed: onAchievements,
-        ),
-        SizedBox(width: spacing.xs),
-        FlutterFlowIconButton(
-          key: const ValueKey('home-settings-button'),
-          buttonSize: 40.0,
-          hoverIconColor: theme.primary,
-          icon: Icon(
-            Icons.settings_outlined,
-            color: theme.primaryText,
-            size: 22.0,
-          ),
-          onPressed: onSettings,
-        ),
+        action('home-achievements-button', strings.getText('exm1ba5v'),
+            Icons.bar_chart_rounded, onAchievements),
+        SizedBox(width: tokens.spacing.sm),
+        action('home-settings-button', strings.getText('oadu0jrq'),
+            Icons.tune_rounded, onSettings),
       ],
     );
   }

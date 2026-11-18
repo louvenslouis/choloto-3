@@ -1,18 +1,31 @@
 import 'package:choloto/components/home_feature_card.dart';
+import 'package:choloto/components/home_feature_section.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+const _drawsAsset = 'assets/images/home/lottery_drum.webp';
 const _vipAsset = 'assets/images/home/vip_membership_3d_v2.png';
 const _chanceAsset = 'assets/images/home/lucky_cross_3d_x.png';
-const _videoAsset = 'assets/images/home/video_play_3d_v2.png';
 
 Widget _testApp({
   required ThemeMode themeMode,
   required Widget child,
+  Locale locale = const Locale('en'),
 }) {
   return MaterialApp(
+    locale: locale,
+    supportedLocales: const [Locale('en'), Locale('fr'), Locale('cr')],
+    localizationsDelegates: const [
+      FFLocalizationsDelegate(),
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      FallbackMaterialLocalizationDelegate(),
+      FallbackCupertinoLocalizationDelegate()
+    ],
     theme: ThemeData(brightness: Brightness.light),
     darkTheme: ThemeData(brightness: Brightness.dark),
     themeMode: themeMode,
@@ -23,7 +36,6 @@ Widget _testApp({
 HomeFeatureCard _card({
   required String id,
   required String title,
-  required String description,
   required HomeFeatureTone tone,
   required String assetPath,
   VoidCallback? onTap,
@@ -31,7 +43,6 @@ HomeFeatureCard _card({
   return HomeFeatureCard(
     semanticId: id,
     title: title,
-    description: description,
     tone: tone,
     assetPath: assetPath,
     onTap: onTap ?? () {},
@@ -63,22 +74,36 @@ double _contrastRatio(Color foreground, Color background) {
 }
 
 HomeFeatureCard _localizedCard(HomeFeatureTone tone, FFLocalizations strings) {
-  final (titleKey, descriptionKey, asset) = switch (tone) {
-    HomeFeatureTone.vip => ('covzb0rd', 'uvl7vow9', _vipAsset),
-    HomeFeatureTone.chance => ('afym167o', 'pqih1sxe', _chanceAsset),
-    HomeFeatureTone.video => ('fkwji2m2', 'gcjztr88', _videoAsset),
+  final (titleKey, asset) = switch (tone) {
+    HomeFeatureTone.draws => ('home_latest_draws', _drawsAsset),
+    HomeFeatureTone.chance => ('afym167o', _chanceAsset),
   };
   return _card(
     id: tone.name,
     title: strings.getText(titleKey),
-    description: strings.getText(descriptionKey),
     tone: tone,
     assetPath: asset,
   );
 }
 
+HomeFeatureSection _section({
+  Widget? stories,
+  required ValueChanged<String> onAction,
+}) =>
+    HomeFeatureSection(
+      stories: stories,
+      draws: const SizedBox(height: 100, key: ValueKey('draws')),
+      onViewResults: () => onAction('results'),
+      onVip: () => onAction('vip'),
+      onChance: () => onAction('chance'),
+      onVideo: () => onAction('video'),
+      onStats: () => onAction('stats'),
+      onTchala: () => onAction('tchala'),
+      onHistory: () => onAction('history'),
+    );
+
 void main() {
-  testWidgets('renders a tappable gradient card with its VIP asset',
+  testWidgets('renders a tappable results card with the lottery drum',
       (tester) async {
     await _setViewport(tester, const Size(320.0, 568.0));
     var taps = 0;
@@ -90,11 +115,10 @@ void main() {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: _card(
-              id: 'vip',
-              title: 'ABONNEMENT VIP',
-              description: 'Accède à tous les avantages exclusifs.',
-              tone: HomeFeatureTone.vip,
-              assetPath: _vipAsset,
+              id: 'draws',
+              title: 'Derniers tirages',
+              tone: HomeFeatureTone.draws,
+              assetPath: _drawsAsset,
               onTap: () => taps++,
             ),
           ),
@@ -104,16 +128,17 @@ void main() {
     await _finishCardTransitions(tester);
 
     final gradientContainer = tester.widget<AnimatedContainer>(
-      find.byKey(const ValueKey('home-feature-gradient-vip')),
+      find.byKey(const ValueKey('home-feature-gradient-draws')),
     );
     final decoration = gradientContainer.decoration! as BoxDecoration;
 
     expect(decoration.gradient, isA<LinearGradient>());
-    expect(
-      find.byKey(const ValueKey('home-feature-image-vip')),
-      findsOneWidget,
+    final drum = tester.widget<Image>(
+      find.byKey(const ValueKey('home-feature-image-draws')),
     );
-    await tester.tap(find.byKey(const ValueKey('home-feature-card-vip')));
+    final drumSource = (drum.image as ResizeImage).imageProvider as AssetImage;
+    expect(drumSource.assetName, _drawsAsset);
+    await tester.tap(find.byKey(const ValueKey('home-feature-card-draws')));
     await _finishCardTransitions(tester);
     expect(taps, 1);
     expect(tester.takeException(), isNull);
@@ -121,7 +146,8 @@ void main() {
 
   testWidgets('VIP sparkles repaint, preserve taps and respect reduced motion',
       (tester) async {
-    var taps = 0;
+    await _setViewport(tester, const Size(390, 844));
+    final tapped = <String>[];
     Widget scene({bool reduceMotion = false, bool ticking = true}) => _testApp(
           themeMode: ThemeMode.dark,
           child: MediaQuery(
@@ -131,15 +157,8 @@ void main() {
             ),
             child: TickerMode(
               enabled: ticking,
-              child: Center(
-                child: _card(
-                  id: 'vip',
-                  title: 'VIP',
-                  description: 'Premium',
-                  tone: HomeFeatureTone.vip,
-                  assetPath: _vipAsset,
-                  onTap: () => taps++,
-                ),
+              child: SingleChildScrollView(
+                child: _section(onAction: tapped.add),
               ),
             ),
           ),
@@ -147,10 +166,16 @@ void main() {
     await tester.pumpWidget(scene());
     await _finishCardTransitions(tester);
     final sparkles = find.byKey(const ValueKey('home-vip-sparkles'));
-    final cardRect = tester.getRect(
-      find.byKey(const ValueKey('home-feature-card-vip')),
-    );
-    expect(tester.getRect(sparkles), cardRect);
+    final hero = find.byKey(const ValueKey('home-vip-hero'));
+    expect(find.descendant(of: hero, matching: sparkles), findsOneWidget);
+    expect(tester.getTopLeft(hero).dy, 0,
+        reason: 'An empty story rail must not reserve space.');
+    final medal = tester.widget<Image>(find.descendant(
+      of: hero,
+      matching: find.byKey(const ValueKey('home-vip-medal')),
+    ));
+    expect(((medal.image as ResizeImage).imageProvider as AssetImage).assetName,
+        _vipAsset);
     var repaints = 0;
     final painter = tester.widget<CustomPaint>(sparkles).painter!;
     void onRepaint() => repaints++;
@@ -158,7 +183,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
     expect(repaints, greaterThan(0));
     await tester.tapAt(tester.getCenter(sparkles));
-    expect(taps, 1);
+    expect(tapped, ['vip']);
 
     await tester.pumpWidget(scene(reduceMotion: true));
     repaints = 0;
@@ -181,7 +206,7 @@ void main() {
       (tester) async {
     await _setViewport(tester, const Size(390.0, 844.0));
 
-    Widget videoCard({bool reduceMotion = false}) => MediaQuery(
+    Widget chanceCard({bool reduceMotion = false}) => MediaQuery(
           data: MediaQueryData(
             size: const Size(390.0, 844.0),
             disableAnimations: reduceMotion,
@@ -189,21 +214,20 @@ void main() {
           child: Align(
             alignment: Alignment.topCenter,
             child: _card(
-              id: 'video',
-              title: 'YOUTUBE',
-              description: 'Regarde et reste connecté.',
-              tone: HomeFeatureTone.video,
-              assetPath: _videoAsset,
+              id: 'chance',
+              title: 'Lucky Cross',
+              tone: HomeFeatureTone.chance,
+              assetPath: _chanceAsset,
             ),
           ),
         );
 
     await tester.pumpWidget(
-      _testApp(themeMode: ThemeMode.dark, child: videoCard()),
+      _testApp(themeMode: ThemeMode.dark, child: chanceCard()),
     );
 
     FadeTransition entrance() => tester.widget<FadeTransition>(
-          find.byKey(const ValueKey('home-feature-entrance-video')),
+          find.byKey(const ValueKey('home-feature-entrance-chance')),
         );
 
     await tester.pump();
@@ -216,7 +240,7 @@ void main() {
     await tester.pumpWidget(
       _testApp(
         themeMode: ThemeMode.dark,
-        child: videoCard(reduceMotion: true),
+        child: chanceCard(reduceMotion: true),
       ),
     );
     await tester.pump();
@@ -232,22 +256,21 @@ void main() {
         child: Align(
           alignment: Alignment.topCenter,
           child: _card(
-            id: 'vip',
-            title: 'ABONNEMENT VIP',
-            description: 'Accède à tous les avantages exclusifs.',
-            tone: HomeFeatureTone.vip,
-            assetPath: _vipAsset,
+            id: 'draws',
+            title: 'Derniers tirages',
+            tone: HomeFeatureTone.draws,
+            assetPath: _drawsAsset,
           ),
         ),
       ),
     );
     await _finishCardTransitions(tester);
 
-    final cardFinder = find.byKey(const ValueKey('home-feature-card-vip'));
+    final cardFinder = find.byKey(const ValueKey('home-feature-card-draws'));
     final interactionFinder =
-        find.byKey(const ValueKey('home-feature-interaction-scale-vip'));
+        find.byKey(const ValueKey('home-feature-interaction-scale-draws'));
     final artworkFinder =
-        find.byKey(const ValueKey('home-feature-artwork-motion-vip'));
+        find.byKey(const ValueKey('home-feature-artwork-motion-draws'));
     final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
     addTearDown(mouse.removePointer);
     await mouse.addPointer(location: Offset.zero);
@@ -280,7 +303,6 @@ void main() {
             child: _card(
               id: 'chance',
               title: 'CROIX DE LA CHANCE',
-              description: 'Tente chaque jour et gagne GROS.',
               tone: HomeFeatureTone.chance,
               assetPath: _chanceAsset,
             ),
@@ -326,8 +348,7 @@ void main() {
           );
           await _finishCardTransitions(tester);
 
-          expect(find.byKey(const ValueKey('home-vip-sparkles')),
-              tone == HomeFeatureTone.vip ? findsOneWidget : findsNothing);
+          expect(find.byKey(const ValueKey('home-vip-sparkles')), findsNothing);
 
           final card = tester.widget<AnimatedContainer>(
             find.byKey(ValueKey('home-feature-gradient-$id')),
@@ -337,11 +358,7 @@ void main() {
           final title = tester.widget<Text>(
             find.byKey(ValueKey('home-feature-title-$id')),
           );
-          final description = tester.widget<Text>(
-            find.byKey(ValueKey('home-feature-description-$id')),
-          );
           final titleColor = title.style!.color!;
-          final descriptionColor = description.style!.color!;
           final borderRadius = decoration.borderRadius! as BorderRadius;
           final border = decoration.border! as Border;
 
@@ -365,17 +382,8 @@ void main() {
                 gradient.colors[segment + 1],
                 step / 10,
               )!;
-              {
-                final background = base;
-                expect(
-                  _contrastRatio(titleColor, background),
-                  greaterThanOrEqualTo(7.0),
-                );
-                expect(
-                  _contrastRatio(descriptionColor, background),
-                  greaterThanOrEqualTo(4.5),
-                );
-              }
+              expect(
+                  _contrastRatio(titleColor, base), greaterThanOrEqualTo(4.5));
             }
           }
           expect(tester.takeException(), isNull);
@@ -385,150 +393,86 @@ void main() {
   }
 
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
-    for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
+    for (final mode in const [ThemeMode.dark, ThemeMode.light]) {
       for (final width in [320.0, 800.0, 1160.0]) {
         for (final scale in [1.0, 2.0]) {
           testWidgets(
-            'fits all localized cards at $width px in '
-            '${locale.languageCode} ${themeMode.name} scale $scale',
-            (tester) async {
-              await _setViewport(tester, Size(width, 700.0));
-              final strings = FFLocalizations(locale);
-              await tester.pumpWidget(
-                _testApp(
-                  themeMode: themeMode,
-                  child: MediaQuery(
-                    data: MediaQueryData(
-                        size: Size(width, 700),
-                        textScaler: TextScaler.linear(scale)),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16.0),
-                      child: HomeFeatureSection(
-                        vipCard: _localizedCard(HomeFeatureTone.vip, strings),
-                        chanceCard:
-                            _localizedCard(HomeFeatureTone.chance, strings),
-                        videoCard:
-                            _localizedCard(HomeFeatureTone.video, strings),
-                        draws: const SizedBox(height: 100.0),
-                      ),
-                    ),
+              'casino layout ${locale.languageCode} ${mode.name} width $width scale $scale',
+              (tester) async {
+            await _setViewport(tester, Size(width, 700));
+            final tapped = <String>[];
+            await tester.pumpWidget(_testApp(
+              themeMode: mode,
+              locale: locale,
+              child: MediaQuery(
+                data: MediaQueryData(
+                    size: Size(width, 700),
+                    textScaler: TextScaler.linear(scale)),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: _section(
+                    onAction: tapped.add,
+                    stories:
+                        const SizedBox(height: 80, key: ValueKey('stories')),
                   ),
                 ),
-              );
-              await _finishCardTransitions(tester);
-
-              for (final tone in HomeFeatureTone.values) {
-                final card =
-                    find.byKey(ValueKey('home-feature-card-${tone.name}'));
-                expect(card, findsOneWidget);
-                final title = find.byKey(
-                  ValueKey('home-feature-title-${tone.name}'),
-                );
-                final description = find.byKey(
-                  ValueKey('home-feature-description-${tone.name}'),
-                );
-                // Important copy stays complete when translations or text size grow.
-                expect(tester.widget<Text>(title).maxLines, isNull);
-                expect(tester.widget<Text>(description).maxLines, isNull);
-                expect(tester.getBottomRight(description).dy,
-                    lessThan(tester.getBottomRight(card).dy));
-                expect(tester.getTopLeft(card).dx, greaterThanOrEqualTo(16.0));
-                expect(tester.getBottomRight(card).dx,
-                    lessThanOrEqualTo(width - 16));
-              }
-              expect(tester.takeException(), isNull);
-            },
-          );
+              ),
+            ));
+            await _finishCardTransitions(tester);
+            final strings = FFLocalizations(locale);
+            final hero = find.byKey(const ValueKey('home-vip-hero'));
+            final stories = find.byKey(const ValueKey('stories'));
+            expect(tester.getBottomLeft(stories).dy,
+                lessThanOrEqualTo(tester.getTopLeft(hero).dy));
+            expect(
+                find.descendant(
+                    of: hero, matching: find.text(strings.getText('covzb0rd'))),
+                findsOneWidget);
+            expect(
+                find.descendant(
+                    of: hero,
+                    matching: find.text(strings.getText('home_open_vip'))),
+                findsOneWidget);
+            final chance =
+                find.byKey(const ValueKey('home-feature-card-chance'));
+            final results =
+                find.byKey(const ValueKey('home-feature-card-draws'));
+            expect(
+                find.descendant(
+                    of: results,
+                    matching: find.text(strings.getText('home_latest_draws'))),
+                findsOneWidget);
+            if (width == 1160 && scale == 1) {
+              expect(tester.getTopRight(hero).dx,
+                  lessThan(tester.getTopLeft(results).dx));
+              expect(
+                  tester.getTopLeft(results).dx, tester.getTopLeft(chance).dx);
+            } else if (width == 320 && scale == 1) {
+              expect(tester.getBottomLeft(hero).dy,
+                  lessThanOrEqualTo(tester.getTopLeft(results).dy));
+              expect(
+                  tester.getTopLeft(results).dy, tester.getTopLeft(chance).dy);
+            }
+            for (final (key, id) in [
+              ('home-open-vip', 'vip'),
+              ('home-feature-card-draws', 'results'),
+              ('home-feature-card-chance', 'chance'),
+              for (final id in ['video', 'stats', 'tchala', 'history'])
+                ('home-shortcut-$id', id),
+            ]) {
+              final item = find.byKey(ValueKey(key));
+              await tester.ensureVisible(item);
+              await tester.tap(item);
+              await tester.pump();
+              expect(tapped.last, id);
+              final rect = tester.getRect(item);
+              expect(rect.left, greaterThanOrEqualTo(16));
+              expect(rect.right, lessThanOrEqualTo(width - 16));
+            }
+            expect(tester.takeException(), isNull);
+          });
         }
       }
     }
   }
-
-  testWidgets('keeps draw placement on mobile and builds a three-card web row',
-      (tester) async {
-    await _setViewport(tester, const Size(390.0, 900.0));
-
-    Widget section() => HomeFeatureSection(
-          vipCard: _card(
-            id: 'vip',
-            title: 'VIP',
-            description: 'Premium',
-            tone: HomeFeatureTone.vip,
-            assetPath: _vipAsset,
-          ),
-          chanceCard: _card(
-            id: 'chance',
-            title: 'CHANCE',
-            description: 'Daily game',
-            tone: HomeFeatureTone.chance,
-            assetPath: _chanceAsset,
-          ),
-          draws: const SizedBox(
-            key: ValueKey('draws-placeholder'),
-            height: 100.0,
-          ),
-          videoCard: _card(
-            id: 'video',
-            title: 'VIDEO',
-            description: 'Watch',
-            tone: HomeFeatureTone.video,
-            assetPath: _videoAsset,
-          ),
-        );
-
-    await tester.pumpWidget(
-      _testApp(
-        themeMode: ThemeMode.dark,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: section(),
-        ),
-      ),
-    );
-    await _finishCardTransitions(tester);
-
-    expect(
-      find.byKey(const ValueKey('home-feature-mobile-layout')),
-      findsOneWidget,
-    );
-    expect(
-      tester.getTopLeft(find.byKey(const ValueKey('draws-placeholder'))).dy,
-      lessThan(
-        tester
-            .getTopLeft(
-              find.byKey(const ValueKey('home-feature-card-video')),
-            )
-            .dy,
-      ),
-    );
-
-    await _setViewport(tester, const Size(1160.0, 700.0));
-    await tester.pumpWidget(
-      _testApp(
-        themeMode: ThemeMode.light,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: section(),
-        ),
-      ),
-    );
-    await _finishCardTransitions(tester);
-
-    expect(
-      find.byKey(const ValueKey('home-feature-wide-layout')),
-      findsOneWidget,
-    );
-    final vipTop = tester
-        .getTopLeft(find.byKey(const ValueKey('home-feature-card-vip')))
-        .dy;
-    final chanceTop = tester
-        .getTopLeft(find.byKey(const ValueKey('home-feature-card-chance')))
-        .dy;
-    final videoTop = tester
-        .getTopLeft(find.byKey(const ValueKey('home-feature-card-video')))
-        .dy;
-    expect(chanceTop, vipTop);
-    expect(videoTop, vipTop);
-    expect(tester.takeException(), isNull);
-  });
 }

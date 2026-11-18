@@ -782,6 +782,66 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // Home
   {
+    'home_latest_draws': {
+      'fr': 'Derniers tirages',
+      'cr': 'Dènye tiraj',
+      'en': 'Latest draws',
+    },
+    'home_open_vip': {
+      'fr': 'Accéder au VIP',
+      'cr': 'Antre nan VIP',
+      'en': 'Open VIP',
+    },
+    'home_story_seen': {
+      'fr': 'Déjà vue',
+      'cr': 'Deja wè',
+      'en': 'Viewed',
+    },
+    'home_story_unseen': {
+      'fr': 'À découvrir',
+      'cr': 'Poko wè',
+      'en': 'Unseen',
+    },
+    'home_latest_results': {
+      'fr': 'Derniers résultats',
+      'cr': 'Dènye rezilta',
+      'en': 'Latest results',
+    },
+    'home_draw_new_york': {
+      'fr': 'New York',
+      'cr': 'Nouyòk',
+      'en': 'New York',
+    },
+    'home_draw_florida': {
+      'fr': 'Floride',
+      'cr': 'Florid',
+      'en': 'Florida',
+    },
+    'home_draw_midday': {
+      'fr': 'Midi',
+      'cr': 'Midi',
+      'en': 'Midday',
+    },
+    'home_draw_evening': {
+      'fr': 'Soir',
+      'cr': 'Aswè',
+      'en': 'Evening',
+    },
+    'home_draw_empty': {
+      'fr': 'Aucun résultat',
+      'cr': 'Pa gen rezilta',
+      'en': 'No results',
+    },
+    'home_draw_unavailable': {
+      'fr': 'Résultats indisponibles',
+      'cr': 'Rezilta yo pa disponib',
+      'en': 'Results unavailable',
+    },
+    'home_draw_refresh': {
+      'fr': 'Actualiser les résultats',
+      'cr': 'Rafrechi rezilta yo',
+      'en': 'Refresh results',
+    },
     'covzb0rd': {
       'fr': 'Abonnement VIP',
       'cr': 'Abònman VIP',

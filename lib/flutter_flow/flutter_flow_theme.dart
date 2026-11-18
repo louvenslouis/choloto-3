@@ -346,6 +346,68 @@ class FFDesignTokens {
   FFShadows get shadow => FFShadows(theme);
   FFBackgrounds get background => FFBackgrounds(theme);
   FFVipMaterials get vip => FFVipMaterials(theme);
+  FFHomeMaterials get home => FFHomeMaterials(theme);
+}
+
+/// Sapphire glass, brushed gold and amethyst from the home artwork. The
+/// illustrated panels keep their material colors in both brightness modes.
+class FFHomeMaterials {
+  const FFHomeMaterials(this.theme);
+  final FlutterFlowTheme theme;
+  bool get _dark => theme is DarkModeTheme;
+
+  static const _ink = Color(0xFF070C19);
+  static const _sapphire = Color(0xFF102861);
+  Color get heroGlow => const Color(0xFF417EFF);
+
+  LinearGradient get hero => const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [_ink, Color(0xFF091833), _sapphire, Color(0xFF174BB6)],
+        stops: [0.0, 0.38, 0.70, 1.0],
+      );
+
+  LinearGradient get membership => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFFD2962E),
+          const Color(0xFFFFDF85),
+          const Color(0xFFCA8C28),
+          theme.warning,
+        ],
+        stops: const [0.0, 0.28, 0.56, 1.0],
+      );
+
+  LinearGradient get chance => const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF4B1D77),
+          Color(0xFF92379C),
+          Color(0xFF5D1971),
+          Color(0xFFA42A88),
+        ],
+        stops: [0.0, 0.40, 0.63, 1.0],
+      );
+
+  LinearGradient get surface => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: _dark
+            ? const [Color(0xFF1B2943), Color(0xFF0D1628)]
+            : [theme.secondaryBackground, const Color(0xFFECF0F8)],
+      );
+
+  Color get edge => _dark ? const Color(0xFF425472) : const Color(0xFFC2CCDC);
+  Color get mutedText => _dark ? const Color(0xFFB9C4D9) : theme.secondaryText;
+  Color get videoAccent =>
+      _dark ? const Color(0xFFFF8793) : const Color(0xFFAE233B);
+  Color get statsAccent => _dark ? theme.warning : const Color(0xFF795200);
+  Color get tchalaAccent =>
+      _dark ? const Color(0xFF70E4C3) : const Color(0xFF006B55);
+  Color get historyAccent =>
+      _dark ? const Color(0xFFD7AEFF) : const Color(0xFF7338A3);
 }
 
 // Casino materials requested for VIP. Keep this feature palette here so cards,
@@ -421,11 +483,8 @@ class FFBackgrounds {
   const FFBackgrounds(this.theme);
   final FlutterFlowTheme theme;
 
-  // Keep the surrounding chrome dark while the page retains only a subtle
-  // blackened-gold transition derived from the CHOLOTO brand color.
-  Color get home => theme is DarkModeTheme
-      ? Color.lerp(theme.primaryBackground, theme.secondaryBackground, 0.38)!
-      : theme.primaryBackground;
+  Color get home =>
+      theme is DarkModeTheme ? FFHomeMaterials._ink : theme.primaryBackground;
 
   LinearGradient get homeGradient => theme is DarkModeTheme
       ? LinearGradient(
@@ -433,9 +492,8 @@ class FFBackgrounds {
           end: Alignment.bottomRight,
           colors: [
             home,
-            Color.lerp(theme.primaryBackground, theme.primary, 0.08)!,
-            Color.lerp(
-                theme.primaryBackground, theme.secondaryBackground, 0.58)!,
+            Color.lerp(home, FFHomeMaterials._sapphire, 0.22)!,
+            theme.primaryBackground,
           ],
           stops: const [0.0, 0.58, 1.0],
         )

@@ -6,13 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('application theme', () {
-    test('VIP casino materials retain readable text in both themes', () {
-      double contrast(Color a, Color b) {
-        final x = a.computeLuminance();
-        final y = b.computeLuminance();
-        return (x > y ? x + 0.05 : y + 0.05) / (x > y ? y + 0.05 : x + 0.05);
-      }
+    double contrast(Color a, Color b) {
+      final x = a.computeLuminance();
+      final y = b.computeLuminance();
+      return (x > y ? x + 0.05 : y + 0.05) / (x > y ? y + 0.05 : x + 0.05);
+    }
 
+    test('VIP casino materials retain readable text in both themes', () {
       for (final theme in [DarkModeTheme(), LightModeTheme()]) {
         final materials = theme.designToken.vip;
         expect(materials.felt.colors.toSet().length, greaterThan(1));
@@ -30,6 +30,30 @@ void main() {
         }
         expect(contrast(theme.onPrimary, theme.primary),
             greaterThanOrEqualTo(4.5));
+      }
+    });
+    test('home cards and shortcut colors remain legible in both themes', () {
+      for (final theme in [DarkModeTheme(), LightModeTheme()]) {
+        final home = theme.designToken.home;
+        for (final color in [...home.hero.colors, ...home.chance.colors]) {
+          expect(
+              contrast(theme.onDecorative, color), greaterThanOrEqualTo(4.5));
+        }
+        for (final color in home.membership.colors) {
+          expect(contrast(theme.onPrimary, color), greaterThanOrEqualTo(4.5));
+        }
+        for (final surface in home.surface.colors) {
+          for (final foreground in [
+            theme.primaryText,
+            home.mutedText,
+            home.videoAccent,
+            home.statsAccent,
+            home.tchalaAccent,
+            home.historyAccent,
+          ]) {
+            expect(contrast(foreground, surface), greaterThanOrEqualTo(4.5));
+          }
+        }
       }
     });
     test('home uses a subtle dark gradient without changing the base palette',

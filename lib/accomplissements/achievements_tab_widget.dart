@@ -10,6 +10,7 @@ import '/services/engagement_service.dart';
 import 'package:flutter/material.dart';
 
 import 'achievement_progress.dart';
+import 'member_vip_badge.dart';
 
 class AchievementsTabWidget extends StatefulWidget {
   const AchievementsTabWidget({super.key});
@@ -77,7 +78,8 @@ class _AchievementsTabWidgetState extends State<AchievementsTabWidget> {
           hasCompleteProfile: user.displayName.trim().isNotEmpty &&
               user.photoUrl.trim().isNotEmpty,
         );
-        return AchievementDashboard(snapshot: snapshotData, now: now);
+        return AchievementDashboard(
+            snapshot: snapshotData, now: now, user: user);
       },
     );
   }
@@ -88,8 +90,10 @@ class AchievementDashboard extends StatelessWidget {
     super.key,
     required this.snapshot,
     required this.now,
+    this.user,
   });
 
+  final UserRecord? user;
   final AchievementSnapshot snapshot;
   final DateTime now;
 
@@ -115,6 +119,8 @@ class AchievementDashboard extends StatelessWidget {
                     const _TrackingStartedNotice(),
                   ],
                   SizedBox(height: spacing.lg),
+                  if (user != null)
+                    MemberVipBadge(user: user!, showCollection: true),
                   _AchievementCompletionStatus(snapshot: snapshot),
                   SizedBox(height: spacing.lg),
                   const _SectionTitle(

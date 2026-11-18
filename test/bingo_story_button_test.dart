@@ -619,7 +619,7 @@ void main() {
           final label = tester.widget<Text>(labelFinder);
 
           expect(circleRect.contains(labelRect.center), isTrue);
-          expect(label.style?.fontWeight, FontWeight.bold);
+          expect(label.style?.fontWeight, FontWeight.w800);
           expect(tester.takeException(), isNull);
         },
       );

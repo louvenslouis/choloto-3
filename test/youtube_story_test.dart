@@ -237,6 +237,13 @@ void main() {
             tester.getSize(find.byKey(const ValueKey('youtube-story-circle'))),
             const Size.square(72.0),
           );
+          final circle = tester
+              .getRect(find.byKey(const ValueKey('youtube-story-circle')));
+          final caption = tester
+              .getRect(find.byKey(const ValueKey('youtube-story-caption')));
+          expect(circle.bottom - caption.bottom, greaterThanOrEqualTo(8));
+          expect(caption.left - circle.left, greaterThanOrEqualTo(8));
+          expect(circle.right - caption.right, greaterThanOrEqualTo(8));
           expect(tester.takeException(), isNull);
         },
       );

@@ -10,6 +10,7 @@ import 'auth/firebase_auth/firebase_user_provider.dart';
 import 'auth/firebase_auth/auth_util.dart';
 
 import 'backend/firebase/firebase_config.dart';
+import 'components/home_header_actions.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
@@ -242,6 +243,33 @@ class NavBarPage extends StatefulWidget {
 class _NavBarPageState extends State<NavBarPage> {
   static const _tabNames = ['Home', 'Tirages', 'VIP', 'Tchala'];
 
+  static const _destinations = [
+    (
+      label: 'uer2q4no',
+      icon: Icon(Icons.home_outlined),
+      activeIcon: Icon(Icons.home_rounded),
+      homeIcon: Icon(Icons.home_outlined),
+    ),
+    (
+      label: 'wakkucok',
+      icon: FaIcon(FontAwesomeIcons.checkToSlot),
+      activeIcon: FaIcon(FontAwesomeIcons.checkToSlot),
+      homeIcon: Icon(Icons.confirmation_number_outlined),
+    ),
+    (
+      label: 'xj2saev3',
+      icon: Icon(Icons.workspace_premium_outlined),
+      activeIcon: Icon(Icons.workspace_premium_rounded),
+      homeIcon: FaIcon(FontAwesomeIcons.crown, size: 20),
+    ),
+    (
+      label: '14smzvpm',
+      icon: FaIcon(FontAwesomeIcons.book),
+      activeIcon: FaIcon(FontAwesomeIcons.bookOpen),
+      homeIcon: Icon(Icons.menu_book_rounded),
+    ),
+  ];
+
   String _currentPageName = 'Home';
   late Widget? _currentPage;
   late List<Widget?> _tabPages;
@@ -259,7 +287,7 @@ class _NavBarPageState extends State<NavBarPage> {
   }
 
   Widget _createTab(int index) => switch (index) {
-        0 => HomeWidget(),
+        0 => const HomeWidget(inTabShell: true),
         1 => TiragesWidget(),
         2 => VipWidget(),
         3 => TchalaWidget(),
@@ -272,105 +300,115 @@ class _NavBarPageState extends State<NavBarPage> {
         _tabPages[index] ??= _createTab(index);
       });
 
-  List<NavigationRailDestination> _railDestinations(
-    BuildContext context,
-  ) =>
-      [
-        NavigationRailDestination(
-          icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home_rounded),
-          label: Text(
-            FFLocalizations.of(context).getText(
-              'uer2q4no' /* Accueil */,
-            ),
-          ),
-        ),
-        NavigationRailDestination(
-          icon: const FaIcon(FontAwesomeIcons.checkToSlot),
-          selectedIcon: const FaIcon(FontAwesomeIcons.checkToSlot),
-          label: Text(
-            FFLocalizations.of(context).getText(
-              'wakkucok' /* Tirages */,
-            ),
-          ),
-        ),
-        NavigationRailDestination(
-          icon: const Icon(Icons.workspace_premium_outlined),
-          selectedIcon: const Icon(Icons.workspace_premium_rounded),
-          label: Text(
-            FFLocalizations.of(context).getText(
-              'xj2saev3' /* VIP */,
-            ),
-          ),
-        ),
-        NavigationRailDestination(
-          icon: const FaIcon(FontAwesomeIcons.book),
-          selectedIcon: const FaIcon(FontAwesomeIcons.bookOpen),
-          label: Text(
-            FFLocalizations.of(context).getText(
-              '14smzvpm' /* Tchala */,
-            ),
-          ),
-        ),
-      ];
-
   List<BottomNavigationBarItem> _bottomDestinations(
-    BuildContext context,
-  ) =>
-      [
+    BuildContext context, {
+    required bool onHome,
+  }) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    return [
+      for (final destination in _destinations)
         BottomNavigationBarItem(
-          icon: const Icon(
-            Icons.home_outlined,
-            size: 24.0,
-          ),
-          activeIcon: const Icon(
-            Icons.home_rounded,
-            size: 24.0,
-          ),
-          label: FFLocalizations.of(context).getText(
-            'uer2q4no' /* Accueil */,
-          ),
+          label: FFLocalizations.of(context).getText(destination.label),
           tooltip: '',
+          icon: onHome ? destination.homeIcon : destination.icon,
+          activeIcon: onHome
+              ? Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: tokens.spacing.md,
+                    vertical: tokens.spacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.primary,
+                    borderRadius: BorderRadius.circular(tokens.radius.full),
+                  ),
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: theme.onPrimary),
+                    child: destination.homeIcon,
+                  ),
+                )
+              : destination.activeIcon,
         ),
-        BottomNavigationBarItem(
-          icon: const FaIcon(
-            FontAwesomeIcons.checkToSlot,
-            size: 24.0,
+    ];
+  }
+
+  PreferredSizeWidget _homeDesktopBar(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final strings = FFLocalizations.of(context);
+    final compact = MediaQuery.sizeOf(context).width < kBreakpointLarge;
+    return AppBar(
+      key: const ValueKey('home-desktop-navigation'),
+      automaticallyImplyLeading: false,
+      centerTitle: false,
+      toolbarHeight: tokens.spacing.xl * 2,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      backgroundColor: tokens.background.home,
+      shape: Border(bottom: BorderSide(color: tokens.home.edge)),
+      titleSpacing: tokens.spacing.md,
+      title: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1360),
+          child: SizedBox(
+            height: tokens.spacing.xl * 2,
+            child: NavigationToolbar(
+              leading: const HomeHeaderBrand(),
+              trailing: HomeHeaderActions.navigation(context),
+              middleSpacing: tokens.spacing.md,
+              middle: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var i = 0; i < _destinations.length; i++)
+                      Semantics(
+                        selected: i == 0,
+                        child: TextButton(
+                          key: ValueKey('desktop-tab-${_tabNames[i]}'),
+                          onPressed: () => _selectTab(i),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: compact
+                                    ? tokens.spacing.xs
+                                    : tokens.spacing.md),
+                            minimumSize: const Size(kMinInteractiveDimension,
+                                kMinInteractiveDimension),
+                            foregroundColor: i == 0
+                                ? tokens.home.statsAccent
+                                : theme.primaryText,
+                            textStyle:
+                                (compact ? theme.titleSmall : theme.titleMedium)
+                                    .copyWith(
+                              fontWeight:
+                                  i == 0 ? FontWeight.w800 : FontWeight.w600,
+                            ),
+                          ),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                                border: i == 0
+                                    ? Border(
+                                        bottom: BorderSide(
+                                            color: theme.primary, width: 2))
+                                    : null),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: tokens.spacing.sm),
+                              child:
+                                  Text(strings.getText(_destinations[i].label)),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          label: FFLocalizations.of(context).getText(
-            'wakkucok' /* Tirages */,
-          ),
-          tooltip: '',
         ),
-        BottomNavigationBarItem(
-          icon: const Icon(
-            Icons.workspace_premium_outlined,
-            size: 24.0,
-          ),
-          activeIcon: const Icon(
-            Icons.workspace_premium_rounded,
-            size: 24.0,
-          ),
-          label: FFLocalizations.of(context).getText(
-            'xj2saev3' /* VIP */,
-          ),
-          tooltip: '',
-        ),
-        BottomNavigationBarItem(
-          icon: const FaIcon(
-            FontAwesomeIcons.book,
-            size: 24.0,
-          ),
-          activeIcon: const FaIcon(
-            FontAwesomeIcons.bookOpen,
-            size: 24.0,
-          ),
-          label: FFLocalizations.of(context).getText(
-            '14smzvpm' /* Tchala */,
-          ),
-          tooltip: '',
-        ),
-      ];
+      ),
+    );
+  }
 
   Widget _buildRail(
     BuildContext context, {
@@ -446,18 +484,25 @@ class _NavBarPageState extends State<NavBarPage> {
           ],
         ),
       ),
-      destinations: _railDestinations(context),
+      destinations: [
+        for (final destination in _destinations)
+          NavigationRailDestination(
+            icon: destination.icon,
+            selectedIcon: destination.activeIcon,
+            label: Text(FFLocalizations.of(context).getText(destination.label)),
+          ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final navigationBackground = _currentPageName == 'Home'
-        ? theme.designToken.background.home
-        : theme.primaryBackground;
+    final onHome = _currentPageName == 'Home';
+    final navigationBackground =
+        onHome ? theme.designToken.background.home : theme.primaryBackground;
     final currentIndex = _tabNames.indexOf(_currentPageName);
-    final showNavigationRail = responsiveVisibility(
+    final wide = responsiveVisibility(
       context: context,
       phone: false,
       tablet: false,
@@ -476,34 +521,42 @@ class _NavBarPageState extends State<NavBarPage> {
     return Scaffold(
       backgroundColor: navigationBackground,
       resizeToAvoidBottomInset: !widget.disableResizeToAvoidBottomInset,
-      body: showNavigationRail
-          ? Row(
-              children: [
-                SafeArea(
-                  right: false,
-                  child: _buildRail(
-                    context,
-                    currentIndex: currentIndex,
-                    extended: extendNavigationRail,
-                  ),
-                ),
-                Expanded(child: page),
-              ],
-            )
-          : page,
-      bottomNavigationBar: showNavigationRail
+      appBar: wide && onHome ? _homeDesktopBar(context) : null,
+      body: Row(
+        children: [
+          if (wide && !onHome)
+            SafeArea(
+              right: false,
+              child: _buildRail(
+                context,
+                currentIndex: currentIndex,
+                extended: extendNavigationRail,
+              ),
+            ),
+          Expanded(child: page),
+        ],
+      ),
+      bottomNavigationBar: wide
           ? null
           : BottomNavigationBar(
               key: const ValueKey('primary-bottom-navigation'),
               currentIndex: currentIndex,
               onTap: _selectTab,
               backgroundColor: navigationBackground,
-              selectedItemColor: FlutterFlowTheme.of(context).primary,
-              unselectedItemColor: FlutterFlowTheme.of(context).alternate,
+              selectedItemColor:
+                  onHome ? theme.designToken.home.statsAccent : theme.primary,
+              unselectedItemColor: onHome ? theme.primaryText : theme.alternate,
+              selectedLabelStyle: onHome
+                  ? theme.labelMedium.copyWith(fontWeight: FontWeight.w800)
+                  : null,
+              unselectedLabelStyle: onHome
+                  ? theme.labelMedium.copyWith(fontWeight: FontWeight.w600)
+                  : null,
+              elevation: onHome ? 0 : null,
               showSelectedLabels: true,
               showUnselectedLabels: true,
               type: BottomNavigationBarType.fixed,
-              items: _bottomDestinations(context),
+              items: _bottomDestinations(context, onHome: onHome),
             ),
     );
   }

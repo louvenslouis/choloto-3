@@ -1,3 +1,4 @@
+import '/components/home_story_bubble.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -28,125 +29,64 @@ class YoutubeStoryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    final localizations = FFLocalizations.of(context);
+    final tokens = theme.designToken;
+    final strings = FFLocalizations.of(context);
+    final fallback = DecoratedBox(
+      decoration: BoxDecoration(gradient: tokens.home.hero),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(tokens.spacing.sm, tokens.spacing.xs,
+            tokens.spacing.sm, tokens.spacing.md),
+        child: Image.asset('assets/images/home/video_play_3d_v2.png',
+            fit: BoxFit.contain, excludeFromSemantics: true),
+      ),
+    );
 
-    return Semantics(
-      label: '${localizations.getText('youtube_story_open')}: ${video.title}',
-      button: true,
-      excludeSemantics: true,
-      child: InkWell(
-        key: const ValueKey('youtube-story-button'),
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(theme.designToken.radius.md),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: spacing.sm,
-            vertical: spacing.xs,
-          ),
-          child: SizedBox(
-            width: 80.0,
-            child: Center(
-              child: SizedBox(
-                key: const ValueKey('youtube-story-circle'),
-                width: 72.0,
-                height: 72.0,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 72.0,
-                      height: 72.0,
-                      padding: EdgeInsets.all(spacing.xs),
-                      decoration: BoxDecoration(
-                        color: viewed ? theme.alternate : theme.primary,
-                        shape: BoxShape.circle,
-                        boxShadow: [theme.designToken.shadow.sm],
-                      ),
-                      child: ClipOval(
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            CachedNetworkImage(
-                              key: const ValueKey('youtube-story-thumbnail'),
-                              imageUrl: video.thumbnail,
-                              fit: BoxFit.cover,
-                              fadeInDuration: const Duration(milliseconds: 180),
-                              placeholder: (context, _) => ColoredBox(
-                                color: theme.secondaryBackground,
-                              ),
-                              errorWidget: (context, _, __) => ColoredBox(
-                                color: theme.secondaryBackground,
-                                child: Icon(
-                                  Icons.play_arrow_rounded,
-                                  color: theme.primary,
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: AlignmentDirectional.bottomCenter,
-                              child: Container(
-                                width: double.infinity,
-                                padding: EdgeInsets.symmetric(
-                                  vertical: spacing.xs,
-                                ),
-                                color: theme.primary.applyAlpha(0.92),
-                                child: Text(
-                                  localizations.getText('youtube_story_label'),
-                                  key: const ValueKey('youtube-story-label'),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
-                                  style: theme.labelSmall.copyWith(
-                                    color: theme.onPrimary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (storyCount > 1)
-                      PositionedDirectional(
-                        top: 0.0,
-                        end: 0.0,
-                        child: Container(
-                          key: const ValueKey('youtube-story-count'),
-                          constraints: const BoxConstraints(
-                            minWidth: 20.0,
-                            minHeight: 20.0,
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: spacing.xs,
-                          ),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: theme.primary,
-                            borderRadius: BorderRadius.circular(
-                              theme.designToken.radius.full,
-                            ),
-                            border: Border.all(
-                              color: theme.primaryBackground,
-                              width: 2.0,
-                            ),
-                          ),
-                          child: Text(
-                            '$storyCount',
-                            style: theme.labelSmall.copyWith(
-                              color: theme.onPrimary,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+    return HomeStoryBubble(
+      id: 'youtube-story',
+      viewed: viewed,
+      storyCount: storyCount,
+      onTap: onTap,
+      semanticLabel: "${strings.getText('youtube_story_open')}: ${video.title}",
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (video.thumbnail.isEmpty)
+            fallback
+          else
+            CachedNetworkImage(
+              key: const ValueKey('youtube-story-thumbnail'),
+              imageUrl: video.thumbnail,
+              fit: BoxFit.cover,
+              fadeInDuration: const Duration(milliseconds: 180),
+              placeholder: (context, _) => fallback,
+              errorWidget: (context, _, __) => fallback,
+            ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                  tokens.spacing.sm, 0, tokens.spacing.sm, tokens.spacing.sm),
+              child: DecoratedBox(
+                key: const ValueKey('youtube-story-caption'),
+                decoration: BoxDecoration(
+                  color: theme.onPrimary.withValues(alpha: .85),
+                  borderRadius: BorderRadius.circular(tokens.radius.full),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: tokens.spacing.xs),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(strings.getText('youtube_story_label'),
+                        key: const ValueKey('youtube-story-label'),
+                        style: theme.labelSmall.override(
+                            color: theme.onDecorative,
+                            fontWeight: FontWeight.w700)),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

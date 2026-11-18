@@ -4,8 +4,9 @@ import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo/bingo_dialog.dart';
 import '/autres/bingo/bingo/bingo_story_button.dart';
 import '/backend/backend.dart';
-import '/components/home_feature_card.dart';
+import '/components/home_feature_section.dart';
 import '/components/home_header_actions.dart';
+import '/components/home_page_scaffold.dart';
 import '/components/home_stories_rail.dart';
 import '/components/rappel_fin_abonnement_widget.dart';
 import '/components/tirages_home_widget.dart';
@@ -24,7 +25,9 @@ import 'home_model.dart';
 export 'home_model.dart';
 
 class HomeWidget extends StatefulWidget {
-  const HomeWidget({super.key});
+  const HomeWidget({super.key, this.inTabShell = false});
+
+  final bool inTabShell;
 
   static String routeName = 'Home';
   static String routePath = '/home';
@@ -55,9 +58,6 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   bool _bingoInitialSnapshotHandled = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-  int _assetCacheWidth(BuildContext context, double logicalWidth) =>
-      (logicalWidth * MediaQuery.devicePixelRatioOf(context)).ceil();
 
   @override
   void initState() {
@@ -480,237 +480,69 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
-    return Builder(
-      builder: (context) => GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-          FocusManager.instance.primaryFocus?.unfocus();
+    return HomePageScaffold(
+      scaffoldKey: scaffoldKey,
+      inTabShell: widget.inTabShell,
+      support: HomeSupportFab(
+        messageCount: _supportConversation?.pendingAdminMessages ?? 0,
+        shakeTrigger: _supportShakeTrigger,
+        onSupport: () async {
+          logFirebaseEvent(
+            'HOME_PAGE_support_agent_ICN_ON_TAP',
+          );
+          logFirebaseEvent('IconButton_navigate_to');
+          await context.pushNamed(
+            CustomerserviceWidget.routeName,
+          );
         },
-        child: Scaffold(
-          key: scaffoldKey,
-          backgroundColor:
-              FlutterFlowTheme.of(context).designToken.background.home,
-          floatingActionButton: HomeSupportFab(
-            messageCount: _supportConversation?.pendingAdminMessages ?? 0,
-            shakeTrigger: _supportShakeTrigger,
-            onSupport: () async {
+      ),
+      children: [
+        if (isSubscriptionExpired(
+          expiration: _latestSubscriptionExpiration,
+          now: getCurrentTimestamp,
+        ))
+          ExpiredSubscriptionCard(
+            onRenew: () {
               logFirebaseEvent(
-                'HOME_PAGE_support_agent_ICN_ON_TAP',
+                'HOME_EXPIRED_SUB_RENEW',
               );
-              logFirebaseEvent('IconButton_navigate_to');
-              await context.pushNamed(
-                CustomerserviceWidget.routeName,
-              );
+              context.pushNamed(UpgradeWidget.routeName);
             },
           ),
-          body: DecoratedBox(
-            key: const ValueKey('home-background-gradient'),
-            decoration: BoxDecoration(
-              gradient: FlutterFlowTheme.of(context)
-                  .designToken
-                  .background
-                  .homeGradient,
-            ),
-            child: NestedScrollView(
-              floatHeaderSlivers: false,
-              headerSliverBuilder: (context, _) => [
-                SliverAppBar(
-                  pinned: true,
-                  floating: false,
-                  toolbarHeight: 64.0,
-                  backgroundColor:
-                      FlutterFlowTheme.of(context).designToken.background.home,
-                  surfaceTintColor:
-                      FlutterFlowTheme.of(context).designToken.background.home,
-                  automaticallyImplyLeading: false,
-                  titleSpacing:
-                      FlutterFlowTheme.of(context).designToken.spacing.md,
-                  title: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          FlutterFlowTheme.of(context).designToken.radius.md,
-                        ),
-                        child: Image.asset(
-                          'assets/images/Logo_Choloto_509.png',
-                          key: const ValueKey('home-header-logo'),
-                          width: 42.0,
-                          height: 42.0,
-                          cacheWidth: _assetCacheWidth(context, 42.0),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      SizedBox(
-                        width:
-                            FlutterFlowTheme.of(context).designToken.spacing.sm,
-                      ),
-                      Flexible(
-                        child: Text(
-                          FFLocalizations.of(context).getText(
-                            'loh576na' /* CHOLOTO */,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          style:
-                              FlutterFlowTheme.of(context).titleLarge.override(
-                                    fontSize: 20.0,
-                                    letterSpacing: 0.8,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    HomeHeaderActions(
-                      onAchievements: () async {
-                        logFirebaseEvent('HOME_PAGE_query_stats_ICN_ON_TAP');
-                        logFirebaseEvent('IconButton_navigate_to');
-                        await context.pushNamed(
-                          AccomplissementsWidget.routeName,
-                        );
-                      },
-                      onSettings: () async {
-                        logFirebaseEvent(
-                          'HOME_PAGE_settings_outlined_ICN_ON_TAP',
-                        );
-                        logFirebaseEvent('IconButton_navigate_to');
-                        await context.pushNamed(ParametresWidget.routeName);
-                      },
-                    ),
-                    SizedBox(
-                      width:
-                          FlutterFlowTheme.of(context).designToken.spacing.sm,
-                    ),
-                  ],
-                  shape: Border(
-                    bottom: BorderSide(
-                      color: FlutterFlowTheme.of(context)
-                          .primaryText
-                          .withValues(alpha: 0.06),
-                    ),
-                  ),
-                  centerTitle: false,
-                  elevation: 0.0,
-                  scrolledUnderElevation: 0.0,
-                )
-              ],
-              body: Builder(
-                builder: (context) {
-                  return SafeArea(
-                    top: false,
-                    child: SingleChildScrollView(
-                      padding: EdgeInsetsDirectional.fromSTEB(
-                        FlutterFlowTheme.of(context).designToken.spacing.md,
-                        FlutterFlowTheme.of(context).designToken.spacing.sm,
-                        FlutterFlowTheme.of(context).designToken.spacing.md,
-                        // Keep the last card clear of the support FAB.
-                        FlutterFlowTheme.of(context).designToken.spacing.xl * 3,
-                      ),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 1120.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              if (isSubscriptionExpired(
-                                expiration: _latestSubscriptionExpiration,
-                                now: getCurrentTimestamp,
-                              ))
-                                ExpiredSubscriptionCard(
-                                  onRenew: () {
-                                    logFirebaseEvent(
-                                      'HOME_EXPIRED_SUB_RENEW',
-                                    );
-                                    context.pushNamed(UpgradeWidget.routeName);
-                                  },
-                                ),
-                              HomeFeatureSection(
-                                stories: _buildStoriesRail(context),
-                                vipCard: HomeFeatureCard(
-                                  semanticId: 'vip',
-                                  title: FFLocalizations.of(context).getText(
-                                    'covzb0rd' /* ABONNEMENT VIP */,
-                                  ),
-                                  description:
-                                      FFLocalizations.of(context).getText(
-                                    'uvl7vow9' /* Probabilités des jeux de loterie. */,
-                                  ),
-                                  assetPath:
-                                      'assets/images/home/vip_membership_3d_v2.png',
-                                  tone: HomeFeatureTone.vip,
-                                  onTap: () {
-                                    logFirebaseEvent(
-                                      'HOME_PAGE_membership_ON_TAP',
-                                    );
-                                    logFirebaseEvent('membership_navigate_to');
-                                    context.pushNamed(VipWidget.routeName);
-                                  },
-                                ),
-                                chanceCard: HomeFeatureCard(
-                                  semanticId: 'chance',
-                                  title: FFLocalizations.of(context).getText(
-                                    'afym167o' /* CROIX DE LA CHANCE */,
-                                  ),
-                                  description:
-                                      FFLocalizations.of(context).getText(
-                                    'pqih1sxe' /* Tente chaque jour et gagne GROS. */,
-                                  ),
-                                  assetPath:
-                                      'assets/images/home/lucky_cross_3d_x.png',
-                                  tone: HomeFeatureTone.chance,
-                                  onTap: () {
-                                    logFirebaseEvent(
-                                      'HOME_PAGE_croixChance_ON_TAP',
-                                    );
-                                    logFirebaseEvent('croixChance_navigate_to');
-                                    context.pushNamed(CroixWidget.routeName);
-                                  },
-                                ),
-                                draws: wrapWithModel(
-                                  model: _model.tiragesHomeModel,
-                                  updateCallback: () => safeSetState(() {}),
-                                  child: const TiragesHomeWidget(),
-                                ),
-                                videoCard: HomeFeatureCard(
-                                  semanticId: 'video',
-                                  title: FFLocalizations.of(context).getText(
-                                    'fkwji2m2' /* YOUTUBE */,
-                                  ),
-                                  description:
-                                      FFLocalizations.of(context).getText(
-                                    'gcjztr88' /* Regarde, abonne-toi et reste connecté. */,
-                                  ),
-                                  assetPath:
-                                      'assets/images/home/video_play_3d_v2.png',
-                                  tone: HomeFeatureTone.video,
-                                  onTap: () {
-                                    logFirebaseEvent('HOME_PAGE_ytube_ON_TAP');
-                                    logFirebaseEvent('ytube_navigate_to');
-                                    context.pushNamed(YoutubeWidget.routeName);
-                                  },
-                                ),
-                              ),
-                            ].divide(SizedBox(
-                              height: FlutterFlowTheme.of(context)
-                                  .designToken
-                                  .spacing
-                                  .sm,
-                            )),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+        HomeFeatureSection(
+          stories: _buildStoriesRail(context),
+          onViewResults: () {
+            logFirebaseEvent('HOME_VIEW_RESULTS_ON_TAP');
+            context.pushNamed(TiragesWidget.routeName);
+          },
+          onVip: () {
+            logFirebaseEvent('HOME_PAGE_membership_ON_TAP');
+            logFirebaseEvent('membership_navigate_to');
+            context.pushNamed(VipWidget.routeName);
+          },
+          onChance: () {
+            logFirebaseEvent('HOME_PAGE_croixChance_ON_TAP');
+            logFirebaseEvent('croixChance_navigate_to');
+            context.pushNamed(CroixWidget.routeName);
+          },
+          onVideo: () {
+            logFirebaseEvent('HOME_PAGE_ytube_ON_TAP');
+            logFirebaseEvent('ytube_navigate_to');
+            context.pushNamed(YoutubeWidget.routeName);
+          },
+          onStats: () {
+            logFirebaseEvent('HOME_PAGE_query_stats_ICN_ON_TAP');
+            context.pushNamed(AccomplissementsWidget.routeName);
+          },
+          onTchala: () => context.pushNamed(TchalaWidget.routeName),
+          onHistory: () => context.pushNamed(VipHistoryWidget.routeName),
+          draws: wrapWithModel(
+            model: _model.tiragesHomeModel,
+            updateCallback: () => safeSetState(() {}),
+            child: const TiragesHomeWidget(),
           ),
         ),
-      ),
+      ],
     );
   }
 }

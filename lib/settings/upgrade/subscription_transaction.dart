@@ -18,6 +18,8 @@ class SubscriptionTransaction {
     required this.newEndSub,
     required this.createdAt,
     required this.paymentCancelled,
+    this.memberTimeBefore,
+    this.memberTimeAfter,
   });
 
   factory SubscriptionTransaction.fromDocument(
@@ -46,6 +48,8 @@ class SubscriptionTransaction {
       newEndSub: _readDate(data['new_end_sub']),
       createdAt: _readDate(data['created_at']),
       paymentCancelled: data['payment_cancelled'] == true,
+      memberTimeBefore: num.tryParse('${data['member_time_before']}'),
+      memberTimeAfter: num.tryParse('${data['member_time_after']}'),
     );
   }
 
@@ -61,6 +65,8 @@ class SubscriptionTransaction {
   final DateTime? newEndSub;
   final DateTime? createdAt;
   final bool paymentCancelled;
+  final num? memberTimeBefore;
+  final num? memberTimeAfter;
 
   bool get isCancellation =>
       transactionType == 'cancellation' || paymentCancelled;
@@ -84,7 +90,8 @@ class SubscriptionTransactionRepository {
 
   /// Watches every transaction owned by [userUid]. Sorting is performed on the
   /// client so this owner-scoped query does not require a composite index.
-  Stream<List<SubscriptionTransaction>> watchForUser(String userUid) {
+  Stream<List<SubscriptionTransaction>> watchForUser(String userUid,
+      {bool confirmedOnly = false}) {
     if (userUid.isEmpty) {
       return Stream.value(const <SubscriptionTransaction>[]);
     }
@@ -92,7 +99,11 @@ class SubscriptionTransactionRepository {
     return _firestore
         .collection('payment_transactions')
         .where('user_uid', isEqualTo: userUid)
-        .snapshots()
+        .snapshots(includeMetadataChanges: confirmedOnly)
+        .where((snapshot) =>
+            !confirmedOnly ||
+            (!snapshot.metadata.isFromCache &&
+                !snapshot.metadata.hasPendingWrites))
         .map((snapshot) {
       final transactions = snapshot.docs
           .map(SubscriptionTransaction.fromDocument)

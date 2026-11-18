@@ -2,12 +2,16 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:ui' as ui;
 
-import 'package:choloto/components/home_feature_card.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:choloto/autres/bingo/bingo/bingo_story_button.dart';
+import 'package:choloto/backend/schema/structs/youtube_item_struct.dart';
+import 'package:choloto/components/home_feature_section.dart';
+import 'package:choloto/components/home_page_scaffold.dart';
 import 'package:choloto/components/home_header_actions.dart';
+import 'package:choloto/components/home_stories_rail.dart';
 import 'package:choloto/app_state.dart';
 import 'package:choloto/backend/schema/resultats_record.dart';
 import 'package:choloto/components/tirages_home_widget.dart';
-import 'package:choloto/components/home_stories_rail.dart';
 import 'package:firebase_core/firebase_core.dart';
 // Firebase's test helper stubs the native platform; no backend is contacted.
 // ignore: depend_on_referenced_packages
@@ -16,6 +20,7 @@ import 'support/memory_firestore.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/main.dart';
+import 'package:choloto/youtube/youtube_story.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -41,6 +46,8 @@ void main() {
 
   const exportDirectory = String.fromEnvironment('HOME_VISUAL_DIR');
   const interFont = String.fromEnvironment('HOME_INTER_FONT');
+  const thumbnailUrl = 'https://example.invalid/stories/thumbnail.png';
+  late ui.Image thumbnail;
 
   setUpAll(() async {
     await Firebase.initializeApp();
@@ -54,6 +61,13 @@ void main() {
         ? ByteData.sublistView(await File(interFont).readAsBytes())
         : await rootBundle.load(
             'assets/fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf');
+    final thumbnailBytes =
+        await rootBundle.load('assets/images/youtube_-_Moyenne.png');
+    final codec = await ui.instantiateImageCodec(
+        Uint8List.sublistView(thumbnailBytes),
+        targetWidth: 112);
+    thumbnail = (await codec.getNextFrame()).image;
+    codec.dispose();
     font_testing.assetManifest = _TestFontManifest();
     messenger.setMockMessageHandler('flutter/assets', (message) async {
       final path = utf8.decode(message!.buffer.asUint8List());
@@ -89,18 +103,25 @@ void main() {
       }
     }
   });
+  tearDownAll(() => thumbnail.dispose());
 
   setUp(() async {
     FFAppState.reset();
-    ResultatsRecord record(String market) =>
+    ResultatsRecord record(String market, List<String> numbers) =>
         ResultatsRecord.getDocumentFromData({
-          'date': DateTime(2026, 9, 7, 12),
-          'periode': 'Midi',
+          'date': DateTime(2026, 11, 17, 20),
+          'periode': 'Soir',
           'tirage': market,
-          'numeros': ['12', '34', '56'],
+          'numeros': numbers,
         }, MemoryReference('resultats/fixture-$market'));
-    await FFAppState().newYorkTirage(requestFn: () async => [record('ny')]);
-    await FFAppState().floridaTirage(requestFn: () async => [record('fl')]);
+    await FFAppState().newYorkTirage(
+        requestFn: () async => [
+              record('ny', ['427', '18', '64'])
+            ]);
+    await FFAppState().floridaTirage(
+        requestFn: () async => [
+              record('fl', ['516', '09', '32'])
+            ]);
   });
 
   for (final language in ['fr', 'en', 'cr']) {
@@ -118,6 +139,13 @@ void main() {
           addTearDown(tester.view.resetPadding);
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
+          // Exercise the real YouTube cover widget with its thumbnail cached locally.
+          PaintingBinding.instance.imageCache.putIfAbsent(
+            const CachedNetworkImageProvider(thumbnailUrl),
+            () => OneFrameImageStreamCompleter(
+              Future.value(ImageInfo(image: thumbnail.clone())),
+            ),
+          );
           final captureKey = GlobalKey();
           await tester.pumpWidget(RepaintBoundary(
             key: captureKey,
@@ -143,91 +171,37 @@ void main() {
                   fontFamily: exportDirectory.isEmpty ? null : 'Inter'),
               home: NavBarPage(
                 initialPage: 'Home',
-                page: Builder(builder: (context) {
-                  final theme = FlutterFlowTheme.of(context);
-                  final strings = FFLocalizations.of(context);
-                  final spacing = theme.designToken.spacing;
-                  HomeFeatureCard card(HomeFeatureTone tone) {
-                    final (title, description, asset) = switch (tone) {
-                      HomeFeatureTone.vip => (
-                          'covzb0rd',
-                          'uvl7vow9',
-                          'vip_membership_3d_v2.png'
-                        ),
-                      HomeFeatureTone.chance => (
-                          'afym167o',
-                          'pqih1sxe',
-                          'lucky_cross_3d_x.png'
-                        ),
-                      HomeFeatureTone.video => (
-                          'fkwji2m2',
-                          'gcjztr88',
-                          'video_play_3d_v2.png'
-                        ),
-                    };
-                    return HomeFeatureCard(
-                      semanticId: tone.name,
-                      title: strings.getText(title),
-                      description: strings.getText(description),
-                      assetPath: 'assets/images/home/$asset',
-                      tone: tone,
-                      onTap: () {},
-                    );
-                  }
-
-                  return Scaffold(
-                    backgroundColor: theme.designToken.background.home,
-                    appBar: AppBar(
-                      backgroundColor: theme.designToken.background.home,
-                      elevation: 0,
-                      toolbarHeight: 64,
-                      title: Text('CHOLOTO', style: theme.titleLarge),
-                      actions: [
-                        HomeHeaderActions(
-                          onAchievements: () async {},
-                          onSettings: () async {},
-                        ),
-                        SizedBox(width: spacing.sm),
-                      ],
-                    ),
-                    floatingActionButton:
-                        HomeSupportFab(onSupport: () async {}),
-                    body: DecoratedBox(
-                      key: const ValueKey('home-background-gradient'),
-                      decoration: BoxDecoration(
-                        gradient: theme.designToken.background.homeGradient,
-                      ),
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.fromLTRB(
-                            spacing.md, spacing.sm, spacing.md, spacing.xl * 3),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1120),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                HomeFeatureSection(
-                                  stories: width < 600
-                                      ? HomeStoriesRail(
-                                          stories: const [],
-                                          loading: true,
-                                          loadFailed: false,
-                                          onRetry: () {},
-                                        )
-                                      : null,
-                                  vipCard: card(HomeFeatureTone.vip),
-                                  chanceCard: card(HomeFeatureTone.chance),
-                                  videoCard: card(HomeFeatureTone.video),
-                                  draws: const TiragesHomeWidget(),
-                                ),
-                              ],
-                            ),
+                page: HomePageScaffold(
+                  inTabShell: true,
+                  support: HomeSupportFab(onSupport: () async {}),
+                  children: [
+                    HomeFeatureSection(
+                      stories: HomeStoriesRail(
+                        loading: false,
+                        loadFailed: false,
+                        onRetry: () {},
+                        stories: [
+                          BingoStoryButton(
+                              viewed: false, storyCount: 3, onTap: () {}),
+                          YoutubeStoryButton(
+                            video: YoutubeItemStruct(
+                                title: 'CHOLOTO', thumbnail: thumbnailUrl),
+                            viewed: true,
+                            onTap: () {},
                           ),
-                        ),
+                        ],
                       ),
+                      onViewResults: () {},
+                      onVip: () {},
+                      onChance: () {},
+                      onVideo: () {},
+                      onStats: () {},
+                      onTchala: () {},
+                      onHistory: () {},
+                      draws: const TiragesHomeWidget(),
                     ),
-                  );
-                }),
+                  ],
+                ),
               ),
             ),
           ));
@@ -266,22 +240,34 @@ void main() {
             homeTheme.designToken.background.homeGradient,
           );
 
+          final stories = find.byType(HomeStoriesRail);
+          final hero = find.byKey(const ValueKey('home-vip-hero'));
+          final drawsCard =
+              find.byKey(const ValueKey('home-feature-card-draws'));
           final draws = find.byKey(const ValueKey('home-draws-gradient-card'));
-          final bottomNav =
-              find.byKey(const ValueKey('primary-bottom-navigation'));
-          final bottom = width < 600
-              ? tester.getTopLeft(bottomNav).dy
-              : tester.view.physicalSize.height;
-          expect(tester.getBottomRight(draws).dy, lessThanOrEqualTo(bottom),
-              reason:
-                  'Draw results must fit before scrolling at normal text size.');
-          expect(find.text('12'), findsWidgets);
-          final fab =
-              tester.getRect(find.byKey(const ValueKey('home-support-button')));
-          final numbers = find.text('56').hitTestable();
-          expect(numbers, findsOneWidget);
-          expect(fab.overlaps(tester.getRect(numbers)), isFalse,
-              reason: 'The support FAB must not cover lottery numbers.');
+          expect(find.byType(BingoStoryButton).hitTestable(), findsOneWidget);
+          expect(find.byType(YoutubeStoryButton).hitTestable(), findsOneWidget);
+          expect(tester.getBottomLeft(stories).dy,
+              lessThanOrEqualTo(tester.getTopLeft(hero).dy));
+          final strings = FFLocalizations(Locale(language));
+          expect(
+              find.descendant(
+                  of: hero, matching: find.text(strings.getText('covzb0rd'))),
+              findsOneWidget);
+          expect(find.byKey(const ValueKey('home-open-vip')).hitTestable(),
+              findsOneWidget);
+          expect(hero.hitTestable(), findsOneWidget);
+          expect(tester.getTopLeft(draws).dy,
+              greaterThan(tester.getTopLeft(hero).dy));
+          if (width > 1000) {
+            expect(tester.getTopLeft(drawsCard).dx,
+                greaterThanOrEqualTo(tester.getTopRight(hero).dx));
+          } else {
+            expect(tester.getTopLeft(drawsCard).dy,
+                greaterThanOrEqualTo(tester.getBottomLeft(hero).dy));
+          }
+          expect(find.text('427'), findsOneWidget);
+          expect(find.text('516'), findsOneWidget);
           expect(tester.takeException(), isNull);
           if (exportDirectory.isNotEmpty) {
             await tester.runAsync(() async {
@@ -296,6 +282,17 @@ void main() {
                   .writeAsBytes(bytes!.buffer.asUint8List());
               image.dispose();
             });
+          }
+          // On short phones the complete list is one scroll away. Neither row
+          // may be covered by the support entry or by the navigation bar.
+          final support = find.byKey(const ValueKey('home-support-button'));
+          for (final number in ['64', '32']) {
+            final chip = find.text(number);
+            await tester.ensureVisible(chip);
+            await tester.pump();
+            expect(chip.hitTestable(), findsOneWidget);
+            expect(tester.getRect(support).overlaps(tester.getRect(chip)),
+                isFalse);
           }
         });
       }

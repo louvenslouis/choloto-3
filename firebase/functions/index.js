@@ -2,6 +2,17 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
+const {createUserProfileHandler} = require("./user_profile");
+
+exports.onAuthUserCreated = functions
+  .region("northamerica-northeast1")
+  .runWith({failurePolicy: true})
+  .auth.user()
+  .onCreate(createUserProfileHandler({
+    auth: admin.auth(),
+    firestore: admin.firestore(),
+  }));
+
 exports.onUserDeleted = functions
   .region("northamerica-northeast1")
   .auth.user()

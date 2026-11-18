@@ -141,6 +141,8 @@ String _haitianCreoleDateFormat(String format, DateTime dateTime) {
   switch (format) {
     case 'MMMMEEEEd':
       return '$weekday $day $month';
+    case 'MMMd':
+      return '$day $shortMonth';
     case 'MMMEd':
       return '$shortWeekday $day $shortMonth';
     case 'yMMMd':

@@ -1,12 +1,18 @@
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/main.dart';
+import 'package:choloto/tchala/tchala_widget.dart';
+import 'package:firebase_core/firebase_core.dart';
+// ignore: depend_on_referenced_packages
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Widget _navigationApp({
   required Locale locale,
   required ThemeMode themeMode,
+  required String initialPage,
 }) {
   return MaterialApp(
     locale: locale,
@@ -23,7 +29,7 @@ Widget _navigationApp({
     darkTheme: ThemeData(brightness: Brightness.dark),
     themeMode: themeMode,
     home: NavBarPage(
-      initialPage: 'VIP',
+      initialPage: initialPage,
       page: const ColoredBox(
         key: ValueKey('navigation-test-page'),
         color: Colors.transparent,
@@ -37,6 +43,7 @@ Future<void> _pumpAtSize(
   required Size size,
   Locale locale = const Locale('fr'),
   ThemeMode themeMode = ThemeMode.dark,
+  String initialPage = 'VIP',
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -44,12 +51,65 @@ Future<void> _pumpAtSize(
   addTearDown(tester.view.resetDevicePixelRatio);
 
   await tester.pumpWidget(
-    _navigationApp(locale: locale, themeMode: themeMode),
+    _navigationApp(
+        locale: locale, themeMode: themeMode, initialPage: initialPage),
   );
   await tester.pumpAndSettle();
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setupFirebaseCoreMocks();
+  setUpAll(() async {
+    await Firebase.initializeApp();
+  });
+
+  testWidgets(
+      'home changes navigation at the tablet breakpoint without replacing the page',
+      (tester) async {
+    await _pumpAtSize(tester, size: const Size(766, 900), initialPage: 'Home');
+    final pageFinder = find.byKey(const ValueKey('navigation-test-page'));
+    final pageElement = tester.element(pageFinder);
+    expect(
+        tester
+            .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+            .currentIndex,
+        0);
+    tester.view.physicalSize = const Size(767, 900);
+    await tester.pumpAndSettle();
+    expect(tester.element(pageFinder), same(pageElement));
+    expect(find.byType(BottomNavigationBar), findsNothing);
+    expect(find.byType(NavigationRail), findsNothing);
+    expect(
+        find.byKey(const ValueKey('home-desktop-navigation')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-header-logo')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-header-actions')), findsOneWidget);
+    for (final name in ['Home', 'Tirages', 'VIP', 'Tchala']) {
+      expect(find.byKey(ValueKey('desktop-tab-$name')).hitTestable(),
+          findsOneWidget);
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tapping Tchala in the home header selects its existing tab',
+      (tester) async {
+    tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+      'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logEvent',
+      (_) async => const StandardMessageCodec().encodeMessage([null]),
+    );
+    await _pumpAtSize(tester, size: const Size(1440, 900), initialPage: 'Home');
+    await tester.tap(find.byKey(const ValueKey('desktop-tab-Tchala')));
+    await tester.pump();
+    expect(find.byType(TchalaWidget), findsOneWidget);
+    expect(
+        tester
+            .widget<NavigationRail>(find.byType(NavigationRail))
+            .selectedIndex,
+        3);
+    expect(find.byKey(const ValueKey('home-desktop-navigation')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('keeps bottom navigation on a small phone', (tester) async {
     await _pumpAtSize(tester, size: const Size(320, 568));
 
