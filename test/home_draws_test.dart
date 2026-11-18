@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:choloto/backend/schema/resultats_record.dart';
 import 'package:choloto/components/tirages_home_widget.dart';
-import 'package:choloto/components/vip_casino_card.dart';
 import 'package:choloto/flutter_flow/flutter_flow_util.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +61,7 @@ void main() {
               record('fl', ['516', '09', '32', '0123'])
             ]);
     await pumpDraws(tester);
-    expect(find.byType(VipCasinoChip), findsNWidgets(7));
+    expect(find.byKey(const ValueKey('home-result-chip')), findsNWidgets(7));
     for (final number in ['007', '04', '-', '516', '09', '32', '0123']) {
       expect(find.text(number), findsOneWidget);
     }
@@ -107,7 +106,7 @@ void main() {
     expect(find.text('Results unavailable'), findsOneWidget);
     expect(find.text('No results'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(find.byType(VipCasinoChip), findsNothing);
+    expect(find.byKey(const ValueKey('home-result-chip')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

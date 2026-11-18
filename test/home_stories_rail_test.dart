@@ -37,6 +37,59 @@ Widget _app({
 }
 
 void main() {
+  testWidgets('unread rim glints once and pauses in a hidden tab',
+      (tester) async {
+    Widget scene({bool ticking = true, bool reduceMotion = false}) => _app(
+          locale: const Locale('fr'),
+          themeMode: ThemeMode.dark,
+          child: TickerMode(
+            enabled: ticking,
+            child: MediaQuery(
+              data: MediaQueryData(disableAnimations: reduceMotion),
+              child: BingoStoryButton(viewed: false, onTap: () {}),
+            ),
+          ),
+        );
+
+    await tester.pumpWidget(scene());
+    final glint = tester
+        .widget<CustomPaint>(
+          find.byKey(const ValueKey('bingo-story-glint')),
+        )
+        .painter!;
+    var frames = 0;
+    void onFrame() => frames++;
+    glint.addListener(onFrame);
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(frames, greaterThan(0));
+
+    await tester.pumpWidget(scene(ticking: false));
+    frames = 0;
+    await tester.pump(const Duration(seconds: 2));
+    expect(frames, 0);
+    await tester.pumpWidget(scene());
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(frames, greaterThan(0));
+    await tester.pumpAndSettle();
+    frames = 0;
+    await tester.pump(const Duration(seconds: 2));
+    expect(frames, 0);
+    glint.removeListener(onFrame);
+
+    // Recreate an unread item with the system's motion preference enabled.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(scene(reduceMotion: true));
+    final stillGlint = tester
+        .widget<CustomPaint>(
+          find.byKey(const ValueKey('bingo-story-glint')),
+        )
+        .painter!;
+    stillGlint.addListener(onFrame);
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(frames, 0);
+    stillGlint.removeListener(onFrame);
+  });
+
   testWidgets('reading a story changes its chip rim and preserves both actions',
       (tester) async {
     var bingoTaps = 0;
@@ -62,6 +115,8 @@ void main() {
       ));
       final bingo = find.byType(BingoStoryButton);
       final youtube = find.byType(YoutubeStoryButton);
+      expect(find.byKey(const ValueKey('bingo-story-glint')),
+          viewed ? findsNothing : findsOneWidget);
       expect(find.descendant(of: bingo, matching: find.byType(VipCasinoChip)),
           viewed ? findsNothing : findsOneWidget);
       expect(find.descendant(of: youtube, matching: find.byType(VipCasinoChip)),

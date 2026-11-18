@@ -11,6 +11,7 @@ import 'auth/firebase_auth/auth_util.dart';
 
 import 'backend/firebase/firebase_config.dart';
 import 'components/home_header_actions.dart';
+import 'components/home_page_scaffold.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
@@ -266,7 +267,7 @@ class _NavBarPageState extends State<NavBarPage> {
       label: '14smzvpm',
       icon: FaIcon(FontAwesomeIcons.book),
       activeIcon: FaIcon(FontAwesomeIcons.bookOpen),
-      homeIcon: Icon(Icons.menu_book_rounded),
+      homeIcon: Icon(Icons.menu_book_outlined),
     ),
   ];
 
@@ -315,12 +316,12 @@ class _NavBarPageState extends State<NavBarPage> {
           activeIcon: onHome
               ? Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: tokens.spacing.md,
+                    horizontal: tokens.spacing.sm + tokens.spacing.xs,
                     vertical: tokens.spacing.xs,
                   ),
                   decoration: BoxDecoration(
                     color: theme.primary,
-                    borderRadius: BorderRadius.circular(tokens.radius.full),
+                    borderRadius: BorderRadius.circular(tokens.radius.sm),
                   ),
                   child: IconTheme.merge(
                     data: IconThemeData(color: theme.onPrimary),
@@ -346,15 +347,29 @@ class _NavBarPageState extends State<NavBarPage> {
       scrolledUnderElevation: 0,
       backgroundColor: tokens.background.home,
       shape: Border(bottom: BorderSide(color: tokens.home.edge)),
-      titleSpacing: tokens.spacing.md,
+      titleSpacing: compact ? tokens.spacing.md : tokens.spacing.lg,
       title: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1360),
+          constraints:
+              const BoxConstraints(maxWidth: HomePageScaffold.maxContentWidth),
           child: SizedBox(
             height: tokens.spacing.xl * 2,
             child: NavigationToolbar(
               leading: const HomeHeaderBrand(),
-              trailing: HomeHeaderActions.navigation(context),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!compact)
+                    Container(
+                      width: 1,
+                      height: tokens.spacing.lg,
+                      margin:
+                          EdgeInsetsDirectional.only(end: tokens.spacing.xl),
+                      color: tokens.home.edge,
+                    ),
+                  HomeHeaderActions.navigation(context),
+                ],
+              ),
               middleSpacing: tokens.spacing.md,
               middle: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -514,8 +529,14 @@ class _NavBarPageState extends State<NavBarPage> {
     final page = _currentPage ??
         IndexedStack(
           index: currentIndex,
-          children:
-              _tabPages.map((page) => page ?? const SizedBox.shrink()).toList(),
+          children: [
+            TickerMode(
+              enabled: onHome,
+              child: _tabPages.first ?? const SizedBox.shrink(),
+            ),
+            for (final page in _tabPages.skip(1))
+              page ?? const SizedBox.shrink(),
+          ],
         );
 
     return Scaffold(
@@ -538,25 +559,38 @@ class _NavBarPageState extends State<NavBarPage> {
       ),
       bottomNavigationBar: wide
           ? null
-          : BottomNavigationBar(
-              key: const ValueKey('primary-bottom-navigation'),
-              currentIndex: currentIndex,
-              onTap: _selectTab,
-              backgroundColor: navigationBackground,
-              selectedItemColor:
-                  onHome ? theme.designToken.home.statsAccent : theme.primary,
-              unselectedItemColor: onHome ? theme.primaryText : theme.alternate,
-              selectedLabelStyle: onHome
-                  ? theme.labelMedium.copyWith(fontWeight: FontWeight.w800)
+          : Container(
+              foregroundDecoration: onHome
+                  ? BoxDecoration(
+                      border: Border(
+                          top: BorderSide(
+                              color: theme.designToken.home.edge
+                                  .withValues(alpha: .6))))
                   : null,
-              unselectedLabelStyle: onHome
-                  ? theme.labelMedium.copyWith(fontWeight: FontWeight.w600)
-                  : null,
-              elevation: onHome ? 0 : null,
-              showSelectedLabels: true,
-              showUnselectedLabels: true,
-              type: BottomNavigationBarType.fixed,
-              items: _bottomDestinations(context, onHome: onHome),
+              child: BottomNavigationBar(
+                key: const ValueKey('primary-bottom-navigation'),
+                currentIndex: currentIndex,
+                onTap: _selectTab,
+                backgroundColor: navigationBackground,
+                selectedItemColor:
+                    onHome && Theme.of(context).brightness == Brightness.light
+                        ? theme.designToken.home.statsAccent
+                        : theme.primary,
+                unselectedItemColor:
+                    onHome ? theme.designToken.home.mutedText : theme.alternate,
+                selectedFontSize: onHome ? 12 : 14,
+                selectedLabelStyle: onHome
+                    ? theme.labelMedium.copyWith(fontWeight: FontWeight.w800)
+                    : null,
+                unselectedLabelStyle: onHome
+                    ? theme.labelMedium.copyWith(fontWeight: FontWeight.w600)
+                    : null,
+                elevation: onHome ? 0 : null,
+                showSelectedLabels: true,
+                showUnselectedLabels: true,
+                type: BottomNavigationBarType.fixed,
+                items: _bottomDestinations(context, onHome: onHome),
+              ),
             ),
     );
   }

@@ -13,7 +13,9 @@ class HomeHeaderBrand extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
-    final logoSize = tokens.spacing.xl + tokens.spacing.sm;
+    final wide = MediaQuery.sizeOf(context).width >= kBreakpointLarge;
+    final logoSize = wide ? tokens.spacing.lg * 2 : tokens.spacing.xl;
+    final titleStyle = wide ? theme.headlineLarge : theme.headlineSmall;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -37,8 +39,10 @@ class HomeHeaderBrand extends StatelessWidget {
             child: Text(
               FFLocalizations.of(context).getText('loh576na'),
               maxLines: 1,
-              style: theme.headlineSmall.override(
-                color: tokens.home.statsAccent,
+              style: titleStyle.override(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? theme.primary
+                    : tokens.home.statsAccent,
                 fontWeight: FontWeight.w900,
                 fontStyle: FontStyle.italic,
                 letterSpacing: -0.8,
@@ -90,12 +94,13 @@ class HomeHeaderActions extends StatelessWidget {
           key: ValueKey(key),
           buttonSize: kMinInteractiveDimension,
           borderWidth: 1,
-          borderRadius: tokens.radius.md,
+          borderRadius: tokens.radius.sm,
           borderColor: tokens.home.edge,
+          fillColor: tokens.background.home.withValues(alpha: .64),
           hoverIconColor: tokens.home.statsAccent,
           hoverBorderColor: tokens.home.statsAccent,
           focusBorderSide: BorderSide(color: tokens.home.statsAccent, width: 2),
-          icon: Icon(icon, color: theme.primaryText, size: 22),
+          icon: Icon(icon, color: theme.primaryText, size: 21),
           onPressed: onPressed,
         ),
       );
@@ -106,7 +111,7 @@ class HomeHeaderActions extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         action('home-achievements-button', strings.getText('exm1ba5v'),
-            Icons.bar_chart_rounded, onAchievements),
+            Icons.signal_cellular_alt_rounded, onAchievements),
         SizedBox(width: tokens.spacing.sm),
         action('home-settings-button', strings.getText('oadu0jrq'),
             Icons.tune_rounded, onSettings),
@@ -165,8 +170,22 @@ class _HomeSupportFabState extends State<HomeSupportFab>
   }
 
   void _playShake() {
-    if (!mounted || widget.shakeTrigger == 0) return;
+    if (!mounted ||
+        widget.shakeTrigger == 0 ||
+        !TickerMode.valuesOf(context).enabled ||
+        MediaQuery.disableAnimationsOf(context)) {
+      return;
+    }
     _shakeController.forward(from: 0.0);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!TickerMode.valuesOf(context).enabled ||
+        MediaQuery.disableAnimationsOf(context)) {
+      _shakeController.value = 0;
+    }
   }
 
   @override
@@ -178,14 +197,15 @@ class _HomeSupportFabState extends State<HomeSupportFab>
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
     return FloatingActionButton(
       key: const ValueKey('home-support-button'),
       heroTag: 'home-support',
       tooltip: supportText(context, 'title'),
-      backgroundColor: theme.primary,
-      foregroundColor: theme.onPrimary,
+      backgroundColor: tokens.home.surface.colors.last,
+      foregroundColor: tokens.home.mutedText,
       elevation: 0,
-      shape: const CircleBorder(),
+      shape: CircleBorder(side: BorderSide(color: tokens.home.edge)),
       onPressed: widget.onSupport,
       child: Stack(
         clipBehavior: Clip.none,
@@ -196,7 +216,7 @@ class _HomeSupportFabState extends State<HomeSupportFab>
               angle: _shakeAnimation.value,
               child: child,
             ),
-            child: const Icon(Icons.support_agent_rounded),
+            child: const Icon(Icons.support_agent_rounded, size: 21),
           ),
           if (widget.messageCount > 0)
             PositionedDirectional(
@@ -225,7 +245,7 @@ class _HomeSupportFabState extends State<HomeSupportFab>
                   child: Text(
                     widget.messageCount > 99 ? '99+' : '${widget.messageCount}',
                     style: theme.labelSmall.copyWith(
-                      color: theme.primaryText,
+                      color: theme.onPrimary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),

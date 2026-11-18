@@ -129,12 +129,14 @@ void main() {
       for (final width in [320.0, 390.0, 1440.0]) {
         testWidgets('home presentation $language ${brightness.name} $width',
             (tester) async {
-          tester.view.physicalSize =
+          final viewport =
               Size(width, width == 320 ? 568 : (width == 390 ? 844 : 900));
-          tester.view.devicePixelRatio = 1;
+          final pixelRatio = exportDirectory.isEmpty ? 1.0 : 2.0;
+          tester.view.devicePixelRatio = pixelRatio;
+          tester.view.physicalSize = viewport * pixelRatio;
           tester.view.padding = FakeViewPadding(
-            top: width < 600 ? 24 : 0,
-            bottom: width == 390 ? 24 : 0,
+            top: width < 600 ? 24 * pixelRatio : 0,
+            bottom: width == 390 ? 24 * pixelRatio : 0,
           );
           addTearDown(tester.view.resetPadding);
           addTearDown(tester.view.resetPhysicalSize);
@@ -174,8 +176,9 @@ void main() {
                 page: HomePageScaffold(
                   inTabShell: true,
                   support: HomeSupportFab(onSupport: () async {}),
-                  children: [
+                  buildSections: (supportBesideStories) => [
                     HomeFeatureSection(
+                      storyAction: supportBesideStories,
                       stories: HomeStoriesRail(
                         loading: false,
                         loadFailed: false,
@@ -260,6 +263,10 @@ void main() {
           expect(tester.getTopLeft(draws).dy,
               greaterThan(tester.getTopLeft(hero).dy));
           if (width > 1000) {
+            final support = find.byKey(const ValueKey('home-support-button'));
+            expect(support.hitTestable(), findsOneWidget);
+            expect(tester.getBottomLeft(support).dy,
+                lessThanOrEqualTo(tester.getTopRight(hero).dy));
             expect(tester.getTopLeft(drawsCard).dx,
                 greaterThanOrEqualTo(tester.getTopRight(hero).dx));
           } else {
@@ -273,7 +280,7 @@ void main() {
             await tester.runAsync(() async {
               final boundary = captureKey.currentContext!.findRenderObject()!
                   as RenderRepaintBoundary;
-              final image = await boundary.toImage();
+              final image = await boundary.toImage(pixelRatio: pixelRatio);
               final bytes =
                   await image.toByteData(format: ui.ImageByteFormat.png);
               await Directory(exportDirectory).create(recursive: true);

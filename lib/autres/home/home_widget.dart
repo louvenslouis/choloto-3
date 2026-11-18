@@ -496,7 +496,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
           );
         },
       ),
-      children: [
+      buildSections: (supportBesideStories) => [
         if (isSubscriptionExpired(
           expiration: _latestSubscriptionExpiration,
           now: getCurrentTimestamp,
@@ -511,6 +511,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
           ),
         HomeFeatureSection(
           stories: _buildStoriesRail(context),
+          storyAction: supportBesideStories,
           onViewResults: () {
             logFirebaseEvent('HOME_VIEW_RESULTS_ON_TAP');
             context.pushNamed(TiragesWidget.routeName);

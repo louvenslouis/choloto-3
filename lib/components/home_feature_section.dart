@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'home_feature_card.dart';
+import 'home_shortcuts.dart';
 
 class HomeFeatureSection extends StatelessWidget {
   const HomeFeatureSection({
     super.key,
     this.stories,
+    this.storyAction,
     required this.draws,
     required this.onViewResults,
     required this.onVip,
@@ -21,6 +23,7 @@ class HomeFeatureSection extends StatelessWidget {
   });
 
   final Widget? stories;
+  final Widget? storyAction;
   final Widget draws;
   final VoidCallback onViewResults;
   final VoidCallback onVip;
@@ -40,9 +43,9 @@ class HomeFeatureSection extends StatelessWidget {
       final wide = width >= 720 && width / scale >= 620;
       final gap = wide ? spacing.md : spacing.sm;
       final heroWidth = wide ? (width - gap) * .65 : width;
-      final heroHeight = (heroWidth * .53).clamp(174.0, 405.0);
+      final heroHeight = (heroWidth * .555).clamp(168.0, 378.0);
       final tileHeight =
-          wide ? (heroHeight - gap) / 2 : (width * .32).clamp(112.0, 170.0);
+          wide ? (heroHeight - gap) / 2 : (width * .33).clamp(104.0, 170.0);
       final hero = _VipHero(height: heroHeight, onTap: onVip);
       final latestDraws = HomeFeatureCard(
         semanticId: 'draws',
@@ -60,7 +63,7 @@ class HomeFeatureSection extends StatelessWidget {
         minHeight: tileHeight,
         onTap: onChance,
       );
-      final shortcuts = _HomeShortcuts(
+      final shortcuts = HomeShortcuts(
         wide: wide,
         onVideo: onVideo,
         onStats: onStats,
@@ -81,8 +84,16 @@ class HomeFeatureSection extends StatelessWidget {
             wide ? 'home-feature-wide-layout' : 'home-feature-mobile-layout'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (stories != null) ...[
-            stories!,
+          if (stories != null || storyAction != null) ...[
+            if (storyAction == null)
+              stories!
+            else
+              Row(children: [
+                Expanded(child: stories ?? const SizedBox.shrink()),
+                SizedBox(width: spacing.md),
+                SizedBox.square(
+                    dimension: kMinInteractiveDimension, child: storyAction),
+              ]),
             SizedBox(height: spacing.md),
           ],
           if (wide) ...[
@@ -117,11 +128,40 @@ class HomeFeatureSection extends StatelessWidget {
   }
 }
 
-class _VipHero extends StatelessWidget {
+class _VipHero extends StatefulWidget {
   const _VipHero({required this.height, required this.onTap});
 
   final double height;
   final VoidCallback onTap;
+
+  @override
+  State<_VipHero> createState() => _VipHeroState();
+}
+
+class _VipHeroState extends State<_VipHero>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _light = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _light.value = 1;
+    } else if (!TickerMode.valuesOf(context).enabled) {
+      _light.stop();
+    } else if (!_light.isCompleted && !_light.isAnimating) {
+      _light.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _light.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,376 +171,231 @@ class _VipHero extends StatelessWidget {
     final title = strings.getText('covzb0rd');
     final action = strings.getText('home_open_vip');
     final radius = BorderRadius.circular(tokens.radius.lg);
+    final ivory = Color.lerp(theme.onDecorative, tokens.vip.goldLight, .34)!;
     return LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxWidth;
       final large = width >= 495;
+      final compact = width < 320;
       final scaler = MediaQuery.textScalerOf(context);
-      final inset = large ? tokens.spacing.lg : tokens.spacing.md;
-      final contentWidth = width - inset - tokens.spacing.sm;
+      final inset = large ? tokens.spacing.xl : tokens.spacing.md;
+      final sideCopyWidth = width * .505 - inset;
       final titleStyle = theme.displaySmall.override(
-        fontSize: (width * .092).clamp(25.0, 74.0),
+        fontSize: (width * .10).clamp(27.0, 68.0),
         fontWeight: FontWeight.w900,
-        color: theme.onPrimary,
-        letterSpacing: large ? -1.8 : -.8,
-        lineHeight: 1.03,
+        color: ivory,
+        letterSpacing: large ? -1.6 : -.9,
+        lineHeight: 1.02,
       );
-      // Reserve enough space for the longest localized word, including at
-      // accessibility scales. The medal moves above the text on narrow layouts.
+      // The entire localized word "Abonnement" must fit beside the medal. Only
+      // fit the base font; the user's text scaling still applies afterwards.
       final measure = TextPainter(
         text: TextSpan(text: title, style: titleStyle),
         textDirection: Directionality.of(context),
-        textScaler: scaler,
       )..layout();
-      final longestWord = measure.minIntrinsicWidth.ceilToDouble();
+      final wordWidth = measure.minIntrinsicWidth;
       measure.dispose();
-      final stacked = longestWord > contentWidth * .70;
-      final copyWidth =
-          stacked ? contentWidth : math.max(contentWidth * .55, longestWord);
-      final copy = Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      final fontSize =
+          titleStyle.fontSize! * math.min(1.0, sideCopyWidth / wordWidth);
+      final scaledWordWidth =
+          wordWidth * scaler.scale(fontSize) / titleStyle.fontSize!;
+      final stacked = width < 245 || scaledWordWidth > sideCopyWidth + 1;
+      final copyWidth = stacked
+          ? width - 2 * inset
+          : sideCopyWidth + (compact ? tokens.spacing.sm : 0);
+      final titleSpan = TextSpan(
         children: [
-          Text(title, style: titleStyle),
-          SizedBox(height: large ? tokens.spacing.lg : tokens.spacing.md),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: theme.onPrimary,
-              borderRadius: BorderRadius.circular(tokens.radius.full),
+          for (final word in title.split(' ').indexed)
+            TextSpan(
+              text: '${word.$1 == 0 ? '' : ' '}${word.$2}',
+              style: word.$2 == 'VIP'
+                  ? titleStyle.copyWith(fontSize: fontSize * 1.85, height: .98)
+                  : null,
             ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: large ? tokens.spacing.lg : tokens.spacing.md,
-                vertical: large ? tokens.spacing.md : tokens.spacing.sm,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      action,
-                      style: theme.titleSmall.override(
-                        color: tokens.vip.goldLight,
-                        fontWeight: FontWeight.w800,
-                        fontSize: large ? 17 : 13,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: tokens.spacing.xs),
-                  Icon(Icons.north_east_rounded,
-                      size: large ? 18 : 15, color: tokens.vip.goldLight),
-                ],
-              ),
-            ),
-          ),
         ],
       );
-      final artworkWidth = stacked
-          ? math.min(contentWidth * .38, 160.0)
-          : contentWidth - copyWidth;
-      final medal = Image.asset(
-        'assets/images/home/vip_membership_3d_v2.png',
-        key: const ValueKey('home-vip-medal'),
-        width: artworkWidth,
-        height: stacked ? artworkWidth : height - tokens.spacing.md,
-        fit: BoxFit.contain,
-        cacheWidth:
-            (artworkWidth * MediaQuery.devicePixelRatioOf(context)).ceil(),
-        excludeFromSemantics: true,
+      final artHeight = stacked
+          ? math.min(width * .50, 180.0)
+          : math.min(widget.height * 1.105, width * .62);
+      final artWidth = artHeight * 1190 / 1322;
+      final artRight = -artWidth * .052;
+      final artTop = -artHeight * .078;
+      final copy = Padding(
+        padding: EdgeInsets.fromLTRB(
+          inset,
+          stacked ? artHeight * .87 : tokens.spacing.md,
+          width - inset - copyWidth,
+          tokens.spacing.md,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text.rich(titleSpan,
+                style: titleStyle.copyWith(fontSize: fontSize)),
+            SizedBox(height: large ? tokens.spacing.lg : tokens.spacing.md),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.lerp(theme.primary, tokens.vip.goldLight, .52)!,
+                    theme.primary,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(tokens.radius.full),
+                boxShadow: [tokens.shadow.md],
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: large
+                      ? tokens.spacing.xl
+                      : compact
+                          ? tokens.spacing.sm
+                          : tokens.spacing.md,
+                  vertical: large ? tokens.spacing.md : tokens.spacing.sm,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        action,
+                        style: theme.titleSmall.override(
+                          color: theme.onPrimary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: large ? 24 : (compact ? 12 : 13),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                        width: large ? tokens.spacing.sm : tokens.spacing.xs),
+                    Icon(Icons.north_east_rounded,
+                        size: large ? 24 : 15, color: theme.onPrimary),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       );
       return Semantics(
         button: true,
         label: '$title. $action',
-        onTap: onTap,
+        onTap: widget.onTap,
         excludeSemantics: true,
-        child: Container(
+        child: Stack(
           key: const ValueKey('home-vip-hero'),
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            gradient: tokens.home.membership,
-            image: const DecorationImage(
-              image: AssetImage('assets/images/home/brushed_gold.webp'),
-              fit: BoxFit.cover,
-              opacity: .90,
-            ),
-            borderRadius: radius,
-            border: Border.all(color: tokens.vip.goldLight),
-            boxShadow: [tokens.shadow.sm],
-          ),
-          child: Stack(
-            children: [
-              const Positioned.fill(child: _VipSparkles()),
-              Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  key: const ValueKey('home-open-vip'),
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: tokens.home.hero,
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/home/sapphire.webp'),
+                    fit: BoxFit.cover,
+                  ),
                   borderRadius: radius,
-                  onTap: onTap,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: height - 2),
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(inset, tokens.spacing.sm,
-                          tokens.spacing.sm, tokens.spacing.sm),
-                      child: stacked
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Align(
-                                    alignment: Alignment.centerRight,
-                                    child: medal),
-                                Padding(
-                                    padding: EdgeInsets.only(
-                                        bottom: tokens.spacing.sm),
-                                    child: copy),
-                              ],
-                            )
-                          : Row(children: [
-                              SizedBox(width: copyWidth, child: copy),
-                              Expanded(child: medal),
-                            ]),
-                    ),
+                  border: Border.all(
+                      color: tokens.home.heroGlow.withValues(alpha: .62)),
+                  boxShadow: [tokens.shadow.md],
+                ),
+                child: ClipRRect(
+                  borderRadius: radius,
+                  child: CustomPaint(
+                    key: const ValueKey('home-vip-light-sweep'),
+                    painter: _VipLightSweep(_light, tokens.home.heroGlow),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              right: artRight,
+              top: artTop,
+              width: artWidth,
+              height: artHeight,
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _light,
+                  child: HomeRaisedArtwork(
+                    asset: 'assets/images/home/vip_sapphire_medal.webp',
+                    imageKey: const ValueKey('home-vip-medal'),
+                    width: artWidth,
+                    fallback: Icons.workspace_premium_rounded,
+                    foreground: tokens.vip.goldLight,
+                  ),
+                  builder: (context, child) {
+                    final lift = Curves.easeOutCubic.transform(_light.value);
+                    final tilt = Curves.easeOutBack.transform(_light.value);
+                    return Transform(
+                      key: const ValueKey('home-vip-medal-motion'),
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..translateByDouble(
+                            0, artHeight * .10 * (1 - lift), 0, 1)
+                        ..rotateZ(-.035 - .13 * (1 - tilt))
+                        ..scaleByDouble(
+                            .93 + .07 * lift, .93 + .07 * lift, 1, 1),
+                      child: child,
+                    );
+                  },
+                ),
+              ),
+            ),
+            Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                key: const ValueKey('home-open-vip'),
+                borderRadius: radius,
+                splashColor: theme.onDecorative.withValues(alpha: .08),
+                onTap: widget.onTap,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: widget.height),
+                  child: Align(
+                      heightFactor: 1,
+                      alignment: Alignment.centerLeft,
+                      child: copy),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     });
   }
 }
 
-class _HomeShortcuts extends StatelessWidget {
-  const _HomeShortcuts(
-      {required this.wide,
-      required this.onVideo,
-      required this.onStats,
-      required this.onTchala,
-      required this.onHistory});
+/// A single soft studio light crosses the sapphire, leaving the texture still.
+class _VipLightSweep extends CustomPainter {
+  _VipLightSweep(this.progress, this.tint) : super(repaint: progress);
 
-  final bool wide;
-  final VoidCallback onVideo;
-  final VoidCallback onStats;
-  final VoidCallback onTchala;
-  final VoidCallback onHistory;
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = FFLocalizations.of(context);
-    final theme = FlutterFlowTheme.of(context);
-    final tokens = theme.designToken;
-    final material = tokens.home;
-    final actions = [
-      (
-        'video',
-        'fkwji2m2',
-        Icons.play_arrow_outlined,
-        material.videoAccent,
-        onVideo
-      ),
-      (
-        'stats',
-        'o0ut0uym',
-        Icons.signal_cellular_alt_rounded,
-        material.statsAccent,
-        onStats
-      ),
-      (
-        'tchala',
-        '40q38tw9',
-        Icons.menu_book_outlined,
-        material.tchalaAccent,
-        onTchala
-      ),
-      (
-        'history',
-        'viphstttl',
-        Icons.history_rounded,
-        material.historyAccent,
-        onHistory
-      ),
-    ];
-
-    return LayoutBuilder(builder: (context, constraints) {
-      final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
-      final columns = wide || constraints.maxWidth / scale < 265 ? 2 : 4;
-      final gap = wide ? tokens.spacing.sm : tokens.spacing.xs;
-      final itemWidth = (constraints.maxWidth - (columns - 1) * gap) / columns;
-
-      Widget shortcut(String id, String label, IconData icon, Color color,
-          VoidCallback onTap) {
-        final symbol = Icon(icon, size: wide ? 35 : 26, color: color);
-        final circleSize = (itemWidth * .61).clamp(44.0, 60.0);
-        final shape = BorderRadius.circular(tokens.radius.md);
-        return SizedBox(
-          width: itemWidth,
-          child: Material(
-            type: MaterialType.transparency,
-            child: Ink(
-              decoration: wide
-                  ? BoxDecoration(
-                      gradient: material.surface,
-                      borderRadius: shape,
-                      border: Border.all(color: material.edge))
-                  : null,
-              child: Semantics(
-                button: true,
-                child: InkWell(
-                  key: ValueKey('home-shortcut-$id'),
-                  onTap: onTap,
-                  borderRadius: shape,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: wide ? tokens.spacing.md : tokens.spacing.xs,
-                        horizontal: tokens.spacing.xs),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      if (wide)
-                        symbol
-                      else
-                        Container(
-                          width: circleSize,
-                          height: circleSize,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Color.alphaBlend(color.withValues(alpha: .19),
-                                      material.surface.colors.first),
-                                  material.surface.colors.last,
-                                ]),
-                            border:
-                                Border.all(color: color.withValues(alpha: .27)),
-                          ),
-                          child: symbol,
-                        ),
-                      SizedBox(height: tokens.spacing.xs),
-                      Text(strings.getText(label),
-                          textAlign: TextAlign.center,
-                          style: theme.titleSmall.override(
-                              color: theme.primaryText,
-                              fontSize: wide ? 16 : 12,
-                              fontWeight: FontWeight.w700,
-                              lineHeight: 1.12)),
-                    ]),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-
-      return Wrap(spacing: gap, runSpacing: gap, children: [
-        for (final (id, label, icon, color, onTap) in actions)
-          shortcut(id, label, icon, color, onTap),
-      ]);
-    });
-  }
-}
-
-/// Stars cover the VIP panel behind its text and artwork.
-class _VipSparkles extends StatefulWidget {
-  const _VipSparkles();
-
-  @override
-  State<_VipSparkles> createState() => _VipSparklesState();
-}
-
-class _VipSparklesState extends State<_VipSparkles>
-    with SingleTickerProviderStateMixin {
-  late final _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2800),
-  );
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context) ||
-        !TickerMode.valuesOf(context).enabled) {
-      _controller.stop();
-    } else if (!_controller.isAnimating) {
-      _controller.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    return IgnorePointer(
-      child: ExcludeSemantics(
-        child: RepaintBoundary(
-          child: CustomPaint(
-            key: const ValueKey('home-vip-sparkles'),
-            painter: _VipSparklePainter(
-              _controller,
-              Color.lerp(theme.primary, theme.onDecorative, 0.55)!,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _VipSparklePainter extends CustomPainter {
-  _VipSparklePainter(this.animation, this.color) : super(repaint: animation);
-
-  final Animation<double> animation;
-  final Color color;
-
-  // Relative positions keep the same constellation on compact and wide cards.
-  static const _stars = [
-    (Offset(0.05, 0.23), 3.0, 0.0),
-    (Offset(0.13, 0.82), 3.5, 0.54),
-    (Offset(0.22, 0.13), 3.0, 0.38),
-    (Offset(0.29, 0.66), 2.5, 0.84),
-    (Offset(0.37, 0.88), 3.5, 0.18),
-    (Offset(0.43, 0.27), 3.0, 0.70),
-    (Offset(0.52, 0.76), 3.0, 0.44),
-    (Offset(0.60, 0.12), 4.0, 0.10),
-    (Offset(0.66, 0.53), 2.5, 0.62),
-    (Offset(0.73, 0.86), 3.5, 0.30),
-    (Offset(0.81, 0.21), 3.0, 0.92),
-    (Offset(0.87, 0.68), 3.0, 0.48),
-    (Offset(0.95, 0.32), 3.5, 0.76),
-    (Offset(0.94, 0.85), 2.5, 0.24),
-  ];
+  final Animation<double> progress;
+  final Color tint;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    for (final (position, radius, phase) in _stars) {
-      final pulse = (1 + math.sin((animation.value + phase) * 2 * math.pi)) / 2;
-      final extent = radius * (0.65 + pulse * 0.35);
-      final inset = extent * 0.24;
-      canvas.save();
-      canvas.translate(position.dx * size.width, position.dy * size.height);
-      canvas.drawPath(
-        Path()
-          ..moveTo(0, -extent)
-          ..lineTo(inset, -inset)
-          ..lineTo(extent, 0)
-          ..lineTo(inset, inset)
-          ..lineTo(0, extent)
-          ..lineTo(-inset, inset)
-          ..lineTo(-extent, 0)
-          ..lineTo(-inset, -inset)
-          ..close(),
-        paint..color = color.withValues(alpha: 0.10 + pulse * 0.48),
-      );
-      canvas.restore();
-    }
+    if (progress.value <= 0 || progress.value >= 1) return;
+    final center = (size.width * 1.7 * progress.value) - size.width * .35;
+    final beam = Rect.fromLTWH(
+        center - size.width * .18, 0, size.width * .36, size.height);
+    canvas.save();
+    canvas.skew(-.30, 0);
+    canvas.drawRect(
+      beam,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [
+            tint.withValues(alpha: 0),
+            tint.withValues(alpha: .23),
+            tint.withValues(alpha: 0),
+          ],
+        ).createShader(beam),
+    );
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_VipSparklePainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.animation != animation;
+  bool shouldRepaint(_VipLightSweep oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.tint != tint;
 }

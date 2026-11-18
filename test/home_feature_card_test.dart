@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _drawsAsset = 'assets/images/home/lottery_drum.webp';
-const _vipAsset = 'assets/images/home/vip_membership_3d_v2.png';
+const _vipAsset = 'assets/images/home/vip_sapphire_medal.webp';
 const _chanceAsset = 'assets/images/home/lucky_cross_3d_x.png';
 
 Widget _testApp({
@@ -56,10 +56,9 @@ Future<void> _setViewport(WidgetTester tester, Size size) async {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-// VIP sparkles loop continuously; only wait for finite entrance/press effects.
+// Allow the finite hero and tile entrances to reach their resting frames.
 Future<void> _finishCardTransitions(WidgetTester tester) async {
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 800));
+  await tester.pumpAndSettle();
 }
 
 double _contrastRatio(Color foreground, Color background) {
@@ -144,7 +143,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('VIP sparkles repaint, preserve taps and respect reduced motion',
+  testWidgets(
+      'VIP medal lifts above sapphire, settles and honors motion settings',
       (tester) async {
     await _setViewport(tester, const Size(390, 844));
     final tapped = <String>[];
@@ -164,40 +164,56 @@ void main() {
           ),
         );
     await tester.pumpWidget(scene());
-    await _finishCardTransitions(tester);
-    final sparkles = find.byKey(const ValueKey('home-vip-sparkles'));
+    await tester.pump();
     final hero = find.byKey(const ValueKey('home-vip-hero'));
-    expect(find.descendant(of: hero, matching: sparkles), findsOneWidget);
-    expect(tester.getTopLeft(hero).dy, 0,
-        reason: 'An empty story rail must not reserve space.');
-    final medal = tester.widget<Image>(find.descendant(
-      of: hero,
-      matching: find.byKey(const ValueKey('home-vip-medal')),
-    ));
+    final medalFinder = find.byKey(const ValueKey('home-vip-medal'));
+    final motion = find.byKey(const ValueKey('home-vip-medal-motion'));
+    final light = find.byKey(const ValueKey('home-vip-light-sweep'));
+    final card = find.byKey(const ValueKey('home-open-vip'));
+    final medal = tester.widget<Image>(medalFinder);
     expect(((medal.image as ResizeImage).imageProvider as AssetImage).assetName,
         _vipAsset);
+    expect(tester.getTopLeft(hero).dy, 0,
+        reason: 'An empty story rail must not reserve space.');
+
+    Matrix4 medalTransform() => tester.widget<Transform>(motion).transform;
+    final initial = medalTransform();
     var repaints = 0;
-    final painter = tester.widget<CustomPaint>(sparkles).painter!;
+    final painter = tester.widget<CustomPaint>(light).painter!;
     void onRepaint() => repaints++;
     painter.addListener(onRepaint);
-    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 270));
+    expect(medalTransform(), isNot(initial));
     expect(repaints, greaterThan(0));
-    await tester.tapAt(tester.getCenter(sparkles));
-    expect(tapped, ['vip']);
 
-    await tester.pumpWidget(scene(reduceMotion: true));
+    await tester.pumpWidget(scene(ticking: false));
+    final paused = medalTransform();
     repaints = 0;
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 2));
+    expect(medalTransform(), paused);
     expect(repaints, 0);
 
     await tester.pumpWidget(scene());
-    await tester.pump(const Duration(milliseconds: 350));
-    expect(repaints, greaterThan(0));
-    await tester.pumpWidget(scene(ticking: false));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1200));
+    final settled = medalTransform();
+    expect(settled, isNot(paused));
+    expect(tester.getTopLeft(medalFinder).dy,
+        lessThan(tester.getTopLeft(card).dy));
+    expect(tester.getSize(medalFinder).height,
+        greaterThan(tester.getSize(card).height));
     repaints = 0;
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 2));
     expect(repaints, 0);
+    await tester.tapAt(tester.getCenter(medalFinder));
+    expect(tapped, ['vip']);
     painter.removeListener(onRepaint);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(scene(reduceMotion: true));
+    expect(medalTransform(), settled);
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(medalTransform(), settled);
     await tester.pumpWidget(const SizedBox());
     expect(tester.takeException(), isNull);
   });
@@ -348,8 +364,6 @@ void main() {
           );
           await _finishCardTransitions(tester);
 
-          expect(find.byKey(const ValueKey('home-vip-sparkles')), findsNothing);
-
           final card = tester.widget<AnimatedContainer>(
             find.byKey(ValueKey('home-feature-gradient-$id')),
           );
@@ -370,6 +384,19 @@ void main() {
                 .height,
             lessThanOrEqualTo(140.0),
           );
+          final texture = decoration.image!.image as AssetImage;
+          expect(
+              texture.assetName,
+              tone == HomeFeatureTone.draws
+                  ? 'assets/images/home/brushed_gold.webp'
+                  : 'assets/images/home/amethyst.webp');
+          expect(
+              tester
+                  .getTopLeft(find.byKey(ValueKey('home-feature-image-$id')))
+                  .dy,
+              lessThan(tester
+                  .getTopLeft(find.byKey(ValueKey('home-feature-card-$id')))
+                  .dy));
           expect(borderRadius.topLeft.x, 24.0);
           expect(border.top.width, lessThanOrEqualTo(1.0));
           // Verify contrast across the entire card background in both themes.

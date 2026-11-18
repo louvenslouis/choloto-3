@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -116,7 +117,7 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final draws = widget.tone == HomeFeatureTone.draws;
-    final foreground = theme.onDecorative;
+    final foreground = draws ? theme.onPrimary : theme.onDecorative;
     final cardRadius = BorderRadius.circular(tokens.radius.lg);
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final duration =
@@ -153,10 +154,11 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                   key: ValueKey('home-feature-gradient-${widget.semanticId}'),
                   duration: duration,
                   decoration: BoxDecoration(
-                    gradient: draws ? tokens.home.hero : tokens.home.chance,
+                    gradient:
+                        draws ? tokens.home.membership : tokens.home.chance,
                     image: DecorationImage(
                       image: AssetImage(draws
-                          ? 'assets/images/home/sapphire.webp'
+                          ? 'assets/images/home/brushed_gold.webp'
                           : 'assets/images/home/amethyst.webp'),
                       fit: BoxFit.cover,
                       opacity: draws ? 1 : 0.8,
@@ -174,120 +176,104 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                     ),
                     boxShadow: [tokens.shadow.sm],
                   ),
-                  child: ClipRRect(
-                    borderRadius: cardRadius,
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: InkWell(
-                        key: ValueKey('home-feature-card-${widget.semanticId}'),
-                        borderRadius: cardRadius,
-                        splashColor: foreground.withValues(alpha: 0.10),
-                        highlightColor: foreground.withValues(alpha: 0.06),
-                        hoverColor: foreground.withValues(alpha: 0.035),
-                        onHighlightChanged: (pressed) {
-                          if (_pressed != pressed) {
-                            setState(() => _pressed = pressed);
-                          }
-                        },
-                        onTap: widget.onTap,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final width = constraints.maxWidth;
-                            final largeText =
-                                MediaQuery.textScalerOf(context).scale(16) > 23;
-                            final portrait = width < 240 || largeText;
-                            final inset = width < 175
-                                ? tokens.spacing.sm + tokens.spacing.xs
-                                : tokens.spacing.md;
-                            final artSize = portrait
-                                ? (width * .46).clamp(52.0, 84.0)
-                                : math.min(widget.minHeight * .91, width * .36);
-                            final artwork = ExcludeSemantics(
-                              child: AnimatedScale(
-                                key: ValueKey(
-                                    'home-feature-artwork-motion-${widget.semanticId}'),
-                                scale: reduceMotion
-                                    ? 1
-                                    : (_pressed ? .97 : (_hovered ? 1.03 : 1)),
-                                duration: duration,
-                                child: Image.asset(
-                                  widget.assetPath,
-                                  key: ValueKey(
-                                      'home-feature-image-${widget.semanticId}'),
-                                  width: artSize,
-                                  height: artSize,
-                                  cacheWidth: (artSize *
-                                          MediaQuery.devicePixelRatioOf(
-                                              context))
-                                      .ceil(),
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => SizedBox.square(
-                                    dimension: artSize,
-                                    child: Icon(
-                                        draws
-                                            ? Icons.confirmation_number_outlined
-                                            : Icons.close_rounded,
-                                        size: artSize * .7,
-                                        color: foreground),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      key: ValueKey('home-feature-card-${widget.semanticId}'),
+                      borderRadius: cardRadius,
+                      splashColor: foreground.withValues(alpha: .10),
+                      highlightColor: foreground.withValues(alpha: .06),
+                      hoverColor: foreground.withValues(alpha: .035),
+                      onHighlightChanged: (pressed) {
+                        if (_pressed != pressed) {
+                          setState(() => _pressed = pressed);
+                        }
+                      },
+                      onTap: widget.onTap,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final width = constraints.maxWidth;
+                          final scaler = MediaQuery.textScalerOf(context);
+                          final portrait =
+                              width / (scaler.scale(16) / 16) < 240;
+                          final inset = width < 175
+                              ? tokens.spacing.sm + tokens.spacing.xs
+                              : tokens.spacing.md;
+                          final artHeight = portrait
+                              ? math.min(width * .53, widget.minHeight * .75)
+                              : math.min(widget.minHeight * 1.04, width * .42);
+                          final artWidth = artHeight * (draws ? .80 : 1.0);
+                          final artTop = -artHeight * (portrait ? .18 : .07);
+                          final artRight =
+                              portrait ? tokens.spacing.xs : tokens.spacing.sm;
+                          final title = Text(
+                            widget.title,
+                            key: ValueKey(
+                                'home-feature-title-${widget.semanticId}'),
+                            style: theme.titleLarge.override(
+                              color: foreground,
+                              fontSize: (width * (portrait ? .117 : .083))
+                                  .clamp(17.0, 39.0),
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -.65,
+                              lineHeight: 1.02,
+                            ),
+                          );
+                          return Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Positioned(
+                                top: artTop,
+                                right: artRight,
+                                width: artWidth,
+                                height: artHeight,
+                                child: IgnorePointer(
+                                  child: AnimatedScale(
+                                    key: ValueKey(
+                                        'home-feature-artwork-motion-${widget.semanticId}'),
+                                    scale: reduceMotion
+                                        ? 1
+                                        : (_pressed
+                                            ? .97
+                                            : (_hovered ? 1.03 : 1)),
+                                    duration: duration,
+                                    child: HomeRaisedArtwork(
+                                      asset: widget.assetPath,
+                                      imageKey: ValueKey(
+                                          'home-feature-image-${widget.semanticId}'),
+                                      width: artWidth,
+                                      fallback: draws
+                                          ? Icons.confirmation_number_outlined
+                                          : Icons.close_rounded,
+                                      foreground: foreground,
+                                    ),
                                   ),
                                 ),
                               ),
-                            );
-                            final title = Text(
-                              widget.title,
-                              key: ValueKey(
-                                  'home-feature-title-${widget.semanticId}'),
-                              style: theme.titleLarge.override(
-                                color: foreground,
-                                fontSize: (width * (portrait ? .124 : .085))
-                                    .clamp(17.0, 38.0),
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -.7,
-                                lineHeight: 1.03,
+                              ConstrainedBox(
+                                constraints:
+                                    BoxConstraints(minHeight: widget.minHeight),
+                                child: Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    inset,
+                                    portrait
+                                        ? artHeight * .77
+                                        : tokens.spacing.sm,
+                                    portrait ? inset : artWidth + artRight,
+                                    portrait ? inset : tokens.spacing.sm,
+                                  ),
+                                  child: Align(
+                                    heightFactor: 1,
+                                    alignment: portrait
+                                        ? Alignment.bottomLeft
+                                        : Alignment.centerLeft,
+                                    child: title,
+                                  ),
+                                ),
                               ),
-                            );
-                            return ConstrainedBox(
-                              constraints:
-                                  BoxConstraints(minHeight: widget.minHeight),
-                              child: portrait
-                                  ? Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Align(
-                                            alignment: Alignment.topRight,
-                                            child: Padding(
-                                              padding: EdgeInsets.only(
-                                                  right: inset,
-                                                  top: tokens.spacing.xs),
-                                              child: artwork,
-                                            )),
-                                        Padding(
-                                          padding: EdgeInsets.fromLTRB(inset, 0,
-                                              tokens.spacing.sm, inset),
-                                          child: title,
-                                        ),
-                                      ],
-                                    )
-                                  : Padding(
-                                      padding: EdgeInsets.fromLTRB(
-                                          inset,
-                                          tokens.spacing.xs,
-                                          tokens.spacing.sm,
-                                          tokens.spacing.xs),
-                                      child: Row(
-                                        children: [
-                                          Expanded(child: title),
-                                          SizedBox(width: tokens.spacing.xs),
-                                          artwork,
-                                        ],
-                                      ),
-                                    ),
-                            );
-                          },
-                        ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -296,6 +282,65 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The same cutout casts a soft shadow that follows its transparent silhouette.
+class HomeRaisedArtwork extends StatelessWidget {
+  const HomeRaisedArtwork({
+    super.key,
+    required this.asset,
+    required this.imageKey,
+    required this.width,
+    required this.fallback,
+    required this.foreground,
+  });
+
+  final String asset;
+  final Key imageKey;
+  final double width;
+  final IconData fallback;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    final material = FlutterFlowTheme.of(context);
+    final image = ResizeImage.resizeIfNeeded(
+      (width * MediaQuery.devicePixelRatioOf(context)).ceil(),
+      null,
+      AssetImage(asset),
+    );
+    final blur = (width * .023).clamp(2.0, 8.0);
+    return RepaintBoundary(
+      child: Stack(
+        fit: StackFit.expand,
+        clipBehavior: Clip.none,
+        children: [
+          Transform.translate(
+            offset: Offset(blur * .65, blur * 1.9),
+            child: ImageFiltered(
+              imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+              child: Image(
+                image: image,
+                fit: BoxFit.contain,
+                color: material.onPrimary.withValues(alpha: .68),
+                colorBlendMode: BlendMode.srcIn,
+                excludeFromSemantics: true,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+          Image(
+            image: image,
+            key: imageKey,
+            fit: BoxFit.contain,
+            excludeFromSemantics: true,
+            errorBuilder: (_, __, ___) =>
+                Icon(fallback, size: width * .7, color: foreground),
+          ),
+        ],
       ),
     );
   }

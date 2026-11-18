@@ -106,6 +106,10 @@ void main() {
             .widget<NavigationRail>(find.byType(NavigationRail))
             .selectedIndex,
         3);
+    final pages =
+        tester.widget<IndexedStack>(find.byType(IndexedStack)).children;
+    expect((pages.first as TickerMode).enabled, isFalse);
+    expect(pages.last, isA<TchalaWidget>());
     expect(find.byKey(const ValueKey('home-desktop-navigation')), findsNothing);
     expect(tester.takeException(), isNull);
   });
