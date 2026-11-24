@@ -163,12 +163,15 @@ void main() {
             days: 21
           );
           Future<void> render(int days,
-              {bool collection = true, bool active = false}) {
+              {bool collection = true,
+              bool active = false,
+              double? expandedSize}) {
             final badges = VipBadgeView(
                 tiers: tiers,
                 time: daysOfVip(days),
                 active: active,
-                showCollection: collection);
+                showCollection: collection,
+                expandedMedal: expandedSize != null);
             return tester.pumpWidget(MaterialApp(
               theme: ThemeData(brightness: brightness, useMaterial3: false),
               locale: locale,
@@ -184,9 +187,12 @@ void main() {
               ],
               home: Scaffold(
                   body: Center(
-                      child: collection
-                          ? badges
-                          : ProfileAvatar(photoUrl: '', badge: badges))),
+                      child: expandedSize != null
+                          ? SizedBox.square(
+                              dimension: expandedSize, child: badges)
+                          : collection
+                              ? badges
+                              : ProfileAvatar(photoUrl: '', badge: badges))),
             ));
           }
 
@@ -269,6 +275,20 @@ void main() {
           expect(find.byType(LinearProgressIndicator), findsNothing);
           expect(find.textContaining(RegExp('^1460 ')), findsOneWidget);
           expect(tester.takeException(), isNull);
+          await tester.tap(find.byKey(const ValueKey('close-vip-medal')));
+          await tester.pumpAndSettle();
+          final side = size.width < 600 ? 72.0 : 136.0;
+          await render(21, active: true, collection: false, expandedSize: side);
+          await tester.pumpAndSettle();
+          expect(find.byType(Image), findsOneWidget);
+          expect(tester.getSize(find.byType(Image)), Size.square(side));
+          expect(tester.getSize(current), Size.square(side));
+          expect(tester.getSemantics(current).tooltip, contains(tiers[1].name));
+          await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+          await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+          await tester.pumpAndSettle();
+          expect(find.text(tiers[1].name), findsOneWidget);
+          expect(find.textContaining('21 / 60'), findsOneWidget);
           await tester.tap(find.byKey(const ValueKey('close-vip-medal')));
           await tester.pumpAndSettle();
           for (final collection in [true, false]) {

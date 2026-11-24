@@ -3014,10 +3014,10 @@
           "date": "2025-03-14"
         },
         {
-          "saint": "Louise de Marillac",
-          "date": "2025-03-15",
-          "saint_en": "Louise de Marillac",
-          "saint_cr": "Lwiz de Marillac"
+          "saint": "Clément-Marie Hofbauer",
+          "saint_en": "Clement Mary Hofbauer",
+          "saint_cr": "Kleman Mari Hofbauer",
+          "date": "2025-03-15"
         },
         {
           "saint": "Bienheureuse Bénédicte d’Assise",
@@ -3062,9 +3062,9 @@
           "saint_cr": "Leya nan Wòm"
         },
         {
-          "saint": "Turibio de Mogrovejo",
+          "saint": "Turibe de Mogrovejo",
           "saint_en": "Turibius of Mogrovejo",
-          "saint_cr": "Turibio de Mogrovejo",
+          "saint_cr": "Toribio de Mogrovejo",
           "date": "2025-03-23"
         },
         {
@@ -3247,10 +3247,10 @@
           "saint_cr": "Pafè nan Kòdou"
         },
         {
-          "saint": "Emma de Gurk",
-          "date": "2025-04-19",
-          "saint_en": "Emma of Gurk",
-          "saint_cr": "Emma nan Gurk"
+          "saint": "Emma de Lesum",
+          "saint_en": "Emma of Lesum",
+          "saint_cr": "Emma nan Lesum",
+          "date": "2025-04-19"
         },
         {
           "saint": "Agnès de Montepulciano",
@@ -3372,6 +3372,12 @@
           "date": "2025-05-08"
         },
         {
+          "saint": "Louise de Marillac",
+          "date": "2025-05-09",
+          "saint_en": "Louise de Marillac",
+          "saint_cr": "Lwiz de Marillac"
+        },
+        {
           "saint": "Pacôme le Grand",
           "date": "2025-05-09",
           "saint_en": "Pachomius the Great",
@@ -3390,7 +3396,7 @@
           "date": "2025-05-11"
         },
         {
-          "saint": "Nérée et Achille",
+          "saint": "Nérée et Achillée",
           "date": "2025-05-12",
           "saint_en": "Nereus and Achilleus",
           "saint_cr": "Nere ak Achil"
@@ -3693,6 +3699,12 @@
           "saint_en": "Ferdinand of Aragon",
           "saint_cr": "Fèdinan nan Aragon",
           "date": "2025-06-27"
+        },
+        {
+          "saint": "Emma de Gurk",
+          "date": "2025-06-27",
+          "saint_en": "Emma of Gurk",
+          "saint_cr": "Emma nan Gurk"
         },
         {
           "saint": "Irénée de Lyon",

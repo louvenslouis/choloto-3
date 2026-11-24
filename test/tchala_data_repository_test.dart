@@ -77,6 +77,21 @@ void main() {
     }
   });
 
+  test('uses the revised feast of Louise and distinguishes the two Emmas',
+      () async {
+    final months = (await TchalaDataRepository().load()).saintMonths;
+    final entries = months.expand((month) => month.saints);
+    for (final feast in const {
+      'Louise de Marillac': '05-09',
+      'Clément-Marie Hofbauer': '03-15',
+      'Emma de Lesum': '04-19',
+      'Emma de Gurk': '06-27',
+    }.entries) {
+      final entry = entries.singleWhere((saint) => saint.name == feast.key);
+      expect(entry.date.substring(5), feast.value, reason: feast.key);
+    }
+  });
+
   test('caches a single asset load', () async {
     final bundle = _CountingAssetBundle(_minimalDataset);
     final repository = TchalaDataRepository(bundle: bundle);

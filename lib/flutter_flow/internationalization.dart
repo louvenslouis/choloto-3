@@ -611,6 +611,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Pwobabilite',
       'en': 'Probability',
     },
+    'vip_market_gg_ny': {'fr': 'GG-NY', 'cr': 'GG-NY', 'en': 'GG-NY'},
     'isn2t0tf': {
       'fr': 'POURBOIRE',
       'cr': 'POUBWA',
@@ -1286,14 +1287,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'With CHOLOTO VIP, multiply your chances of winning!',
     },
     '99kfebqb': {
-      'fr': 'CE QUI EST INCLUS',
-      'cr': 'SA KI LADAN',
-      'en': 'WHAT\'S INCLUDED',
+      'fr': 'Ce qui est inclus',
+      'cr': 'Sa ki ladan',
+      'en': 'What’s included',
     },
     'juufc32a': {
-      'fr': 'GRATUIT',
-      'cr': 'GRATIS',
-      'en': 'FREE',
+      'fr': 'Gratuit',
+      'cr': 'Gratis',
+      'en': 'Free',
     },
     'zpnlwhem': {
       'fr': 'VIP',
@@ -1304,6 +1305,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'Résultats des loteries',
       'cr': 'Rezilta lotri yo',
       'en': 'Lottery results',
+    },
+    'vip_plan_predictions': {
+      'fr': 'Prédictions',
+      'cr': 'Prediksyon',
+      'en': 'Predictions',
     },
     'jekwx2fb': {
       'fr': 'Résultats des loteries',
@@ -1321,14 +1327,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Lottery results',
     },
     'bl4kupme': {
-      'fr': '1 Mois',
-      'cr': '1 Mwa',
-      'en': '1 Month',
+      'fr': '1 mois',
+      'cr': '1 mwa',
+      'en': '1 month',
     },
     'r11k1q8q': {
-      'fr': 'USD \$ 40.00 ou GDS 2,000.00',
-      'cr': 'USD \$ 40.00 oswa GDS 2,000.00',
-      'en': 'USD \$ 40.00 or GDS 2,000.00',
+      'fr': '40 USD ou 2 000 GDS',
+      'cr': '40 USD oswa 2 000 GDS',
+      'en': '40 USD or 2,000 GDS',
     },
     'i0zhxntw': {
       'fr': 'Devenir VIP',

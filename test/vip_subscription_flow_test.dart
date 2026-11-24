@@ -7,6 +7,7 @@ import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/payments/payment_requests_widget.dart';
 import 'package:choloto/payments/vip_payment_options.dart';
+import 'package:choloto/settings/customerservice/customerservice_widget.dart';
 import 'package:choloto/settings/devenir_v_i_p/devenir_v_i_p_widget.dart';
 import 'package:choloto/support/support_bot.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -204,13 +205,21 @@ void main() {
     expect(find.textContaining('offline'), findsNothing);
   });
 
-  testWidgets('Devenir VIP opens the native subscription route',
+  testWidgets(
+      'the monthly offer opens support and the subscription route on a small screen',
       (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final router = GoRouter(routes: [
       GoRoute(
         path: '/',
         builder: (_, __) => const Scaffold(
-          body: SingleChildScrollView(child: DevenirVIPWidget()),
+          body: SingleChildScrollView(
+            padding: EdgeInsets.all(16),
+            child: DevenirVIPWidget(),
+          ),
         ),
       ),
       GoRoute(
@@ -218,10 +227,20 @@ void main() {
         path: PaymentRequestsWidget.routePath,
         builder: (_, __) => const Scaffold(body: Text('native-subscription')),
       ),
+      GoRoute(
+        name: CustomerserviceWidget.routeName,
+        path: CustomerserviceWidget.routePath,
+        builder: (_, __) => const Scaffold(body: Text('subscription-support')),
+      ),
     ]);
     addTearDown(router.dispose);
     await tester.pumpWidget(MaterialApp.router(
       routerConfig: router,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context)
+            .copyWith(textScaler: const TextScaler.linear(2)),
+        child: child!,
+      ),
       locale: const Locale('fr'),
       supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
       localizationsDelegates: const [
@@ -233,9 +252,18 @@ void main() {
         FallbackCupertinoLocalizationDelegate(),
       ],
     ));
+    final support =
+        find.byKey(const ValueKey('open-subscription-support-legacy'));
+    await tester.ensureVisible(support);
+    await tester.tap(support);
+    await tester.pumpAndSettle();
+    expect(find.text('subscription-support'), findsOneWidget);
+    router.pop();
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const ValueKey('become-vip-button')));
     await tester.tap(find.byKey(const ValueKey('become-vip-button')));
     await tester.pumpAndSettle();
     expect(find.text('native-subscription'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

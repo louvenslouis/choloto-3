@@ -10,7 +10,7 @@ Les valeurs ci-dessous servent de repères visuels. Dans Flutter, utiliser `Flut
 | --- | --- | --- |
 | Fond de page | Noir `#000000` dans l’application. Sur l’accueil, le bleu encre `#070C19` se fond dans le noir. Un arc saphir discret éclaire la zone des stories. | `theme.primaryBackground`, `background.homeGradient` |
 | Surface de lecture | Gris `#1C1C1E` pour les surfaces courantes. Sur l’accueil, les raccourcis et les résultats partagent un dégradé saphir de `#1B2943` à `#0D1628`, un filet fin et un rayon de 16. | `theme.secondaryBackground`, `home.panel` |
-| Marque et action principale | Jaune CHOLOTO `#EDB900`. Le texte et les icônes d’une action jaune sont noirs. La sélection de navigation reprend ce jaune. | `theme.primary`, `theme.onPrimary` |
+| Marque et action principale | Jaune CHOLOTO `#EDB900`. Le texte et les icônes d’une action jaune sont noirs. L’onglet sélectionné reprend ce jaune sur Accueil, Tirages et Tchala. Sur VIP, il reprend le violet de l’abonnement. | `theme.primary`, `theme.onPrimary`, `home.amethystGlow` |
 | Abonnement VIP | Améthyste texturée, médaille violette sertie d’or, titre ivoire et bouton jaune. Le violet identifie l’offre dès le premier regard. | `home.vipAmethyst`, `home.amethystGlow`, `vip.goldLight` |
 | Tirages et Croix de la chance | Même or brossé, même titre noir. Les silhouettes du ticket et du X distinguent les deux destinations. Le token historique de ce fond doré s’appelle `membership`. | `home.membership`, `theme.onPrimary`, [texture or](../assets/images/home/brushed_gold.webp) |
 | Texte sur saphir | Blanc pour les titres et bleu-gris `#B9C4D9` pour les dates, périodes et libellés secondaires. | `theme.primaryText`, `home.mutedText` |
@@ -52,6 +52,14 @@ La grille passe à deux colonnes dès que le contenu dispose de **656** de large
 Le ticket doré de l’accueil identifie la page dans un bandeau saphir qui réunit le titre et l’actualisation. Chaque date ouvre un panneau de lecture. À gauche du résultat figurent le logo du marché, son nom et la période. À droite, les numéros reprennent le même jeton que sur l’accueil. Les logos à lettrage foncé disposent d’un fond clair pour rester lisibles sur le saphir.
 
 L’historique se lit de haut en bas sur téléphone. Sur grand écran, les résultats d’une journée occupent deux colonnes et se lisent de gauche à droite. Un texte agrandi peut ramener la grille à une colonne et faire passer les jetons sous le nom du marché. L’onglet Tirages reprend la navigation basse ou l’en-tête horizontal de l’accueil selon la largeur. [Page Tirages](../lib/tirages/tirages/tirages_widget.dart) · [Ligne de résultat](../lib/tirages/tirages/tirage_result_row.dart) · [Jeton partagé](../lib/components/draw_result_chip.dart)
+
+## Page VIP
+
+La carte de membre améthyste réunit le nom, le portrait cerclé d’or et la médaille d’ancienneté. Une rosace gravée entoure la médaille. Les initiales remplacent une photo absente ou indisponible. Toucher le portrait ouvre le profil, toucher la médaille affiche le rang et les jours VIP cumulés. L’historique et le pourboire occupent le bas de la carte. Sur téléphone, elle précède les prédictions. Sur grand écran, elle prend place à leur gauche. [En-tête VIP](../lib/components/vip_page_header.dart) · [Médaille du membre](../lib/accomplissements/member_vip_badge.dart)
+
+Les sept rubriques forment une collection de natures mortes en 3D. Chaque carte paysage présente son objet en entier, posé à droite sur un fond teinté. Favori porte une couronne sertie d’améthyste, Soutni une sphère de cristal sur son socle et Boloto un boulier de tirage doré. Les alliances, les trois gemmes, le trèfle à quatre feuilles et le coffre étoilé distinguent Mariage, 3 chiffres, 4 chiffres et Extra. Deux dégradés améthyste suivent les dimensions du texte. Celui du haut couvre les valeurs et leurs éventuels marchés, celui du bas suit le nom de la rubrique. Les reflets de l’objet restent visibles entre les deux. Chaque mariage occupe sa ligne. Les numéros de Favori et Soutni conservent leur marché, y compris quand un emplacement précédent est vide. La grille adapte ses colonnes à la largeur et à la taille du texte. Lorsqu’une sélection longue augmente la hauteur de la carte, l’illustration conserve ses proportions et se place en bas à droite. [Cartes de prédiction](../lib/components/vip_prediction_panel.dart)
+
+L’offre mensuelle prend la forme d’un billet améthyste avec des encoches et un cachet doré autour de la durée. Il regroupe les tarifs, le bouton « Devenir VIP » et l’assistance. Une carte saphir distincte compare les accès gratuits et VIP. [Offre mensuelle](../lib/settings/devenir_v_i_p/devenir_v_i_p_widget.dart)
 
 ## Page Tchala
 

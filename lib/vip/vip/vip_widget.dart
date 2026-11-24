@@ -1,27 +1,22 @@
-import '/components/vip_prediction_header.dart';
-import '/components/vip_page_header.dart';
-import '/components/vip_casino_card.dart';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '/accomplissements/member_vip_badge.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
 import '/components/don_widget.dart';
+import '/components/home_page_scaffold.dart';
 import '/components/vip_motion.dart';
+import '/components/vip_page_header.dart';
+import '/components/vip_prediction_panel.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/index.dart' show ProfilWidget, VipHistoryWidget;
 import '/settings/devenir_v_i_p/devenir_v_i_p_widget.dart';
 import '/settings/upgrade/subscription_transaction.dart';
-import '/vip/universal_v_i_p/universal_v_i_p_widget.dart';
-import '/vip/v_i_pboloto/v_i_pboloto_widget.dart';
-import 'dart:math';
-import 'dart:ui';
-import '/index.dart';
-import 'dart:async';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
 import 'vip_model.dart';
 export 'vip_model.dart';
 
@@ -38,8 +33,6 @@ class VipWidget extends StatefulWidget {
 class _VipWidgetState extends State<VipWidget> {
   late VipModel _model;
 
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-
   final SubscriptionTransactionRepository _transactionsRepository =
       SubscriptionTransactionRepository();
 
@@ -55,21 +48,6 @@ class _VipWidgetState extends State<VipWidget> {
     _model = createModel(context, () => VipModel());
 
     logFirebaseEvent('screen_view', parameters: {'screen_name': 'VIP'});
-    // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      logFirebaseEvent('VIP_PAGE_VIP_ON_INIT_STATE');
-      logFirebaseEvent('VIP_wait__delay');
-      await Future.delayed(
-        Duration(
-          milliseconds: 5000,
-        ),
-      );
-      logFirebaseEvent('VIP_update_page_state');
-      _model.pourboireHide = true;
-      safeSetState(() {});
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
@@ -80,11 +58,18 @@ class _VipWidgetState extends State<VipWidget> {
     super.dispose();
   }
 
+  UserRecord? get _ownProfile {
+    final user = currentUserDocument;
+    return loggedIn && user != null && user.reference.id == currentUserUid
+        ? user
+        : null;
+  }
+
   void _ensureTransactionMembershipStream() {
     final shouldWatch = shouldWatchSubscriptionTransactions(
       loggedIn: loggedIn,
       userUid: currentUserUid,
-      profileEnd: currentUserDocument?.endSub,
+      profileEnd: _ownProfile?.endSub,
       now: getCurrentTimestamp,
     );
     if (!shouldWatch) {
@@ -132,403 +117,288 @@ class _VipWidgetState extends State<VipWidget> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: _buildPage);
+  Future<void> _showTip() async {
+    logFirebaseEvent('VIP_FloatingActionButton_qjsc5kip_ON_TAP');
+    logFirebaseEvent('FloatingActionButton_bottom_sheet');
+    await showModalBottomSheet<void>(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      context: context,
+      builder: (context) => SingleChildScrollView(
+        padding: MediaQuery.viewInsetsOf(context),
+        child: const DonWidget(),
+      ),
+    );
+  }
 
-  Widget _buildPage(BuildContext context, BoxConstraints constraints) {
-    context.watch<FFAppState>();
-    final theme = FlutterFlowTheme.of(context);
-    final tokens = theme.designToken;
+  Widget _membershipContent(BuildContext context) {
+    // The profile and its transaction fallback may arrive in either order.
     _ensureTransactionMembershipStream();
+    if (loggedIn && _ownProfile == null) {
+      return const _VipStatus();
+    }
+    final end = effectiveSubscriptionEnd(
+      profileEnd: _ownProfile?.endSub,
+      latestRecordedEnd: _latestRecordedSubscriptionEnd,
+      latestTransactionIsCancellation: _latestTransactionIsCancellation,
+    );
+    if (!loggedIn ||
+        !hasActiveVipSubscription(expiration: end, now: getCurrentTimestamp)) {
+      return wrapWithModel(
+        model: _model.devenirVIPModel,
+        updateCallback: () => safeSetState(() {}),
+        child: const DevenirVIPWidget(),
+      );
+    }
+    return _LatestPrediction(key: ValueKey(currentUserUid));
+  }
 
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      child: Scaffold(
-        key: scaffoldKey,
-        backgroundColor: theme.primaryBackground,
-        floatingActionButton: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Tooltip(
-              message: FFLocalizations.of(context).getText('viphsttip'),
-              child: FloatingActionButton.small(
-                heroTag: 'vip_history_fab',
-                onPressed: () async {
-                  logFirebaseEvent('VIP_HISTORY_FAB_ON_TAP');
-                  context.pushNamed(VipHistoryWidget.routeName);
-                },
-                backgroundColor: theme.secondaryBackground,
-                foregroundColor: FlutterFlowTheme.of(context).primary,
-                elevation: 4.0,
-                child: const Icon(Icons.history_rounded, size: 21.0),
-              ).vipActionFeedback(),
-            ).vipEntrance(delayMs: 220),
-            const SizedBox(height: 10.0),
-            AnimatedSize(
-              duration: MediaQuery.disableAnimationsOf(context)
-                  ? Duration.zero
-                  : const Duration(milliseconds: 350),
-              curve: Curves.easeInOutCubic,
-              alignment: Alignment.centerRight,
-              child: FloatingActionButton.extended(
-                heroTag: 'vip_tip_fab',
-                onPressed: () async {
-                  logFirebaseEvent('VIP_FloatingActionButton_qjsc5kip_ON_TAP');
-                  logFirebaseEvent('FloatingActionButton_bottom_sheet');
-                  await showModalBottomSheet(
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    context: context,
-                    builder: (context) => Padding(
-                      padding: MediaQuery.viewInsetsOf(context),
-                      child: DonWidget(),
-                    ),
-                  );
-                },
-                isExtended: _model.pourboireHide == false,
-                backgroundColor: theme.secondaryBackground,
-                foregroundColor: FlutterFlowTheme.of(context).primary,
-                icon: FaIcon(
-                  FontAwesomeIcons.mugHot,
-                  color: FlutterFlowTheme.of(context).primary,
-                  size: 21.0,
-                ),
-                elevation: 4.0,
-                label: Visibility(
-                  visible: _model.pourboireHide == false,
-                  child: Text(
-                    FFLocalizations.of(context).getText(
-                      'isn2t0tf' /* POURBOIRE */,
-                    ),
-                    style: FlutterFlowTheme.of(context).labelLarge.override(
-                          color: FlutterFlowTheme.of(context).primary,
-                          fontSize: 15.0,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w900,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                        ),
-                  ),
-                ),
-              ),
-            ).vipActionFeedback().vipEntrance(delayMs: 280),
-          ],
-        ),
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(
-              VipPageHeader.heightFor(context, width: constraints.maxWidth)),
-          child: DecoratedBox(
-            decoration: BoxDecoration(gradient: tokens.vip.felt),
-            child: SafeArea(
-              bottom: false,
-              child: VipPageHeader(
-                onProfile: () {
-                  logFirebaseEvent('VIP_PAGE_Card_elizvnyh_ON_TAP');
-                  logFirebaseEvent('Card_navigate_to');
-                  context.pushNamed(ProfilWidget.routeName);
-                },
-                avatar: AuthUserStreamWidget(
-                  builder: (context) => currentUserPhoto.isEmpty
-                      ? Icon(Icons.person_rounded,
-                          color: theme.onPrimary, size: 30)
-                      : CachedNetworkImage(
-                          fadeInDuration: const Duration(milliseconds: 500),
-                          fadeOutDuration: const Duration(milliseconds: 500),
-                          imageUrl: currentUserPhoto,
-                          errorWidget: (context, url, error) => Icon(
-                            Icons.person_rounded,
-                            color: theme.onPrimary,
-                            size: 30,
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        body: SafeArea(
-          top: true,
-          child: Container(
-            decoration: BoxDecoration(),
+  @override
+  Widget build(BuildContext context) {
+    final bingo = context.watch<FFAppState>().bingo;
+    return AuthUserStreamWidget(builder: (context) {
+      final profile = _ownProfile;
+      final signedIn = loggedIn;
+      final profileName = profile?.displayName.trim() ?? '';
+      final profilePhoto = profile?.photoUrl.trim() ?? '';
+      final name = !signedIn
+          ? null
+          : profileName.isNotEmpty
+              ? profileName
+              : currentUser?.displayName?.trim() ?? '';
+      final photo = !signedIn
+          ? ''
+          : profilePhoto.isNotEmpty
+              ? profilePhoto
+              : currentUser?.photoUrl?.trim() ?? '';
+      return VipPageView(
+        memberName: name,
+        memberMedal: profile == null
+            ? null
+            : MemberVipBadge(user: profile, expandedMedal: true),
+        avatar: VipHeaderAvatar(name: name ?? '', photoUrl: photo),
+        onProfile: () {
+          logFirebaseEvent('VIP_PAGE_Card_elizvnyh_ON_TAP');
+          logFirebaseEvent('Card_navigate_to');
+          context.pushNamed(ProfilWidget.routeName);
+        },
+        onHistory: () {
+          logFirebaseEvent('VIP_HISTORY_FAB_ON_TAP');
+          context.pushNamed(VipHistoryWidget.routeName);
+        },
+        onTip: _showTip,
+        onBack: ModalRoute.of(context)?.canPop == true
+            ? () => context.safePop()
+            : null,
+        bingo: bingo.hasDate() &&
+                bingo.hasExpiration() &&
+                bingo.expiration! >= getCurrentTimestamp
+            ? wrapWithModel(
+                model: _model.bingoCardVIPModel,
+                updateCallback: () => safeSetState(() {}),
+                child: const BingoCardVIPWidget(),
+              )
+            : null,
+        content: _membershipContent(context),
+      );
+    });
+  }
+}
+
+class VipPageView extends StatelessWidget {
+  const VipPageView({
+    super.key,
+    required this.content,
+    required this.avatar,
+    required this.onProfile,
+    required this.onHistory,
+    required this.onTip,
+    this.onBack,
+    this.memberName,
+    this.memberMedal,
+    this.bingo,
+  });
+
+  final Widget content;
+  final Widget avatar;
+  final String? memberName;
+  final Widget? memberMedal;
+  final VoidCallback onProfile;
+  final VoidCallback onHistory;
+  final VoidCallback onTip;
+  final VoidCallback? onBack;
+  final Widget? bingo;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = FlutterFlowTheme.of(context).designToken;
+    final spacing = tokens.spacing;
+    final wide = MediaQuery.sizeOf(context).width >= kBreakpointMedium;
+    final gutter = wide ? spacing.lg : spacing.md;
+    return Scaffold(
+      backgroundColor: tokens.background.home,
+      body: DecoratedBox(
+        decoration: BoxDecoration(gradient: tokens.background.homeGradient),
+        child: SafeArea(
+          child: SizedBox.expand(
             child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  if (FFAppState().bingo.hasDate() &&
-                      FFAppState().bingo.hasExpiration() &&
-                      (FFAppState().bingo.expiration! >= getCurrentTimestamp))
-                    wrapWithModel(
-                      model: _model.bingoCardVIPModel,
-                      updateCallback: () => safeSetState(() {}),
-                      child: BingoCardVIPWidget(),
-                    ).vipEntrance(delayMs: 80),
-                  AuthUserStreamWidget(
-                    builder: (context) {
-                      // Start the fallback audit stream after the auth stream
-                      // has delivered the current UID. This covers the brief
-                      // window where a renewal is written before the profile
-                      // snapshot is refreshed.
-                      _ensureTransactionMembershipStream();
-                      if (loggedIn && currentUserDocument == null) {
-                        return Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(
-                              FlutterFlowTheme.of(context)
-                                  .designToken
-                                  .spacing
-                                  .lg,
-                            ),
-                            child: CircularProgressIndicator(
-                              color: FlutterFlowTheme.of(context).primary,
-                            ),
-                          ),
-                        );
-                      }
-
-                      final subscriptionEnd = effectiveSubscriptionEnd(
-                        profileEnd: currentUserDocument?.endSub,
-                        latestRecordedEnd: _latestRecordedSubscriptionEnd,
-                        latestTransactionIsCancellation:
-                            _latestTransactionIsCancellation,
-                      );
-                      if (loggedIn &&
-                          hasActiveVipSubscription(
-                            expiration: subscriptionEnd,
-                            now: getCurrentTimestamp,
-                          )) {
-                        return StreamBuilder<List<PredictionRecord>>(
-                          stream: queryPredictionRecord(
-                            queryBuilder: (predictionRecord) => predictionRecord
-                                .orderBy('date', descending: true),
-                            singleRecord: true,
-                          ),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              return Padding(
-                                padding: EdgeInsets.all(
-                                  FlutterFlowTheme.of(context)
-                                      .designToken
-                                      .spacing
-                                      .lg,
-                                ),
-                                child: Text(
-                                  FFLocalizations.of(context)
-                                      .getText('viphsterd'),
-                                  textAlign: TextAlign.center,
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        color: FlutterFlowTheme.of(context)
-                                            .primaryText,
-                                      ),
-                                ),
-                              );
-                            }
-
-                            if (!snapshot.hasData) {
-                              return Center(
-                                child: SizedBox(
-                                  width: 50.0,
-                                  height: 50.0,
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      FlutterFlowTheme.of(context).primary,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                            List<PredictionRecord>
-                                listViewPredictionRecordList = snapshot.data!;
-                            if (listViewPredictionRecordList.isEmpty) {
-                              return SizedBox.shrink();
-                            }
-                            final listViewPredictionRecord =
-                                listViewPredictionRecordList.first;
-
-                            return ListView(
-                              padding: EdgeInsets.zero,
-                              primary: false,
-                              shrinkWrap: true,
-                              scrollDirection: Axis.vertical,
+              key: const PageStorageKey('vip-scroll'),
+              padding: EdgeInsets.fromLTRB(gutter, gutter, gutter, spacing.xl),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                      maxWidth: HomePageScaffold.maxContentWidth),
+                  child: LayoutBuilder(builder: (context, bounds) {
+                    final scale =
+                        MediaQuery.textScalerOf(context).scale(16) / 16;
+                    final split =
+                        bounds.maxWidth >= 744 * scale.clamp(1.0, 2.0);
+                    final passWidth = split
+                        ? (bounds.maxWidth * .30).clamp(264.0, 376.0).toDouble()
+                        : bounds.maxWidth;
+                    final gap = split || wide ? spacing.xl : spacing.lg;
+                    return Flex(
+                      direction: split ? Axis.horizontal : Axis.vertical,
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                            width: passWidth,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                VipPredictionHeader(
-                                  label:
-                                      '${FFLocalizations.of(context).getText('vipproblb')}: ${dateTimeFormat(
-                                    "MMMMEEEEd",
-                                    listViewPredictionRecord.date,
-                                    locale: FFLocalizations.of(context)
-                                        .languageCode,
-                                  )} ${listViewPredictionRecord.periode}',
-                                  percentage:
-                                      '${listViewPredictionRecord.pourcentage}%',
-                                ).vipEntrance(delayMs: 80),
-                                GridView(
-                                  padding: EdgeInsets.fromLTRB(
-                                    0,
-                                    0,
-                                    0,
-                                    100.0,
-                                  ),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 0.0,
-                                    mainAxisSpacing: 0.0,
-                                    mainAxisExtent:
-                                        VipCasinoCard.contentHeight +
-                                            tokens.spacing.sm,
-                                  ),
-                                  primary: false,
-                                  shrinkWrap: true,
-                                  scrollDirection: Axis.vertical,
-                                  children: [
-                                    wrapWithModel(
-                                      model: _model.favoriModel,
-                                      updateCallback: () => safeSetState(() {}),
-                                      child: UniversalVIPWidget(
-                                        name: listViewPredictionRecord!
-                                            .favori.name,
-                                        autre: '',
-                                        chiffre: listViewPredictionRecord
-                                            ?.favori?.boul,
-                                        ref:
-                                            listViewPredictionRecord?.reference,
-                                        icon: Icon(
-                                          Icons.star,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 20.0,
-                                        ),
-                                      ),
-                                    ).vipEntrance(delayMs: 125),
-                                    wrapWithModel(
-                                      model: _model.soutniModel,
-                                      updateCallback: () => safeSetState(() {}),
-                                      child: UniversalVIPWidget(
-                                        name: listViewPredictionRecord!
-                                            .soutni.name,
-                                        chiffre: listViewPredictionRecord
-                                            ?.soutni?.boul,
-                                        ref:
-                                            listViewPredictionRecord?.reference,
-                                        icon: FaIcon(
-                                          FontAwesomeIcons.peopleCarry,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 20.0,
-                                        ),
-                                      ),
-                                    ).vipEntrance(delayMs: 170),
-                                    wrapWithModel(
-                                      model: _model.vIPbolotoModel,
-                                      updateCallback: () => safeSetState(() {}),
-                                      child: VIPbolotoWidget(
-                                        name: listViewPredictionRecord!
-                                            .boloto.name,
-                                        chiffre: listViewPredictionRecord
-                                            ?.boloto?.boul,
-                                        ref:
-                                            listViewPredictionRecord?.reference,
-                                      ),
-                                    ).vipEntrance(delayMs: 215),
-                                    wrapWithModel(
-                                      model: _model.mariageModel,
-                                      updateCallback: () => safeSetState(() {}),
-                                      child: UniversalVIPWidget(
-                                        name: listViewPredictionRecord!
-                                            .mariage.name,
-                                        chiffre: listViewPredictionRecord
-                                            ?.mariage?.boul,
-                                        ref:
-                                            listViewPredictionRecord?.reference,
-                                        icon: FaIcon(
-                                          FontAwesomeIcons.link,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 20.0,
-                                        ),
-                                      ),
-                                    ).vipEntrance(delayMs: 260),
-                                    wrapWithModel(
-                                      model: _model.chif3Model,
-                                      updateCallback: () => safeSetState(() {}),
-                                      child: UniversalVIPWidget(
-                                        name: listViewPredictionRecord!
-                                            .chif3.name,
-                                        icon: Icon(
-                                          Icons.looks_3,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 20.0,
-                                        ),
-                                        chiffre: listViewPredictionRecord
-                                            ?.chif3?.boul,
-                                        ref:
-                                            listViewPredictionRecord?.reference,
-                                      ),
-                                    ).vipEntrance(delayMs: 305),
-                                    wrapWithModel(
-                                      model: _model.chif4Model,
-                                      updateCallback: () => safeSetState(() {}),
-                                      child: UniversalVIPWidget(
-                                        name: listViewPredictionRecord!
-                                            .chif4.name,
-                                        icon: Icon(
-                                          Icons.looks_4,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 20.0,
-                                        ),
-                                        chiffre: listViewPredictionRecord
-                                            ?.chif4?.boul,
-                                        ref:
-                                            listViewPredictionRecord?.reference,
-                                      ),
-                                    ).vipEntrance(delayMs: 350),
-                                    wrapWithModel(
-                                      model: _model.extraModel,
-                                      updateCallback: () => safeSetState(() {}),
-                                      child: UniversalVIPWidget(
-                                        name: listViewPredictionRecord!
-                                            .extra.name,
-                                        icon: FaIcon(
-                                          FontAwesomeIcons.meteor,
-                                          color: theme.error,
-                                          size: 20.0,
-                                        ),
-                                        chiffre: listViewPredictionRecord
-                                            ?.extra?.boul,
-                                        ref:
-                                            listViewPredictionRecord?.reference,
-                                      ),
-                                    ).vipEntrance(delayMs: 395),
-                                  ],
-                                ),
+                                VipPageHeader(
+                                  avatar: avatar,
+                                  memberName: memberName,
+                                  memberMedal: memberMedal,
+                                  onProfile: onProfile,
+                                  onHistory: onHistory,
+                                  onTip: onTip,
+                                  onBack: onBack,
+                                ).vipEntrance(),
+                                if (bingo != null) ...[
+                                  SizedBox(height: spacing.md),
+                                  bingo!,
+                                ],
                               ],
-                            );
-                          },
-                        );
-                      } else {
-                        return wrapWithModel(
-                          model: _model.devenirVIPModel,
-                          updateCallback: () => safeSetState(() {}),
-                          child: DevenirVIPWidget(),
-                        ).vipEntrance(delayMs: 100);
-                      }
-                    },
-                  ),
-                ],
+                            )),
+                        SizedBox(
+                            width: split ? gap : 0, height: split ? 0 : gap),
+                        SizedBox(
+                            width: split
+                                ? bounds.maxWidth - passWidth - gap
+                                : bounds.maxWidth,
+                            child: content),
+                      ],
+                    );
+                  }),
+                ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _LatestPrediction extends StatefulWidget {
+  const _LatestPrediction({super.key});
+
+  @override
+  State<_LatestPrediction> createState() => _LatestPredictionState();
+}
+
+class _LatestPredictionState extends State<_LatestPrediction> {
+  late Stream<PredictionRecord?> _stream = _watchLatest();
+
+  // Keep the released date ordering and limit. StreamBuilder also needs the
+  // original error event to offer a retry when this subscription fails.
+  Stream<PredictionRecord?> _watchLatest() => PredictionRecord.collection
+      .orderBy('date', descending: true)
+      .limit(1)
+      .snapshots()
+      .map((snapshot) => snapshot.docs.isEmpty
+          ? null
+          : PredictionRecord.fromSnapshot(snapshot.docs.first));
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = FFLocalizations.of(context);
+    return StreamBuilder<PredictionRecord?>(
+      key: ObjectKey(_stream),
+      stream: _stream,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _VipStatus(
+            message: strings.getText('viphsterd'),
+            onRetry: () => setState(() => _stream = _watchLatest()),
+          );
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const _VipStatus();
+        }
+        final prediction = snapshot.data;
+        if (prediction == null) {
+          return _VipStatus(
+              message: strings.getVariableText(
+            frText: 'Aucune prédiction disponible.',
+            enText: 'No predictions available.',
+            crText: 'Pa gen prediksyon disponib.',
+          ));
+        }
+        return VipPredictionPanel(prediction: prediction);
+      },
+    );
+  }
+}
+
+/// Profile loading, prediction loading, empty and recoverable errors share a footprint.
+class _VipStatus extends StatelessWidget {
+  const _VipStatus({this.message, this.onRetry});
+
+  final String? message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final strings = FFLocalizations.of(context);
+    return Container(
+      decoration: tokens.home.panel,
+      padding: EdgeInsets.all(tokens.spacing.lg),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (message == null)
+          CircularProgressIndicator(
+            color: tokens.home.amethystGlow,
+            semanticsLabel: strings.getVariableText(
+              frText: 'Chargement',
+              enText: 'Loading',
+              crText: 'Ap chaje',
+            ),
+          )
+        else ...[
+          Icon(
+              onRetry == null
+                  ? Icons.calendar_today_outlined
+                  : Icons.cloud_off_rounded,
+              color: tokens.home.mutedText),
+          SizedBox(height: tokens.spacing.sm),
+          Text(message!,
+              style: theme.bodyMedium.copyWith(color: tokens.home.mutedText),
+              textAlign: TextAlign.center),
+          if (onRetry != null)
+            TextButton(
+              key: const ValueKey('vip-prediction-retry'),
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                  foregroundColor: tokens.home.amethystGlow,
+                  minimumSize: const Size.square(kMinInteractiveDimension)),
+              child: Text(strings.getText('viphstrty')),
+            ),
+        ],
+      ]),
     );
   }
 }

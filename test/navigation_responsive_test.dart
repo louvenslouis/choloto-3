@@ -230,73 +230,42 @@ void main() {
 
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final themeMode in const [ThemeMode.dark, ThemeMode.light]) {
-      testWidgets(
-        'uses a compact tablet-landscape menu in ${locale.languageCode} '
-        'and ${themeMode.name} mode',
-        (tester) async {
-          await _pumpAtSize(
-            tester,
-            size: const Size(800, 600),
-            locale: locale,
-            themeMode: themeMode,
-          );
+      for (final size in const [Size(800, 600), Size(1440, 900)]) {
+        testWidgets(
+          'VIP shares the horizontal tab bar in ${locale.languageCode} '
+          'with ${themeMode.name} appearance at ${size.width}',
+          (tester) async {
+            await _pumpAtSize(tester,
+                size: size, locale: locale, themeMode: themeMode);
+            final bar = find.byKey(const ValueKey('vip-desktop-navigation'));
+            final strings = FFLocalizations(locale);
 
-          final rail = tester.widget<NavigationRail>(
-            find.byKey(const ValueKey('primary-navigation-rail')),
-          );
-
-          expect(find.byType(BottomNavigationBar), findsNothing);
-          expect(rail.extended, isFalse);
-          expect(rail.labelType, NavigationRailLabelType.all);
-          expect(rail.selectedIndex, 2);
-          expect(rail.destinations, hasLength(4));
-          expect(
-            find.byKey(const ValueKey('primary-navigation-logo')),
-            findsOneWidget,
-          );
-          expect(tester.takeException(), isNull);
-        },
-      );
-
-      testWidgets(
-        'uses an extended desktop menu in ${locale.languageCode} '
-        'and ${themeMode.name} mode',
-        (tester) async {
-          await _pumpAtSize(
-            tester,
-            size: const Size(1440, 900),
-            locale: locale,
-            themeMode: themeMode,
-          );
-
-          final rail = tester.widget<NavigationRail>(
-            find.byKey(const ValueKey('primary-navigation-rail')),
-          );
-          final localizations = FFLocalizations(locale);
-
-          expect(find.byType(BottomNavigationBar), findsNothing);
-          expect(rail.extended, isTrue);
-          expect(rail.labelType, NavigationRailLabelType.none);
-          expect(rail.selectedIndex, 2);
-          expect(
-            find.text(localizations.getText('uer2q4no')),
-            findsOneWidget,
-          );
-          expect(
-            find.text(localizations.getText('wakkucok')),
-            findsOneWidget,
-          );
-          expect(
-            find.text(localizations.getText('xj2saev3')),
-            findsOneWidget,
-          );
-          expect(
-            find.text(localizations.getText('14smzvpm')),
-            findsOneWidget,
-          );
-          expect(tester.takeException(), isNull);
-        },
-      );
+            expect(bar, findsOneWidget);
+            expect(find.byType(BottomNavigationBar), findsNothing);
+            expect(
+                find.byKey(const ValueKey('home-header-logo')), findsOneWidget);
+            for (final tab in const {
+              'Home': 'uer2q4no',
+              'Tirages': 'wakkucok',
+              'VIP': 'xj2saev3',
+              'Tchala': '14smzvpm',
+            }.entries) {
+              final command = find.byKey(ValueKey('desktop-tab-${tab.key}'));
+              expect(command.hitTestable(), findsOneWidget);
+              expect(
+                  find.descendant(
+                      of: command,
+                      matching: find.text(strings.getText(tab.value))),
+                  findsOneWidget);
+            }
+            final selected = tester.widget<TextButton>(
+                find.byKey(const ValueKey('desktop-tab-VIP')));
+            expect(selected.style!.foregroundColor!.resolve({}),
+                DarkModeTheme().designToken.home.amethystGlow);
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
     }
   }
 }

@@ -14,11 +14,15 @@ typedef _BadgeHistory = ({
 });
 
 class MemberVipBadge extends StatefulWidget {
-  MemberVipBadge({required this.user, this.showCollection = false})
-      : super(key: ValueKey(user.reference.path));
+  MemberVipBadge({
+    required this.user,
+    this.showCollection = false,
+    this.expandedMedal = false,
+  }) : super(key: ValueKey(user.reference.path));
 
   final UserRecord user;
   final bool showCollection;
+  final bool expandedMedal;
   @override
   State<MemberVipBadge> createState() => _MemberVipBadgeState();
 }
@@ -92,7 +96,7 @@ class _MemberVipBadgeState extends State<MemberVipBadge> {
                 enText: 'Reload badge',
                 crText: 'Rechaje badj la');
             void retry() => setState(() => _stream = _watch());
-            if (!widget.showCollection) {
+            if (!widget.showCollection || widget.expandedMedal) {
               return IconButton(
                   icon: const Icon(Icons.refresh_rounded),
                   onPressed: retry,
@@ -116,7 +120,8 @@ class _MemberVipBadgeState extends State<MemberVipBadge> {
               tiers: data.tiers,
               time: time,
               active: active,
-              showCollection: widget.showCollection);
+              showCollection: widget.showCollection,
+              expandedMedal: widget.expandedMedal);
         },
       );
 }
@@ -127,11 +132,13 @@ class VipBadgeView extends StatefulWidget {
       required this.tiers,
       required this.time,
       required this.active,
-      required this.showCollection});
+      required this.showCollection,
+      this.expandedMedal = false});
   final List<VipBadgeTier> tiers;
   final VerifiedVipTime time;
   final bool active;
   final bool showCollection;
+  final bool expandedMedal;
 
   @override
   State<VipBadgeView> createState() => _VipBadgeViewState();
@@ -174,19 +181,21 @@ class _VipBadgeViewState extends State<VipBadgeView> {
       _closeDetails();
       return const SizedBox.shrink();
     }
-    final showCollection = widget.showCollection;
+    final showCollection = widget.showCollection && !widget.expandedMedal;
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
     final imageSize = showCollection ? 48.0 : 24.0;
-    Widget medal(int index) {
+    Widget medal(int index, {double? expandedSize}) {
+      final size = expandedSize ?? imageSize;
       final l = FFLocalizations.of(context);
       final name = vipBadgeName(l, tiers[index].name);
       final status = _badgeStatus(l, index, rank);
       return IconButton(
         key: ValueKey('vip-medal-${index + 1}'),
         tooltip: '$name · $status',
-        iconSize: imageSize,
-        padding: EdgeInsets.all(spacing.xs),
+        iconSize: size,
+        padding:
+            expandedSize == null ? EdgeInsets.all(spacing.xs) : EdgeInsets.zero,
         onPressed: () async {
           ModalRoute<void>? opened;
           await showModalBottomSheet<void>(
@@ -227,7 +236,7 @@ class _VipBadgeViewState extends State<VipBadgeView> {
           if (identical(_details, opened)) _details = null;
         },
         icon: SizedBox.square(
-          dimension: imageSize,
+          dimension: size,
           child: Stack(fit: StackFit.expand, children: [
             _medalImage(index, retained: !widget.active && index <= rank),
             if (showCollection && index >= rank)
@@ -240,6 +249,13 @@ class _VipBadgeViewState extends State<VipBadgeView> {
       );
     }
 
+    if (widget.expandedMedal) {
+      return LayoutBuilder(builder: (context, constraints) {
+        final side = constraints.biggest.shortestSide;
+        return medal(rank,
+            expandedSize: side.isFinite ? side : kMinInteractiveDimension);
+      });
+    }
     if (!showCollection) return medal(rank);
     return Padding(
         padding: EdgeInsets.only(bottom: spacing.md),

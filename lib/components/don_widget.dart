@@ -19,7 +19,7 @@ class DonWidget extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: theme.secondaryBackground,
+          color: tokens.home.surface.colors.last,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(tokens.radius.lg),
             topRight: Radius.circular(tokens.radius.lg),
@@ -34,15 +34,19 @@ class DonWidget extends StatelessWidget {
             children: [
               Align(
                 alignment: AlignmentDirectional.topEnd,
-                child: FlutterFlowIconButton(
-                  borderRadius: tokens.radius.sm,
-                  buttonSize: 40.0,
-                  icon: Icon(
-                    Icons.close_outlined,
-                    color: theme.primaryText,
-                    size: 24.0,
+                child: Tooltip(
+                  message: FFLocalizations.of(context).getVariableText(
+                      frText: 'Fermer', enText: 'Close', crText: 'Fèmen'),
+                  child: FlutterFlowIconButton(
+                    borderRadius: tokens.radius.sm,
+                    buttonSize: kMinInteractiveDimension,
+                    icon: Icon(
+                      Icons.close_outlined,
+                      color: theme.primaryText,
+                      size: 24.0,
+                    ),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  onPressed: () => Navigator.pop(context),
                 ),
               ),
               Text(
@@ -52,23 +56,17 @@ class DonWidget extends StatelessWidget {
               Text(
                 FFLocalizations.of(context).getText('don_moncash_instruction'),
                 style: theme.bodyMedium.override(
-                  color: theme.secondaryText,
+                  color: tokens.home.mutedText,
                 ),
               ),
               Container(
                 padding: EdgeInsets.all(tokens.spacing.md),
-                decoration: BoxDecoration(
-                  color: theme.primaryBackground,
-                  borderRadius: BorderRadius.circular(tokens.radius.md),
-                  border: Border.all(
-                    color: theme.primary.withValues(alpha: 0.35),
-                  ),
-                ),
+                decoration: tokens.home.panel,
                 child: Row(
                   children: [
                     Icon(
                       Icons.account_balance_wallet_outlined,
-                      color: theme.primary,
+                      color: tokens.home.amethystGlow,
                       size: 28.0,
                     ),
                     SizedBox(width: tokens.spacing.md),
@@ -85,7 +83,7 @@ class DonWidget extends StatelessWidget {
                           Text(
                             _moncashNumber,
                             style: theme.titleLarge.override(
-                              color: theme.primary,
+                              color: tokens.home.amethystGlow,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -99,7 +97,7 @@ class DonWidget extends StatelessWidget {
                 FFLocalizations.of(context).getText('don_moncash_thanks'),
                 textAlign: TextAlign.center,
                 style: theme.bodySmall.override(
-                  color: theme.secondaryText,
+                  color: tokens.home.mutedText,
                 ),
               ),
             ].divide(SizedBox(height: tokens.spacing.md)),

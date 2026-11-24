@@ -87,19 +87,16 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
     final toggleLabel = FFLocalizations.of(context)
         .getText(_model.minimise ? 'bngexpand' : 'bngreduce');
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        tokens.spacing.xs,
-        tokens.spacing.sm,
-        tokens.spacing.xs,
-        0,
-      ),
-      child: Material(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        clipBehavior: Clip.antiAlias,
+    return Material(
+      type: MaterialType.transparency,
+      borderRadius: BorderRadius.circular(tokens.radius.md),
+      clipBehavior: Clip.antiAlias,
+      child: Ink(
+        decoration: tokens.home.panel,
         child: AnimatedSize(
-          duration: const Duration(milliseconds: 200),
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : const Duration(milliseconds: 200),
           alignment: Alignment.topCenter,
           curve: Curves.easeInOut,
           child: Column(
@@ -142,8 +139,7 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                               toggleLabel,
                               textAlign: TextAlign.end,
                               style: theme.labelMedium.override(
-                                color:
-                                    theme.primaryText.withValues(alpha: 0.75),
+                                color: tokens.home.mutedText,
                               ),
                             ),
                           ),
@@ -152,7 +148,7 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                             _model.minimise
                                 ? Icons.expand_more_rounded
                                 : Icons.expand_less_rounded,
-                            color: theme.primaryText.withValues(alpha: 0.75),
+                            color: tokens.home.mutedText,
                             size: tokens.spacing.lg,
                           ),
                         ],

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -5,7 +7,6 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/payments/payment_requests_widget.dart';
 import '/settings/customerservice/customerservice_widget.dart';
 import '/support/support_text.dart';
-import 'package:flutter/material.dart';
 import 'devenir_v_i_p_model.dart';
 export 'devenir_v_i_p_model.dart';
 
@@ -17,533 +18,348 @@ class DevenirVIPWidget extends StatefulWidget {
 }
 
 class _DevenirVIPWidgetState extends State<DevenirVIPWidget> {
-  late DevenirVIPModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
+  late final DevenirVIPModel _model;
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => DevenirVIPModel());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
   void dispose() {
     _model.maybeDispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final tokens = FlutterFlowTheme.of(context).designToken;
+    return LayoutBuilder(builder: (context, constraints) {
+      final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
+      final wide = constraints.maxWidth / scale >= 656;
+      final inset = wide ? tokens.spacing.lg : tokens.spacing.md;
+      final offerWidth = wide
+          ? (constraints.maxWidth - tokens.spacing.md) * 5 / 9
+          : constraints.maxWidth;
+      final offer = _MonthlyOffer(
+        key: const ValueKey('vip-monthly-offer-card'),
+        inset: inset,
+        inlineDuration: offerWidth >= 260 * scale,
+      );
+      final comparison = Container(
+        key: const ValueKey('vip-plan-comparison-card'),
+        alignment: AlignmentDirectional.centerStart,
+        padding: EdgeInsets.all(inset),
+        decoration: tokens.home.panel,
+        child: const _PlanComparison(),
+      );
+      if (wide) {
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(flex: 5, child: offer),
+              SizedBox(width: tokens.spacing.md),
+              Expanded(flex: 4, child: comparison),
+            ],
+          ),
+        );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [offer, SizedBox(height: tokens.spacing.md), comparison],
+      );
+    });
+  }
+}
+
+class _MonthlyOffer extends StatelessWidget {
+  const _MonthlyOffer(
+      {super.key, required this.inset, required this.inlineDuration});
+
+  final double inset;
+  final bool inlineDuration;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
-
-    return Container(
+    final spacing = tokens.spacing;
+    final strings = FFLocalizations.of(context);
+    final accent = tokens.home.amethystGlow;
+    final buttonHeight =
+        (MediaQuery.textScalerOf(context).scale(18) * 1.3 + spacing.md)
+            .clamp(kMinInteractiveDimension, double.infinity)
+            .toDouble();
+    final stubHeight = buttonHeight + 2 * spacing.md;
+    final calendar =
+        Icon(Icons.calendar_month_rounded, size: 22, color: theme.onPrimary);
+    final duration = Text(strings.getText('bl4kupme'),
+        style: theme.labelMedium
+            .override(color: theme.onPrimary, fontWeight: FontWeight.w700));
+    final stamp = DecoratedBox(
       decoration: BoxDecoration(
-        color: FlutterFlowTheme.of(context).secondaryBackground,
+        gradient: tokens.home.membership,
+        border: Border.all(color: tokens.vip.goldLight.withValues(alpha: .64)),
+        borderRadius: BorderRadius.circular(tokens.radius.sm),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  theme.secondaryBackground,
-                  Color.alphaBlend(theme.primary.withValues(alpha: 0.12),
-                      theme.secondaryBackground),
-                  theme.secondaryBackground
-                ],
-                stops: [0.0, 0.6, 1.0],
-                begin: AlignmentDirectional(0.0, -1.0),
-                end: AlignmentDirectional(0, 1.0),
+      child: Padding(
+        padding: EdgeInsets.all(spacing.sm),
+        child: inlineDuration
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [calendar, SizedBox(height: spacing.xs), duration])
+            : Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: spacing.xs,
+                children: [calendar, duration]),
+      ),
+    );
+    final price = Text(
+      strings.getText('r11k1q8q'),
+      style: theme.headlineMedium.override(
+        color: theme.primaryText,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -.6,
+        lineHeight: 1.08,
+      ),
+    );
+
+    return ClipPath(
+      clipper: _TicketNotches(stubHeight, spacing.sm),
+      child: DecoratedBox(
+        decoration: tokens.vip.pass,
+        child: CustomPaint(
+          foregroundPainter: _TicketPerforation(stubHeight, spacing.sm,
+              tokens.vip.goldLight.withValues(alpha: .58)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: inset, vertical: spacing.lg),
+                child: inlineDuration
+                    ? Row(children: [
+                        stamp,
+                        SizedBox(width: spacing.md),
+                        Expanded(child: price)
+                      ])
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [stamp, SizedBox(height: spacing.sm), price],
+                      ),
               ),
-            ),
-            child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 40.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Align(
-                    alignment: AlignmentDirectional(-1.0, -1.0),
-                    child: Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 0.0, 25.0),
-                      child: FlutterFlowIconButton(
-                        borderRadius: 8.0,
-                        buttonSize: 40.0,
-                        icon: Icon(
-                          Icons.close_sharp,
-                          color: theme.primaryText,
-                          size: 30.0,
-                        ),
-                        onPressed: () async {
+              Container(
+                height: stubHeight,
+                padding: EdgeInsets.symmetric(
+                    horizontal: inset, vertical: spacing.md),
+                decoration: BoxDecoration(
+                  color: theme.primaryBackground.withValues(alpha: .28),
+                  borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(tokens.radius.lg)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FFButtonWidget(
+                        key: const ValueKey('become-vip-button'),
+                        text: strings.getText('i0zhxntw'),
+                        onPressed: () {
                           logFirebaseEvent(
-                              'DEVENIR_V_I_P_close_sharp_ICN_ON_TAP');
-                          logFirebaseEvent('IconButton_navigate_back');
-                          context.safePop();
+                              'DEVENIR_V_I_P_DEVENIR_V_I_P_BTN_ON_TAP');
+                          context.pushNamed(PaymentRequestsWidget.routeName);
                         },
-                      ),
-                    ),
-                  ),
-                  Text(
-                    FFLocalizations.of(context).getText(
-                      'c8ki06qv' /* Devenez un membre VIP */,
-                    ),
-                    style: theme.titleLarge.override(
-                      fontSize: 20.0,
-                      color: theme.primaryText,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.bold,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                    ),
-                  ),
-                  Text(
-                    FFLocalizations.of(context).getText(
-                      'imcn98qf' /* ak CHOLOTO VIP, miltipliye cha... */,
-                    ),
-                    textAlign: TextAlign.center,
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          letterSpacing: 0.0,
-                          color: theme.primaryText,
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
-                  ),
-                ].divide(SizedBox(height: 15.0)),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 15.0, 0.0, 15.0),
-            child: Container(
-              decoration: BoxDecoration(),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(
-                          flex: 6,
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              '99kfebqb' /* WHAT'S INCLUDED */,
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
+                        options: FFButtonOptions(
+                          color: accent,
+                          height: buttonHeight,
+                          padding: EdgeInsets.symmetric(horizontal: spacing.sm),
+                          elevation: 0,
+                          borderRadius: BorderRadius.circular(tokens.radius.sm),
+                          textStyle: theme.titleMedium.override(
+                            color: theme.onPrimary,
+                            fontWeight: FontWeight.w800,
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              'juufc32a' /* GRATUIT */,
-                            ),
-                            textAlign: TextAlign.center,
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  fontSize: 12.0,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              'zpnlwhem' /* VIP */,
-                            ),
-                            textAlign: TextAlign.center,
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  color: theme.primaryText,
-                                  fontSize: 12.0,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Icon(
-                            Icons.request_page,
-                            color: theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 5,
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              'tv8dp8zl' /* Resultats lotteries */,
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Icon(
-                            Icons.minimize_outlined,
-                            color: theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Icon(
-                            Icons.check,
-                            color: theme is DarkModeTheme
-                                ? theme.primary
-                                : theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Icon(
-                            Icons.request_page,
-                            color: theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 5,
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              'jekwx2fb' /* Resultats lotteries */,
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Icon(
-                            Icons.minimize_outlined,
-                            color: theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Icon(
-                            Icons.check,
-                            color: theme is DarkModeTheme
-                                ? theme.primary
-                                : theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Icon(
-                            Icons.request_page,
-                            color: theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 5,
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              'j59fr62k' /* Resultats lotteries */,
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Icon(
-                            Icons.minimize_outlined,
-                            color: theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Icon(
-                            Icons.check,
-                            color: theme is DarkModeTheme
-                                ? theme.primary
-                                : theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Icon(
-                            Icons.request_page,
-                            color: theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 5,
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              '96ad4c5w' /* Resultats lotteries */,
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Icon(
-                            Icons.minimize_outlined,
-                            color: theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Icon(
-                            Icons.check,
-                            color: theme is DarkModeTheme
-                                ? theme.primary
-                                : theme.primaryText,
-                            size: 24.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 10.0, 0.0),
-                    child: Card(
-                      clipBehavior: Clip.antiAliasWithSaveLayer,
-                      color: theme.primaryBackground,
-                      elevation: 0.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(tokens.radius.md),
-                        side: BorderSide(
-                            color: theme.primary.withValues(alpha: 0.35)),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    FFLocalizations.of(context).getText(
-                                      'bl4kupme' /* 1 Mois */,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontSize: 20.0,
-                                          letterSpacing: 0.0,
-                                          fontWeight: FontWeight.bold,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                  Text(
-                                    FFLocalizations.of(context).getText(
-                                      'r11k1q8q' /* USD $ 40.00 ou GDS 2,000.00 */,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontSize: 17.0,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ].divide(SizedBox(height: 8.0)),
-                              ),
-                            ),
-                            Tooltip(
-                              message: supportText(context, 'open'),
-                              child: FlutterFlowIconButton(
-                                key: const ValueKey(
-                                    'open-subscription-support-legacy'),
-                                borderRadius: FlutterFlowTheme.of(context)
-                                    .designToken
-                                    .radius
-                                    .full,
-                                buttonSize: 48.0,
-                                fillColor: FlutterFlowTheme.of(context).primary,
-                                icon: Icon(
-                                  Icons.chat_bubble_outline_rounded,
-                                  color: FlutterFlowTheme.of(context).onPrimary,
-                                  size: 23.0,
-                                ),
-                                onPressed: () => context.pushNamed(
-                                  CustomerserviceWidget.routeName,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ),
                     ),
-                  ),
-                ].divide(SizedBox(height: 8.0)),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(12.0),
-            child: FFButtonWidget(
-              key: const ValueKey('become-vip-button'),
-              onPressed: () {
-                logFirebaseEvent('DEVENIR_V_I_P_DEVENIR_V_I_P_BTN_ON_TAP');
-                context.pushNamed(PaymentRequestsWidget.routeName);
-              },
-              text: FFLocalizations.of(context).getText(
-                'i0zhxntw' /* Devenir VIP */,
-              ),
-              icon: Icon(
-                Icons.workspace_premium,
-                size: 25.0,
-              ),
-              options: FFButtonOptions(
-                width: double.infinity,
-                height: 55.0,
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                color: theme.primary,
-                textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                      fontFamily: 'Google sans flex',
-                      color: theme.onPrimary,
-                      fontSize: 20.0,
-                      letterSpacing: 0.0,
+                    SizedBox(width: spacing.sm),
+                    Tooltip(
+                      message: supportText(context, 'open'),
+                      child: FlutterFlowIconButton(
+                        key: const ValueKey('open-subscription-support-legacy'),
+                        borderRadius: tokens.radius.sm,
+                        borderWidth: 1,
+                        borderColor: accent.withValues(alpha: .50),
+                        focusBorderSide: BorderSide(color: accent, width: 2),
+                        focusBorderRadius:
+                            BorderRadius.circular(tokens.radius.sm),
+                        hoverColor: accent.withValues(alpha: .14),
+                        buttonSize: kMinInteractiveDimension,
+                        icon: Icon(Icons.chat_bubble_outline_rounded,
+                            size: 21, color: theme.primaryText),
+                        onPressed: () =>
+                            context.pushNamed(CustomerserviceWidget.routeName),
+                      ),
                     ),
-                elevation: 0.0,
-                borderRadius: BorderRadius.circular(tokens.radius.md),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
+}
+
+/// The cut-outs follow the tear-off strip when larger text makes its buttons taller.
+class _TicketNotches extends CustomClipper<Path> {
+  const _TicketNotches(this.stubHeight, this.radius);
+  final double stubHeight;
+  final double radius;
+
+  @override
+  Path getClip(Size size) {
+    final seam = size.height - stubHeight;
+    final holes = Path()
+      ..addOval(Rect.fromCircle(center: Offset(0, seam), radius: radius))
+      ..addOval(
+          Rect.fromCircle(center: Offset(size.width, seam), radius: radius));
+    return Path.combine(
+        PathOperation.difference, Path()..addRect(Offset.zero & size), holes);
+  }
+
+  @override
+  bool shouldReclip(_TicketNotches oldClipper) =>
+      stubHeight != oldClipper.stubHeight || radius != oldClipper.radius;
+}
+
+class _TicketPerforation extends CustomPainter {
+  const _TicketPerforation(this.stubHeight, this.notchRadius, this.color);
+  final double stubHeight;
+  final double notchRadius;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final seam = size.height - stubHeight;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    for (final x in [0.0, size.width]) {
+      canvas.drawCircle(Offset(x, seam), notchRadius + .5, paint);
+    }
+    final dash = notchRadius / 2;
+    final length = size.width - 4 * notchRadius;
+    final count = (length / (2 * dash)).floor();
+    final start = (size.width - (count * 2 - 1) * dash) / 2;
+    for (var i = 0; i < count; i++) {
+      final x = start + i * 2 * dash;
+      canvas.drawLine(Offset(x, seam), Offset(x + dash, seam), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_TicketPerforation oldDelegate) =>
+      stubHeight != oldDelegate.stubHeight ||
+      notchRadius != oldDelegate.notchRadius ||
+      color != oldDelegate.color;
+}
+
+class _PlanComparison extends StatelessWidget {
+  const _PlanComparison();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
+    final strings = FFLocalizations.of(context);
+    final freeLabel = strings.getText('juufc32a');
+    final vipLabel = strings.getText('zpnlwhem');
+    final labelStyle = theme.labelMedium.override(
+      color: tokens.home.mutedText,
+      fontWeight: FontWeight.w600,
+    );
+    final freeColumn = EdgeInsets.symmetric(horizontal: spacing.sm);
+    return Table(
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      columnWidths: const {
+        0: FlexColumnWidth(),
+        1: IntrinsicColumnWidth(),
+        2: IntrinsicColumnWidth(),
+      },
+      border: TableBorder(
+        horizontalInside: BorderSide(color: tokens.home.panelEdge),
+      ),
+      children: [
+        TableRow(children: [
+          Padding(
+            padding:
+                EdgeInsetsDirectional.only(end: spacing.sm, bottom: spacing.sm),
+            child: Semantics(
+              header: true,
+              child: Text(strings.getText('99kfebqb'),
+                  style:
+                      theme.titleMedium.override(fontWeight: FontWeight.w700)),
+            ),
+          ),
+          Padding(
+            padding: freeColumn.add(EdgeInsets.only(bottom: spacing.sm)),
+            child:
+                Text(freeLabel, textAlign: TextAlign.center, style: labelStyle),
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.only(
+                start: spacing.sm, bottom: spacing.sm),
+            child: Text(vipLabel,
+                textAlign: TextAlign.center,
+                style: labelStyle.copyWith(color: tokens.home.amethystGlow)),
+          ),
+        ]),
+        for (final (labelKey, free) in const [
+          ('tv8dp8zl', true),
+          ('vip_plan_predictions', false),
+          ('viphstttl', false),
+        ])
+          TableRow(children: [
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                  0, spacing.sm, spacing.sm, spacing.sm),
+              child: Text(strings.getText(labelKey),
+                  style: theme.bodyMedium.override(color: theme.primaryText)),
+            ),
+            Padding(
+              padding: freeColumn,
+              child: Icon(
+                free ? Icons.check_rounded : Icons.remove_rounded,
+                color: tokens.home.mutedText,
+                size: 18,
+                semanticLabel: '$freeLabel, ${_inclusion(context, free)}',
+              ),
+            ),
+            Padding(
+              padding: EdgeInsetsDirectional.only(start: spacing.sm),
+              child: Icon(
+                Icons.check_rounded,
+                color: tokens.home.amethystGlow,
+                size: 20,
+                semanticLabel: '$vipLabel, ${_inclusion(context, true)}',
+              ),
+            ),
+          ]),
+      ],
+    );
+  }
+
+  String _inclusion(BuildContext context, bool included) =>
+      FFLocalizations.of(context).getVariableText(
+        frText: included ? 'inclus' : 'non inclus',
+        enText: included ? 'included' : 'not included',
+        crText: included ? 'ladan' : 'pa ladan',
+      );
 }

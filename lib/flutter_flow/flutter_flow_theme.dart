@@ -411,6 +411,40 @@ class FFVipMaterials {
   Color get ornament => goldLight.withValues(alpha: 0.08);
   Color get numberText => goldLight;
 
+  Color get illustrationBorder =>
+      theme.designToken.home.amethystGlow.withValues(alpha: .32);
+
+  Color get illustrationInk =>
+      Color.lerp(_vipPurple, theme.primaryBackground, .80)!;
+  Color get illustrationShade => illustrationInk.withValues(alpha: .70);
+
+  /// The engraved member pass and offer share the home amethyst texture.
+  BoxDecoration get pass {
+    final tokens = theme.designToken;
+    final amethyst = tokens.home.vipAmethyst.colors;
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.bottomLeft,
+        end: Alignment.topRight,
+        colors: [
+          Color.lerp(amethyst.first, tokens.background.home, .75)!,
+          Color.lerp(amethyst.first, tokens.background.home, .28)!,
+          Color.lerp(amethyst[1], amethyst.first, .5)!,
+        ],
+        stops: const [0, .53, 1],
+      ),
+      image: const DecorationImage(
+        image: AssetImage('assets/images/home/amethyst.webp'),
+        fit: BoxFit.cover,
+        alignment: Alignment.centerRight,
+        opacity: .28,
+      ),
+      border:
+          Border.all(color: tokens.home.amethystGlow.withValues(alpha: .46)),
+      borderRadius: BorderRadius.circular(tokens.radius.lg),
+    );
+  }
+
   LinearGradient get felt => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,

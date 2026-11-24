@@ -83,6 +83,34 @@ void main() {
         }
       }
     });
+    test('engraved VIP pass and poster text keep their contrast', () {
+      final theme = DarkModeTheme();
+      final vip = theme.designToken.vip;
+      for (final background in vip.pass.gradient!.colors) {
+        expect(contrast(theme.onDecorative, background),
+            greaterThanOrEqualTo(4.5));
+        expect(contrast(vip.goldLight, background), greaterThanOrEqualTo(4.5));
+      }
+      final brightestTextArea =
+          Color.alphaBlend(vip.illustrationShade, theme.onDecorative);
+      expect(contrast(theme.primaryText, brightestTextArea),
+          greaterThanOrEqualTo(4.5));
+    });
+    test('amethyst VIP actions and card icons remain legible', () {
+      final theme = DarkModeTheme();
+      final tokens = theme.designToken;
+      final accent = tokens.home.amethystGlow;
+      expect(contrast(theme.onPrimary, accent), greaterThanOrEqualTo(4.5));
+      for (final background in [
+        ...tokens.vip.felt.colors,
+        ...tokens.home.surface.colors,
+        tokens.background.home,
+      ]) {
+        expect(contrast(accent, background), greaterThanOrEqualTo(4.5));
+        expect(contrast(tokens.home.mutedText, background),
+            greaterThanOrEqualTo(4.5));
+      }
+    });
     test('home uses a subtle dark gradient without changing the base palette',
         () {
       final theme = DarkModeTheme();

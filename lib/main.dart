@@ -213,30 +213,10 @@ class _NavBarPageState extends State<NavBarPage> {
   static const _tabNames = ['Home', 'Tirages', 'VIP', 'Tchala'];
 
   static const _destinations = [
-    (
-      label: 'uer2q4no',
-      icon: Icon(Icons.home_outlined),
-      activeIcon: Icon(Icons.home_rounded),
-      homeIcon: Icon(Icons.home_outlined),
-    ),
-    (
-      label: 'wakkucok',
-      icon: FaIcon(FontAwesomeIcons.checkToSlot),
-      activeIcon: FaIcon(FontAwesomeIcons.checkToSlot),
-      homeIcon: Icon(Icons.confirmation_number_outlined),
-    ),
-    (
-      label: 'xj2saev3',
-      icon: Icon(Icons.workspace_premium_outlined),
-      activeIcon: Icon(Icons.workspace_premium_rounded),
-      homeIcon: FaIcon(FontAwesomeIcons.crown, size: 20),
-    ),
-    (
-      label: '14smzvpm',
-      icon: FaIcon(FontAwesomeIcons.book),
-      activeIcon: FaIcon(FontAwesomeIcons.bookOpen),
-      homeIcon: Icon(Icons.menu_book_outlined),
-    ),
+    (label: 'uer2q4no', icon: Icon(Icons.home_outlined)),
+    (label: 'wakkucok', icon: FaIcon(FontAwesomeIcons.checkToSlot)),
+    (label: 'xj2saev3', icon: FaIcon(FontAwesomeIcons.crown, size: 20)),
+    (label: '14smzvpm', icon: Icon(Icons.menu_book_outlined)),
   ];
 
   String _currentPageName = 'Home';
@@ -270,9 +250,7 @@ class _NavBarPageState extends State<NavBarPage> {
       });
 
   List<BottomNavigationBarItem> _bottomDestinations(
-    BuildContext context, {
-    required bool useHomeStyle,
-  }) {
+      BuildContext context, Color selectedColor) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     return [
@@ -280,23 +258,21 @@ class _NavBarPageState extends State<NavBarPage> {
         BottomNavigationBarItem(
           label: FFLocalizations.of(context).getText(destination.label),
           tooltip: '',
-          icon: useHomeStyle ? destination.homeIcon : destination.icon,
-          activeIcon: useHomeStyle
-              ? Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: tokens.spacing.sm + tokens.spacing.xs,
-                    vertical: tokens.spacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.primary,
-                    borderRadius: BorderRadius.circular(tokens.radius.sm),
-                  ),
-                  child: IconTheme.merge(
-                    data: IconThemeData(color: theme.onPrimary),
-                    child: destination.homeIcon,
-                  ),
-                )
-              : destination.activeIcon,
+          icon: destination.icon,
+          activeIcon: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: tokens.spacing.sm + tokens.spacing.xs,
+              vertical: tokens.spacing.xs,
+            ),
+            decoration: BoxDecoration(
+              color: selectedColor,
+              borderRadius: BorderRadius.circular(tokens.radius.sm),
+            ),
+            child: IconTheme.merge(
+              data: IconThemeData(color: theme.onPrimary),
+              child: destination.icon,
+            ),
+          ),
         ),
     ];
   }
@@ -306,6 +282,7 @@ class _NavBarPageState extends State<NavBarPage> {
     final tokens = theme.designToken;
     final strings = FFLocalizations.of(context);
     final compact = MediaQuery.sizeOf(context).width < kBreakpointLarge;
+    final vip = _tabNames[selectedIndex] == 'VIP';
     return AppBar(
       key: ValueKey(
           '${_tabNames[selectedIndex].toLowerCase()}-desktop-navigation'),
@@ -348,7 +325,9 @@ class _NavBarPageState extends State<NavBarPage> {
                             minimumSize: const Size(kMinInteractiveDimension,
                                 kMinInteractiveDimension),
                             foregroundColor: i == selectedIndex
-                                ? tokens.home.statsAccent
+                                ? (vip
+                                    ? tokens.home.amethystGlow
+                                    : tokens.home.statsAccent)
                                 : theme.primaryText,
                             textStyle:
                                 (compact ? theme.titleSmall : theme.titleMedium)
@@ -363,7 +342,10 @@ class _NavBarPageState extends State<NavBarPage> {
                                 border: i == selectedIndex
                                     ? Border(
                                         bottom: BorderSide(
-                                            color: theme.primary, width: 2))
+                                            color: vip
+                                                ? tokens.home.amethystGlow
+                                                : theme.primary,
+                                            width: 2))
                                     : null),
                             child: Padding(
                               padding: EdgeInsets.symmetric(
@@ -384,100 +366,14 @@ class _NavBarPageState extends State<NavBarPage> {
     );
   }
 
-  Widget _buildRail(
-    BuildContext context, {
-    required int currentIndex,
-    required bool extended,
-  }) {
-    final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    final unselectedColor = theme.primaryText.withValues(alpha: 0.72);
-
-    return NavigationRail(
-      key: const ValueKey('primary-navigation-rail'),
-      selectedIndex: currentIndex,
-      onDestinationSelected: _selectTab,
-      extended: extended,
-      labelType:
-          extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-      minWidth: spacing.xl * 2.5,
-      minExtendedWidth: spacing.xl * 8.0,
-      backgroundColor: theme.secondaryBackground,
-      groupAlignment: -1.0,
-      useIndicator: true,
-      indicatorColor: theme.primary,
-      selectedIconTheme: IconThemeData(
-        color: theme.onPrimary,
-        size: spacing.lg,
-      ),
-      unselectedIconTheme: IconThemeData(
-        color: unselectedColor,
-        size: spacing.lg,
-      ),
-      selectedLabelTextStyle: theme.labelLarge.override(
-        color: theme.primary,
-        fontWeight: FontWeight.w600,
-      ),
-      unselectedLabelTextStyle: theme.labelLarge.override(
-        color: unselectedColor,
-        fontWeight: FontWeight.w500,
-      ),
-      leading: Padding(
-        padding: EdgeInsets.fromLTRB(
-          spacing.md,
-          spacing.lg,
-          spacing.md,
-          spacing.xl,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
-              child: Image.asset(
-                'assets/images/Logo_Choloto_509.png',
-                key: const ValueKey('primary-navigation-logo'),
-                width: extended ? spacing.xl * 2.0 : spacing.xl * 1.5,
-                height: extended ? spacing.xl * 2.0 : spacing.xl * 1.5,
-                fit: BoxFit.cover,
-              ),
-            ),
-            if (extended) ...[
-              SizedBox(width: spacing.md),
-              Text(
-                FFLocalizations.of(context).getText(
-                  'loh576na' /* CHOLOTO */,
-                ),
-                style: theme.titleLarge.override(
-                  color: theme.primaryText,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-      destinations: [
-        for (final destination in _destinations)
-          NavigationRailDestination(
-            icon: destination.icon,
-            selectedIcon: destination.activeIcon,
-            label: Text(FFLocalizations.of(context).getText(destination.label)),
-          ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final onHome = _currentPageName == 'Home';
-    final useHomeNavigation =
-        onHome || _currentPageName == 'Tirages' || _currentPageName == 'Tchala';
-    final navigationBackground = useHomeNavigation
-        ? theme.designToken.background.home
-        : theme.primaryBackground;
+    final tokens = theme.designToken;
+    final navigationBackground = tokens.background.home;
+    final selectedColor =
+        _currentPageName == 'VIP' ? tokens.home.amethystGlow : theme.primary;
     final currentIndex = _tabNames.indexOf(_currentPageName);
     final wide = responsiveVisibility(
       context: context,
@@ -486,8 +382,6 @@ class _NavBarPageState extends State<NavBarPage> {
       tabletLandscape: true,
       desktop: true,
     );
-    final extendNavigationRail =
-        MediaQuery.sizeOf(context).width >= kBreakpointLarge;
     final page = _currentPage ??
         IndexedStack(
           index: currentIndex,
@@ -504,55 +398,33 @@ class _NavBarPageState extends State<NavBarPage> {
     return Scaffold(
       backgroundColor: navigationBackground,
       resizeToAvoidBottomInset: !widget.disableResizeToAvoidBottomInset,
-      appBar: wide && useHomeNavigation
-          ? _desktopTabBar(context, currentIndex)
-          : null,
-      body: Row(
-        children: [
-          if (wide && !useHomeNavigation)
-            SafeArea(
-              right: false,
-              child: _buildRail(
-                context,
-                currentIndex: currentIndex,
-                extended: extendNavigationRail,
-              ),
-            ),
-          Expanded(child: page),
-        ],
-      ),
+      appBar: wide ? _desktopTabBar(context, currentIndex) : null,
+      body: page,
       bottomNavigationBar: wide
           ? null
           : Container(
-              foregroundDecoration: useHomeNavigation
-                  ? BoxDecoration(
-                      border: Border(
-                          top: BorderSide(
-                              color: theme.designToken.home.edge
-                                  .withValues(alpha: .6))))
-                  : null,
+              foregroundDecoration: BoxDecoration(
+                border: Border(
+                    top: BorderSide(
+                        color: tokens.home.edge.withValues(alpha: .6))),
+              ),
               child: BottomNavigationBar(
                 key: const ValueKey('primary-bottom-navigation'),
                 currentIndex: currentIndex,
                 onTap: _selectTab,
                 backgroundColor: navigationBackground,
-                selectedItemColor: theme.primary,
-                unselectedItemColor: useHomeNavigation
-                    ? theme.designToken.home.mutedText
-                    : theme.alternate,
-                selectedFontSize: useHomeNavigation ? 12 : 14,
-                selectedLabelStyle: useHomeNavigation
-                    ? theme.labelMedium.copyWith(fontWeight: FontWeight.w800)
-                    : null,
-                unselectedLabelStyle: useHomeNavigation
-                    ? theme.labelMedium.copyWith(fontWeight: FontWeight.w600)
-                    : null,
-                elevation: useHomeNavigation ? 0 : null,
+                selectedItemColor: selectedColor,
+                unselectedItemColor: tokens.home.mutedText,
+                selectedFontSize: 12,
+                selectedLabelStyle:
+                    theme.labelMedium.copyWith(fontWeight: FontWeight.w800),
+                unselectedLabelStyle:
+                    theme.labelMedium.copyWith(fontWeight: FontWeight.w600),
+                elevation: 0,
                 showSelectedLabels: true,
                 showUnselectedLabels: true,
                 type: BottomNavigationBarType.fixed,
-                items: _bottomDestinations(context,
-                    useHomeStyle: useHomeNavigation),
+                items: _bottomDestinations(context, selectedColor),
               ),
             ),
     );
