@@ -99,28 +99,35 @@ void main() {
 
   testWidgets('home support shows the pending message badge and can shake',
       (tester) async {
-    await tester.pumpWidget(
-      _app(
-        locale: const Locale('fr'),
-        themeMode: ThemeMode.dark,
-        support: HomeSupportFab(
-          messageCount: 3,
-          shakeTrigger: 1,
-          onSupport: () async {},
-        ),
-        actions: HomeHeaderActions(
-          onAchievements: () async {},
-          onSettings: () async {},
-        ),
-      ),
-    );
-    await tester.pump();
-
-    expect(find.byKey(const ValueKey('home-support-message-count')),
-        findsOneWidget);
+    var opened = false;
+    Widget scene(int count) => _app(
+          locale: const Locale('fr'),
+          themeMode: ThemeMode.dark,
+          support: HomeSupportFab(
+            messageCount: count,
+            shakeTrigger: count > 0 ? 1 : 0,
+            onSupport: () async => opened = true,
+          ),
+          actions: HomeHeaderActions(
+            onAchievements: () async {},
+            onSettings: () async {},
+          ),
+        );
+    final badge = find.byKey(const ValueKey('home-support-message-count'));
+    await tester.pumpWidget(scene(0));
+    expect(badge, findsNothing);
+    await tester.pumpWidget(scene(3));
+    expect(badge, findsOneWidget);
     expect(find.text('3'), findsOneWidget);
-
+    expect(find.byTooltip('Chat service client. 3 nouveaux messages'),
+        findsOneWidget);
+    await tester.tapAt(tester.getBottomLeft(badge) + const Offset(3, -3));
+    expect(opened, isTrue);
     await tester.pump(const Duration(milliseconds: 620));
+    await tester.pumpWidget(scene(104));
+    expect(find.text('99+'), findsOneWidget);
+    await tester.pumpWidget(scene(0));
+    expect(badge, findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

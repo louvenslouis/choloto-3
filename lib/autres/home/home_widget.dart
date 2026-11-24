@@ -496,7 +496,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
           );
         },
       ),
-      buildSections: (supportBesideStories) => [
+      sections: [
         if (isSubscriptionExpired(
           expiration: _latestSubscriptionExpiration,
           now: getCurrentTimestamp,
@@ -511,7 +511,6 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
           ),
         HomeFeatureSection(
           stories: _buildStoriesRail(context),
-          storyAction: supportBesideStories,
           onViewResults: () {
             logFirebaseEvent('HOME_VIEW_RESULTS_ON_TAP');
             context.pushNamed(TiragesWidget.routeName);
@@ -531,10 +530,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
             logFirebaseEvent('ytube_navigate_to');
             context.pushNamed(YoutubeWidget.routeName);
           },
-          onStats: () {
-            logFirebaseEvent('HOME_PAGE_query_stats_ICN_ON_TAP');
-            context.pushNamed(AccomplissementsWidget.routeName);
-          },
+          onSaints: () => context.pushNamed(TchalaWidget.saintsRouteName),
           onTchala: () => context.pushNamed(TchalaWidget.routeName),
           onHistory: () => context.pushNamed(VipHistoryWidget.routeName),
           draws: wrapWithModel(

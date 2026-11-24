@@ -10,10 +10,19 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/memory_firestore.dart';
 
+class _FixtureDrawsModel extends TiragesHomeModel {
+  @override
+  void loadDraws({bool refresh = false}) {}
+}
+
 void main() {
   setUp(FFAppState.reset);
 
-  Future<void> pumpDraws(WidgetTester tester, {String language = 'en'}) async {
+  Future<void> pumpDraws(WidgetTester tester,
+      {String language = 'en',
+      TiragesHomeModel? model,
+      bool reduceMotion = false,
+      bool visible = true}) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(320, 700);
     addTearDown(tester.view.resetPhysicalSize);
@@ -33,11 +42,22 @@ void main() {
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
           textScaler: const TextScaler.linear(1.8),
+          disableAnimations: reduceMotion,
         ),
         child: child!,
       ),
-      home: const Scaffold(
-          body: SingleChildScrollView(child: TiragesHomeWidget())),
+      home: Scaffold(
+          body: SingleChildScrollView(
+              child: TickerMode(
+        enabled: visible,
+        child: model == null
+            ? const TiragesHomeWidget()
+            : wrapWithModel<TiragesHomeModel>(
+                model: model,
+                updateCallback: () {},
+                child: TiragesHomeWidget(key: ObjectKey(model)),
+              ),
+      ))),
     ));
     await tester.pump();
   }
@@ -65,7 +85,12 @@ void main() {
     for (final number in ['007', '04', '-', '516', '09', '32', '0123']) {
       expect(find.text(number), findsOneWidget);
     }
-    expect(find.text('09:49 PM · Nov 17'), findsNWidgets(2));
+    final dates = find.text('09:49 PM · Nov 17');
+    expect(dates, findsNWidgets(2));
+    // At 320px with enlarged text, the full date fits above the four chips.
+    expect(tester.getBottomLeft(dates.last).dy,
+        lessThan(tester.getTopLeft(find.text('0123')).dy));
+    expect(tester.getTopRight(find.text('0123')).dx, lessThan(320));
     expect(tester.takeException(), isNull);
   });
 
@@ -107,6 +132,61 @@ void main() {
     expect(find.text('No results'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byKey(const ValueKey('home-result-chip')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('new draw chips settle once per market and honor reduced motion',
+      (tester) async {
+    ResultatsRecord draw(int day, String number) =>
+        ResultatsRecord.getDocumentFromData(
+          {
+            'date': DateTime(2026, 11, day),
+            'numeros': [number, '05', '07']
+          },
+          MemoryReference('resultats/latest'),
+        );
+    final model = _FixtureDrawsModel()
+      ..newYork = Future.value([draw(16, '421')])
+      ..florida = Future.value([]);
+    Future<void> render({bool reduceMotion = false, bool visible = true}) =>
+        pumpDraws(tester,
+            model: model, reduceMotion: reduceMotion, visible: visible);
+    Matrix4 motion(String number) => tester
+        .widget<Transform>(find.ancestor(
+          of: find.text(number).first,
+          matching: find.byKey(const ValueKey('home-result-chip-motion')),
+        ))
+        .transform;
+
+    await render();
+    expect(motion('421').isIdentity(), isTrue);
+    model.florida = Future.value([draw(17, '516')]);
+    await render();
+    expect(motion('516').isIdentity(), isFalse);
+    expect(motion('421').isIdentity(), isTrue);
+    await tester.pumpAndSettle();
+    expect(motion('516').isIdentity(), isTrue);
+
+    model.newYork = Future.value([draw(17, '427')]);
+    await render();
+    expect(motion('427').isIdentity(), isFalse);
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(motion('427'), isNot(motion('05')));
+    await tester.pumpAndSettle();
+    model.newYork = Future.value([draw(17, '427')]);
+    await render();
+    expect(motion('427').isIdentity(), isTrue);
+    await tester.pumpWidget(const SizedBox());
+    await render();
+    expect(motion('427').isIdentity(), isTrue);
+
+    model.newYork = Future.value([draw(18, '001')]);
+    await render(reduceMotion: true);
+    expect(motion('001').isIdentity(), isTrue);
+    model.newYork = Future.value([draw(19, '002')]);
+    await render(visible: false);
+    await render();
+    expect(motion('002').isIdentity(), isTrue);
     expect(tester.takeException(), isNull);
   });
 

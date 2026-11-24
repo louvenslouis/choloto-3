@@ -71,7 +71,25 @@ class HomeStoryBubble extends StatelessWidget {
               dimension: diameter,
               child: Stack(
                 fit: StackFit.expand,
+                clipBehavior: Clip.none,
                 children: [
+                  if (viewed != null)
+                    Transform.translate(
+                      offset: Offset(0, tokens.spacing.xs * .6),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              tokens.background.home,
+                              unread ? tokens.vip.goldShade : tokens.home.edge,
+                              tokens.background.home,
+                            ],
+                            stops: const [0, .42, 1],
+                          ),
+                        ),
+                      ),
+                    ),
                   if (unread) ...[
                     VipCasinoChip(child: face),
                     _StoryRimGlint(id: id),
@@ -90,6 +108,20 @@ class HomeStoryBubble extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: face,
+                    ),
+                  if (viewed != null)
+                    IgnorePointer(
+                      child: CustomPaint(
+                        key: ValueKey('$id-bevel'),
+                        painter: _StoryBevel(
+                          rimWidth: rimWidth,
+                          highlight: unread
+                              ? tokens.vip.goldLight
+                              : tokens.home.mutedText,
+                          shade:
+                              unread ? tokens.vip.goldShade : tokens.home.edge,
+                        ),
+                      ),
                     ),
                   if (storyCount > 1)
                     PositionedDirectional(
@@ -199,6 +231,42 @@ class HomeStoryCover extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Opposing highlights on the outer lip and inside edge suggest a recessed face.
+class _StoryBevel extends CustomPainter {
+  const _StoryBevel(
+      {required this.rimWidth, required this.highlight, required this.shade});
+
+  final double rimWidth;
+  final Color highlight;
+  final Color shade;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [highlight, shade],
+      ).createShader(rect);
+    canvas.drawOval(rect.deflate(.5), paint);
+    paint.shader = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [shade, highlight.withValues(alpha: .78)],
+    ).createShader(rect);
+    canvas.drawOval(rect.deflate(rimWidth - .5), paint);
+  }
+
+  @override
+  bool shouldRepaint(_StoryBevel old) =>
+      old.rimWidth != rimWidth ||
+      old.highlight != highlight ||
+      old.shade != shade;
 }
 
 class _StoryRimGlint extends StatefulWidget {

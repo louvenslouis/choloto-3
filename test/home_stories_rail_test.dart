@@ -119,6 +119,10 @@ void main() {
           tester.getBottomLeft(find.byKey(ValueKey('$id-circle'))).dy -
           tester.getBottomLeft(find.byKey(ValueKey('$id-caption'))).dy;
       expect(captionInset('bingo-story'), captionInset('youtube-story'));
+      for (final id in ['bingo-story', 'youtube-story']) {
+        expect(tester.getRect(find.byKey(ValueKey('$id-bevel'))),
+            tester.getRect(find.byKey(ValueKey('$id-circle'))));
+      }
       expect(find.byKey(const ValueKey('bingo-story-glint')),
           viewed ? findsNothing : findsOneWidget);
       expect(find.descendant(of: bingo, matching: find.byType(VipCasinoChip)),

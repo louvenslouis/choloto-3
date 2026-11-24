@@ -383,6 +383,14 @@ class FFHomeMaterials {
       );
 
   Color get edge => const Color(0xFF425472);
+  Color get panelEdge => edge.withValues(alpha: .55);
+
+  BoxDecoration get panel => BoxDecoration(
+        gradient: surface,
+        border: Border.all(color: panelEdge),
+        borderRadius: BorderRadius.circular(theme.designToken.radius.md),
+      );
+
   Color get mutedText => const Color(0xFFB9C4D9);
   Color get videoAccent => const Color(0xFFFF8793);
   Color get statsAccent => theme.warning;

@@ -117,9 +117,14 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final draws = widget.tone == HomeFeatureTone.draws;
-    final foreground = draws ? theme.onPrimary : theme.onDecorative;
+    final foreground = theme.onPrimary;
     final cardRadius = BorderRadius.circular(tokens.radius.lg);
+    final border = Border.all(
+      color: theme.onDecorative.withValues(alpha: _hovered ? .60 : .30),
+    );
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    // The X fills its square more fully than the diagonal ticket.
+    final artworkScale = draws ? 1.0 : .92;
     final duration =
         reduceMotion ? Duration.zero : const Duration(milliseconds: 180);
 
@@ -154,26 +159,13 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                   key: ValueKey('home-feature-gradient-${widget.semanticId}'),
                   duration: duration,
                   decoration: BoxDecoration(
-                    gradient:
-                        draws ? tokens.home.membership : tokens.home.chance,
-                    image: DecorationImage(
-                      image: AssetImage(draws
-                          ? 'assets/images/home/brushed_gold.webp'
-                          : 'assets/images/home/sapphire.webp'),
+                    gradient: tokens.home.membership,
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/home/brushed_gold.webp'),
                       fit: BoxFit.cover,
-                      opacity: draws ? 1 : 0.8,
-                      colorFilter: draws
-                          ? null
-                          : ColorFilter.mode(
-                              theme.onPrimary.withValues(alpha: 0.22),
-                              BlendMode.srcATop,
-                            ),
                     ),
                     borderRadius: cardRadius,
-                    border: Border.all(
-                      color: theme.onDecorative
-                          .withValues(alpha: _hovered ? 0.60 : 0.30),
-                    ),
+                    border: border,
                     boxShadow: [tokens.shadow.sm],
                   ),
                   child: Material(
@@ -199,13 +191,17 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                           final inset = width < 175
                               ? tokens.spacing.sm + tokens.spacing.xs
                               : tokens.spacing.md;
-                          final artHeight = portrait
+                          final artSize = portrait
                               ? math.min(width * .53, widget.minHeight * .75)
                               : math.min(widget.minHeight * 1.04, width * .42);
-                          final artWidth = artHeight * (draws ? .80 : 1.0);
-                          final artTop = -artHeight * (portrait ? .18 : .07);
+                          final artTop = -artSize * (portrait ? .18 : .07);
                           final artRight =
                               portrait ? tokens.spacing.xs : tokens.spacing.sm;
+                          // Keep compact two-column titles clear of the floating
+                          // support button when the row meets the bottom edge.
+                          final titleEndInset = portrait
+                              ? (width < 160 ? tokens.spacing.xl : inset)
+                              : artSize + artRight;
                           final title = Text(
                             widget.title,
                             key: ValueKey(
@@ -225,23 +221,24 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                               Positioned(
                                 top: artTop,
                                 right: artRight,
-                                width: artWidth,
-                                height: artHeight,
+                                width: artSize,
+                                height: artSize,
                                 child: IgnorePointer(
                                   child: AnimatedScale(
                                     key: ValueKey(
                                         'home-feature-artwork-motion-${widget.semanticId}'),
-                                    scale: reduceMotion
-                                        ? 1
-                                        : (_pressed
-                                            ? .97
-                                            : (_hovered ? 1.03 : 1)),
+                                    scale: artworkScale *
+                                        (reduceMotion
+                                            ? 1.0
+                                            : (_pressed
+                                                ? .97
+                                                : (_hovered ? 1.03 : 1))),
                                     duration: duration,
                                     child: HomeRaisedArtwork(
                                       asset: widget.assetPath,
                                       imageKey: ValueKey(
                                           'home-feature-image-${widget.semanticId}'),
-                                      width: artWidth,
+                                      width: artSize,
                                       fallback: draws
                                           ? Icons.confirmation_number_outlined
                                           : Icons.close_rounded,
@@ -251,15 +248,19 @@ class _HomeFeatureCardState extends State<HomeFeatureCard>
                                 ),
                               ),
                               ConstrainedBox(
-                                constraints:
-                                    BoxConstraints(minHeight: widget.minHeight),
+                                constraints: BoxConstraints(
+                                  minHeight: math.max(
+                                      0,
+                                      widget.minHeight -
+                                          border.dimensions.vertical),
+                                ),
                                 child: Padding(
                                   padding: EdgeInsets.fromLTRB(
                                     inset,
                                     portrait
-                                        ? artHeight * .77
+                                        ? artSize * .77
                                         : tokens.spacing.sm,
-                                    portrait ? inset : artWidth + artRight,
+                                    titleEndInset,
                                     portrait ? inset : tokens.spacing.sm,
                                   ),
                                   child: Align(
@@ -296,6 +297,7 @@ class HomeRaisedArtwork extends StatelessWidget {
     required this.width,
     required this.fallback,
     required this.foreground,
+    this.lightDirection = Offset.zero,
   });
 
   final String asset;
@@ -303,6 +305,7 @@ class HomeRaisedArtwork extends StatelessWidget {
   final double width;
   final IconData fallback;
   final Color foreground;
+  final Offset lightDirection;
 
   @override
   Widget build(BuildContext context) {
@@ -313,13 +316,40 @@ class HomeRaisedArtwork extends StatelessWidget {
       AssetImage(asset),
     );
     final blur = (width * .023).clamp(2.0, 8.0);
+    Widget face = Image(
+      image: image,
+      key: imageKey,
+      fit: BoxFit.contain,
+      excludeFromSemantics: true,
+      errorBuilder: (_, __, ___) =>
+          Icon(fallback, size: width * .7, color: foreground),
+    );
+    if (lightDirection != Offset.zero) {
+      final center = .5 + lightDirection.dx * .32 + lightDirection.dy * .09;
+      final glint = material.designToken.vip.goldLight;
+      face = ShaderMask(
+        blendMode: BlendMode.srcATop,
+        shaderCallback: (bounds) => LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            glint.withValues(alpha: 0),
+            glint.withValues(
+                alpha: .36 * lightDirection.distance.clamp(0.0, 1.0)),
+            glint.withValues(alpha: 0),
+          ],
+          stops: [center - .08, center, center + .08],
+        ).createShader(bounds),
+        child: face,
+      );
+    }
     return RepaintBoundary(
       child: Stack(
         fit: StackFit.expand,
         clipBehavior: Clip.none,
         children: [
           Transform.translate(
-            offset: Offset(blur * .65, blur * 1.9),
+            offset: Offset(blur * .65, blur * 1.9) - lightDirection * blur,
             child: ImageFiltered(
               imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
               child: Image(
@@ -332,13 +362,9 @@ class HomeRaisedArtwork extends StatelessWidget {
               ),
             ),
           ),
-          Image(
-            image: image,
-            key: imageKey,
-            fit: BoxFit.contain,
-            excludeFromSemantics: true,
-            errorBuilder: (_, __, ___) =>
-                Icon(fallback, size: width * .7, color: foreground),
+          Transform.translate(
+            offset: lightDirection * (width * .023).clamp(3.0, 8.0),
+            child: face,
           ),
         ],
       ),

@@ -292,9 +292,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('expired-subscription-renew')),
-    );
+    final banner = find.byKey(const ValueKey('expired-subscription-card'));
+    expect(tester.getSize(banner).height, kMinInteractiveDimension);
+    final title = find.text('Votre abonnement VIP a expiré');
+    final action = find.text('Renouveler');
+    expect(tester.getCenter(title).dy, closeTo(tester.getCenter(action).dy, 1));
+    await tester.tap(title);
     await tester.pump();
 
     expect(renewTapped, isTrue);

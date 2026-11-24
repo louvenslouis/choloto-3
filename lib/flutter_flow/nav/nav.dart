@@ -124,6 +124,14 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               : TchalaWidget(),
         ),
         FFRoute(
+          name: TchalaWidget.saintsRouteName,
+          path: '${TchalaWidget.routePath}/saints',
+          builder: (context, _) => NavBarPage(
+            initialPage: 'Tchala',
+            page: const TchalaWidget(openSaints: true),
+          ),
+        ),
+        FFRoute(
           name: ParametresWidget.routeName,
           path: ParametresWidget.routePath,
           builder: (context, params) => ParametresWidget(),

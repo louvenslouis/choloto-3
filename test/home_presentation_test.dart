@@ -177,10 +177,10 @@ void main() {
                 initialPage: 'Home',
                 page: HomePageScaffold(
                   inTabShell: true,
-                  support: HomeSupportFab(onSupport: () async {}),
-                  buildSections: (supportBesideStories) => [
+                  support:
+                      HomeSupportFab(messageCount: 2, onSupport: () async {}),
+                  sections: [
                     HomeFeatureSection(
-                      storyAction: supportBesideStories,
                       stories: HomeStoriesRail(
                         loading: false,
                         loadFailed: false,
@@ -200,7 +200,7 @@ void main() {
                       onVip: () {},
                       onChance: () {},
                       onVideo: () {},
-                      onStats: () {},
+                      onSaints: () {},
                       onTchala: () {},
                       onHistory: () {},
                       draws: const TiragesHomeWidget(),
@@ -262,11 +262,55 @@ void main() {
           expect(hero.hitTestable(), findsOneWidget);
           expect(tester.getTopLeft(draws).dy,
               greaterThan(tester.getTopLeft(hero).dy));
+          final support = find.byKey(const ValueKey('home-support-button'));
+          expect(support.hitTestable(), findsOneWidget);
+          final supportRect = tester.getRect(support);
+          if (width == 320) {
+            final chanceTitle =
+                find.byKey(const ValueKey('home-feature-title-chance'));
+            final title = tester.renderObject<RenderParagraph>(chanceTitle);
+            final end = title.text.toPlainText().length;
+            final lastLetter = title
+                .getBoxesForSelection(
+                    TextSelection(baseOffset: end - 1, extentOffset: end))
+                .single;
+            expect(
+                lastLetter
+                    .toRect()
+                    .shift(title.localToGlobal(Offset.zero))
+                    .overlaps(supportRect),
+                isFalse);
+          }
+          if (width == 390) {
+            for (final number in ['64', '32']) {
+              final chip = find.ancestor(
+                of: find.text(number),
+                matching: find.byKey(const ValueKey('home-result-chip')),
+              );
+              expect(
+                  tester.getRect(chip).right,
+                  lessThanOrEqualTo(
+                      supportRect.left - homeTheme.designToken.spacing.sm));
+            }
+          }
+          final badge =
+              find.byKey(const ValueKey('home-support-message-count'));
+          expect(find.descendant(of: support, matching: badge), findsOneWidget);
+          expect(supportRect.center.dx, greaterThan(viewport.width * .8));
+          expect(supportRect.center.dy, greaterThan(viewport.height * .65));
+          if (width < 600) {
+            expect(
+                supportRect.bottom,
+                lessThan(tester
+                    .getTopLeft(
+                        find.byKey(const ValueKey('primary-bottom-navigation')))
+                    .dy));
+          }
           if (width > 1000) {
-            final support = find.byKey(const ValueKey('home-support-button'));
-            expect(support.hitTestable(), findsOneWidget);
-            expect(tester.getBottomLeft(support).dy,
-                lessThanOrEqualTo(tester.getTopRight(hero).dy));
+            final chanceCard =
+                find.byKey(const ValueKey('home-feature-gradient-chance'));
+            expect(tester.getBottomLeft(chanceCard).dy,
+                closeTo(tester.getBottomLeft(hero).dy, .01));
             expect(tester.getTopLeft(drawsCard).dx,
                 greaterThanOrEqualTo(tester.getTopRight(hero).dx));
             expect(tester.getTopLeft(draws).dy - tester.getBottomLeft(hero).dy,
@@ -295,11 +339,11 @@ void main() {
           }
           // On short phones the complete list is one scroll away. Neither row
           // may be covered by the support entry or by the navigation bar.
-          final support = find.byKey(const ValueKey('home-support-button'));
           for (final number in ['64', '32']) {
             final chip = find.text(number);
             await tester.ensureVisible(chip);
             await tester.pump();
+            expect(tester.getRect(support), supportRect);
             expect(chip.hitTestable(), findsOneWidget);
             expect(tester.getRect(support).overlaps(tester.getRect(chip)),
                 isFalse);

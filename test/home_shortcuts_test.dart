@@ -29,7 +29,7 @@ void main() {
                       body: HomeShortcuts(
                     wide: true,
                     onVideo: () => taps.add('video'),
-                    onStats: () => taps.add('stats'),
+                    onSaints: () => taps.add('saints'),
                     onTchala: () => taps.add('tchala'),
                     onHistory: () => taps.add('history'),
                   )),
@@ -47,22 +47,30 @@ void main() {
       final video = find.byKey(const ValueKey('home-shortcut-video'));
       final scale =
           find.descendant(of: video, matching: find.byType(AnimatedScale));
+      for (final id in ['video', 'saints', 'tchala', 'history']) {
+        final artwork = tester.widget<Image>(find.descendant(
+            of: find.byKey(ValueKey('home-shortcut-$id')),
+            matching: find.byType(Image)));
+        expect((artwork.image as AssetImage).assetName,
+            'assets/images/home/shortcut_$id.webp');
+        expect(artwork.alignment, Alignment.bottomCenter);
+      }
       final center = tester.getCenter(video);
       await mouse.moveTo(center);
       await tester.pumpAndSettle();
-      expect(tester.widget<AnimatedScale>(scale).scale,
-          reduceMotion ? 1 : greaterThan(1));
+      expect(tester.widget<AnimatedScale>(scale).scale, 1);
       await mouse.down(center);
       await tester.pumpAndSettle();
       expect(tester.widget<AnimatedScale>(scale).scale,
           reduceMotion ? 1 : lessThan(1));
       await mouse.up();
       await tester.pumpAndSettle();
-      for (final id in ['stats', 'tchala', 'history']) {
+      expect(tester.widget<AnimatedScale>(scale).scale, 1);
+      for (final id in ['saints', 'tchala', 'history']) {
         await tester.tap(find.byKey(ValueKey('home-shortcut-$id')));
         await tester.pumpAndSettle();
       }
-      expect(taps, ['video', 'stats', 'tchala', 'history']);
+      expect(taps, ['video', 'saints', 'tchala', 'history']);
       expect(tester.takeException(), isNull);
     });
   }

@@ -91,12 +91,10 @@ class HomeHeaderActions extends StatelessWidget {
         child: FlutterFlowIconButton(
           key: ValueKey(key),
           buttonSize: kMinInteractiveDimension,
-          borderWidth: 1,
-          borderRadius: tokens.radius.sm,
-          borderColor: tokens.home.edge,
-          fillColor: tokens.background.home.withValues(alpha: .64),
+          borderRadius: tokens.radius.md,
+          hoverColor: tokens.home.edge.withValues(alpha: .24),
+          focusBorderRadius: BorderRadius.circular(tokens.radius.md),
           hoverIconColor: tokens.home.statsAccent,
-          hoverBorderColor: tokens.home.statsAccent,
           focusBorderSide: BorderSide(color: tokens.home.statsAccent, width: 2),
           icon: Icon(icon, color: theme.primaryText, size: 21),
           onPressed: onPressed,
@@ -104,16 +102,30 @@ class HomeHeaderActions extends StatelessWidget {
       );
     }
 
-    return Row(
-      key: const ValueKey('home-header-actions'),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        action('home-achievements-button', strings.getText('exm1ba5v'),
-            Icons.signal_cellular_alt_rounded, onAchievements),
-        SizedBox(width: tokens.spacing.sm),
-        action('home-settings-button', strings.getText('oadu0jrq'),
-            Icons.tune_rounded, onSettings),
-      ],
+    return Center(
+      widthFactor: 1,
+      child: DecoratedBox(
+        key: const ValueKey('home-header-actions'),
+        decoration: BoxDecoration(
+          color: tokens.home.surface.colors.last,
+          border: Border.all(color: tokens.home.edge.withValues(alpha: .70)),
+          borderRadius: BorderRadius.circular(tokens.radius.md),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            action('home-achievements-button', strings.getText('exm1ba5v'),
+                Icons.signal_cellular_alt_rounded, onAchievements),
+            SizedBox(
+              width: 1,
+              height: tokens.spacing.md,
+              child: ColoredBox(color: tokens.home.edge),
+            ),
+            action('home-settings-button', strings.getText('oadu0jrq'),
+                Icons.tune_rounded, onSettings),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -196,55 +208,64 @@ class _HomeSupportFabState extends State<HomeSupportFab>
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
-    return FloatingActionButton(
+    final title = supportText(context, 'title');
+    final unread = widget.messageCount;
+    return SizedBox.square(
       key: const ValueKey('home-support-button'),
-      heroTag: 'home-support',
-      tooltip: supportText(context, 'title'),
-      backgroundColor: tokens.home.surface.colors.last,
-      foregroundColor: tokens.home.mutedText,
-      elevation: 0,
-      shape: CircleBorder(side: BorderSide(color: tokens.home.edge)),
-      onPressed: widget.onSupport,
+      dimension: kMinInteractiveDimension,
       child: Stack(
+        fit: StackFit.expand,
         clipBehavior: Clip.none,
         children: [
-          AnimatedBuilder(
-            animation: _shakeAnimation,
-            builder: (context, child) => Transform.rotate(
-              angle: _shakeAnimation.value,
-              child: child,
+          FloatingActionButton(
+            heroTag: 'home-support',
+            tooltip: unread > 0
+                ? '$title. ${supportMessageCountText(context, unread)}'
+                : title,
+            backgroundColor: tokens.home.surface.colors.first,
+            foregroundColor: theme.primaryText,
+            elevation: 2,
+            shape: CircleBorder(side: BorderSide(color: tokens.home.edge)),
+            onPressed: widget.onSupport,
+            child: AnimatedBuilder(
+              animation: _shakeAnimation,
+              builder: (context, child) => Transform.rotate(
+                angle: _shakeAnimation.value,
+                child: child,
+              ),
+              child: const Icon(Icons.support_agent_rounded, size: 21),
             ),
-            child: const Icon(Icons.support_agent_rounded, size: 21),
           ),
-          if (widget.messageCount > 0)
+          if (unread > 0)
             PositionedDirectional(
-              top: -10,
-              end: -10,
-              child: Semantics(
-                label: supportMessageCountText(context, widget.messageCount),
-                child: Container(
-                  key: const ValueKey('home-support-message-count'),
-                  constraints: const BoxConstraints(
-                    minWidth: 22,
-                    minHeight: 22,
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: theme.error,
-                    borderRadius:
-                        BorderRadius.circular(theme.designToken.radius.full),
-                    border: Border.all(
-                      color: theme.primaryBackground,
-                      width: 2,
+              top: -tokens.spacing.xs,
+              end: -tokens.spacing.xs,
+              child: IgnorePointer(
+                child: ExcludeSemantics(
+                  child: Container(
+                    key: const ValueKey('home-support-message-count'),
+                    constraints: const BoxConstraints(
+                      minWidth: 22,
+                      minHeight: 22,
                     ),
-                    boxShadow: [theme.designToken.shadow.sm],
-                  ),
-                  child: Text(
-                    widget.messageCount > 99 ? '99+' : '${widget.messageCount}',
-                    style: theme.labelSmall.copyWith(
-                      color: theme.onPrimary,
-                      fontWeight: FontWeight.w800,
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: theme.error,
+                      borderRadius:
+                          BorderRadius.circular(theme.designToken.radius.full),
+                      border: Border.all(
+                        color: theme.primaryBackground,
+                        width: 2,
+                      ),
+                      boxShadow: [theme.designToken.shadow.sm],
+                    ),
+                    child: Text(
+                      unread > 99 ? '99+' : '$unread',
+                      style: theme.labelSmall.copyWith(
+                        color: theme.onPrimary,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),

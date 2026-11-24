@@ -10,15 +10,16 @@ class HomePageScaffold extends StatelessWidget {
     this.scaffoldKey,
     required this.inTabShell,
     required this.support,
-    required this.buildSections,
+    required this.sections,
   });
 
   final GlobalKey<ScaffoldState>? scaffoldKey;
   final bool inTabShell;
   final HomeSupportFab support;
-  final List<Widget> Function(Widget? supportBesideStories) buildSections;
+  final List<Widget> sections;
 
-  static const maxContentWidth = 1400.0;
+  // Leaves room for the floating support button beside the grid on large screens.
+  static const maxContentWidth = 1248.0;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +34,7 @@ class HomePageScaffold extends StatelessWidget {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: tokens.background.home,
+        floatingActionButton: support,
         body: DecoratedBox(
           key: const ValueKey('home-background-gradient'),
           decoration: BoxDecoration(gradient: tokens.background.homeGradient),
@@ -48,7 +50,7 @@ class HomePageScaffold extends StatelessWidget {
                   if (showHeader)
                     SliverAppBar(
                       pinned: true,
-                      toolbarHeight: 64,
+                      toolbarHeight: kToolbarHeight,
                       backgroundColor: WidgetStateColor.resolveWith((states) =>
                           states.contains(WidgetState.scrolledUnder)
                               ? tokens.background.home
@@ -58,11 +60,6 @@ class HomePageScaffold extends StatelessWidget {
                       titleSpacing: sideInset,
                       title: const HomeHeaderBrand(),
                       actions: [
-                        Center(
-                            child: SizedBox.square(
-                                dimension: kMinInteractiveDimension,
-                                child: support)),
-                        SizedBox(width: spacing.xs),
                         HomeHeaderActions.navigation(context),
                         SizedBox(width: sideInset),
                       ],
@@ -75,7 +72,7 @@ class HomePageScaffold extends StatelessWidget {
                         sideInset,
                         showHeader ? 0 : spacing.md,
                         sideInset,
-                        showHeader ? spacing.lg : spacing.xl),
+                        spacing.xl * 2 + spacing.lg),
                     sliver: SliverToBoxAdapter(
                       child: Center(
                           child: ConstrainedBox(
@@ -83,8 +80,8 @@ class HomePageScaffold extends StatelessWidget {
                             const BoxConstraints(maxWidth: maxContentWidth),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: buildSections(showHeader ? null : support)
-                              .divide(SizedBox(height: spacing.sm)),
+                          children:
+                              sections.divide(SizedBox(height: spacing.md)),
                         ),
                       )),
                     ),
@@ -113,7 +110,7 @@ class _HomeSapphireHorizon extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final radius = compact ? size.width.clamp(0.0, 540.0) : 680.0;
     if (radius == 0) return;
-    final intensity = compact ? .68 : .23;
+    final intensity = compact ? .28 : .18;
     final glow = RadialGradient(
       radius: .5,
       colors: [

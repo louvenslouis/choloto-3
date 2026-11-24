@@ -1,5 +1,8 @@
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/main.dart';
+import 'package:choloto/auth/base_auth_user_provider.dart';
+import 'package:choloto/flutter_flow/nav/nav.dart';
+import 'package:choloto/tchala/tchala_data_repository.dart';
 import 'package:choloto/tchala/tchala_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
@@ -8,6 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class _Visitor extends Fake implements BaseAuthUser {
+  @override
+  bool get loggedIn => false;
+}
 
 Widget _navigationApp({
   required Locale locale,
@@ -111,6 +119,50 @@ void main() {
     expect((pages.first as TickerMode).enabled, isFalse);
     expect(pages.last, isA<TchalaWidget>());
     expect(find.byKey(const ValueKey('home-desktop-navigation')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'Saints route opens the calendar and back restores Tchala symbols',
+      (tester) async {
+    tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+      'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logEvent',
+      (_) async => const StandardMessageCodec().encodeMessage([null]),
+    );
+    await tester.runAsync(() => tchalaDataRepository.reload());
+    Future<void> settleRoute() async {
+      await tester.pump();
+      await tester.pump();
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+    }
+    final notifier = AppStateNotifier.createForTesting()
+      ..user = _Visitor()
+      ..stopShowingSplashImage();
+    final router = createRouter(notifier)..goNamed(TchalaWidget.routeName);
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(
+      routerConfig: router,
+      locale: const Locale('fr'),
+      supportedLocales: const [Locale('fr')],
+      localizationsDelegates: const [
+        FFLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+    ));
+    await settleRoute();
+    int tab() => tester.widget<TabBar>(find.byType(TabBar)).controller!.index;
+    expect(tab(), 0);
+    router.pushNamed(TchalaWidget.saintsRouteName);
+    await settleRoute();
+    expect(tab(), 1);
+    expect(find.text('Rechercher un saint ou un mois'), findsOneWidget);
+    expect(find.text('Janvier'), findsOneWidget);
+    router.pop();
+    await settleRoute();
+    expect(tab(), 0);
     expect(tester.takeException(), isNull);
   });
 

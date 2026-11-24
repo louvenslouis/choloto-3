@@ -11,25 +11,23 @@ class HomeFeatureSection extends StatelessWidget {
   const HomeFeatureSection({
     super.key,
     this.stories,
-    this.storyAction,
     required this.draws,
     required this.onViewResults,
     required this.onVip,
     required this.onChance,
     required this.onVideo,
-    required this.onStats,
+    required this.onSaints,
     required this.onTchala,
     required this.onHistory,
   });
 
   final Widget? stories;
-  final Widget? storyAction;
   final Widget draws;
   final VoidCallback onViewResults;
   final VoidCallback onVip;
   final VoidCallback onChance;
   final VoidCallback onVideo;
-  final VoidCallback onStats;
+  final VoidCallback onSaints;
   final VoidCallback onTchala;
   final VoidCallback onHistory;
 
@@ -40,9 +38,16 @@ class HomeFeatureSection extends StatelessWidget {
     final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
     return LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxWidth;
-      final wide = width >= 720 && width / scale >= 620;
+      // Keep enough room for the landscape gold cards and the VIP headline.
+      const minGoldColumn = 248.0;
+      const minVipColumn = 392.0;
+      final columnScale = math.max(1.0, scale);
+      final available = width - spacing.md;
+      final wide = available >= (minGoldColumn + minVipColumn) * columnScale;
       final gap = wide ? spacing.md : spacing.sm;
-      final heroWidth = wide ? (width - gap) * .65 : width;
+      final heroWidth = wide
+          ? math.min(available * .65, available - minGoldColumn * columnScale)
+          : width;
       final heroHeight = (heroWidth * .555).clamp(168.0, 378.0);
       final tileHeight =
           wide ? (heroHeight - gap) / 2 : (width * .33).clamp(104.0, 170.0);
@@ -51,7 +56,7 @@ class HomeFeatureSection extends StatelessWidget {
         semanticId: 'draws',
         tone: HomeFeatureTone.draws,
         title: strings.getText('home_latest_draws'),
-        assetPath: 'assets/images/home/lottery_drum.webp',
+        assetPath: 'assets/images/home/draw_ticket.webp',
         minHeight: tileHeight,
         onTap: onViewResults,
       );
@@ -66,7 +71,7 @@ class HomeFeatureSection extends StatelessWidget {
       final shortcuts = HomeShortcuts(
         wide: wide,
         onVideo: onVideo,
-        onStats: onStats,
+        onSaints: onSaints,
         onTchala: onTchala,
         onHistory: onHistory,
       );
@@ -84,16 +89,8 @@ class HomeFeatureSection extends StatelessWidget {
             wide ? 'home-feature-wide-layout' : 'home-feature-mobile-layout'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (stories != null || storyAction != null) ...[
-            if (storyAction == null)
-              stories!
-            else
-              Row(children: [
-                Expanded(child: stories ?? const SizedBox.shrink()),
-                SizedBox(width: spacing.md),
-                SizedBox.square(
-                    dimension: kMinInteractiveDimension, child: storyAction),
-              ]),
+          if (stories != null) ...[
+            stories!,
             SizedBox(height: spacing.md),
           ],
           if (wide) ...[
@@ -119,7 +116,7 @@ class HomeFeatureSection extends StatelessWidget {
               ),
             SizedBox(height: spacing.md),
             shortcuts,
-            SizedBox(height: spacing.md),
+            SizedBox(height: spacing.lg),
             draws,
           ],
         ],
@@ -138,16 +135,50 @@ class _VipHero extends StatefulWidget {
   State<_VipHero> createState() => _VipHeroState();
 }
 
-class _VipHeroState extends State<_VipHero>
-    with SingleTickerProviderStateMixin {
+class _VipHeroState extends State<_VipHero> with TickerProviderStateMixin {
   late final AnimationController _light = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1200),
   );
 
+  final _aim = ValueNotifier(Offset.zero);
+  Offset _releaseFrom = Offset.zero;
+  late final AnimationController _release = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 180),
+  )..addListener(() {
+      _aim.value =
+          _releaseFrom * (1 - Curves.easeOutCubic.transform(_release.value));
+    });
+
+  bool get _canTilt =>
+      !MediaQuery.disableAnimationsOf(context) &&
+      TickerMode.valuesOf(context).enabled;
+
+  void _track(PointerEvent event) {
+    if (!_canTilt) return;
+    final size = context.size;
+    if (size == null || size.isEmpty) return;
+    _release.stop();
+    _aim.value = Offset(
+      (2 * event.localPosition.dx / size.width - 1).clamp(-1.0, 1.0),
+      (2 * event.localPosition.dy / size.height - 1).clamp(-1.0, 1.0),
+    );
+  }
+
+  void _rest(PointerEvent event) {
+    if (_aim.value == Offset.zero || _release.isAnimating) return;
+    _releaseFrom = _aim.value;
+    _release.forward(from: 0);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_canTilt) {
+      _release.stop();
+      _aim.value = Offset.zero;
+    }
     if (MediaQuery.disableAnimationsOf(context)) {
       _light.value = 1;
     } else if (!TickerMode.valuesOf(context).enabled) {
@@ -159,6 +190,8 @@ class _VipHeroState extends State<_VipHero>
 
   @override
   void dispose() {
+    _release.dispose();
+    _aim.dispose();
     _light.dispose();
     super.dispose();
   }
@@ -284,85 +317,119 @@ class _VipHeroState extends State<_VipHero>
         label: '$title. $action',
         onTap: widget.onTap,
         excludeSemantics: true,
-        child: Stack(
-          key: const ValueKey('home-vip-hero'),
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: tokens.home.vipAmethyst,
-                  image: DecorationImage(
-                    image: const AssetImage('assets/images/home/amethyst.webp'),
-                    colorFilter: ColorFilter.mode(
-                        theme.onPrimary.withValues(alpha: .24),
-                        BlendMode.srcATop),
-                    fit: BoxFit.cover,
-                  ),
-                  borderRadius: radius,
-                  border: Border.all(
-                      color: tokens.home.amethystGlow.withValues(alpha: .62)),
-                  boxShadow: [tokens.shadow.md],
-                ),
-                child: ClipRRect(
-                  borderRadius: radius,
-                  child: CustomPaint(
-                    key: const ValueKey('home-vip-light-sweep'),
-                    painter: _VipLightSweep(_light, tokens.home.amethystGlow),
-                  ),
-                ),
+        child: MouseRegion(
+          onExit: _rest,
+          child: Listener(
+            onPointerHover: _track,
+            onPointerDown: _track,
+            onPointerMove: _track,
+            onPointerUp: _rest,
+            onPointerCancel: _rest,
+            child: ValueListenableBuilder<Offset>(
+              valueListenable: _aim,
+              builder: (context, aim, child) => Transform(
+                key: const ValueKey('home-vip-tilt'),
+                alignment: Alignment.center,
+                transformHitTests: false,
+                transform: aim == Offset.zero
+                    ? Matrix4.identity()
+                    : (Matrix4.identity()
+                      ..setEntry(3, 2, .001)
+                      ..rotateX(-aim.dy * .055)
+                      ..rotateY(aim.dx * .055)),
+                child: child,
               ),
-            ),
-            Positioned(
-              right: artRight,
-              top: artTop,
-              width: artWidth,
-              height: artHeight,
-              child: IgnorePointer(
-                child: AnimatedBuilder(
-                  animation: _light,
-                  child: HomeRaisedArtwork(
-                    asset: 'assets/images/home/vip_amethyst_medal.webp',
-                    imageKey: const ValueKey('home-vip-medal'),
+              child: Stack(
+                key: const ValueKey('home-vip-hero'),
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: tokens.home.vipAmethyst,
+                        image: DecorationImage(
+                          image: const AssetImage(
+                              'assets/images/home/amethyst.webp'),
+                          colorFilter: ColorFilter.mode(
+                              theme.onPrimary.withValues(alpha: .24),
+                              BlendMode.srcATop),
+                          fit: BoxFit.cover,
+                        ),
+                        borderRadius: radius,
+                        border: Border.all(
+                            color: tokens.home.amethystGlow
+                                .withValues(alpha: .62)),
+                        boxShadow: [tokens.shadow.md],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: radius,
+                        child: CustomPaint(
+                          key: const ValueKey('home-vip-light-sweep'),
+                          painter:
+                              _VipLightSweep(_light, tokens.home.amethystGlow),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: artRight,
+                    top: artTop,
                     width: artWidth,
-                    fallback: Icons.workspace_premium_rounded,
-                    foreground: tokens.vip.goldLight,
+                    height: artHeight,
+                    child: IgnorePointer(
+                      child: AnimatedBuilder(
+                        animation: _light,
+                        child: ValueListenableBuilder<Offset>(
+                          valueListenable: _aim,
+                          builder: (context, aim, _) => HomeRaisedArtwork(
+                            lightDirection: aim,
+                            asset: 'assets/images/home/vip_amethyst_medal.webp',
+                            imageKey: const ValueKey('home-vip-medal'),
+                            width: artWidth,
+                            fallback: Icons.workspace_premium_rounded,
+                            foreground: tokens.vip.goldLight,
+                          ),
+                        ),
+                        builder: (context, child) {
+                          final lift =
+                              Curves.easeOutCubic.transform(_light.value);
+                          final tilt =
+                              Curves.easeOutBack.transform(_light.value);
+                          return Transform(
+                            key: const ValueKey('home-vip-medal-motion'),
+                            alignment: Alignment.center,
+                            transform: Matrix4.identity()
+                              ..translateByDouble(
+                                  0, artHeight * .10 * (1 - lift), 0, 1)
+                              ..rotateZ(-.035 - .13 * (1 - tilt))
+                              ..scaleByDouble(
+                                  .93 + .07 * lift, .93 + .07 * lift, 1, 1),
+                            child: child,
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                  builder: (context, child) {
-                    final lift = Curves.easeOutCubic.transform(_light.value);
-                    final tilt = Curves.easeOutBack.transform(_light.value);
-                    return Transform(
-                      key: const ValueKey('home-vip-medal-motion'),
-                      alignment: Alignment.center,
-                      transform: Matrix4.identity()
-                        ..translateByDouble(
-                            0, artHeight * .10 * (1 - lift), 0, 1)
-                        ..rotateZ(-.035 - .13 * (1 - tilt))
-                        ..scaleByDouble(
-                            .93 + .07 * lift, .93 + .07 * lift, 1, 1),
-                      child: child,
-                    );
-                  },
-                ),
+                  Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      key: const ValueKey('home-open-vip'),
+                      borderRadius: radius,
+                      splashColor: theme.onDecorative.withValues(alpha: .08),
+                      onTap: widget.onTap,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: widget.height),
+                        child: Align(
+                            heightFactor: 1,
+                            alignment: Alignment.centerLeft,
+                            child: copy),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                key: const ValueKey('home-open-vip'),
-                borderRadius: radius,
-                splashColor: theme.onDecorative.withValues(alpha: .08),
-                onTap: widget.onTap,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: widget.height),
-                  child: Align(
-                      heightFactor: 1,
-                      alignment: Alignment.centerLeft,
-                      child: copy),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       );
     });

@@ -324,20 +324,7 @@ class _NavBarPageState extends State<NavBarPage> {
             height: tokens.spacing.xl * 2,
             child: NavigationToolbar(
               leading: const HomeHeaderBrand(),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!compact)
-                    Container(
-                      width: 1,
-                      height: tokens.spacing.lg,
-                      margin:
-                          EdgeInsetsDirectional.only(end: tokens.spacing.xl),
-                      color: tokens.home.edge,
-                    ),
-                  HomeHeaderActions.navigation(context),
-                ],
-              ),
+              trailing: HomeHeaderActions.navigation(context),
               middleSpacing: tokens.spacing.md,
               middle: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,

@@ -38,17 +38,17 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final strings = FFLocalizations.of(context);
-    return Column(
-      key: const ValueKey('home-draws-gradient-card'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 520;
-          return Row(
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 520;
+      return Column(
+        key: const ValueKey('home-draws-gradient-card'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
               Container(
                 width: tokens.spacing.xs,
-                height: wide ? 32 : 20,
+                height: wide ? tokens.spacing.lg : 20,
                 decoration: BoxDecoration(
                   color: theme.primary,
                   borderRadius: BorderRadius.circular(tokens.radius.full),
@@ -61,10 +61,9 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
                   child: Text(
                     strings.getText('home_latest_results'),
                     style: theme.headlineSmall.override(
-                      fontSize: wide
-                          ? (constraints.maxWidth * .054).clamp(29.0, 44.0)
-                          : 23,
+                      fontSize: wide ? 32 : 22,
                       fontWeight: FontWeight.w800,
+                      lineHeight: 1.15,
                     ),
                   ),
                 ),
@@ -72,7 +71,9 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
               Tooltip(
                 message: strings.getText('home_draw_refresh'),
                 child: FlutterFlowIconButton(
-                  buttonSize: 44,
+                  buttonSize: kMinInteractiveDimension,
+                  borderRadius: tokens.radius.full,
+                  focusBorderSide: BorderSide(color: theme.primary, width: 2),
                   icon:
                       Icon(Icons.refresh_rounded, color: tokens.home.mutedText),
                   onPressed: () {
@@ -85,7 +86,9 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
               Tooltip(
                 message: strings.getText('zljfxk4l'),
                 child: FlutterFlowIconButton(
-                  buttonSize: 44,
+                  buttonSize: kMinInteractiveDimension,
+                  borderRadius: tokens.radius.full,
+                  focusBorderSide: BorderSide(color: theme.primary, width: 2),
                   icon: Icon(Icons.arrow_forward_rounded,
                       color: tokens.home.mutedText),
                   onPressed: () {
@@ -96,80 +99,162 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
                 ),
               ),
             ],
-          );
-        }),
-        SizedBox(height: tokens.spacing.xs),
-        _DrawRow(
-          future: _model.newYork,
-          title: strings.getText('home_draw_new_york'),
-          asset: 'assets/images/New_york.png',
-          maxNumbers: 3,
-        ),
-        SizedBox(height: tokens.spacing.sm),
-        _DrawRow(
-          future: _model.florida,
-          title: strings.getText('home_draw_florida'),
-          asset: 'assets/images/Florida.png',
-          maxNumbers: 4,
-        ),
-      ],
-    );
+          ),
+          SizedBox(height: tokens.spacing.xs),
+          DecoratedBox(
+            decoration: tokens.home.panel,
+            child: Column(children: [
+              _marketRow(
+                future: _model.newYork,
+                title: strings.getText('home_draw_new_york'),
+                asset: 'assets/images/New_york.png',
+                maxNumbers: 3,
+              ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: tokens.spacing.md,
+                endIndent: tokens.spacing.md,
+                color: tokens.home.panelEdge,
+              ),
+              _marketRow(
+                future: _model.florida,
+                title: strings.getText('home_draw_florida'),
+                asset: 'assets/images/Florida.png',
+                maxNumbers: 4,
+              ),
+            ]),
+          ),
+        ],
+      );
+    });
   }
 }
 
-class _DrawRow extends StatelessWidget {
-  const _DrawRow({
-    required this.future,
-    required this.title,
-    required this.asset,
-    required this.maxNumbers,
-  });
+Widget _marketRow({
+  required Future<List<ResultatsRecord>> future,
+  required String title,
+  required String asset,
+  required int maxNumbers,
+}) =>
+    FutureBuilder<List<ResultatsRecord>>(
+      future: future,
+      builder: (context, snapshot) => _DrawSurface(
+        title: title,
+        asset: asset,
+        maxNumbers: maxNumbers,
+        snapshot: snapshot,
+      ),
+    );
 
-  final Future<List<ResultatsRecord>> future;
+class _DrawSurface extends StatefulWidget {
+  const _DrawSurface(
+      {required this.title,
+      required this.asset,
+      required this.maxNumbers,
+      required this.snapshot});
+
   final String title;
   final String asset;
   final int maxNumbers;
+  final AsyncSnapshot<List<ResultatsRecord>> snapshot;
+
+  @override
+  State<_DrawSurface> createState() => _DrawSurfaceState();
+}
+
+class _DrawSurfaceState extends State<_DrawSurface>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _arrival;
+  ResultatsRecord? _lastDraw;
+  bool _hasBaseline = false;
+  bool _allowMotion = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _allowMotion = !MediaQuery.disableAnimationsOf(context) &&
+        TickerMode.valuesOf(context).enabled;
+    if (!_allowMotion && !_arrival.isCompleted) _arrival.value = 1;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _arrival = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 540),
+      value: 1,
+    );
+    _observeDraw();
+  }
+
+  @override
+  void didUpdateWidget(_DrawSurface oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _observeDraw();
+  }
+
+  void _observeDraw() {
+    final snapshot = widget.snapshot;
+    if (snapshot.connectionState != ConnectionState.done || snapshot.hasError) {
+      return;
+    }
+    final draw = snapshot.data?.firstOrNull;
+    if (draw != null && draw.numeros.isNotEmpty) {
+      final previous = _lastDraw;
+      final older = previous?.date != null &&
+          draw.date != null &&
+          draw.date!.isBefore(previous!.date!);
+      final changed = previous == null ||
+          draw.reference.path != previous.reference.path ||
+          draw.date != previous.date ||
+          draw.periode != previous.periode;
+      if (!older && changed) {
+        if (_hasBaseline && _allowMotion) _arrival.forward(from: 0);
+        _lastDraw = draw;
+      }
+    }
+    _hasBaseline = true;
+  }
+
+  @override
+  void dispose() {
+    _arrival.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final snapshot = widget.snapshot;
+    final record = snapshot.data?.firstOrNull;
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final strings = FFLocalizations.of(context);
+    final viewport = MediaQuery.sizeOf(context);
+    final phonePortrait =
+        viewport.width < kBreakpointSmall && viewport.height > viewport.width;
     return LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxWidth;
       final wide = width >= 520;
-      final horizontal = wide ? tokens.spacing.lg : tokens.spacing.sm;
-      final vertical = wide ? tokens.spacing.md : tokens.spacing.sm;
-      final logoSize = wide
-          ? (width * .105).clamp(64.0, 92.0)
-          : (width * .14).clamp(40.0, 52.0);
+      final horizontal = wide ? tokens.spacing.lg : tokens.spacing.md;
+      // The phone panel and support FAB share their trailing screen inset.
+      final endInset = phonePortrait
+          ? kMinInteractiveDimension + tokens.spacing.sm
+          : horizontal;
+      final vertical =
+          wide ? tokens.spacing.md : tokens.spacing.sm + tokens.spacing.xs;
+      final logoSize = wide ? 56.0 : 40.0;
       final spacing = wide ? tokens.spacing.md : tokens.spacing.sm;
-      final surface = tokens.home.surface.colors;
-      return Container(
-        alignment: Alignment.center,
-        padding:
-            EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
-        decoration: BoxDecoration(
-          // A reflection along the top lip makes the sapphire glass catch the light.
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: const Alignment(.42, 1.5),
-            colors: [
-              Color.lerp(surface.first, tokens.home.edge, .36)!,
-              surface.first,
-              surface.last,
-              Color.lerp(surface.last, tokens.home.edge, .22)!,
-            ],
-            stops: const [0, .22, .72, 1],
-          ),
-          borderRadius:
-              BorderRadius.circular(wide ? tokens.radius.lg : tokens.radius.md),
-          border: Border.all(color: tokens.home.edge),
+      return Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(
+          horizontal,
+          vertical,
+          endInset,
+          vertical,
         ),
-        child: FutureBuilder<List<ResultatsRecord>>(
-          future: future,
-          builder: (context, snapshot) {
-            final record = snapshot.data?.firstOrNull;
+        child: Builder(
+          builder: (context) {
             final subtitle = record == null
                 ? (snapshot.connectionState != ConnectionState.done
                     ? ''
@@ -189,25 +274,21 @@ class _DrawRow extends StatelessWidget {
                   ].join(' · ');
             final identity = Row(
               children: [
-                Image.asset(asset,
+                Image.asset(widget.asset,
                     width: logoSize,
                     height: logoSize,
                     fit: BoxFit.contain,
                     excludeFromSemantics: true),
                 SizedBox(width: spacing),
-                Container(
-                    width: 1, height: logoSize * .62, color: tokens.home.edge),
-                SizedBox(width: spacing),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title,
+                      Text(widget.title,
                           style: theme.titleMedium.override(
                             color: theme.primaryText,
-                            fontSize:
-                                wide ? (width * .042).clamp(22.0, 34.0) : 17,
-                            fontWeight: FontWeight.w800,
+                            fontSize: wide ? 24 : 17,
+                            fontWeight: FontWeight.w700,
                             lineHeight: 1.1,
                           )),
                       if (subtitle.isNotEmpty) ...[
@@ -215,10 +296,9 @@ class _DrawRow extends StatelessWidget {
                         Text(subtitle,
                             style: theme.labelMedium.override(
                               color: tokens.home.mutedText,
-                              fontSize:
-                                  wide ? (width * .026).clamp(15.0, 22.0) : 12,
-                              fontWeight: FontWeight.w600,
-                              lineHeight: 1.1,
+                              fontSize: wide ? 16 : 14,
+                              fontWeight: FontWeight.w500,
+                              lineHeight: 1.2,
                             )),
                       ],
                     ],
@@ -244,21 +324,23 @@ class _DrawRow extends StatelessWidget {
               ]);
             }
 
-            final count = record.numeros.length.clamp(3, maxNumbers);
+            final count = record.numeros.length.clamp(3, widget.maxNumbers);
             final textScale = MediaQuery.textScalerOf(context);
             final chipSize = math.max(
               wide
-                  ? (width * .096).clamp(52.0, 84.0)
+                  ? (width * .08).clamp(48.0, 64.0)
                   : (width * .116).clamp(33.0, 44.0),
               textScale.scale(18) + 14,
             );
-            final chipGap = wide ? tokens.spacing.md : tokens.spacing.xs;
+            final chipGap = wide ? tokens.spacing.sm : tokens.spacing.xs;
             final numbers = Wrap(
               spacing: chipGap,
               runSpacing: tokens.spacing.xs,
               children: [
                 for (int i = 0; i < count; i++)
                   _ResultChip(
+                    arrival: _arrival,
+                    index: i,
                     value:
                         valueOrDefault(record.numeros.elementAtOrNull(i), '-'),
                     size: chipSize,
@@ -266,12 +348,8 @@ class _DrawRow extends StatelessWidget {
               ],
             );
             final numberWidth = chipSize * count + chipGap * (count - 1);
-            final inline = width - horizontal * 2 - numberWidth - 2 >=
-                logoSize +
-                    spacing * 2 +
-                    tokens.spacing.sm +
-                    1 +
-                    textScale.scale(68);
+            final inline = width - horizontal - endInset - numberWidth >=
+                logoSize + spacing + tokens.spacing.sm + textScale.scale(80);
             return inline
                 ? Row(children: [
                     Expanded(child: identity),
@@ -294,7 +372,14 @@ class _DrawRow extends StatelessWidget {
 }
 
 class _ResultChip extends StatelessWidget {
-  const _ResultChip({required this.value, required this.size});
+  const _ResultChip(
+      {required this.value,
+      required this.size,
+      required this.arrival,
+      required this.index});
+
+  final Animation<double> arrival;
+  final int index;
 
   final String value;
   final double size;
@@ -302,7 +387,7 @@ class _ResultChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    return RepaintBoundary(
+    final chip = RepaintBoundary(
       child: CustomPaint(
         key: const ValueKey('home-result-chip'),
         painter: _ResultChipPainter(
@@ -331,6 +416,25 @@ class _ResultChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+    if (value == '-') return chip;
+    return AnimatedBuilder(
+      animation: arrival,
+      child: chip,
+      builder: (context, child) {
+        final phase = ((arrival.value - index * .10) / .70).clamp(0.0, 1.0);
+        // Each numbered chip rocks onto its edge, then settles flat in its own slot.
+        final settle = 1 - Curves.easeOutBack.transform(phase);
+        return Transform(
+          key: const ValueKey('home-result-chip-motion'),
+          alignment: Alignment.bottomCenter,
+          transform: Matrix4.identity()
+            ..translateByDouble(0, -size * .18 * settle, 0, 1)
+            ..rotateZ(-.14 * settle)
+            ..rotateX(.32 * settle),
+          child: child,
+        );
+      },
     );
   }
 }

@@ -7,7 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-const _drawsAsset = 'assets/images/home/lottery_drum.webp';
+const _drawsAsset = 'assets/images/home/draw_ticket.webp';
 const _vipAsset = 'assets/images/home/vip_amethyst_medal.webp';
 const _chanceAsset = 'assets/images/home/lucky_cross_3d_x.png';
 
@@ -97,31 +97,22 @@ HomeFeatureSection _section({
       onVip: () => onAction('vip'),
       onChance: () => onAction('chance'),
       onVideo: () => onAction('video'),
-      onStats: () => onAction('stats'),
+      onSaints: () => onAction('saints'),
       onTchala: () => onAction('tchala'),
       onHistory: () => onAction('history'),
     );
 
 void main() {
-  testWidgets('renders a tappable results card with the lottery drum',
+  testWidgets('renders a tappable results card with the draw ticket',
       (tester) async {
     await _setViewport(tester, const Size(320.0, 568.0));
-    var taps = 0;
-
+    final actions = <String>[];
     await tester.pumpWidget(
       _testApp(
         themeMode: ThemeMode.dark,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _card(
-              id: 'draws',
-              title: 'Derniers tirages',
-              tone: HomeFeatureTone.draws,
-              assetPath: _drawsAsset,
-              onTap: () => taps++,
-            ),
-          ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: _section(onAction: actions.add),
         ),
       ),
     );
@@ -133,14 +124,15 @@ void main() {
     final decoration = gradientContainer.decoration! as BoxDecoration;
 
     expect(decoration.gradient, isA<LinearGradient>());
-    final drum = tester.widget<Image>(
+    final ticket = tester.widget<Image>(
       find.byKey(const ValueKey('home-feature-image-draws')),
     );
-    final drumSource = (drum.image as ResizeImage).imageProvider as AssetImage;
-    expect(drumSource.assetName, _drawsAsset);
+    final ticketSource =
+        (ticket.image as ResizeImage).imageProvider as AssetImage;
+    expect(ticketSource.assetName, _drawsAsset);
     await tester.tap(find.byKey(const ValueKey('home-feature-card-draws')));
     await _finishCardTransitions(tester);
-    expect(taps, 1);
+    expect(actions, ['results']);
     expect(tester.takeException(), isNull);
   });
 
@@ -216,12 +208,39 @@ void main() {
     repaints = 0;
     await tester.pump(const Duration(seconds: 2));
     expect(repaints, 0);
+    final tilt = find.byKey(const ValueKey('home-vip-tilt'));
+    Matrix4 cardTransform() => tester.widget<Transform>(tilt).transform;
+    final right = tester.getRect(card).centerRight - const Offset(15, 0);
+    final glint = find.descendant(of: hero, matching: find.byType(ShaderMask));
+    final touch = await tester.startGesture(right);
+    await tester.pump();
+    expect(cardTransform().isIdentity(), isFalse);
+    expect(glint, findsOneWidget);
+    await touch.cancel();
+    await tester.pumpAndSettle();
+    expect(cardTransform().isIdentity(), isTrue);
+    expect(glint, findsNothing);
+    expect(tapped, isEmpty);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: const Offset(0, 830));
+    await mouse.moveTo(right);
+    await tester.pump();
+    expect(cardTransform().isIdentity(), isFalse);
+    await mouse.moveTo(const Offset(0, 830));
+    await tester.pumpAndSettle();
+    expect(cardTransform().isIdentity(), isTrue);
+    await mouse.removePointer();
     await tester.tapAt(tester.getCenter(medalFinder));
     expect(tapped, ['vip']);
     painter.removeListener(onRepaint);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pumpWidget(scene(reduceMotion: true));
+    final still = await tester.startGesture(right);
+    await tester.pump();
+    expect(cardTransform().isIdentity(), isTrue);
+    expect(glint, findsNothing);
+    await still.cancel();
     expect(medalTransform(), settled);
     await tester.pump(const Duration(milliseconds: 200));
     expect(medalTransform(), settled);
@@ -395,12 +414,15 @@ void main() {
                 .height,
             lessThanOrEqualTo(140.0),
           );
-          final texture = decoration.image!.image as AssetImage;
           expect(
-              texture.assetName,
-              tone == HomeFeatureTone.draws
-                  ? 'assets/images/home/brushed_gold.webp'
-                  : 'assets/images/home/sapphire.webp');
+            decoration.image,
+            const DecorationImage(
+              image: AssetImage('assets/images/home/brushed_gold.webp'),
+              fit: BoxFit.cover,
+            ),
+          );
+          expect(gradient, DarkModeTheme().designToken.home.membership);
+          expect(titleColor, DarkModeTheme().onPrimary);
           expect(
               tester
                   .getTopLeft(find.byKey(ValueKey('home-feature-image-$id')))
@@ -432,7 +454,7 @@ void main() {
 
   for (final locale in const [Locale('fr'), Locale('en'), Locale('cr')]) {
     for (final mode in const [ThemeMode.dark, ThemeMode.light]) {
-      for (final width in [320.0, 800.0, 1160.0]) {
+      for (final width in [320.0, 700.0, 800.0, 1160.0]) {
         for (final scale in [1.0, 2.0]) {
           testWidgets(
               'casino layout ${locale.languageCode} ${mode.name} width $width scale $scale',
@@ -480,11 +502,14 @@ void main() {
                     of: results,
                     matching: find.text(strings.getText('home_latest_draws'))),
                 findsOneWidget);
-            if (width == 1160 && scale == 1) {
+            if (width >= 700 && scale == 1) {
               expect(tester.getTopRight(hero).dx,
                   lessThan(tester.getTopLeft(results).dx));
               expect(
                   tester.getTopLeft(results).dx, tester.getTopLeft(chance).dx);
+            } else if (width == 700 && scale == 2) {
+              expect(tester.getBottomLeft(hero).dy,
+                  lessThanOrEqualTo(tester.getTopLeft(results).dy));
             } else if (width == 320 && scale == 1) {
               expect(tester.getBottomLeft(hero).dy,
                   lessThanOrEqualTo(tester.getTopLeft(results).dy));
@@ -495,7 +520,7 @@ void main() {
               ('home-open-vip', 'vip'),
               ('home-feature-card-draws', 'results'),
               ('home-feature-card-chance', 'chance'),
-              for (final id in ['video', 'stats', 'tchala', 'history'])
+              for (final id in ['video', 'saints', 'tchala', 'history'])
                 ('home-shortcut-$id', id),
             ]) {
               final item = find.byKey(ValueKey(key));

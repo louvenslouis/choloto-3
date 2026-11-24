@@ -65,7 +65,10 @@ String _tchalaMonthName(String languageCode, int monthNumber) {
 }
 
 class TchalaWidget extends StatefulWidget {
-  const TchalaWidget({super.key});
+  const TchalaWidget({super.key, this.openSaints = false});
+
+  final bool openSaints;
+  static const saintsRouteName = 'Saints';
 
   static String routeName = 'Tchala';
   static String routePath = '/tchala';
@@ -84,14 +87,16 @@ class _TchalaWidgetState extends State<TchalaWidget>
   late Future<TchalaData> _data;
 
   String _query = '';
-  int _activeTab = 0;
+  late int _activeTab;
 
   @override
   void initState() {
     super.initState();
     logFirebaseEvent('screen_view', parameters: {'screen_name': 'Tchala'});
-    _tabController = TabController(length: 2, vsync: this)
-      ..addListener(_handleTabChange);
+    _activeTab = widget.openSaints ? 1 : 0;
+    _tabController =
+        TabController(length: 2, initialIndex: _activeTab, vsync: this)
+          ..addListener(_handleTabChange);
     _searchController = TextEditingController()..addListener(_handleSearch);
     _searchFocusNode = FocusNode();
     _data = tchalaDataRepository.load();

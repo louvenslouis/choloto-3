@@ -60,6 +60,10 @@ void main() {
     test('home cards and shortcut colors remain legible on dark surfaces', () {
       final theme = DarkModeTheme();
       final home = theme.designToken.home;
+      expect(home.panel.gradient, home.surface);
+      expect(home.panel.border, Border.all(color: home.panelEdge));
+      expect(home.panel.borderRadius,
+          BorderRadius.circular(theme.designToken.radius.md));
       for (final color in [...home.vipAmethyst.colors, ...home.chance.colors]) {
         expect(contrast(theme.onDecorative, color), greaterThanOrEqualTo(4.5));
       }

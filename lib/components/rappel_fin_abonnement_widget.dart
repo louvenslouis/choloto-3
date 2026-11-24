@@ -198,97 +198,66 @@ class ExpiredSubscriptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    final radius = theme.designToken.radius;
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
     final localizations = FFLocalizations.of(context);
+    final radius = BorderRadius.circular(tokens.radius.md);
 
-    return Card(
+    return Material(
       key: const ValueKey('expired-subscription-card'),
-      margin: EdgeInsets.symmetric(
-        horizontal: spacing.xs,
-        vertical: spacing.sm,
-      ),
-      color: theme.secondaryBackground,
-      elevation: 0.0,
+      color: tokens.home.surface.colors.last,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(radius.md),
-        side: BorderSide(color: theme.error, width: 1.0),
+        borderRadius: radius,
+        side: BorderSide(color: tokens.home.edge),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(spacing.md),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40.0,
-                  height: 40.0,
-                  decoration: BoxDecoration(
-                    color: theme.error.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(radius.full),
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.workspace_premium_outlined,
-                    color: theme.error,
-                    size: 22.0,
-                  ),
-                ),
-                SizedBox(width: spacing.md),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        localizations.getText(
-                          'subscription_expired_card_title',
+      child: Semantics(
+        button: true,
+        child: InkWell(
+          key: const ValueKey('expired-subscription-renew'),
+          onTap: onRenew,
+          borderRadius: radius,
+          child: ConstrainedBox(
+            constraints:
+                const BoxConstraints(minHeight: kMinInteractiveDimension),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: spacing.md,
+                vertical: spacing.sm,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.schedule_rounded, color: theme.warning, size: 20),
+                  SizedBox(width: spacing.sm),
+                  Expanded(
+                    child: OverflowBar(
+                      alignment: MainAxisAlignment.spaceBetween,
+                      overflowAlignment: OverflowBarAlignment.start,
+                      spacing: spacing.md,
+                      overflowSpacing: spacing.xs,
+                      children: [
+                        Text(
+                          localizations
+                              .getText('subscription_expired_card_title'),
+                          style: theme.titleSmall,
                         ),
-                        style: theme.titleMedium,
-                      ),
-                      SizedBox(height: spacing.xs),
-                      Text(
-                        localizations.getText(
-                          'subscription_expired_card_message',
+                        Text(
+                          localizations
+                              .getText('subscription_expired_card_renew'),
+                          style: theme.labelLarge.copyWith(
+                            color: tokens.home.amethystGlow,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        style: theme.bodyMedium,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: spacing.md),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: FFButtonWidget(
-                key: const ValueKey('expired-subscription-renew'),
-                onPressed: onRenew,
-                text: localizations.getText(
-                  'subscription_expired_card_renew',
-                ),
-                icon: Icon(
-                  Icons.refresh_rounded,
-                  color: theme.onPrimary,
-                  size: 19.0,
-                ),
-                options: FFButtonOptions(
-                  height: 48.0,
-                  padding: EdgeInsets.symmetric(horizontal: spacing.md),
-                  color: theme.primary,
-                  textStyle: theme.titleSmall.override(
-                    color: theme.onPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  elevation: 0.0,
-                  borderRadius: BorderRadius.circular(radius.sm),
-                ),
+                  SizedBox(width: spacing.sm),
+                  Icon(Icons.chevron_right_rounded,
+                      color: tokens.home.amethystGlow),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
