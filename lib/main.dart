@@ -271,7 +271,7 @@ class _NavBarPageState extends State<NavBarPage> {
 
   List<BottomNavigationBarItem> _bottomDestinations(
     BuildContext context, {
-    required bool onHome,
+    required bool useHomeStyle,
   }) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
@@ -280,8 +280,8 @@ class _NavBarPageState extends State<NavBarPage> {
         BottomNavigationBarItem(
           label: FFLocalizations.of(context).getText(destination.label),
           tooltip: '',
-          icon: onHome ? destination.homeIcon : destination.icon,
-          activeIcon: onHome
+          icon: useHomeStyle ? destination.homeIcon : destination.icon,
+          activeIcon: useHomeStyle
               ? Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: tokens.spacing.sm + tokens.spacing.xs,
@@ -301,13 +301,14 @@ class _NavBarPageState extends State<NavBarPage> {
     ];
   }
 
-  PreferredSizeWidget _homeDesktopBar(BuildContext context) {
+  PreferredSizeWidget _desktopTabBar(BuildContext context, int selectedIndex) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final strings = FFLocalizations.of(context);
     final compact = MediaQuery.sizeOf(context).width < kBreakpointLarge;
     return AppBar(
-      key: const ValueKey('home-desktop-navigation'),
+      key: ValueKey(
+          '${_tabNames[selectedIndex].toLowerCase()}-desktop-navigation'),
       automaticallyImplyLeading: false,
       centerTitle: false,
       toolbarHeight: tokens.spacing.xl * 2,
@@ -324,7 +325,9 @@ class _NavBarPageState extends State<NavBarPage> {
             height: tokens.spacing.xl * 2,
             child: NavigationToolbar(
               leading: const HomeHeaderBrand(),
-              trailing: HomeHeaderActions.navigation(context),
+              trailing: selectedIndex == 0
+                  ? HomeHeaderActions.navigation(context)
+                  : null,
               middleSpacing: tokens.spacing.md,
               middle: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -333,7 +336,7 @@ class _NavBarPageState extends State<NavBarPage> {
                   children: [
                     for (var i = 0; i < _destinations.length; i++)
                       Semantics(
-                        selected: i == 0,
+                        selected: i == selectedIndex,
                         child: TextButton(
                           key: ValueKey('desktop-tab-${_tabNames[i]}'),
                           onPressed: () => _selectTab(i),
@@ -344,19 +347,20 @@ class _NavBarPageState extends State<NavBarPage> {
                                     : tokens.spacing.md),
                             minimumSize: const Size(kMinInteractiveDimension,
                                 kMinInteractiveDimension),
-                            foregroundColor: i == 0
+                            foregroundColor: i == selectedIndex
                                 ? tokens.home.statsAccent
                                 : theme.primaryText,
                             textStyle:
                                 (compact ? theme.titleSmall : theme.titleMedium)
                                     .copyWith(
-                              fontWeight:
-                                  i == 0 ? FontWeight.w800 : FontWeight.w600,
+                              fontWeight: i == selectedIndex
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
                             ),
                           ),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                                border: i == 0
+                                border: i == selectedIndex
                                     ? Border(
                                         bottom: BorderSide(
                                             color: theme.primary, width: 2))
@@ -469,8 +473,11 @@ class _NavBarPageState extends State<NavBarPage> {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final onHome = _currentPageName == 'Home';
-    final navigationBackground =
-        onHome ? theme.designToken.background.home : theme.primaryBackground;
+    final useHomeNavigation =
+        onHome || _currentPageName == 'Tirages' || _currentPageName == 'Tchala';
+    final navigationBackground = useHomeNavigation
+        ? theme.designToken.background.home
+        : theme.primaryBackground;
     final currentIndex = _tabNames.indexOf(_currentPageName);
     final wide = responsiveVisibility(
       context: context,
@@ -497,10 +504,12 @@ class _NavBarPageState extends State<NavBarPage> {
     return Scaffold(
       backgroundColor: navigationBackground,
       resizeToAvoidBottomInset: !widget.disableResizeToAvoidBottomInset,
-      appBar: wide && onHome ? _homeDesktopBar(context) : null,
+      appBar: wide && useHomeNavigation
+          ? _desktopTabBar(context, currentIndex)
+          : null,
       body: Row(
         children: [
-          if (wide && !onHome)
+          if (wide && !useHomeNavigation)
             SafeArea(
               right: false,
               child: _buildRail(
@@ -515,7 +524,7 @@ class _NavBarPageState extends State<NavBarPage> {
       bottomNavigationBar: wide
           ? null
           : Container(
-              foregroundDecoration: onHome
+              foregroundDecoration: useHomeNavigation
                   ? BoxDecoration(
                       border: Border(
                           top: BorderSide(
@@ -528,20 +537,22 @@ class _NavBarPageState extends State<NavBarPage> {
                 onTap: _selectTab,
                 backgroundColor: navigationBackground,
                 selectedItemColor: theme.primary,
-                unselectedItemColor:
-                    onHome ? theme.designToken.home.mutedText : theme.alternate,
-                selectedFontSize: onHome ? 12 : 14,
-                selectedLabelStyle: onHome
+                unselectedItemColor: useHomeNavigation
+                    ? theme.designToken.home.mutedText
+                    : theme.alternate,
+                selectedFontSize: useHomeNavigation ? 12 : 14,
+                selectedLabelStyle: useHomeNavigation
                     ? theme.labelMedium.copyWith(fontWeight: FontWeight.w800)
                     : null,
-                unselectedLabelStyle: onHome
+                unselectedLabelStyle: useHomeNavigation
                     ? theme.labelMedium.copyWith(fontWeight: FontWeight.w600)
                     : null,
-                elevation: onHome ? 0 : null,
+                elevation: useHomeNavigation ? 0 : null,
                 showSelectedLabels: true,
                 showUnselectedLabels: true,
                 type: BottomNavigationBarType.fixed,
-                items: _bottomDestinations(context, onHome: onHome),
+                items: _bottomDestinations(context,
+                    useHomeStyle: useHomeNavigation),
               ),
             ),
     );

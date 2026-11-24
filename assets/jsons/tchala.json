@@ -2524,63 +2524,207 @@
       "mois": "Janvier",
       "saints": [
         {
-          "saint": "Odilon",
-          "date": "2025-01-04"
+          "saint": "Marie, Mère de Dieu",
+          "saint_en": "Mary, Mother of God",
+          "saint_cr": "Mari, Manman Bondye",
+          "date": "2025-01-01"
         },
         {
-          "saint": "Rémi",
+          "saint": "Basile le Grand",
+          "saint_en": "Basil the Great",
+          "saint_cr": "Bazil Legran",
+          "date": "2025-01-02"
+        },
+        {
+          "saint": "Grégoire de Nazianze",
+          "saint_en": "Gregory of Nazianzus",
+          "saint_cr": "Gregwa nan Nazianz",
+          "date": "2025-01-02"
+        },
+        {
+          "saint": "Geneviève de Paris",
+          "saint_en": "Genevieve of Paris",
+          "saint_cr": "Jenevyèv nan Pari",
+          "date": "2025-01-03"
+        },
+        {
+          "saint": "Odilon de Cluny",
+          "date": "2025-01-04",
+          "saint_en": "Odilo of Cluny",
+          "saint_cr": "Odilon nan Cluny"
+        },
+        {
+          "saint": "Édouard le Confesseur",
+          "saint_en": "Edward the Confessor",
+          "saint_cr": "Edwa Konfesè a",
+          "date": "2025-01-05"
+        },
+        {
+          "saint": "André Bessette",
+          "saint_en": "André Bessette",
+          "saint_cr": "Andre Bessette",
+          "date": "2025-01-06"
+        },
+        {
+          "saint": "Raymond de Peñafort",
+          "saint_en": "Raymond of Peñafort",
+          "saint_cr": "Remon de Peñafort",
+          "date": "2025-01-07"
+        },
+        {
+          "saint": "Lucien de Beauvais",
+          "saint_en": "Lucian of Beauvais",
+          "saint_cr": "Lisyen nan Beauvais",
+          "date": "2025-01-08"
+        },
+        {
+          "saint": "Bienheureuse Alix Le Clerc",
+          "saint_en": "Blessed Alix Le Clerc",
+          "saint_cr": "Byennerez Alix Le Clerc",
+          "date": "2025-01-09"
+        },
+        {
+          "saint": "Guillaume de Bourges",
+          "saint_en": "William of Bourges",
+          "saint_cr": "Giyòm nan Bourges",
+          "date": "2025-01-10"
+        },
+        {
+          "saint": "Paulin d’Aquilée",
+          "saint_en": "Paulinus of Aquileia",
+          "saint_cr": "Polen nan Aquileia",
+          "date": "2025-01-11"
+        },
+        {
+          "saint": "Marguerite Bourgeoys",
+          "saint_en": "Marguerite Bourgeoys",
+          "saint_cr": "Magerit Bourgeoys",
+          "date": "2025-01-12"
+        },
+        {
+          "saint": "Hilaire de Poitiers",
+          "saint_en": "Hilary of Poitiers",
+          "saint_cr": "Ilè nan Poitiers",
+          "date": "2025-01-13"
+        },
+        {
+          "saint": "Félix de Nole",
+          "saint_en": "Felix of Nola",
+          "saint_cr": "Feliks nan Nola",
+          "date": "2025-01-14"
+        },
+        {
+          "saint": "Rémi de Reims",
+          "saint_en": "Remigius of Reims",
+          "saint_cr": "Remi nan Reims",
           "date": "2025-01-15"
         },
         {
-          "saint": "Marcel",
+          "saint": "Marcel Ier",
+          "saint_en": "Marcellus I",
+          "saint_cr": "Masèl I",
           "date": "2025-01-16"
         },
         {
-          "saint": "Roseline",
+          "saint": "Roseline de Villeneuve",
+          "date": "2025-01-17",
+          "saint_en": "Roseline of Villeneuve",
+          "saint_cr": "Rozlin de Villeneuve"
+        },
+        {
+          "saint": "Antoine le Grand",
+          "saint_en": "Anthony the Great",
+          "saint_cr": "Antwàn Legran",
           "date": "2025-01-17"
         },
         {
-          "saint": "Prisca",
-          "date": "2025-01-18"
+          "saint": "Prisca de Rome",
+          "date": "2025-01-18",
+          "saint_en": "Prisca of Rome",
+          "saint_cr": "Priska nan Wòm"
         },
         {
-          "saint": "Marius",
-          "date": "2025-01-19"
+          "saint": "Marius de Rome",
+          "date": "2025-01-19",
+          "saint_en": "Marius of Rome",
+          "saint_cr": "Maryis nan Wòm"
         },
         {
-          "saint": "Sébastien",
-          "date": "2025-01-20"
+          "saint": "Sébastien de Rome",
+          "date": "2025-01-20",
+          "saint_en": "Sebastian of Rome",
+          "saint_cr": "Sebastyen nan Wòm"
         },
         {
-          "saint": "Agnès",
+          "saint": "Agnès de Rome",
+          "saint_en": "Agnes of Rome",
+          "saint_cr": "Anyès nan Wòm",
           "date": "2025-01-21"
         },
         {
-          "saint": "Vincent",
-          "date": "2025-01-22"
+          "saint": "Vincent de Saragosse",
+          "date": "2025-01-22",
+          "saint_en": "Vincent of Saragossa",
+          "saint_cr": "Vensan nan Saragòs"
         },
         {
-          "saint": "Barnard",
-          "date": "2025-01-23"
+          "saint": "Barnard de Vienne",
+          "date": "2025-01-23",
+          "saint_en": "Bernard of Vienne",
+          "saint_cr": "Bana nan Vienne"
         },
         {
-          "saint": "Armand",
-          "date": "2025-01-23"
+          "saint": "François de Sales",
+          "saint_en": "Francis de Sales",
+          "saint_cr": "Franswa de Sales",
+          "date": "2025-01-24"
         },
         {
-          "saint": "Natacha",
+          "saint": "Conversion de saint Paul",
+          "saint_en": "Conversion of Saint Paul",
+          "saint_cr": "Konvèsyon Sen Pòl",
+          "date": "2025-01-25"
+        },
+        {
+          "saint": "Timothée et Tite",
+          "saint_en": "Timothy and Titus",
+          "saint_cr": "Timote ak Tit",
           "date": "2025-01-26"
         },
         {
-          "saint": "Angèle",
+          "saint": "Angèle Merici",
+          "saint_en": "Angela Merici",
+          "saint_cr": "Anjèl Merici",
           "date": "2025-01-27"
         },
         {
-          "saint": "Martine",
-          "date": "2025-01-30"
+          "saint": "Thomas d’Aquin",
+          "saint_en": "Thomas Aquinas",
+          "saint_cr": "Toma d’Aken",
+          "date": "2025-01-28"
         },
         {
-          "saint": "Marcelle",
+          "saint": "Gildas",
+          "saint_en": "Gildas",
+          "saint_cr": "Gildas",
+          "date": "2025-01-29"
+        },
+        {
+          "saint": "Martine de Rome",
+          "date": "2025-01-30",
+          "saint_en": "Martina of Rome",
+          "saint_cr": "Matin nan Wòm"
+        },
+        {
+          "saint": "Marcelle de Rome",
+          "date": "2025-01-31",
+          "saint_en": "Marcella of Rome",
+          "saint_cr": "Masèl nan Wòm"
+        },
+        {
+          "saint": "Jean Bosco",
+          "saint_en": "John Bosco",
+          "saint_cr": "Jan Bosko",
           "date": "2025-01-31"
         }
       ]
@@ -2589,76 +2733,196 @@
       "mois": "Février",
       "saints": [
         {
-          "saint": "Blaise",
-          "date": "2025-02-03"
+          "saint": "Brigitte de Kildare",
+          "saint_en": "Brigid of Kildare",
+          "saint_cr": "Brijit nan Kildare",
+          "date": "2025-02-01"
         },
         {
-          "saint": "Sylvain",
-          "date": "2025-02-04"
+          "saint": "Catherine de Ricci",
+          "saint_en": "Catherine de’ Ricci",
+          "saint_cr": "Katrin de Ricci",
+          "date": "2025-02-02"
         },
         {
-          "saint": "Apolline",
-          "date": "2025-02-09"
+          "saint": "Blaise de Sébaste",
+          "date": "2025-02-03",
+          "saint_en": "Blaise of Sebaste",
+          "saint_cr": "Blèz nan Sebas"
         },
         {
-          "saint": "Jacqueline",
+          "saint": "Isidore de Péluse",
+          "date": "2025-02-04",
+          "saint_en": "Isidore of Pelusium",
+          "saint_cr": "Izidò nan Peliz"
+        },
+        {
+          "saint": "Agathe de Catane",
+          "saint_en": "Agatha of Catania",
+          "saint_cr": "Agat nan Catania",
+          "date": "2025-02-05"
+        },
+        {
+          "saint": "Paul Miki et ses compagnons",
+          "saint_en": "Paul Miki and companions",
+          "saint_cr": "Pòl Miki ak konpayon li yo",
+          "date": "2025-02-06"
+        },
+        {
+          "saint": "Bienheureuse Eugénie Smet",
+          "saint_en": "Blessed Eugénie Smet",
+          "saint_cr": "Byennerez Ejeni Smet",
+          "date": "2025-02-07"
+        },
+        {
+          "saint": "Joséphine Bakhita",
+          "saint_en": "Josephine Bakhita",
+          "saint_cr": "Jozefin Bakhita",
           "date": "2025-02-08"
         },
         {
-          "saint": "Claude",
-          "date": "2025-02-15"
+          "saint": "Bienheureuse Jacqueline de Septisoles",
+          "saint_en": "Blessed Jacoba of Settesoli",
+          "saint_cr": "Byennerez Jaklin de Settesoli",
+          "date": "2025-02-08"
         },
         {
-          "saint": "Matthias",
+          "saint": "Apolline d’Alexandrie",
+          "date": "2025-02-09",
+          "saint_en": "Apollonia of Alexandria",
+          "saint_cr": "Apolin nan Aleksandri"
+        },
+        {
+          "saint": "Scholastique de Nursie",
+          "saint_en": "Scholastica of Nursia",
+          "saint_cr": "Eskolastik nan Nursia",
+          "date": "2025-02-10"
+        },
+        {
+          "saint": "Séverin d’Agaune",
+          "date": "2025-02-11",
+          "saint_en": "Severinus of Agaunum",
+          "saint_cr": "Severen nan Agaune"
+        },
+        {
+          "saint": "Bienheureuse Ombeline",
+          "saint_en": "Blessed Humbeline",
+          "saint_cr": "Byennerez Ombeline",
+          "date": "2025-02-12"
+        },
+        {
+          "saint": "Bienheureuse Béatrix d’Ornacieux",
+          "date": "2025-02-13",
+          "saint_en": "Blessed Beatrice of Ornacieux",
+          "saint_cr": "Byennerez Beatris nan Ornacieux"
+        },
+        {
+          "saint": "Cyrille et Méthode",
+          "saint_en": "Cyril and Methodius",
+          "saint_cr": "Siril ak Metòd",
           "date": "2025-02-14"
         },
         {
-          "saint": "Béatrice",
-          "date": "2025-02-13"
+          "saint": "Valentin de Rome",
+          "saint_en": "Valentine of Rome",
+          "saint_cr": "Valanten nan Wòm",
+          "date": "2025-02-14"
         },
         {
-          "saint": "Isabelle",
-          "date": "2025-02-22"
+          "saint": "Claude La Colombière",
+          "date": "2025-02-15",
+          "saint_en": "Claude de la Colombière",
+          "saint_cr": "Klod La Colombière"
+        },
+        {
+          "saint": "Julienne de Nicomédie",
+          "saint_en": "Juliana of Nicomedia",
+          "saint_cr": "Jilyèn nan Nikomedi",
+          "date": "2025-02-16"
+        },
+        {
+          "saint": "Alexis Falconieri",
+          "saint_en": "Alexis Falconieri",
+          "saint_cr": "Aleksi Falconieri",
+          "date": "2025-02-17"
+        },
+        {
+          "saint": "Bienheureux Fra Angelico",
+          "saint_en": "Blessed Fra Angelico",
+          "saint_cr": "Byennere Fra Angelico",
+          "date": "2025-02-18"
+        },
+        {
+          "saint": "Gabin de Rome",
+          "date": "2025-02-19",
+          "saint_en": "Gabinus of Rome",
+          "saint_cr": "Gaben nan Wòm"
+        },
+        {
+          "saint": "Aimée d’Assise",
+          "date": "2025-02-20",
+          "saint_en": "Amata of Assisi",
+          "saint_cr": "Eme nan Asiz"
         },
         {
           "saint": "Pierre Damien",
+          "saint_en": "Peter Damian",
+          "saint_cr": "Pyè Damyen",
           "date": "2025-02-21"
         },
         {
-          "saint": "Aimée",
-          "date": "2025-02-20"
+          "saint": "Bienheureuse Isabelle de France",
+          "date": "2025-02-22",
+          "saint_en": "Blessed Isabelle of France",
+          "saint_cr": "Byennerez Izabèl nan Frans"
         },
         {
-          "saint": "Gabin",
-          "date": "2025-02-19"
-        },
-        {
-          "saint": "Modeste",
-          "date": "2025-02-24"
-        },
-        {
-          "saint": "Lazare",
+          "saint": "Polycarpe de Smyrne",
+          "saint_en": "Polycarp of Smyrna",
+          "saint_cr": "Polikap nan Esmin",
           "date": "2025-02-23"
         },
         {
-          "saint": "Roméo",
+          "saint": "Modeste de Trèves",
+          "date": "2025-02-24",
+          "saint_en": "Modestus of Trier",
+          "saint_cr": "Modès nan Trèv"
+        },
+        {
+          "saint": "Bienheureux Roméo de Lucques",
+          "date": "2025-02-25",
+          "saint_en": "Blessed Romeo of Lucca",
+          "saint_cr": "Byennere Womeyo nan Lucca"
+        },
+        {
+          "saint": "Nestor de Magydos",
+          "saint_en": "Nestor of Magydus",
+          "saint_cr": "Nestò nan Magydos",
           "date": "2025-02-25"
         },
         {
-          "saint": "Nestor",
+          "saint": "Alexandre d’Alexandrie",
+          "saint_en": "Alexander of Alexandria",
+          "saint_cr": "Aleksann nan Aleksandri",
           "date": "2025-02-26"
         },
         {
           "saint": "Honorine",
-          "date": "2025-02-27"
+          "date": "2025-02-27",
+          "saint_en": "Honorina",
+          "saint_cr": "Onorin"
         },
         {
-          "saint": "Séverin",
-          "date": "2025-02-27"
+          "saint": "Romain de Condat",
+          "date": "2025-02-28",
+          "saint_en": "Romanus of Condat",
+          "saint_cr": "Women nan Condat"
         },
         {
-          "saint": "Romain",
-          "date": "2025-02-28"
+          "saint": "Auguste Chapdelaine",
+          "saint_en": "Auguste Chapdelaine",
+          "saint_cr": "Ogis Chapdelaine",
+          "date": "2024-02-29"
         }
       ]
     },
@@ -2666,72 +2930,190 @@
       "mois": "Mars",
       "saints": [
         {
-          "saint": "Guénolé",
-          "date": "2025-03-03"
+          "saint": "David de Galles",
+          "saint_en": "David of Wales",
+          "saint_cr": "David nan peyi Gal",
+          "date": "2025-03-01"
         },
         {
-          "saint": "Casimir",
-          "date": "2025-03-04"
+          "saint": "Bienheureux Charles le Bon",
+          "saint_en": "Blessed Charles the Good",
+          "saint_cr": "Byennere Chal le Bon",
+          "date": "2025-03-02"
         },
         {
-          "saint": "Félicité",
+          "saint": "Guénolé de Landévennec",
+          "date": "2025-03-03",
+          "saint_en": "Winwaloe of Landévennec",
+          "saint_cr": "Genole nan Landévennec"
+        },
+        {
+          "saint": "Casimir de Pologne",
+          "date": "2025-03-04",
+          "saint_en": "Casimir of Poland",
+          "saint_cr": "Kazimi nan Polòy"
+        },
+        {
+          "saint": "Virgile d’Arles",
+          "saint_en": "Virgilius of Arles",
+          "saint_cr": "Vijil nan Arles",
+          "date": "2025-03-05"
+        },
+        {
+          "saint": "Colette de Corbie",
+          "saint_en": "Colette of Corbie",
+          "saint_cr": "Kolèt nan Corbie",
+          "date": "2025-03-06"
+        },
+        {
+          "saint": "Perpétue et Félicité",
+          "saint_en": "Perpetua and Felicity",
+          "saint_cr": "Pèpeti ak Felisite",
           "date": "2025-03-07"
         },
         {
           "saint": "Jean de Dieu",
+          "saint_en": "John of God",
+          "saint_cr": "Jan de Dye",
           "date": "2025-03-08"
         },
         {
-          "saint": "Françoise Amour",
+          "saint": "Françoise Romaine",
+          "saint_en": "Frances of Rome",
+          "saint_cr": "Franswaz nan Wòm",
           "date": "2025-03-09"
         },
         {
-          "saint": "Rosine",
-          "date": "2025-03-11"
+          "saint": "Vivien de Sébaste",
+          "saint_en": "Vivian of Sebaste",
+          "saint_cr": "Vivyen nan Sebas",
+          "date": "2025-03-10"
         },
         {
-          "saint": "Rodrigue",
-          "date": "2025-03-13"
+          "saint": "Rosine de Wenglingen",
+          "date": "2025-03-11",
+          "saint_en": "Rosina of Wenglingen",
+          "saint_cr": "Rozin nan Wenglingen"
         },
         {
-          "saint": "Louise",
-          "date": "2025-03-15"
+          "saint": "Bienheureuse Justine Bezzoli",
+          "saint_en": "Blessed Giustina Bezzoli",
+          "saint_cr": "Byennerez Justine Bezzoli",
+          "date": "2025-03-12"
         },
         {
-          "saint": "Benoît-Joseph",
+          "saint": "Rodrigue de Cordoue",
+          "date": "2025-03-13",
+          "saint_en": "Roderick of Córdoba",
+          "saint_cr": "Rodrig nan Kòdou"
+        },
+        {
+          "saint": "Mathilde de Ringelheim",
+          "saint_en": "Matilda of Ringelheim",
+          "saint_cr": "Matild nan Ringelheim",
+          "date": "2025-03-14"
+        },
+        {
+          "saint": "Louise de Marillac",
+          "date": "2025-03-15",
+          "saint_en": "Louise de Marillac",
+          "saint_cr": "Lwiz de Marillac"
+        },
+        {
+          "saint": "Bienheureuse Bénédicte d’Assise",
+          "saint_en": "Blessed Benedicta of Assisi",
+          "saint_cr": "Byennerez Benedikt nan Asiz",
           "date": "2025-03-16"
         },
         {
-          "saint": "Joseph",
+          "saint": "Patrick d’Irlande",
+          "saint_en": "Patrick of Ireland",
+          "saint_cr": "Patrik nan Ilann",
+          "date": "2025-03-17"
+        },
+        {
+          "saint": "Cyrille de Jérusalem",
+          "saint_en": "Cyril of Jerusalem",
+          "saint_cr": "Siril nan Jerizalèm",
+          "date": "2025-03-18"
+        },
+        {
+          "saint": "Joseph, époux de Marie",
+          "saint_en": "Joseph, spouse of Mary",
+          "saint_cr": "Jozèf, mari Mari",
           "date": "2025-03-19"
         },
         {
-          "saint": "Herbert",
-          "date": "2025-03-20"
+          "saint": "Herbert de Derwentwater",
+          "date": "2025-03-20",
+          "saint_en": "Herbert of Derwentwater",
+          "saint_cr": "Èbè nan Derwentwater"
         },
         {
-          "saint": "Clémence",
-          "date": "2025-03-21"
+          "saint": "Bienheureuse Clémence d’Ohenberg",
+          "date": "2025-03-21",
+          "saint_en": "Blessed Clemence of Ohenberg",
+          "saint_cr": "Byennerez Klemans nan Ohenberg"
         },
         {
-          "saint": "Léa",
-          "date": "2025-03-22"
+          "saint": "Léa de Rome",
+          "date": "2025-03-22",
+          "saint_en": "Lea of Rome",
+          "saint_cr": "Leya nan Wòm"
         },
         {
-          "saint": "Habib",
-          "date": "2025-03-27"
+          "saint": "Turibio de Mogrovejo",
+          "saint_en": "Turibius of Mogrovejo",
+          "saint_cr": "Turibio de Mogrovejo",
+          "date": "2025-03-23"
         },
         {
-          "saint": "Gontran",
-          "date": "2025-03-28"
+          "saint": "Catherine de Suède",
+          "saint_en": "Catherine of Sweden",
+          "saint_cr": "Katrin nan Syèd",
+          "date": "2025-03-24"
         },
         {
-          "saint": "Gwladys",
-          "date": "2025-03-29"
+          "saint": "Lucie Filippini",
+          "saint_en": "Lucy Filippini",
+          "saint_cr": "Lisi Filippini",
+          "date": "2025-03-25"
         },
         {
-          "saint": "Benjamin",
-          "date": "2025-03-31"
+          "saint": "Larissa de Crimée",
+          "saint_en": "Larissa of Crimea",
+          "saint_cr": "Larisa nan Krime",
+          "date": "2025-03-26"
+        },
+        {
+          "date": "2025-03-27",
+          "saint": "Rupert de Salzbourg",
+          "saint_en": "Rupert of Salzburg",
+          "saint_cr": "Ripè nan Salzbourg"
+        },
+        {
+          "saint": "Gontran de Bourgogne",
+          "date": "2025-03-28",
+          "saint_en": "Guntram of Burgundy",
+          "saint_cr": "Gontran nan Bougòy"
+        },
+        {
+          "saint": "Gwladys de Galles",
+          "date": "2025-03-29",
+          "saint_en": "Gwladys of Wales",
+          "saint_cr": "Gwladys nan peyi Gal"
+        },
+        {
+          "saint": "Bienheureux Amédée IX de Savoie",
+          "saint_en": "Blessed Amadeus IX of Savoy",
+          "saint_cr": "Byennere Amede IX nan Savwa",
+          "date": "2025-03-30"
+        },
+        {
+          "saint": "Benjamin de Perse",
+          "date": "2025-03-31",
+          "saint_en": "Benjamin of Persia",
+          "saint_cr": "Benjamen nan Pès"
         }
       ]
     },
@@ -2739,88 +3121,202 @@
       "mois": "Avril",
       "saints": [
         {
-          "saint": "Isidore",
+          "saint": "Hugues de Grenoble",
+          "saint_en": "Hugh of Grenoble",
+          "saint_cr": "Ig nan Grenoble",
+          "date": "2025-04-01"
+        },
+        {
+          "saint": "Bienheureuse Alexandrine de Foligno",
+          "date": "2025-04-02",
+          "saint_en": "Blessed Alexandrina of Foligno",
+          "saint_cr": "Byennerez Aleksandrin nan Foligno"
+        },
+        {
+          "saint": "Richard de Chichester",
+          "saint_en": "Richard of Chichester",
+          "saint_cr": "Richa nan Chichester",
+          "date": "2025-04-03"
+        },
+        {
+          "saint": "Isidore de Séville",
+          "saint_en": "Isidore of Seville",
+          "saint_cr": "Izidò nan Sevil",
           "date": "2025-04-04"
         },
         {
-          "saint": "Irène",
-          "date": "2025-04-05"
+          "saint": "Irène de Thessalonique",
+          "date": "2025-04-05",
+          "saint_en": "Irene of Thessalonica",
+          "saint_cr": "Irèn nan Tesalonik"
         },
         {
-          "saint": "Mariette",
-          "date": "2025-04-05"
+          "saint": "Marcellin de Carthage",
+          "date": "2025-04-06",
+          "saint_en": "Marcellinus of Carthage",
+          "saint_cr": "Maselen nan Kartaj"
         },
         {
-          "saint": "Marcellin",
-          "date": "2025-04-06"
-        },
-        {
-          "saint": "J-B. de la Salle",
+          "saint": "Jean-Baptiste de La Salle",
+          "saint_en": "John Baptist de La Salle",
+          "saint_cr": "Janbatis de La Salle",
           "date": "2025-04-07"
         },
         {
-          "saint": "Julie",
+          "saint": "Hermann-Joseph de Steinfeld",
+          "date": "2025-04-07",
+          "saint_en": "Herman Joseph of Steinfeld",
+          "saint_cr": "Hermann Jozèf nan Steinfeld"
+        },
+        {
+          "saint": "Julie Billiart",
+          "saint_en": "Julie Billiart",
+          "saint_cr": "Jili Billiart",
           "date": "2025-04-08"
         },
         {
-          "saint": "Gautier",
+          "saint": "Gautier de Pontoise",
+          "saint_en": "Walter of Pontoise",
+          "saint_cr": "Gotye nan Pontoise",
+          "date": "2025-04-08"
+        },
+        {
+          "saint": "Maxime d’Alexandrie",
+          "saint_en": "Maximus of Alexandria",
+          "saint_cr": "Maksim nan Aleksandri",
           "date": "2025-04-09"
         },
         {
-          "saint": "Fulbert",
-          "date": "2025-04-10"
+          "saint": "Fulbert de Chartres",
+          "date": "2025-04-10",
+          "saint_en": "Fulbert of Chartres",
+          "saint_cr": "Filbè nan Chartres"
         },
         {
-          "saint": "Inès",
-          "date": "2025-04-10"
+          "saint": "Stanislas de Cracovie",
+          "date": "2025-04-11",
+          "saint_en": "Stanislaus of Kraków",
+          "saint_cr": "Estanislàs nan Krakovi"
         },
         {
-          "saint": "Stanislas",
-          "date": "2025-04-11"
+          "saint": "Jules Ier",
+          "date": "2025-04-12",
+          "saint_en": "Julius I",
+          "saint_cr": "Jil I"
         },
         {
-          "saint": "Jules",
-          "date": "2025-04-12"
+          "saint": "Ide de Boulogne",
+          "saint_en": "Ida of Boulogne",
+          "saint_cr": "Ida nan Boulogne",
+          "date": "2025-04-13"
         },
         {
-          "saint": "Paterne",
-          "date": "2025-04-15"
+          "saint": "Lidwine de Schiedam",
+          "date": "2025-04-14",
+          "saint_en": "Lidwina of Schiedam",
+          "saint_cr": "Lidwin nan Schiedam"
         },
         {
-          "saint": "Évrard",
-          "date": "2025-04-14"
+          "saint": "Paterne d’Avranches",
+          "date": "2025-04-15",
+          "saint_en": "Paternus of Avranches",
+          "saint_cr": "Patèn nan Avranches"
         },
         {
-          "saint": "Parfait",
-          "date": "2025-04-18"
+          "saint": "Benoît-Joseph Labre",
+          "saint_en": "Benedict Joseph Labre",
+          "saint_cr": "Benwa Jozèf Labre",
+          "date": "2025-04-16"
         },
         {
-          "saint": "Bernadette",
-          "date": "2025-04-18"
+          "saint": "Bernadette Soubirous",
+          "saint_en": "Bernadette Soubirous",
+          "saint_cr": "Bènadèt Soubirous",
+          "date": "2025-04-16"
         },
         {
-          "saint": "Emma",
-          "date": "2025-04-19"
+          "saint": "Kateri Tekakwitha",
+          "saint_en": "Kateri Tekakwitha",
+          "saint_cr": "Kateri Tekakwitha",
+          "date": "2025-04-17"
         },
         {
-          "saint": "Alexandre",
-          "date": "2025-04-22"
+          "saint": "Parfait de Cordoue",
+          "date": "2025-04-18",
+          "saint_en": "Perfectus of Córdoba",
+          "saint_cr": "Pafè nan Kòdou"
         },
         {
-          "saint": "Georges",
-          "date": "2025-04-23"
+          "saint": "Emma de Gurk",
+          "date": "2025-04-19",
+          "saint_en": "Emma of Gurk",
+          "saint_cr": "Emma nan Gurk"
         },
         {
-          "saint": "Fidèle",
-          "date": "2025-04-24"
+          "saint": "Agnès de Montepulciano",
+          "saint_en": "Agnes of Montepulciano",
+          "saint_cr": "Anyès nan Montepulciano",
+          "date": "2025-04-20"
         },
         {
-          "saint": "Marc",
+          "saint": "Anselme de Cantorbéry",
+          "saint_en": "Anselm of Canterbury",
+          "saint_cr": "Ansèlm nan Canterbury",
+          "date": "2025-04-21"
+        },
+        {
+          "saint": "Épipode et Alexandre de Lyon",
+          "date": "2025-04-22",
+          "saint_en": "Epipodius and Alexander of Lyon",
+          "saint_cr": "Epipòd ak Aleksann nan Lyon"
+        },
+        {
+          "saint": "Georges de Lydda",
+          "date": "2025-04-23",
+          "saint_en": "George of Lydda",
+          "saint_cr": "Jòj nan Lida"
+        },
+        {
+          "saint": "Fidèle de Sigmaringen",
+          "date": "2025-04-24",
+          "saint_en": "Fidelis of Sigmaringen",
+          "saint_cr": "Fidèl nan Sigmaringen"
+        },
+        {
+          "saint": "Marc, évangéliste",
+          "saint_en": "Mark the Evangelist",
+          "saint_cr": "Mak, evanjelis",
           "date": "2025-04-25"
         },
         {
-          "saint": "Valérie",
-          "date": "2025-04-28"
+          "saint": "Bienheureuse Alde de Sienne",
+          "date": "2025-04-26",
+          "saint_en": "Blessed Alda of Siena",
+          "saint_cr": "Byennerez Alda nan Syèn"
+        },
+        {
+          "saint": "Zita de Lucques",
+          "saint_en": "Zita of Lucca",
+          "saint_cr": "Zita nan Lucca",
+          "date": "2025-04-27"
+        },
+        {
+          "saint": "Valérie de Milan",
+          "date": "2025-04-28",
+          "saint_en": "Valeria of Milan",
+          "saint_cr": "Valeri nan Milan"
+        },
+        {
+          "saint": "Catherine de Sienne",
+          "saint_en": "Catherine of Siena",
+          "saint_cr": "Katrin nan Syèn",
+          "date": "2025-04-29"
+        },
+        {
+          "saint": "Pie V",
+          "saint_en": "Pius V",
+          "saint_cr": "Pi V",
+          "date": "2025-04-30"
         }
       ]
     },
@@ -2828,68 +3324,190 @@
       "mois": "Mai",
       "saints": [
         {
-          "saint": "Philippe, Jacques",
+          "saint": "Joseph artisan",
+          "saint_en": "Joseph the Worker",
+          "saint_cr": "Jozèf, travayè",
           "date": "2025-05-01"
         },
         {
-          "saint": "Boris",
-          "date": "2025-05-02"
+          "saint": "Boris de Bulgarie",
+          "date": "2025-05-02",
+          "saint_en": "Boris of Bulgaria",
+          "saint_cr": "Boris nan Bilgari"
         },
         {
-          "saint": "Prudence",
-          "date": "2025-05-06"
+          "saint": "Philippe et Jacques, apôtres",
+          "saint_en": "Philip and James, Apostles",
+          "saint_cr": "Filip ak Jak, apot",
+          "date": "2025-05-03"
         },
         {
-          "saint": "Gisèle",
-          "date": "2025-05-07"
+          "saint": "Sylvain de Gaza",
+          "saint_en": "Silvanus of Gaza",
+          "saint_cr": "Silven nan Gaza",
+          "date": "2025-05-04"
         },
         {
-          "saint": "Pacôme",
-          "date": "2025-05-09"
+          "saint": "Judith de Prusse",
+          "saint_en": "Judith of Prussia",
+          "saint_cr": "Jidit nan Lapris",
+          "date": "2025-05-05"
         },
         {
-          "saint": "Solange",
-          "date": "2025-05-10"
+          "saint": "Bienheureuse Prudence Castori",
+          "date": "2025-05-06",
+          "saint_en": "Blessed Prudence Castori",
+          "saint_cr": "Byennerez Pridans Castori"
         },
         {
-          "saint": "Achille",
-          "date": "2025-05-12"
+          "saint": "Bienheureuse Gisèle de Hongrie",
+          "date": "2025-05-07",
+          "saint_en": "Blessed Gisela of Hungary",
+          "saint_cr": "Byennerez Jizèl nan Ongri"
         },
         {
-          "saint": "Rolande",
+          "saint": "Désiré de Bourges",
+          "saint_en": "Desideratus of Bourges",
+          "saint_cr": "Dezire nan Bourges",
+          "date": "2025-05-08"
+        },
+        {
+          "saint": "Pacôme le Grand",
+          "date": "2025-05-09",
+          "saint_en": "Pachomius the Great",
+          "saint_cr": "Pakòm Legran"
+        },
+        {
+          "saint": "Solange du Berry",
+          "date": "2025-05-10",
+          "saint_en": "Solange of Berry",
+          "saint_cr": "Solanj nan Berry"
+        },
+        {
+          "saint": "Estelle de Saintes",
+          "saint_en": "Eustella of Saintes",
+          "saint_cr": "Estèl nan Saintes",
+          "date": "2025-05-11"
+        },
+        {
+          "saint": "Nérée et Achille",
+          "date": "2025-05-12",
+          "saint_en": "Nereus and Achilleus",
+          "saint_cr": "Nere ak Achil"
+        },
+        {
+          "saint": "Rolende de Gerpinnes",
+          "saint_en": "Rolendis of Gerpinnes",
+          "saint_cr": "Rolende nan Gerpinnes",
           "date": "2025-05-13"
         },
         {
-          "saint": "Denise",
-          "date": "2025-05-15"
+          "saint": "Matthias, apôtre",
+          "saint_en": "Matthias the Apostle",
+          "saint_cr": "Matyas, apot",
+          "date": "2025-05-14"
         },
         {
-          "saint": "Honoré",
-          "date": "2025-05-16"
+          "saint": "Denise de Lampsaque",
+          "date": "2025-05-15",
+          "saint_en": "Dionysia of Lampsacus",
+          "saint_cr": "Deniz nan Lampsak"
         },
         {
-          "saint": "Pascal",
-          "date": "2025-05-17"
+          "saint": "Honoré d’Amiens",
+          "date": "2025-05-16",
+          "saint_en": "Honoratus of Amiens",
+          "saint_cr": "Onore nan Amiens"
         },
         {
-          "saint": "Éric",
-          "date": "2025-05-18"
+          "saint": "Pascal Baylon",
+          "date": "2025-05-17",
+          "saint_en": "Paschal Baylón",
+          "saint_cr": "Paskal Baylon"
         },
         {
-          "saint": "Yves",
-          "date": "2025-05-19"
+          "saint": "Éric de Suède",
+          "date": "2025-05-18",
+          "saint_en": "Eric of Sweden",
+          "saint_cr": "Erik nan Syèd"
         },
         {
-          "saint": "Constantin",
-          "date": "2025-05-21"
+          "saint": "Yves de Kermartin",
+          "date": "2025-05-19",
+          "saint_en": "Ivo of Kermartin",
+          "saint_cr": "Iv de Kermartin"
         },
         {
-          "saint": "Didier",
-          "date": "2025-05-23"
+          "saint": "Bernardin de Sienne",
+          "saint_en": "Bernardine of Siena",
+          "saint_cr": "Bènaden nan Syèn",
+          "date": "2025-05-20"
         },
         {
-          "saint": "Germain",
-          "date": "2025-05-28"
+          "saint": "Christophe Magallanes et ses compagnons",
+          "date": "2025-05-21",
+          "saint_en": "Christopher Magallanes and companions",
+          "saint_cr": "Kristòf Magallanes ak konpayon li yo"
+        },
+        {
+          "saint": "Rita de Cascia",
+          "saint_en": "Rita of Cascia",
+          "saint_cr": "Rita nan Cascia",
+          "date": "2025-05-22"
+        },
+        {
+          "saint": "Didier de Vienne",
+          "date": "2025-05-23",
+          "saint_en": "Desiderius of Vienne",
+          "saint_cr": "Didye nan Vienne"
+        },
+        {
+          "saint": "Donatien et Rogatien de Nantes",
+          "saint_en": "Donatian and Rogatian of Nantes",
+          "saint_cr": "Donasyen ak Rogasyen nan Nantes",
+          "date": "2025-05-24"
+        },
+        {
+          "saint": "Madeleine-Sophie Barat",
+          "saint_en": "Madeleine Sophie Barat",
+          "saint_cr": "Madlèn-Sofi Barat",
+          "date": "2025-05-25"
+        },
+        {
+          "saint": "Philippe Néri",
+          "saint_en": "Philip Neri",
+          "saint_cr": "Filip Neri",
+          "date": "2025-05-26"
+        },
+        {
+          "saint": "Augustin de Cantorbéry",
+          "saint_en": "Augustine of Canterbury",
+          "saint_cr": "Ogisten nan Canterbury",
+          "date": "2025-05-27"
+        },
+        {
+          "saint": "Germain de Paris",
+          "date": "2025-05-28",
+          "saint_en": "Germanus of Paris",
+          "saint_cr": "Jèmen nan Pari"
+        },
+        {
+          "saint": "Ursule Ledóchowska",
+          "saint_en": "Ursula Ledóchowska",
+          "saint_cr": "Isil Ledóchowska",
+          "date": "2025-05-29"
+        },
+        {
+          "saint": "Jeanne d’Arc",
+          "saint_en": "Joan of Arc",
+          "saint_cr": "Jàn d’Ak",
+          "date": "2025-05-30"
+        },
+        {
+          "saint": "Félix de Nicosie",
+          "saint_en": "Felix of Nicosia",
+          "saint_cr": "Feliks nan Nikozya",
+          "date": "2025-05-31"
         }
       ]
     },
@@ -2897,100 +3515,202 @@
       "mois": "Juin",
       "saints": [
         {
-          "saint": "Justin",
-          "date": "2025-06-01"
+          "saint": "Justin, martyr",
+          "date": "2025-06-01",
+          "saint_en": "Justin Martyr",
+          "saint_cr": "Jisten, mati"
         },
         {
-          "saint": "Blandine",
-          "date": "2025-06-02"
+          "saint": "Blandine de Lyon",
+          "date": "2025-06-02",
+          "saint_en": "Blandina of Lyon",
+          "saint_cr": "Blandin nan Lyon"
         },
         {
-          "saint": "Kévin",
+          "saint": "Kévin de Glendalough",
+          "date": "2025-06-03",
+          "saint_en": "Kevin of Glendalough",
+          "saint_cr": "Kevin nan Glendalough"
+        },
+        {
+          "saint": "Charles Lwanga et ses compagnons",
+          "saint_en": "Charles Lwanga and companions",
+          "saint_cr": "Chal Lwanga ak konpayon li yo",
           "date": "2025-06-03"
         },
         {
           "saint": "Clotilde",
-          "date": "2025-06-04"
+          "date": "2025-06-04",
+          "saint_en": "Clotilde",
+          "saint_cr": "Klotild"
         },
         {
-          "saint": "Norbert",
-          "date": "2025-06-06"
+          "saint": "Boniface de Mayence",
+          "saint_en": "Boniface of Mainz",
+          "saint_cr": "Bonifas nan Mainz",
+          "date": "2025-06-05"
         },
         {
-          "saint": "Raoul",
+          "saint": "Norbert de Xanten",
+          "date": "2025-06-06",
+          "saint_en": "Norbert of Xanten",
+          "saint_cr": "Nòbè nan Xanten"
+        },
+        {
+          "saint": "Gilbert de Neuffonts",
+          "saint_en": "Gilbert of Neuffonts",
+          "saint_cr": "Gilbè nan Neuffonts",
           "date": "2025-06-07"
         },
         {
-          "saint": "Barnabé",
+          "saint": "Médard de Noyon",
+          "saint_en": "Medard of Noyon",
+          "saint_cr": "Meda nan Noyon",
+          "date": "2025-06-08"
+        },
+        {
+          "saint": "Éphrem le Syrien",
+          "saint_en": "Ephrem the Syrian",
+          "saint_cr": "Efrèm, Siryen an",
+          "date": "2025-06-09"
+        },
+        {
+          "saint": "Landry de Paris",
+          "saint_en": "Landry of Paris",
+          "saint_cr": "Landri nan Pari",
+          "date": "2025-06-10"
+        },
+        {
+          "saint": "Barnabé, apôtre",
+          "saint_en": "Barnabas the Apostle",
+          "saint_cr": "Banabas, apot",
           "date": "2025-06-11"
         },
         {
-          "saint": "Guy",
-          "date": "2025-06-12"
+          "saint": "Bienheureux Guy de Cortone",
+          "date": "2025-06-12",
+          "saint_en": "Blessed Guy of Cortona",
+          "saint_cr": "Byennere Gi nan Cortona"
         },
         {
           "saint": "Antoine de Padoue",
+          "saint_en": "Anthony of Padua",
+          "saint_cr": "Antwàn de Padou",
           "date": "2025-06-13"
         },
         {
-          "saint": "Élisée",
-          "date": "2025-06-14"
+          "saint": "Élisée, prophète",
+          "date": "2025-06-14",
+          "saint_en": "Elisha the Prophet",
+          "saint_cr": "Elize, pwofèt"
         },
         {
-          "saint": "Maxime",
-          "date": "2025-06-14"
+          "saint": "Germaine Cousin",
+          "saint_en": "Germaine Cousin",
+          "saint_cr": "Jèmèn Cousin",
+          "date": "2025-06-15"
         },
         {
-          "saint": "Hervé",
-          "date": "2025-06-17"
+          "saint": "Jean-François Régis",
+          "saint_en": "John Francis Regis",
+          "saint_cr": "Jan Franswa Rejis",
+          "date": "2025-06-16"
         },
         {
-          "saint": "Léonce",
-          "date": "2025-06-18"
+          "saint": "Hervé de Bretagne",
+          "date": "2025-06-17",
+          "saint_en": "Hervé of Brittany",
+          "saint_cr": "Ève nan Bretay"
         },
         {
-          "saint": "Émilie",
+          "saint": "Léonce de Tripoli",
+          "date": "2025-06-18",
+          "saint_en": "Leontius of Tripoli",
+          "saint_cr": "Leyons nan Tripoli"
+        },
+        {
+          "saint": "Romuald de Ravenne",
+          "saint_en": "Romuald of Ravenna",
+          "saint_cr": "Romwald nan Ravèn",
           "date": "2025-06-19"
         },
         {
-          "saint": "Silvère",
-          "date": "2025-06-20"
+          "saint": "Silvère, pape",
+          "date": "2025-06-20",
+          "saint_en": "Pope Silverius",
+          "saint_cr": "Silvè, pap"
         },
         {
-          "saint": "Alban",
-          "date": "2025-06-22"
+          "saint": "Raoul de Bourges",
+          "date": "2025-06-21",
+          "saint_en": "Rudolph of Bourges",
+          "saint_cr": "Rawoul nan Bourges"
         },
         {
-          "saint": "Audrey",
-          "date": "2025-06-23"
+          "saint": "Alban de Verulamium",
+          "date": "2025-06-22",
+          "saint_en": "Alban of Verulamium",
+          "saint_cr": "Alban nan Verulamium"
         },
         {
-          "saint": "Prosper",
+          "saint": "Audrey d’Ely",
+          "date": "2025-06-23",
+          "saint_en": "Audrey of Ely",
+          "saint_cr": "Odri nan Ely"
+        },
+        {
+          "saint": "Nativité de Jean-Baptiste",
+          "saint_en": "Nativity of John the Baptist",
+          "saint_cr": "Nesans Janbatis",
+          "date": "2025-06-24"
+        },
+        {
+          "saint": "Prosper d’Aquitaine",
+          "date": "2025-06-25",
+          "saint_en": "Prosper of Aquitaine",
+          "saint_cr": "Pwospè nan Akitèn"
+        },
+        {
+          "saint": "Maxime de Turin",
+          "saint_en": "Maximus of Turin",
+          "saint_cr": "Maksim nan Tiren",
           "date": "2025-06-25"
         },
         {
-          "saint": "Anthelme",
-          "date": "2025-06-26"
+          "saint": "Anthelme de Belley",
+          "date": "2025-06-26",
+          "saint_en": "Anthelm of Belley",
+          "saint_cr": "Antèlm nan Belley"
         },
         {
-          "saint": "Alida",
-          "date": "2025-06-26"
-        },
-        {
-          "saint": "Fernand",
+          "saint": "Notre-Dame du Perpétuel Secours",
+          "saint_en": "Our Lady of Perpetual Help",
+          "saint_cr": "Manman Pèpetyèl Sekou",
           "date": "2025-06-27"
         },
         {
-          "saint": "Irénée",
+          "saint": "Ferdinand d’Aragon",
+          "saint_en": "Ferdinand of Aragon",
+          "saint_cr": "Fèdinan nan Aragon",
+          "date": "2025-06-27"
+        },
+        {
+          "saint": "Irénée de Lyon",
+          "saint_en": "Irenaeus of Lyon",
+          "saint_cr": "Irene nan Lyon",
           "date": "2025-06-28"
         },
         {
-          "saint": "Pierre, Paul",
+          "saint": "Pierre et Paul, apôtres",
+          "saint_en": "Peter and Paul, Apostles",
+          "saint_cr": "Pyè ak Pòl, apot",
           "date": "2025-06-29"
         },
         {
-          "saint": "Martial",
-          "date": "2025-06-30"
+          "saint": "Martial de Limoges",
+          "date": "2025-06-30",
+          "saint_en": "Martial of Limoges",
+          "saint_cr": "Masyal nan Limoges"
         }
       ]
     },
@@ -2998,91 +3718,201 @@
       "mois": "Juillet",
       "saints": [
         {
-          "saint": "Thomas",
+          "saint": "Jules et Aaron",
+          "saint_en": "Julius and Aaron",
+          "saint_cr": "Jil ak Arawon",
+          "date": "2025-07-01"
+        },
+        {
+          "saint": "Procès et Martinien",
+          "saint_en": "Processus and Martinian",
+          "saint_cr": "Pwosès ak Matinyen",
+          "date": "2025-07-02"
+        },
+        {
+          "saint": "Thomas, apôtre",
+          "saint_en": "Thomas the Apostle",
+          "saint_cr": "Toma, apot",
           "date": "2025-07-03"
         },
         {
-          "saint": "Antoine",
+          "saint": "Élisabeth du Portugal",
+          "saint_en": "Elizabeth of Portugal",
+          "saint_cr": "Elizabèt nan Pòtigal",
+          "date": "2025-07-04"
+        },
+        {
+          "saint": "Antoine-Marie Zaccaria",
+          "saint_en": "Anthony Mary Zaccaria",
+          "saint_cr": "Antwàn Mari Zaccaria",
           "date": "2025-07-05"
         },
         {
-          "saint": "Mariette",
-          "date": "2025-07-05"
+          "saint": "Maria Goretti",
+          "saint_en": "Maria Goretti",
+          "saint_cr": "Maria Goretti",
+          "date": "2025-07-06"
         },
         {
-          "saint": "Raïssa",
-          "date": "2025-07-05"
+          "saint": "Ralph Milner",
+          "saint_en": "Ralph Milner",
+          "saint_cr": "Ralph Milner",
+          "date": "2025-07-07"
         },
         {
-          "saint": "N-D. Mt-Carmel",
+          "saint": "Aquila et Priscille",
+          "saint_en": "Aquila and Priscilla",
+          "saint_cr": "Akilas ak Prisil",
+          "date": "2025-07-08"
+        },
+        {
+          "saint": "Augustin Zhao Rong et ses compagnons",
+          "saint_en": "Augustine Zhao Rong and companions",
+          "saint_cr": "Ogisten Zhao Rong ak konpayon li yo",
+          "date": "2025-07-09"
+        },
+        {
+          "saint": "Rufine et Seconde",
+          "saint_en": "Rufina and Secunda",
+          "saint_cr": "Rifin ak Sekonda",
+          "date": "2025-07-10"
+        },
+        {
+          "saint": "Benoît de Nursie",
+          "saint_en": "Benedict of Nursia",
+          "saint_cr": "Benwa nan Nursi",
+          "date": "2025-07-11"
+        },
+        {
+          "saint": "Jean Gualbert",
+          "saint_en": "John Gualbert",
+          "saint_cr": "Jan Gwalbè",
+          "date": "2025-07-12"
+        },
+        {
+          "saint": "Henri II",
+          "saint_en": "Henry II",
+          "saint_cr": "Anri II",
+          "date": "2025-07-13"
+        },
+        {
+          "saint": "Camille de Lellis",
+          "saint_en": "Camillus de Lellis",
+          "saint_cr": "Kamil de Lellis",
+          "date": "2025-07-14"
+        },
+        {
+          "saint": "Donald d’Écosse",
+          "date": "2025-07-15",
+          "saint_en": "Donald of Scotland",
+          "saint_cr": "Donald nan Ekòs"
+        },
+        {
+          "saint": "Notre-Dame du Mont-Carmel",
+          "saint_en": "Our Lady of Mount Carmel",
+          "saint_cr": "Nòtre Dam di Mòn Kamèl",
           "date": "2025-07-16"
         },
         {
-          "saint": "Donald",
-          "date": "2025-07-15"
+          "saint": "Alexis de Rome",
+          "date": "2025-07-17",
+          "saint_en": "Alexius of Rome",
+          "saint_cr": "Aleksi nan Wòm"
         },
         {
-          "saint": "Alexis",
-          "date": "2025-07-17"
+          "saint": "Charlotte de la Résurrection",
+          "date": "2025-07-17",
+          "saint_en": "Charlotte of the Resurrection",
+          "saint_cr": "Chalòt de Larezirèksyon"
         },
         {
-          "saint": "Charlotte",
-          "date": "2025-07-17"
+          "saint": "Frédéric d’Utrecht",
+          "date": "2025-07-18",
+          "saint_en": "Frederick of Utrecht",
+          "saint_cr": "Frederik nan Utrecht"
         },
         {
-          "saint": "Frédéric",
-          "date": "2025-07-18"
+          "saint": "Arsène le Grand",
+          "date": "2025-07-19",
+          "saint_en": "Arsenius the Great",
+          "saint_cr": "Asèn Legran"
         },
         {
-          "saint": "Arsène",
-          "date": "2025-07-19"
+          "saint": "Marguerite d’Antioche",
+          "date": "2025-07-20",
+          "saint_en": "Margaret of Antioch",
+          "saint_cr": "Magrit nan Antyòch"
         },
         {
-          "saint": "Marina",
-          "date": "2025-07-20"
+          "saint": "Victor de Marseille",
+          "date": "2025-07-21",
+          "saint_en": "Victor of Marseille",
+          "saint_cr": "Viktò nan Masèy"
         },
         {
-          "saint": "Victor",
-          "date": "2025-07-21"
-        },
-        {
-          "saint": "Christophe",
-          "date": "2025-07-21"
-        },
-        {
-          "saint": "Marie-Madeleine",
+          "saint": "Marie Madeleine",
+          "saint_en": "Mary Magdalene",
+          "saint_cr": "Mari Madlèn",
           "date": "2025-07-22"
         },
         {
-          "saint": "Brigitte",
+          "saint": "Brigitte de Suède",
+          "saint_en": "Bridget of Sweden",
+          "saint_cr": "Brijit nan Syèd",
           "date": "2025-07-23"
         },
         {
-          "saint": "Christine",
-          "date": "2025-07-24"
+          "saint": "Christine de Bolsena",
+          "date": "2025-07-24",
+          "saint_en": "Christina of Bolsena",
+          "saint_cr": "Kristin nan Bolsena"
         },
         {
-          "saint": "Jacques",
+          "saint": "Christophe de Lycie",
+          "saint_en": "Christopher of Lycia",
+          "saint_cr": "Kristòf nan Lisi",
           "date": "2025-07-25"
         },
         {
-          "saint": "Hermann",
+          "saint": "Jacques le Majeur",
+          "saint_en": "James the Greater",
+          "saint_cr": "Jak Majè",
           "date": "2025-07-25"
         },
         {
-          "saint": "Nathalie",
+          "saint": "Anne et Joachim",
+          "saint_en": "Anne and Joachim",
+          "saint_cr": "Àn ak Jowakim",
+          "date": "2025-07-26"
+        },
+        {
+          "saint": "Nathalie de Cordoue",
+          "saint_en": "Natalia of Córdoba",
+          "saint_cr": "Natali nan Kòdou",
           "date": "2025-07-27"
         },
         {
-          "saint": "Samson",
-          "date": "2025-07-28"
+          "saint": "Samson de Dol",
+          "date": "2025-07-28",
+          "saint_en": "Samson of Dol",
+          "saint_cr": "Samson nan Dol"
         },
         {
-          "saint": "Marthe",
+          "saint": "Marthe, Marie et Lazare de Béthanie",
+          "saint_en": "Martha, Mary and Lazarus of Bethany",
+          "saint_cr": "Mat, Mari ak Laza nan Betani",
           "date": "2025-07-29"
         },
         {
-          "saint": "Ignace De Loyola",
+          "saint": "Pierre Chrysologue",
+          "saint_en": "Peter Chrysologus",
+          "saint_cr": "Pyè Krizològ",
+          "date": "2025-07-30"
+        },
+        {
+          "saint": "Ignace de Loyola",
+          "saint_en": "Ignatius of Loyola",
+          "saint_cr": "Inyas de Loyola",
           "date": "2025-07-31"
         }
       ]
@@ -3091,124 +3921,196 @@
       "mois": "Août",
       "saints": [
         {
-          "saint": "Alphonse",
+          "saint": "Alphonse de Liguori",
+          "saint_en": "Alphonsus Liguori",
+          "saint_cr": "Alfons de Liguori",
           "date": "2025-08-01"
         },
         {
-          "saint": "Sandrine",
-          "date": "2025-08-01"
-        },
-        {
-          "saint": "Julien Eymard",
+          "saint": "Pierre-Julien Eymard",
+          "saint_en": "Peter Julian Eymard",
+          "saint_cr": "Pyè Jilyen Eymard",
           "date": "2025-08-02"
         },
         {
-          "saint": "Lydie",
-          "date": "2025-08-03"
+          "saint": "Lydie de Thyatire",
+          "date": "2025-08-03",
+          "saint_en": "Lydia of Thyatira",
+          "saint_cr": "Lidi nan Tiyati"
         },
         {
-          "saint": "Jean-M. Vianney",
+          "saint": "Jean-Marie Vianney",
+          "saint_en": "John Vianney",
+          "saint_cr": "Jan Mari Vianney",
           "date": "2025-08-04"
         },
         {
-          "saint": "Abel",
-          "date": "2025-08-05"
+          "saint": "Abel de Lobbes",
+          "date": "2025-08-05",
+          "saint_en": "Abel of Lobbes",
+          "saint_cr": "Abèl nan Lobbes"
         },
         {
-          "saint": "Gaétan",
-          "date": "2025-08-07"
+          "saint": "Hormisdas, pape",
+          "saint_en": "Pope Hormisdas",
+          "saint_cr": "Pap Òmisdas",
+          "date": "2025-08-06"
         },
         {
-          "saint": "Gilbert",
-          "date": "2025-08-07"
+          "saint": "Gaétan de Thiene",
+          "date": "2025-08-07",
+          "saint_en": "Cajetan of Thiene",
+          "saint_cr": "Gayetan de Thiene"
         },
         {
-          "saint": "Dominique",
+          "saint": "Dominique de Guzmán",
+          "saint_en": "Dominic de Guzmán",
+          "saint_cr": "Dominik de Guzmán",
           "date": "2025-08-08"
         },
         {
-          "saint": "Estelle",
+          "saint": "Thérèse-Bénédicte de la Croix (Edith Stein)",
+          "saint_en": "Teresa Benedicta of the Cross (Edith Stein)",
+          "saint_cr": "Terèz Benedikt Lakwa (Edith Stein)",
+          "date": "2025-08-09"
+        },
+        {
+          "saint": "Laurent de Rome",
+          "saint_en": "Lawrence of Rome",
+          "saint_cr": "Loran nan Wòm",
           "date": "2025-08-10"
         },
         {
-          "saint": "Laurent",
-          "date": "2025-08-10"
-        },
-        {
-          "saint": "Vivien",
-          "date": "2025-08-10"
-        },
-        {
-          "saint": "Claire",
+          "saint": "Claire d’Assise",
+          "saint_en": "Clare of Assisi",
+          "saint_cr": "Klè nan Asiz",
           "date": "2025-08-11"
         },
         {
-          "saint": "J.-F. Chantal",
+          "saint": "Jeanne-Françoise de Chantal",
+          "saint_en": "Jane Frances de Chantal",
+          "saint_cr": "Jàn Franswaz de Chantal",
           "date": "2025-08-12"
         },
         {
-          "saint": "Hippolyte",
-          "date": "2025-08-13"
+          "saint": "Hippolyte de Rome",
+          "date": "2025-08-13",
+          "saint_en": "Hippolytus of Rome",
+          "saint_cr": "Ipolit nan Wòm"
         },
         {
-          "saint": "Sidoine",
+          "saint": "Maximilien Kolbe",
+          "saint_en": "Maximilian Kolbe",
+          "saint_cr": "Maksimilyen Kolbe",
           "date": "2025-08-14"
         },
         {
-          "saint": "Armel",
-          "date": "2025-08-16"
+          "saint": "Assomption de Marie",
+          "saint_en": "Assumption of Mary",
+          "saint_cr": "Asompsyon Mari",
+          "date": "2025-08-15"
         },
         {
-          "saint": "Hyacinthe",
-          "date": "2025-08-17"
+          "saint": "Armel de Bretagne",
+          "date": "2025-08-16",
+          "saint_en": "Armel of Brittany",
+          "saint_cr": "Amèl nan Bretay"
         },
         {
-          "saint": "Hélène",
-          "date": "2025-08-18"
+          "saint": "Hyacinthe de Pologne",
+          "date": "2025-08-17",
+          "saint_en": "Hyacinth of Poland",
+          "saint_cr": "Yasent nan Polòy"
         },
         {
-          "saint": "Jean-Eudes",
-          "date": "2025-08-19"
+          "saint": "Hélène, mère de Constantin",
+          "date": "2025-08-18",
+          "saint_en": "Helena, mother of Constantine",
+          "saint_cr": "Elèn, manman Konstanten"
         },
         {
-          "saint": "Bernard",
+          "saint": "Jean Eudes",
+          "date": "2025-08-19",
+          "saint_en": "John Eudes",
+          "saint_cr": "Jan Eudes"
+        },
+        {
+          "saint": "Bernard de Clairvaux",
+          "saint_en": "Bernard of Clairvaux",
+          "saint_cr": "Bèna de Clairvaux",
           "date": "2025-08-20"
         },
         {
-          "saint": "Fabrice",
-          "date": "2025-08-22"
+          "saint": "Sidoine Apollinaire",
+          "saint_en": "Sidonius Apollinaris",
+          "saint_cr": "Sidwàn Apolinè",
+          "date": "2025-08-21"
+        },
+        {
+          "saint": "Fabricien de Tolède",
+          "date": "2025-08-22",
+          "saint_en": "Fabrician of Toledo",
+          "saint_cr": "Fabrisyen nan Tolèd"
         },
         {
           "saint": "Rose de Lima",
+          "saint_en": "Rose of Lima",
+          "saint_cr": "Woz nan Lima",
           "date": "2025-08-23"
         },
         {
-          "saint": "Barthélémy",
+          "saint": "Émilie de Vialar",
+          "date": "2025-08-24",
+          "saint_en": "Emilie de Vialar",
+          "saint_cr": "Emili de Vialar"
+        },
+        {
+          "saint": "Barthélemy, apôtre",
+          "saint_en": "Bartholomew the Apostle",
+          "saint_cr": "Batelemi, apot",
           "date": "2025-08-24"
         },
         {
-          "saint": "Louis",
+          "saint": "Louis IX",
+          "saint_en": "Louis IX",
+          "saint_cr": "Lwi IX",
           "date": "2025-08-25"
         },
         {
-          "saint": "Monique",
-          "date": "2025-08-27"
+          "saint": "Natalie de Nicomédie",
+          "saint_en": "Natalia of Nicomedia",
+          "saint_cr": "Natali nan Nikomedi",
+          "date": "2025-08-26"
         },
         {
-          "saint": "Augustin",
+          "saint": "Monique, mère d’Augustin",
+          "date": "2025-08-27",
+          "saint_en": "Monica, mother of Augustine",
+          "saint_cr": "Monik, manman Ogisten"
+        },
+        {
+          "saint": "Augustin d’Hippone",
+          "saint_en": "Augustine of Hippo",
+          "saint_cr": "Ogisten nan Ipòn",
           "date": "2025-08-28"
         },
         {
-          "saint": "Sabine",
-          "date": "2025-08-29"
+          "saint": "Sabine de Rome",
+          "date": "2025-08-29",
+          "saint_en": "Sabina of Rome",
+          "saint_cr": "Sabin nan Wòm"
         },
         {
-          "saint": "Fiacre",
-          "date": "2025-08-30"
+          "saint": "Fiacre de Meaux",
+          "date": "2025-08-30",
+          "saint_en": "Fiacre of Meaux",
+          "saint_cr": "Fyak nan Meaux"
         },
         {
-          "saint": "Aristide",
-          "date": "2025-08-31"
+          "saint": "Aristide d’Athènes",
+          "date": "2025-08-31",
+          "saint_en": "Aristides of Athens",
+          "saint_cr": "Aristid nan Atèn"
         }
       ]
     },
@@ -3216,108 +4118,208 @@
       "mois": "Septembre",
       "saints": [
         {
-          "saint": "Gilles",
-          "date": "2025-09-01"
+          "saint": "Gilles de Provence",
+          "date": "2025-09-01",
+          "saint_en": "Giles of Provence",
+          "saint_cr": "Jil nan Pwovans"
         },
         {
-          "saint": "Ingrid",
-          "date": "2025-09-02"
+          "saint": "Habib, diacre d’Édesse",
+          "date": "2025-09-02",
+          "saint_en": "Habib, deacon of Edessa",
+          "saint_cr": "Abib, dyak nan Edès"
         },
         {
-          "saint": "Grégoire",
+          "saint": "Bienheureuse Ingrid de Skänninge",
+          "date": "2025-09-02",
+          "saint_en": "Blessed Ingrid of Skänninge",
+          "saint_cr": "Byennerez Ingrid nan Skänninge"
+        },
+        {
+          "saint": "Grégoire le Grand",
+          "saint_en": "Gregory the Great",
+          "saint_cr": "Gregwa Legran",
           "date": "2025-09-03"
         },
         {
-          "saint": "Rosalie",
-          "date": "2025-09-04"
+          "saint": "Rosalie de Palerme",
+          "date": "2025-09-04",
+          "saint_en": "Rosalia of Palermo",
+          "saint_cr": "Rozali nan Palèm"
         },
         {
-          "saint": "Raïssa",
+          "saint": "Raïssa d’Alexandrie",
+          "date": "2025-09-05",
+          "saint_en": "Raisa of Alexandria",
+          "saint_cr": "Rayisa nan Aleksandri"
+        },
+        {
+          "saint": "Teresa de Calcutta",
+          "saint_en": "Teresa of Calcutta",
+          "saint_cr": "Terèz nan Kalkita",
           "date": "2025-09-05"
         },
         {
-          "saint": "Bertrand",
-          "date": "2025-09-06"
+          "saint": "Bienheureux Bertrand de Garrigues",
+          "date": "2025-09-06",
+          "saint_en": "Blessed Bertrand of Garrigues",
+          "saint_cr": "Byennere Bètran de Garrigues"
         },
         {
-          "saint": "Reine",
-          "date": "2025-09-07"
+          "saint": "Reine d’Alise",
+          "date": "2025-09-07",
+          "saint_en": "Regina of Alise",
+          "saint_cr": "Rèn nan Alise"
         },
         {
-          "saint": "Alain",
-          "date": "2025-09-09"
+          "saint": "Nativité de la Vierge Marie",
+          "saint_en": "Nativity of the Virgin Mary",
+          "saint_cr": "Nesans Vyèj Mari",
+          "date": "2025-09-08"
         },
         {
-          "saint": "Arnaud",
-          "date": "2025-09-10"
+          "saint": "Bienheureux Alain de la Roche",
+          "date": "2025-09-09",
+          "saint_en": "Blessed Alan de la Roche",
+          "saint_cr": "Byennere Alen de la Roche"
         },
         {
-          "saint": "Adelphe",
-          "date": "2025-09-11"
+          "saint": "Nicolas de Tolentino",
+          "date": "2025-09-10",
+          "saint_en": "Nicholas of Tolentino",
+          "saint_cr": "Nikola nan Tolentino"
         },
         {
-          "saint": "Firmin",
-          "date": "2025-09-11"
+          "saint": "Adelphe de Remiremont",
+          "date": "2025-09-11",
+          "saint_en": "Adelphus of Remiremont",
+          "saint_cr": "Adèlf nan Remiremont"
         },
         {
-          "saint": "Aimé",
-          "date": "2025-09-13"
+          "saint": "Guy d’Anderlecht",
+          "saint_en": "Guy of Anderlecht",
+          "saint_cr": "Gi nan Anderlecht",
+          "date": "2025-09-12"
         },
         {
-          "saint": "Ida",
-          "date": "2025-09-13"
+          "saint": "Aimé de Remiremont",
+          "date": "2025-09-13",
+          "saint_en": "Amatus of Remiremont",
+          "saint_cr": "Eme nan Remiremont"
         },
         {
-          "saint": "Édith",
-          "date": "2025-09-16"
+          "saint": "Albert de Jérusalem",
+          "saint_en": "Albert of Jerusalem",
+          "saint_cr": "Albè nan Jerizalèm",
+          "date": "2025-09-14"
         },
         {
-          "saint": "Renaud",
-          "date": "2025-09-17"
+          "saint": "Notre-Dame des Douleurs",
+          "saint_en": "Our Lady of Sorrows",
+          "saint_cr": "Nòtre Dam Doulè",
+          "date": "2025-09-15"
         },
         {
-          "saint": "Nadège",
-          "date": "2025-09-18"
+          "saint": "Édith de Wilton",
+          "date": "2025-09-16",
+          "saint_en": "Edith of Wilton",
+          "saint_cr": "Edit nan Wilton"
         },
         {
-          "saint": "Matthieu",
+          "saint": "Renaud de Mélinais",
+          "date": "2025-09-17",
+          "saint_en": "Reginald of Mélinais",
+          "saint_cr": "Reno nan Mélinais"
+        },
+        {
+          "saint": "Joseph de Cupertino",
+          "date": "2025-09-18",
+          "saint_en": "Joseph of Cupertino",
+          "saint_cr": "Jozèf nan Cupertino"
+        },
+        {
+          "saint": "Janvier de Bénévent",
+          "saint_en": "Januarius of Benevento",
+          "saint_cr": "Janvye nan Benevento",
+          "date": "2025-09-19"
+        },
+        {
+          "saint": "André Kim Taegon, Paul Chong Hasang et leurs compagnons",
+          "saint_en": "Andrew Kim Taegon, Paul Chong Hasang and companions",
+          "saint_cr": "Andre Kim Taegon, Pòl Chong Hasang ak konpayon yo",
+          "date": "2025-09-20"
+        },
+        {
+          "saint": "Matthieu, apôtre et évangéliste",
+          "saint_en": "Matthew, Apostle and Evangelist",
+          "saint_cr": "Matye, apot ak evanjelis",
           "date": "2025-09-21"
         },
         {
-          "saint": "Maurice",
-          "date": "2025-09-22"
+          "saint": "Maurice d’Agaune",
+          "date": "2025-09-22",
+          "saint_en": "Maurice of Agaunum",
+          "saint_cr": "Moris nan Agaune"
         },
         {
-          "saint": "Constant",
+          "saint": "Constant d’Ancône",
+          "date": "2025-09-23",
+          "saint_en": "Constantius of Ancona",
+          "saint_cr": "Konstan nan Ankòn"
+        },
+        {
+          "saint": "Thècle d’Iconium",
+          "date": "2025-09-23",
+          "saint_en": "Thecla of Iconium",
+          "saint_cr": "Tèkl nan Ikonyòm"
+        },
+        {
+          "saint": "Pio de Pietrelcina",
+          "saint_en": "Pio of Pietrelcina",
+          "saint_cr": "Pyo nan Pietrelcina",
           "date": "2025-09-23"
         },
         {
-          "saint": "Thècle",
-          "date": "2025-09-23"
+          "saint": "Pacifique de San Severino",
+          "saint_en": "Pacificus of San Severino",
+          "saint_cr": "Pasifik nan San Severino",
+          "date": "2025-09-24"
         },
         {
-          "saint": "Delphine",
+          "saint": "Firmin d’Amiens",
+          "saint_en": "Firmin of Amiens",
+          "saint_cr": "Fimen nan Amiens",
+          "date": "2025-09-25"
+        },
+        {
+          "saint": "Côme et Damien",
+          "saint_en": "Cosmas and Damian",
+          "saint_cr": "Kòm ak Damyen",
           "date": "2025-09-26"
         },
         {
-          "saint": "Côme",
-          "date": "2025-09-26"
+          "saint": "Vincent de Paul",
+          "saint_en": "Vincent de Paul",
+          "saint_cr": "Vensan de Pòl",
+          "date": "2025-09-27"
         },
         {
-          "saint": "Damien",
-          "date": "2025-09-26"
+          "saint": "Venceslas de Bohême",
+          "date": "2025-09-28",
+          "saint_en": "Wenceslaus of Bohemia",
+          "saint_cr": "Vanseslas nan Boèm"
         },
         {
-          "saint": "Venceslas",
-          "date": "2025-09-28"
-        },
-        {
-          "saint": "Michel",
+          "saint": "Michel, Gabriel et Raphaël, archanges",
+          "saint_en": "Michael, Gabriel and Raphael, Archangels",
+          "saint_cr": "Michèl, Gabriyèl ak Rafayèl, akanj",
           "date": "2025-09-29"
         },
         {
-          "saint": "Jérôme",
-          "date": "2025-09-30"
+          "saint": "Jérôme de Stridon",
+          "date": "2025-09-30",
+          "saint_en": "Jerome of Stridon",
+          "saint_cr": "Jewòm nan Stridon"
         }
       ]
     },
@@ -3325,112 +4327,208 @@
       "mois": "Octobre",
       "saints": [
         {
-          "saint": "Thérèse de l'E.-J.",
+          "saint": "Thérèse de Lisieux",
+          "saint_en": "Thérèse of Lisieux",
+          "saint_cr": "Terèz nan Lisieux",
           "date": "2025-10-01"
         },
         {
-          "saint": "Léger",
-          "date": "2025-10-02"
+          "saint": "Léger d’Autun",
+          "date": "2025-10-02",
+          "saint_en": "Leodegar of Autun",
+          "saint_cr": "Leje nan Autun"
         },
         {
-          "saint": "Gérard",
-          "date": "2025-10-03"
+          "saint": "Gérard de Brogne",
+          "date": "2025-10-03",
+          "saint_en": "Gerard of Brogne",
+          "saint_cr": "Jera nan Brogne"
         },
         {
-          "saint": "François d'Assise",
+          "saint": "François d’Assise",
+          "saint_en": "Francis of Assisi",
+          "saint_cr": "Franswa d’Asiz",
           "date": "2025-10-04"
         },
         {
-          "saint": "Fleur",
-          "date": "2025-10-05"
+          "saint": "Fleur d’Issendolus",
+          "date": "2025-10-05",
+          "saint_en": "Flora of Beaulieu",
+          "saint_cr": "Flè nan Issendolus"
         },
         {
-          "saint": "Gérald",
-          "date": "2025-10-05"
+          "saint": "Bruno de Cologne",
+          "date": "2025-10-06",
+          "saint_en": "Bruno of Cologne",
+          "saint_cr": "Brino nan Kolòy"
         },
         {
-          "saint": "Bruno",
-          "date": "2025-10-06"
+          "saint": "Serge et Bacchus",
+          "date": "2025-10-07",
+          "saint_en": "Sergius and Bacchus",
+          "saint_cr": "Sèj ak Bakis"
         },
         {
-          "saint": "Serge",
-          "date": "2025-10-07"
+          "saint": "Pélagie d’Antioche",
+          "date": "2025-10-08",
+          "saint_en": "Pelagia of Antioch",
+          "saint_cr": "Pelaji nan Antyòch"
         },
         {
-          "saint": "Pélagie",
-          "date": "2025-10-08"
+          "saint": "Denis de Paris",
+          "date": "2025-10-09",
+          "saint_en": "Denis of Paris",
+          "saint_cr": "Deni nan Pari"
         },
         {
-          "saint": "Denis",
-          "date": "2025-10-09"
+          "saint": "Ghislain de Mons",
+          "date": "2025-10-09",
+          "saint_en": "Ghislain of Mons",
+          "saint_cr": "Jislen nan Mons"
         },
         {
-          "saint": "Ghislain",
-          "date": "2025-10-10"
+          "date": "2025-10-10",
+          "saint": "Clair de Nantes",
+          "saint_en": "Clarus of Nantes",
+          "saint_cr": "Klè nan Nantes"
         },
         {
-          "saint": "Wilfried",
-          "date": "2025-10-12"
+          "saint": "Jean XXIII, pape",
+          "saint_en": "Pope John XXIII",
+          "saint_cr": "Pap Jan XXIII",
+          "date": "2025-10-11"
         },
         {
-          "saint": "Juste",
-          "date": "2025-10-14"
+          "saint": "Wilfrid d’York",
+          "date": "2025-10-12",
+          "saint_en": "Wilfrid of York",
+          "saint_cr": "Wilfrid nan York"
         },
         {
-          "saint": "Edwige",
-          "date": "2025-10-16"
+          "saint": "Théophile d’Antioche",
+          "saint_en": "Theophilus of Antioch",
+          "saint_cr": "Teyofil nan Antyòch",
+          "date": "2025-10-13"
         },
         {
-          "saint": "Baudouin",
-          "date": "2025-10-17"
+          "saint": "Calixte Ier",
+          "date": "2025-10-14",
+          "saint_en": "Callistus I",
+          "saint_cr": "Kaliks I"
         },
         {
-          "saint": "Luc",
+          "date": "2025-10-14",
+          "saint": "Just de Lyon",
+          "saint_en": "Justus of Lyon",
+          "saint_cr": "Jist nan Lyon"
+        },
+        {
+          "saint": "Thérèse d’Avila",
+          "saint_en": "Teresa of Ávila",
+          "saint_cr": "Terèz nan Avila",
+          "date": "2025-10-15"
+        },
+        {
+          "saint": "Edwige de Silésie",
+          "date": "2025-10-16",
+          "saint_en": "Hedwig of Silesia",
+          "saint_cr": "Edwij nan Silezi"
+        },
+        {
+          "saint": "Baudouin de Laon",
+          "date": "2025-10-17",
+          "saint_en": "Baldwin of Laon",
+          "saint_cr": "Bodwen nan Laon"
+        },
+        {
+          "saint": "Luc, évangéliste",
+          "saint_en": "Luke the Evangelist",
+          "saint_cr": "Lik, evanjelis",
           "date": "2025-10-18"
         },
         {
-          "saint": "René",
-          "date": "2025-10-19"
+          "saint": "René Goupil",
+          "date": "2025-10-19",
+          "saint_en": "René Goupil",
+          "saint_cr": "Rene Goupil"
         },
         {
-          "saint": "Adeline",
-          "date": "2025-10-20"
+          "saint": "Adeline de Mortain",
+          "date": "2025-10-20",
+          "saint_en": "Adeline of Mortain",
+          "saint_cr": "Adlin nan Mortain"
         },
         {
-          "saint": "Céline",
-          "date": "2025-10-21"
+          "saint": "Céline de Laon",
+          "date": "2025-10-21",
+          "saint_en": "Celine of Laon",
+          "saint_cr": "Selin nan Laon"
         },
         {
-          "saint": "Élodie",
+          "saint": "Élodie et Nunilone",
+          "date": "2025-10-22",
+          "saint_en": "Alodia and Nunilo",
+          "saint_cr": "Elodi ak Nunilone"
+        },
+        {
+          "saint": "Jean-Paul II",
+          "saint_en": "John Paul II",
+          "saint_cr": "Jan Pòl II",
           "date": "2025-10-22"
         },
         {
-          "saint": "Florentin",
-          "date": "2025-10-24"
+          "saint": "Jean de Capistran",
+          "saint_en": "John of Capistrano",
+          "saint_cr": "Jan nan Capistrano",
+          "date": "2025-10-23"
         },
         {
-          "saint": "Crépin",
-          "date": "2025-10-25"
+          "saint": "Florentin de Bonnet",
+          "date": "2025-10-24",
+          "saint_en": "Florentin of Bonnet",
+          "saint_cr": "Floranten nan Bonnet"
         },
         {
-          "saint": "Dimitri",
-          "date": "2025-10-26"
+          "saint": "Crépin et Crépinien",
+          "date": "2025-10-25",
+          "saint_en": "Crispin and Crispinian",
+          "saint_cr": "Krepen ak Krepenyen"
         },
         {
-          "saint": "Émeline",
-          "date": "2025-10-27"
+          "saint": "Démétrios de Thessalonique",
+          "date": "2025-10-26",
+          "saint_en": "Demetrius of Thessalonica",
+          "saint_cr": "Demetriyos nan Tesalonik"
         },
         {
-          "saint": "Narcisse",
-          "date": "2025-10-29"
+          "saint": "Bienheureuse Émeline d’Yèvres",
+          "date": "2025-10-27",
+          "saint_en": "Blessed Emeline of Yèvres",
+          "saint_cr": "Byennerez Emlin nan Yèvres"
         },
         {
-          "saint": "Bienvenue",
-          "date": "2025-10-30"
+          "saint": "Simon et Jude, apôtres",
+          "saint_en": "Simon and Jude, Apostles",
+          "saint_cr": "Simon ak Jid, apot",
+          "date": "2025-10-28"
         },
         {
-          "saint": "Thérèse d'Avila",
-          "date": "2025-10-15"
+          "saint": "Narcisse de Jérusalem",
+          "date": "2025-10-29",
+          "saint_en": "Narcissus of Jerusalem",
+          "saint_cr": "Nasis nan Jerizalèm"
+        },
+        {
+          "saint": "Bienheureuse Bienvenue Bojani",
+          "date": "2025-10-30",
+          "saint_en": "Blessed Benvenuta Bojani",
+          "saint_cr": "Byennerez Benvenuta Bojani"
+        },
+        {
+          "saint": "Alphonse Rodríguez",
+          "saint_en": "Alphonsus Rodríguez",
+          "saint_cr": "Alfons Rodríguez",
+          "date": "2025-10-31"
         }
       ]
     },
@@ -3438,103 +4536,219 @@
       "mois": "Novembre",
       "saints": [
         {
-          "saint": "Défunts",
+          "saint": "Toussaint",
+          "saint_en": "All Saints",
+          "saint_cr": "Tout Sen yo",
+          "date": "2025-11-01"
+        },
+        {
+          "saint": "Victorin de Pettau",
+          "saint_en": "Victorinus of Pettau",
+          "saint_cr": "Viktoren nan Pettau",
           "date": "2025-11-02"
         },
         {
-          "saint": "Hubert",
+          "saint": "Hubert de Liège",
+          "saint_en": "Hubert of Liège",
+          "saint_cr": "Ibè nan Lyèj",
           "date": "2025-11-03"
         },
         {
-          "saint": "Charles",
+          "saint": "Martin de Porrès",
+          "saint_en": "Martin de Porres",
+          "saint_cr": "Maten de Porres",
+          "date": "2025-11-03"
+        },
+        {
+          "saint": "Charles Borromée",
+          "saint_en": "Charles Borromeo",
+          "saint_cr": "Chal Borome",
           "date": "2025-11-04"
         },
         {
-          "saint": "Sylvie",
+          "saint": "Sylvie de Rome",
+          "saint_en": "Silvia of Rome",
+          "saint_cr": "Silvi nan Wòm",
           "date": "2025-11-05"
         },
         {
-          "saint": "Melaine",
+          "saint": "Mélaine de Rennes",
+          "saint_en": "Melaine of Rennes",
+          "saint_cr": "Melèn nan Rennes",
           "date": "2025-11-06"
         },
         {
-          "saint": "Léonard",
+          "saint": "Léonard de Noblat",
+          "saint_en": "Leonard of Noblac",
+          "saint_cr": "Leyona de Noblat",
           "date": "2025-11-06"
         },
         {
-          "saint": "Carine",
-          "date": "2025-11-07"
+          "saint": "Karine, Mélassippe et Antoine",
+          "date": "2025-11-07",
+          "saint_en": "Carina, Melasippus and Anthony",
+          "saint_cr": "Karin, Melasip ak Antwàn"
         },
         {
-          "saint": "Geoffroy",
+          "saint": "Geoffroy d’Amiens",
+          "saint_en": "Godfrey of Amiens",
+          "saint_cr": "Jofwa nan Amiens",
           "date": "2025-11-08"
         },
         {
-          "saint": "Théodore",
-          "date": "2025-11-09"
+          "saint": "Théodore d’Amasée",
+          "date": "2025-11-09",
+          "saint_en": "Theodore of Amasea",
+          "saint_cr": "Teyodò nan Amase"
         },
         {
-          "saint": "Léon",
+          "saint": "Léon le Grand",
+          "saint_en": "Leo the Great",
+          "saint_cr": "Leyon Legran",
           "date": "2025-11-10"
         },
         {
-          "saint": "Martin",
+          "saint": "Martin de Tours",
+          "saint_en": "Martin of Tours",
+          "saint_cr": "Maten nan Tours",
           "date": "2025-11-11"
         },
         {
-          "saint": "Christian",
+          "saint": "Christian et ses compagnons",
+          "date": "2025-11-12",
+          "saint_en": "Christian and companions",
+          "saint_cr": "Krisyan ak konpayon li yo"
+        },
+        {
+          "saint": "Josaphat Kuntsevych",
+          "saint_en": "Josaphat Kuntsevych",
+          "saint_cr": "Jozafa Kuntsevych",
           "date": "2025-11-12"
         },
         {
-          "saint": "Brice",
+          "saint": "Brice de Tours",
+          "saint_en": "Brice of Tours",
+          "saint_cr": "Bris nan Tours",
           "date": "2025-11-13"
         },
         {
-          "saint": "Albert",
+          "saint": "Laurent de Dublin",
+          "saint_en": "Lawrence of Dublin",
+          "saint_cr": "Loran nan Diblen",
+          "date": "2025-11-14"
+        },
+        {
+          "saint": "Albert le Grand",
+          "saint_en": "Albert the Great",
+          "saint_cr": "Albè Legran",
           "date": "2025-11-15"
         },
         {
-          "saint": "Marguerite",
+          "saint": "Marguerite d’Écosse",
+          "saint_en": "Margaret of Scotland",
+          "saint_cr": "Magrit nan Ekòs",
           "date": "2025-11-16"
         },
         {
-          "saint": "Élisabeth",
+          "saint": "Lazare l’Iconographe",
+          "saint_en": "Lazarus the Iconographer",
+          "saint_cr": "Laza, pent ikon",
           "date": "2025-11-17"
         },
         {
-          "saint": "Aude",
-          "date": "2025-11-18"
+          "saint": "Élisabeth de Hongrie",
+          "saint_en": "Elizabeth of Hungary",
+          "saint_cr": "Elizabèt nan Ongri",
+          "date": "2025-11-17"
         },
         {
-          "saint": "Tanguy",
-          "date": "2025-11-19"
+          "saint": "Aude de Paris",
+          "date": "2025-11-18",
+          "saint_en": "Aude of Paris",
+          "saint_cr": "Od nan Pari"
         },
         {
-          "saint": "Edmond",
+          "saint": "Tanguy de Bretagne",
+          "date": "2025-11-19",
+          "saint_en": "Tanguy of Brittany",
+          "saint_cr": "Tangi nan Bretay"
+        },
+        {
+          "saint": "Edmond le Martyr",
+          "saint_en": "Edmund the Martyr",
+          "saint_cr": "Edmon, mati",
           "date": "2025-11-20"
         },
         {
-          "saint": "Cécile",
+          "saint": "Présentation de la Vierge Marie",
+          "saint_en": "Presentation of the Blessed Virgin Mary",
+          "saint_cr": "Prezantasyon Lavyèj Mari",
+          "date": "2025-11-21"
+        },
+        {
+          "saint": "Cécile de Rome",
+          "saint_en": "Cecilia of Rome",
+          "saint_cr": "Sesil nan Wòm",
           "date": "2025-11-22"
         },
         {
-          "saint": "Clément",
+          "saint": "Clément Ier",
+          "saint_en": "Clement I",
+          "saint_cr": "Kleman I",
           "date": "2025-11-23"
         },
         {
-          "saint": "Flora",
+          "saint": "André Dũng-Lạc et ses compagnons",
+          "saint_en": "Andrew Dũng-Lạc and companions",
+          "saint_cr": "Andre Dũng-Lạc ak konpayon li yo",
           "date": "2025-11-24"
         },
         {
-          "saint": "Jacques de la M.",
+          "saint": "Flora et Marie de Cordoue",
+          "saint_en": "Flora and Mary of Córdoba",
+          "saint_cr": "Flora ak Mari nan Kòdou",
+          "date": "2025-11-24"
+        },
+        {
+          "saint": "Catherine d’Alexandrie",
+          "saint_en": "Catherine of Alexandria",
+          "saint_cr": "Katrin nan Aleksandri",
+          "date": "2025-11-25"
+        },
+        {
+          "saint": "Bienheureuse Delphine de Sabran",
+          "saint_en": "Blessed Delphine of Sabran",
+          "saint_cr": "Byennerez Dèlfin de Sabran",
+          "date": "2025-11-26"
+        },
+        {
+          "saint": "Virgile de Salzbourg",
+          "saint_en": "Virgil of Salzburg",
+          "saint_cr": "Vijil nan Salzbourg",
+          "date": "2025-11-27"
+        },
+        {
+          "saint": "Jacques de la Marche",
+          "saint_en": "James of the Marches",
+          "saint_cr": "Jak de la Mach",
           "date": "2025-11-28"
         },
         {
-          "saint": "Saturnin",
+          "saint": "Catherine Labouré",
+          "saint_en": "Catherine Labouré",
+          "saint_cr": "Katrin Labouré",
+          "date": "2025-11-28"
+        },
+        {
+          "saint": "Saturnin de Toulouse",
+          "saint_en": "Saturninus of Toulouse",
+          "saint_cr": "Satinen nan Toulouse",
           "date": "2025-11-29"
         },
         {
-          "saint": "André",
+          "saint": "André, apôtre",
+          "saint_en": "Andrew the Apostle",
+          "saint_cr": "Andre, apot",
           "date": "2025-11-30"
         }
       ]
@@ -3543,95 +4757,195 @@
       "mois": "Décembre",
       "saints": [
         {
-          "saint": "Ambroise",
-          "date": "2025-12-07"
+          "saint": "Éloi de Noyon",
+          "saint_en": "Eligius of Noyon",
+          "saint_cr": "Elwa nan Noyon",
+          "date": "2025-12-01"
         },
         {
-          "saint": "Nicolas",
-          "date": "2025-12-06"
+          "saint": "Viviane de Rome",
+          "saint_en": "Bibiana of Rome",
+          "saint_cr": "Vivyan nan Wòm",
+          "date": "2025-12-02"
         },
         {
-          "saint": "Barbara",
+          "saint": "François Xavier",
+          "saint_en": "Francis Xavier",
+          "saint_cr": "Franswa Ksavye",
+          "date": "2025-12-03"
+        },
+        {
+          "saint": "Barbe de Nicomédie",
+          "saint_en": "Barbara of Nicomedia",
+          "saint_cr": "Bab nan Nikomedi",
           "date": "2025-12-04"
         },
         {
-          "saint": "Daniel",
-          "date": "2025-12-11"
+          "saint": "Gérald de Braga",
+          "saint_en": "Gerald of Braga",
+          "saint_cr": "Jeral nan Braga",
+          "date": "2025-12-05"
         },
         {
-          "saint": "Lucie",
+          "saint": "Nicolas de Myre",
+          "saint_en": "Nicholas of Myra",
+          "saint_cr": "Nikola nan Mir",
+          "date": "2025-12-06"
+        },
+        {
+          "saint": "Ambroise de Milan",
+          "saint_en": "Ambrose of Milan",
+          "saint_cr": "Anbwaz nan Milan",
+          "date": "2025-12-07"
+        },
+        {
+          "saint": "Immaculée Conception de Marie",
+          "saint_en": "Immaculate Conception of Mary",
+          "saint_cr": "Imakile Konsepsyon Mari",
+          "date": "2025-12-08"
+        },
+        {
+          "saint": "Juan Diego",
+          "saint_en": "Juan Diego",
+          "saint_cr": "Juan Diego",
+          "date": "2025-12-09"
+        },
+        {
+          "saint": "Notre-Dame de Lorette",
+          "saint_en": "Our Lady of Loreto",
+          "saint_cr": "Nòtre Dam Lorèt",
+          "date": "2025-12-10"
+        },
+        {
+          "saint": "Daniel le Stylite",
+          "date": "2025-12-11",
+          "saint_en": "Daniel the Stylite",
+          "saint_cr": "Danyèl Estilit"
+        },
+        {
+          "saint": "Notre-Dame de Guadalupe",
+          "saint_en": "Our Lady of Guadalupe",
+          "saint_cr": "Nòtre Dam de Guadalupe",
+          "date": "2025-12-12"
+        },
+        {
+          "saint": "Lucie de Syracuse",
+          "saint_en": "Lucy of Syracuse",
+          "saint_cr": "Lisi nan Sirakiz",
           "date": "2025-12-13"
         },
         {
-          "saint": "Ninon",
+          "saint": "Jean de la Croix",
+          "saint_en": "John of the Cross",
+          "saint_cr": "Jan de Lakwa",
+          "date": "2025-12-14"
+        },
+        {
+          "saint": "Nino de Géorgie",
+          "saint_en": "Nino of Georgia",
+          "saint_cr": "Nino nan Jòji",
           "date": "2025-12-15"
         },
         {
-          "saint": "Alice",
+          "saint": "Adélaïde de Bourgogne",
+          "saint_en": "Adelaide of Burgundy",
+          "saint_cr": "Adelayid nan Bougòy",
           "date": "2025-12-16"
         },
         {
-          "saint": "Judicaël",
-          "date": "2025-12-17"
+          "saint": "Judicaël de Bretagne",
+          "date": "2025-12-17",
+          "saint_en": "Judicaël of Brittany",
+          "saint_cr": "Jidikayèl nan Bretay"
         },
         {
-          "saint": "Gatien",
-          "date": "2025-12-18"
+          "saint": "Gatien de Tours",
+          "date": "2025-12-18",
+          "saint_en": "Gatian of Tours",
+          "saint_cr": "Gasyen nan Tours"
         },
         {
-          "saint": "Urbain",
+          "saint": "Bienheureux Urbain V",
+          "saint_en": "Blessed Urban V",
+          "saint_cr": "Byennere Iben V",
           "date": "2025-12-19"
         },
         {
-          "saint": "Davy",
-          "date": "2025-12-20"
+          "saint": "Dominique de Silos",
+          "date": "2025-12-20",
+          "saint_en": "Dominic of Silos",
+          "saint_cr": "Dominik nan Silos"
         },
         {
-          "saint": "Pierre",
+          "saint": "Théophile et ses compagnons d’Alexandrie",
+          "date": "2025-12-20",
+          "saint_en": "Theophilus and companions of Alexandria",
+          "saint_cr": "Teyofil ak konpayon li yo nan Aleksandri"
+        },
+        {
+          "saint": "Pierre Canisius",
+          "saint_en": "Peter Canisius",
+          "saint_cr": "Pyè Kanizyis",
           "date": "2025-12-21"
         },
         {
-          "saint": "Théophile",
-          "date": "2025-12-21"
+          "saint": "Françoise-Xavière Cabrini",
+          "saint_en": "Frances Xavier Cabrini",
+          "saint_cr": "Franswaz Ksavyè Cabrini",
+          "date": "2025-12-22"
         },
         {
-          "saint": "Françoise Xavière",
+          "saint": "Bienheureux Hartmann de Brixen",
+          "saint_en": "Blessed Hartmann of Brixen",
+          "saint_cr": "Byennere Hartmann nan Brixen",
           "date": "2025-12-23"
         },
         {
-          "saint": "Adèle",
-          "date": "2025-12-24"
+          "saint": "Adèle de Pfalzel",
+          "date": "2025-12-24",
+          "saint_en": "Adela of Pfalzel",
+          "saint_cr": "Adèl nan Pfalzel"
         },
         {
-          "saint": "Noël",
+          "saint": "Anastasie de Sirmium",
+          "saint_en": "Anastasia of Sirmium",
+          "saint_cr": "Anastazi nan Sirmium",
           "date": "2025-12-25"
         },
         {
-          "saint": "Étienne",
+          "saint": "Étienne, premier martyr",
+          "saint_en": "Stephen, the first martyr",
+          "saint_cr": "Etyèn, premye mati",
           "date": "2025-12-26"
         },
         {
-          "saint": "Jean",
+          "saint": "Jean, apôtre et évangéliste",
+          "saint_en": "John, Apostle and Evangelist",
+          "saint_cr": "Jan, apot ak evanjelis",
           "date": "2025-12-27"
         },
         {
-          "saint": "Innocents",
+          "saint": "Saints Innocents",
+          "saint_en": "Holy Innocents",
+          "saint_cr": "Sen Inosan yo",
           "date": "2025-12-28"
         },
         {
-          "saint": "David",
-          "date": "2025-12-29"
+          "saint": "David, roi d’Israël",
+          "date": "2025-12-29",
+          "saint_en": "David, king of Israel",
+          "saint_cr": "David, wa Izrayèl"
         },
         {
-          "saint": "François de Sales",
-          "date": "2025-12-29"
+          "saint": "Roger de Cannes en Pouille",
+          "date": "2025-12-30",
+          "saint_en": "Roger of Cannae",
+          "saint_cr": "Woje nan Cannae"
         },
         {
-          "saint": "Roger",
-          "date": "2025-12-30"
-        },
-        {
-          "saint": "Sylvestre",
+          "saint": "Sylvestre Ier",
+          "saint_en": "Sylvester I",
+          "saint_cr": "Silvès I",
           "date": "2025-12-31"
         }
       ]

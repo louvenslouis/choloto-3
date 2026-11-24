@@ -1,73 +1,19 @@
+import 'package:flutter/material.dart';
+import '/components/draw_result_chip.dart';
+import '/components/home_page_scaffold.dart';
+import '/components/illustrated_page_header.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import 'package:flutter/material.dart';
-import 'package:sticky_headers/sticky_headers.dart';
-
+import 'saints_calendar.dart';
 import 'tchala_data_repository.dart';
+import 'tchala_search.dart';
 export 'tchala_model.dart';
 
-const _tchalaMonthNames = <String, List<String>>{
-  'fr': [
-    'Janvier',
-    'Février',
-    'Mars',
-    'Avril',
-    'Mai',
-    'Juin',
-    'Juillet',
-    'Août',
-    'Septembre',
-    'Octobre',
-    'Novembre',
-    'Décembre',
-  ],
-  'en': [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ],
-  'cr': [
-    'Janvye',
-    'Fevriye',
-    'Mas',
-    'Avril',
-    'Me',
-    'Jen',
-    'Jiyè',
-    'Out',
-    'Septanm',
-    'Oktòb',
-    'Novanm',
-    'Desanm',
-  ],
-};
-
-String _tchalaLanguageCode(String localeCode) {
-  final languageCode = localeCode.split('_').first;
-  return _tchalaMonthNames.containsKey(languageCode) ? languageCode : 'fr';
-}
-
-String _tchalaMonthName(String languageCode, int monthNumber) {
-  final names = _tchalaMonthNames[languageCode] ?? _tchalaMonthNames['fr']!;
-  if (monthNumber < 1 || monthNumber > names.length) {
-    return '';
-  }
-  return names[monthNumber - 1];
-}
-
 class TchalaWidget extends StatefulWidget {
-  const TchalaWidget({super.key, this.openSaints = false});
+  const TchalaWidget({super.key, this.openSaints = false, this.today});
 
   final bool openSaints;
+  final DateTime? today;
   static const saintsRouteName = 'Saints';
 
   static String routeName = 'Tchala';
@@ -79,14 +25,12 @@ class TchalaWidget extends StatefulWidget {
 
 class _TchalaWidgetState extends State<TchalaWidget>
     with SingleTickerProviderStateMixin {
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-
   late final TabController _tabController;
-  late final TextEditingController _searchController;
+  late final List<TextEditingController> _searchControllers;
+  TextEditingController get _searchController => _searchControllers[_activeTab];
   late final FocusNode _searchFocusNode;
   late Future<TchalaData> _data;
 
-  String _query = '';
   late int _activeTab;
 
   @override
@@ -97,7 +41,8 @@ class _TchalaWidgetState extends State<TchalaWidget>
     _tabController =
         TabController(length: 2, initialIndex: _activeTab, vsync: this)
           ..addListener(_handleTabChange);
-    _searchController = TextEditingController()..addListener(_handleSearch);
+    _searchControllers = List.generate(
+        2, (_) => TextEditingController()..addListener(_handleSearch));
     _searchFocusNode = FocusNode();
     _data = tchalaDataRepository.load();
   }
@@ -107,9 +52,11 @@ class _TchalaWidgetState extends State<TchalaWidget>
     _tabController
       ..removeListener(_handleTabChange)
       ..dispose();
-    _searchController
-      ..removeListener(_handleSearch)
-      ..dispose();
+    for (final controller in _searchControllers) {
+      controller
+        ..removeListener(_handleSearch)
+        ..dispose();
+    }
     _searchFocusNode.dispose();
     super.dispose();
   }
@@ -118,17 +65,11 @@ class _TchalaWidgetState extends State<TchalaWidget>
     if (_tabController.indexIsChanging || _activeTab == _tabController.index) {
       return;
     }
-    _searchController.clear();
     _searchFocusNode.unfocus();
     setState(() => _activeTab = _tabController.index);
   }
 
-  void _handleSearch() {
-    final query = _searchController.text.trim().toLowerCase();
-    if (query != _query) {
-      setState(() => _query = query);
-    }
-  }
+  void _handleSearch() => setState(() {});
 
   void _clearSearch() {
     _searchController.clear();
@@ -142,131 +83,131 @@ class _TchalaWidgetState extends State<TchalaWidget>
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    final localizations = FFLocalizations.of(context);
-
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
+    final strings = FFLocalizations.of(context);
+    final saints = _activeTab == 1;
+    final tabHeight = max(kMinInteractiveDimension,
+        MediaQuery.textScalerOf(context).scale(20) + spacing.md);
+    final tabs = DecoratedBox(
+      decoration: tokens.home.panel,
+      child: Padding(
+          padding: EdgeInsets.all(spacing.xs),
+          child: TabBar(
+            controller: _tabController,
+            indicator: BoxDecoration(
+                color: theme.primary,
+                borderRadius:
+                    BorderRadius.circular(tokens.radius.md - spacing.xs)),
+            indicatorSize: TabBarIndicatorSize.tab,
+            dividerHeight: 0,
+            labelPadding: EdgeInsets.symmetric(horizontal: spacing.xs),
+            labelColor: theme.onPrimary,
+            unselectedLabelColor: tokens.home.mutedText,
+            labelStyle: theme.titleSmall.copyWith(fontWeight: FontWeight.w800),
+            tabs: [
+              Tab(
+                  height: tabHeight,
+                  text: strings.getVariableText(
+                      frText: 'Symboles', enText: 'Symbols', crText: 'Senbòl')),
+              Tab(height: tabHeight, text: strings.getText('d4x9buzb')),
+            ],
+          )),
+    );
+    final search = _SearchField(
+      controller: _searchController,
+      focusNode: _searchFocusNode,
+      onClear: _clearSearch,
+      hintText: saints
+          ? strings.getVariableText(
+              frText: 'Rechercher un saint ou une date',
+              enText: 'Search by saint or date',
+              crText: 'Chèche yon sen oswa yon dat')
+          : strings.getVariableText(
+              frText: 'Symbole ou numéro',
+              enText: 'Symbol or number',
+              crText: 'Senbòl oswa nimewo'),
+    );
     return Scaffold(
-      key: scaffoldKey,
-      backgroundColor: theme.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: theme.primaryBackground,
-        automaticallyImplyLeading: false,
-        title: Text(
-          localizations.getText('z0x7hmij' /* tchala */),
-          style: theme.headlineMedium.override(
-            fontFamily: 'Google sans flex',
-            color: theme.primaryText,
-            fontSize: 22.0,
-            letterSpacing: 0.0,
-          ),
-        ),
-        centerTitle: false,
-        elevation: 0.0,
-      ),
-      body: SafeArea(
-        top: true,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    spacing.md,
-                    spacing.xs,
-                    spacing.md,
-                    spacing.sm,
-                  ),
-                  child: _SearchField(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    hintText: _activeTab == 0
-                        ? localizations.getVariableText(
-                            frText: 'Rechercher un symbole ou un numéro',
-                            enText: 'Search for a symbol or number',
-                            crText: 'Chèche yon senbòl oswa yon nimewo',
-                          )
-                        : localizations.getVariableText(
-                            frText: 'Rechercher un saint ou un mois',
-                            enText: 'Search for a saint or month',
-                            crText: 'Chèche yon sen oswa yon mwa',
-                          ),
-                    onClear: _clearSearch,
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: spacing.md),
-                  child: Container(
-                    height: 44.0,
-                    padding: EdgeInsets.all(spacing.xs),
-                    decoration: BoxDecoration(
-                      color: theme.secondaryBackground,
-                      borderRadius:
-                          BorderRadius.circular(theme.designToken.radius.sm),
-                    ),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicator: BoxDecoration(
-                        color: theme.primary,
-                        borderRadius: BorderRadius.circular(
-                            theme.designToken.radius.sm - 2),
+      backgroundColor: tokens.background.home,
+      body: DecoratedBox(
+        decoration: BoxDecoration(gradient: tokens.background.homeGradient),
+        child: SafeArea(child: LayoutBuilder(builder: (context, bounds) {
+          final wide = bounds.maxWidth >= kBreakpointMedium;
+          final gutter = wide ? spacing.lg : spacing.md;
+          final inlineTools = wide &&
+              bounds.maxWidth / MediaQuery.textScalerOf(context).scale(1) >=
+                  620;
+          final inset = max(
+              gutter, (bounds.maxWidth - HomePageScaffold.maxContentWidth) / 2);
+          final showHeader = bounds.maxHeight >= 410 &&
+              MediaQuery.viewInsetsOf(context).bottom == 0;
+          return Padding(
+              padding: EdgeInsets.fromLTRB(
+                  inset, showHeader ? gutter : spacing.xs, inset, 0),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (showHeader) ...[
+                      IllustratedPageHeader(
+                        title: saints
+                            ? strings.getVariableText(
+                                frText: 'Calendrier des saints',
+                                enText: 'Saints calendar',
+                                crText: 'Kalandriye sen yo')
+                            : strings.getText('40q38tw9'),
+                        asset: saints
+                            ? 'assets/images/home/shortcut_saints.webp'
+                            : 'assets/images/home/shortcut_tchala.webp',
+                        fallback: saints
+                            ? Icons.calendar_month_rounded
+                            : Icons.menu_book_rounded,
                       ),
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      dividerColor: Colors.transparent,
-                      labelColor: Theme.of(context).colorScheme.onPrimary,
-                      unselectedLabelColor: theme.secondaryText,
-                      labelStyle: theme.titleSmall.override(
-                        fontFamily: 'Google sans flex',
-                        fontSize: 14.0,
-                        letterSpacing: 0.0,
-                      ),
-                      unselectedLabelStyle: theme.titleSmall.override(
-                        fontFamily: 'Google sans flex',
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.0,
-                      ),
-                      tabs: [
-                        Tab(
-                          text: localizations.getText('40q38tw9' /* Tchala */),
-                        ),
-                        Tab(
-                          text: localizations.getText('d4x9buzb' /* Saints */),
-                        ),
+                      SizedBox(height: spacing.md),
+                    ],
+                    if (inlineTools)
+                      Row(children: [
+                        Expanded(flex: 2, child: tabs),
+                        SizedBox(width: spacing.md),
+                        Expanded(flex: 3, child: search)
+                      ])
+                    else ...[
+                      if (bounds.maxHeight > 230 ||
+                          !_searchFocusNode.hasFocus) ...[
+                        tabs,
+                        SizedBox(height: spacing.sm),
                       ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: spacing.sm),
-                Expanded(
-                  child: FutureBuilder<TchalaData>(
-                    future: _data,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return Center(
-                          child:
-                              CircularProgressIndicator(color: theme.primary),
-                        );
-                      }
-                      if (snapshot.hasError || !snapshot.hasData) {
-                        return _LoadError(onRetry: _retryLoading);
-                      }
-
-                      final data = snapshot.requireData;
-                      return TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _TchalaList(entries: data.symbols, query: _query),
-                          _SaintsList(months: data.saintMonths, query: _query),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+                      search,
+                    ],
+                    SizedBox(height: showHeader ? spacing.md : spacing.xs),
+                    Expanded(
+                        child: FutureBuilder<TchalaData>(
+                            future: _data,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState !=
+                                  ConnectionState.done) {
+                                return Center(
+                                    child: CircularProgressIndicator(
+                                        color: theme.primary));
+                              }
+                              if (snapshot.hasError || !snapshot.hasData) {
+                                return _LoadError(onRetry: _retryLoading);
+                              }
+                              final data = snapshot.requireData;
+                              return TabBarView(
+                                  controller: _tabController,
+                                  children: [
+                                    _TchalaList(
+                                        entries: data.symbols,
+                                        query: _searchControllers[0].text),
+                                    SaintsCalendar(
+                                        months: data.saintMonths,
+                                        query: _searchControllers[1].text,
+                                        today: widget.today),
+                                  ]);
+                            })),
+                  ]));
+        })),
       ),
     );
   }
@@ -288,7 +229,7 @@ class _SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final radius = theme.designToken.radius.sm;
+    final radius = theme.designToken.radius.md;
 
     return TextField(
       controller: controller,
@@ -298,8 +239,10 @@ class _SearchField extends StatelessWidget {
       style: theme.bodyMedium,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: theme.bodyMedium.override(color: theme.secondaryText),
-        prefixIcon: Icon(Icons.search_rounded, color: theme.secondaryText),
+        hintStyle:
+            theme.bodyMedium.override(color: theme.designToken.home.mutedText),
+        prefixIcon:
+            Icon(Icons.search_rounded, color: theme.designToken.home.mutedText),
         suffixIcon: controller.text.isEmpty
             ? null
             : IconButton(
@@ -309,15 +252,15 @@ class _SearchField extends StatelessWidget {
                   crText: 'Efase',
                 ),
                 onPressed: onClear,
-                icon: Icon(Icons.close_rounded, color: theme.secondaryText),
+                icon: Icon(Icons.close_rounded,
+                    color: theme.designToken.home.mutedText),
               ),
         filled: true,
-        fillColor: theme.secondaryBackground,
-        isDense: true,
+        fillColor: theme.designToken.home.surface.colors.last,
+        constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
         contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
         enabledBorder: OutlineInputBorder(
-          borderSide:
-              BorderSide(color: theme.alternate.withValues(alpha: 0.45)),
+          borderSide: BorderSide(color: theme.designToken.home.panelEdge),
           borderRadius: BorderRadius.circular(radius),
         ),
         focusedBorder: OutlineInputBorder(
@@ -331,325 +274,102 @@ class _SearchField extends StatelessWidget {
 
 class _TchalaList extends StatelessWidget {
   const _TchalaList({required this.entries, required this.query});
-
   final List<TchalaEntry> entries;
   final String query;
 
   @override
   Widget build(BuildContext context) {
-    final visibleEntries = query.isEmpty
-        ? entries
-        : entries.where((entry) {
-            final numbers = entry.associatedNumbers.join(' ');
-            return entry.creoleSymbol.toLowerCase().contains(query) ||
-                entry.frenchTranslation.toLowerCase().contains(query) ||
-                entry.englishTranslation.toLowerCase().contains(query) ||
-                numbers.contains(query);
-          }).toList(growable: false);
-
-    if (visibleEntries.isEmpty) {
-      return const _EmptySearchResult();
-    }
-
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
-    return ListView.separated(
-      key: const PageStorageKey('tchala-list'),
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: EdgeInsets.fromLTRB(
-        spacing.md,
-        spacing.xs,
-        spacing.md,
-        spacing.lg,
-      ),
-      itemCount: visibleEntries.length,
-      separatorBuilder: (_, __) => SizedBox(height: spacing.sm),
-      itemBuilder: (context, index) => _TchalaCard(
-        key: ValueKey(visibleEntries[index].creoleSymbol),
-        entry: visibleEntries[index],
-      ),
-    );
+    final language = FFLocalizations.of(context).languageCode;
+    final term = normalizeTchalaSearch(query);
+    final visible = term.isEmpty
+        ? entries
+        : entries
+            .where((entry) => [
+                  entry.creoleSymbol,
+                  entry.frenchTranslation,
+                  entry.englishTranslation,
+                  entry.associatedNumbers
+                      .map((n) => n.toString().padLeft(2, '0'))
+                      .join(' '),
+                ].any((field) => normalizeTchalaSearch(field).contains(term)))
+            .toList();
+    if (visible.isEmpty) return const _EmptySearchResult();
+    return LayoutBuilder(builder: (context, bounds) {
+      final columns =
+          bounds.maxWidth >= 840 * MediaQuery.textScalerOf(context).scale(1)
+              ? 2
+              : 1;
+      return ListView.separated(
+        key:
+            term.isEmpty ? const PageStorageKey('tchala-list') : ValueKey(term),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: EdgeInsets.only(bottom: spacing.lg),
+        itemCount: (visible.length / columns).ceil(),
+        separatorBuilder: (_, __) => SizedBox(height: spacing.sm),
+        itemBuilder: (context, index) {
+          final first = index * columns;
+          final card = _SymbolCard(entry: visible[first], language: language);
+          if (columns == 1) return card;
+          return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: card),
+            SizedBox(width: spacing.md),
+            Expanded(
+                child: first + 1 < visible.length
+                    ? _SymbolCard(entry: visible[first + 1], language: language)
+                    : const SizedBox.shrink()),
+          ]);
+        },
+      );
+    });
   }
 }
 
-class _TchalaCard extends StatelessWidget {
-  const _TchalaCard({super.key, required this.entry});
-
+class _SymbolCard extends StatelessWidget {
+  const _SymbolCard({required this.entry, required this.language});
   final TchalaEntry entry;
-
+  final String language;
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    final language =
-        _tchalaLanguageCode(FFLocalizations.of(context).languageCode);
-    final (primaryLabel, secondaryLabel) = switch (language) {
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
+    final (title, subtitle) = switch (language) {
       'en' => (entry.englishTranslation, entry.creoleSymbol),
       'cr' => (entry.creoleSymbol, entry.frenchTranslation),
       _ => (entry.frenchTranslation, entry.creoleSymbol),
     };
-
-    return Semantics(
-      container: true,
-      label:
-          '$primaryLabel, ${entry.associatedNumbers.map((n) => n.toString()).join(', ')}',
-      child: Container(
-        padding: EdgeInsets.all(spacing.md),
-        decoration: BoxDecoration(
-          color: theme.secondaryBackground,
-          borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
-          border: Border.all(
-            color: theme.alternate.withValues(alpha: 0.28),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              primaryLabel,
-              style: theme.titleSmall.override(
-                fontFamily: 'Google sans flex',
-                letterSpacing: 0.0,
-              ),
-            ),
-            if (secondaryLabel != primaryLabel) ...[
-              SizedBox(height: spacing.xs),
-              Text(
-                secondaryLabel,
-                style: theme.bodySmall.override(
-                  color: theme.secondaryText,
-                  letterSpacing: 0.0,
-                ),
-              ),
-            ],
-            SizedBox(height: spacing.md),
-            Wrap(
-              spacing: spacing.sm,
-              runSpacing: spacing.sm,
-              children: [
-                for (final number in entry.associatedNumbers)
-                  _NumberBadge(number: number),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NumberBadge extends StatelessWidget {
-  const _NumberBadge({required this.number});
-
-  final int number;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    return Semantics(
-      label: number.toString(),
-      child: Container(
-        width: 48.0,
-        height: 40.0,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: theme.primary,
-          borderRadius: BorderRadius.circular(theme.designToken.radius.full),
-        ),
-        child: Text(
-          number.toString().padLeft(2, '0'),
-          style: theme.titleSmall.override(
-            fontFamily: 'Google sans flex',
-            color: Theme.of(context).colorScheme.onPrimary,
-            fontSize: 15.0,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SaintsList extends StatelessWidget {
-  const _SaintsList({required this.months, required this.query});
-
-  final List<SaintMonth> months;
-  final String query;
-
-  @override
-  Widget build(BuildContext context) {
-    final languageCode =
-        _tchalaLanguageCode(FFLocalizations.of(context).languageCode);
-    final visibleMonths = query.isEmpty
-        ? months
-        : months
-            .map((month) {
-              final monthMatches = _tchalaMonthNames.keys.any(
-                    (languageCode) =>
-                        _tchalaMonthName(languageCode, month.monthNumber)
-                            .toLowerCase()
-                            .contains(query),
-                  ) ||
-                  month.name.toLowerCase().contains(query);
-              final saints = monthMatches
-                  ? month.saints
-                  : month.saints
-                      .where((saint) =>
-                          saint.name.toLowerCase().contains(query) ||
-                          saint.date.contains(query))
-                      .toList(growable: false);
-              return SaintMonth(
-                name: month.name,
-                monthNumber: month.monthNumber,
-                saints: saints,
-              );
-            })
-            .where((month) => month.saints.isNotEmpty)
-            .toList(growable: false);
-
-    if (visibleMonths.isEmpty) {
-      return const _EmptySearchResult();
-    }
-
-    final theme = FlutterFlowTheme.of(context);
-    return ListView.builder(
-      key: const PageStorageKey('saints-list'),
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: EdgeInsets.only(bottom: theme.designToken.spacing.lg),
-      itemCount: visibleMonths.length,
-      itemBuilder: (context, index) => _SaintMonthSection(
-        month: visibleMonths[index],
-        languageCode: languageCode,
-      ),
-    );
-  }
-}
-
-class _SaintMonthSection extends StatelessWidget {
-  const _SaintMonthSection({
-    required this.month,
-    required this.languageCode,
-  });
-
-  final SaintMonth month;
-  final String languageCode;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    return StickyHeader(
-      overlapHeaders: false,
-      header: Container(
-        width: double.infinity,
-        padding: EdgeInsets.fromLTRB(
-          spacing.md,
-          12.0,
-          spacing.md,
-          spacing.sm,
-        ),
-        color: theme.primaryBackground,
-        child: Text(
-          _tchalaMonthName(languageCode, month.monthNumber),
-          style: theme.titleSmall.override(
-            fontFamily: 'Google sans flex',
-            color: theme.secondaryText,
-            letterSpacing: 0.0,
-          ),
-        ),
-      ),
-      content: Padding(
-        padding: EdgeInsets.symmetric(horizontal: spacing.md),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
-          child: Container(
-            decoration: BoxDecoration(
-              color: theme.secondaryBackground,
-              border: Border.all(
-                color: theme.alternate.withValues(alpha: 0.28),
-              ),
-              borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
-            ),
-            child: Column(
-              children: [
-                for (var index = 0; index < month.saints.length; index++)
-                  _SaintRow(
-                    saint: month.saints[index],
-                    showDivider: index < month.saints.length - 1,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SaintRow extends StatelessWidget {
-  const _SaintRow({required this.saint, required this.showDivider});
-
-  final SaintEntry saint;
-  final bool showDivider;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    final date = DateTime.tryParse(saint.date);
-    final day = date == null ? saint.date : date.day.toString().padLeft(2, '0');
-
+    final chipSize = max(36.0, MediaQuery.textScalerOf(context).scale(18) + 14);
     return Container(
-      constraints: const BoxConstraints(minHeight: 64.0),
       padding: EdgeInsets.symmetric(
-        horizontal: spacing.md,
-        vertical: 10.0,
-      ),
-      decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        border: showDivider
-            ? Border(
-                bottom: BorderSide(
-                  color: theme.alternate.withValues(alpha: 0.24),
-                ),
-              )
-            : null,
-      ),
-      child: Row(
+          horizontal: spacing.md, vertical: spacing.sm + spacing.xs),
+      decoration: tokens.home.panel,
+      child: MergeSemantics(
+          child: OverflowBar(
+        alignment: MainAxisAlignment.spaceBetween,
+        spacing: spacing.md,
+        overflowSpacing: spacing.sm,
         children: [
-          Container(
-            width: 40.0,
-            height: 40.0,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: theme.primary,
-              borderRadius:
-                  BorderRadius.circular(theme.designToken.radius.full),
-            ),
-            child: Text(
-              day,
-              style: theme.titleSmall.override(
-                fontFamily: 'Google sans flex',
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontSize: 14.0,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.0,
-              ),
-            ),
-          ),
-          SizedBox(width: spacing.md),
-          Expanded(
-            child: Text(
-              saint.name,
-              style: theme.bodyLarge.override(
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.0,
-              ),
-            ),
-          ),
+          Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: theme.titleMedium
+                        .copyWith(fontWeight: FontWeight.w800)),
+                if (subtitle != title)
+                  Text(subtitle,
+                      style: theme.bodyMedium
+                          .copyWith(color: tokens.home.mutedText)),
+              ]),
+          Wrap(spacing: spacing.xs, runSpacing: spacing.xs, children: [
+            for (final n in entry.associatedNumbers)
+              DrawResultChip(
+                  value: n.toString().padLeft(2, '0'), size: chipSize),
+          ]),
         ],
-      ),
+      )),
     );
   }
 }
@@ -671,7 +391,8 @@ class _EmptySearchResult extends StatelessWidget {
             crText: 'Pa gen rezilta.',
           ),
           textAlign: TextAlign.center,
-          style: theme.bodyMedium.override(color: theme.secondaryText),
+          style: theme.bodyMedium
+              .override(color: theme.designToken.home.mutedText),
         ),
       ),
     );
@@ -687,9 +408,12 @@ class _LoadError extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final localizations = FFLocalizations.of(context);
-    return Center(
-      child: Padding(
+    return SingleChildScrollView(
+        child: Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 520),
         padding: EdgeInsets.all(theme.designToken.spacing.lg),
+        decoration: theme.designToken.home.panel,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -706,8 +430,8 @@ class _LoadError extends StatelessWidget {
             OutlinedButton(
               onPressed: onRetry,
               style: OutlinedButton.styleFrom(
-                foregroundColor: theme.primaryText,
-                side: BorderSide(color: theme.alternate),
+                foregroundColor: theme.primary,
+                side: BorderSide(color: theme.designToken.home.panelEdge),
                 shape: RoundedRectangleBorder(
                   borderRadius:
                       BorderRadius.circular(theme.designToken.radius.sm),
@@ -724,6 +448,6 @@ class _LoadError extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }

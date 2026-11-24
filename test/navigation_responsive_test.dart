@@ -1,4 +1,5 @@
 import 'package:choloto/flutter_flow/internationalization.dart';
+import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/main.dart';
 import 'package:choloto/auth/base_auth_user_provider.dart';
 import 'package:choloto/flutter_flow/nav/nav.dart';
@@ -109,17 +110,49 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('desktop-tab-Tchala')));
     await tester.pump();
     expect(find.byType(TchalaWidget), findsOneWidget);
-    expect(
-        tester
-            .widget<NavigationRail>(find.byType(NavigationRail))
-            .selectedIndex,
-        3);
+    final tab = tester
+        .widget<TextButton>(find.byKey(const ValueKey('desktop-tab-Tchala')));
+    expect(tab.style!.foregroundColor!.resolve({}),
+        DarkModeTheme().designToken.home.statsAccent);
+    expect(find.byKey(const ValueKey('tchala-desktop-navigation')),
+        findsOneWidget);
     final pages =
         tester.widget<IndexedStack>(find.byType(IndexedStack)).children;
     expect((pages.first as TickerMode).enabled, isFalse);
     expect(pages.last, isA<TchalaWidget>());
     expect(find.byKey(const ValueKey('home-desktop-navigation')), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'Tirages keeps its selection and page across the header breakpoint',
+      (tester) async {
+    await _pumpAtSize(tester,
+        size: const Size(766, 900), initialPage: 'Tirages');
+    final page = find.byKey(const ValueKey('navigation-test-page'));
+    final element = tester.element(page);
+    expect(
+        tester
+            .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+            .currentIndex,
+        1);
+
+    tester.view.physicalSize = const Size(767, 900);
+    await tester.pumpAndSettle();
+    expect(tester.element(page), same(element));
+    expect(find.byKey(const ValueKey('tirages-desktop-navigation')),
+        findsOneWidget);
+    final palette = FlutterFlowTheme.of(element);
+    Color? colorOf(String tab) => tester
+        .widget<TextButton>(
+          find.byKey(ValueKey('desktop-tab-$tab')).hitTestable(),
+        )
+        .style!
+        .foregroundColor!
+        .resolve({});
+    expect(colorOf('Tirages'), palette.designToken.home.statsAccent);
+    expect(colorOf('Home'), palette.primaryText);
+    expect(find.byType(NavigationRail), findsNothing);
   });
 
   testWidgets(
@@ -136,6 +169,7 @@ void main() {
       await tester.runAsync(() => Future<void>.delayed(Duration.zero));
       await tester.pumpAndSettle();
     }
+
     final notifier = AppStateNotifier.createForTesting()
       ..user = _Visitor()
       ..stopShowingSplashImage();
@@ -158,8 +192,8 @@ void main() {
     router.pushNamed(TchalaWidget.saintsRouteName);
     await settleRoute();
     expect(tab(), 1);
-    expect(find.text('Rechercher un saint ou un mois'), findsOneWidget);
-    expect(find.text('Janvier'), findsOneWidget);
+    expect(find.text('Rechercher un saint ou une date'), findsOneWidget);
+    expect(find.byKey(const ValueKey('saints-focus')), findsOneWidget);
     router.pop();
     await settleRoute();
     expect(tab(), 0);

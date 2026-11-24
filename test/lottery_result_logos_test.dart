@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:choloto/backend/schema/resultats_record.dart';
+import 'package:choloto/components/draw_result_chip.dart';
+import 'package:choloto/tirages/tirages/tirage_result_row.dart';
 import 'package:choloto/tirages/new_yorkk/new_yorkk_widget.dart';
 import 'package:choloto/tirages/fl/fl_widget.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
@@ -34,6 +36,7 @@ void main() {
 
   const exportDirectory = String.fromEnvironment('LOTTERY_VISUAL_DIR');
   const interFont = String.fromEnvironment('LOTTERY_INTER_FONT');
+  var rowEvents = 0;
 
   setUpAll(() async {
     await Firebase.initializeApp();
@@ -41,7 +44,15 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMessageHandler(
       'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logEvent',
-      (_) async => const StandardMessageCodec().encodeMessage([null]),
+      (data) async {
+        const codec = StandardMessageCodec();
+        final args = codec.decodeMessage(data) as List<Object?>;
+        final event = args.single as Map<Object?, Object?>;
+        if (event['eventName'] == 'NEW_YORKK_COMP_newYorkk_ON_INIT_STATE') {
+          rowEvents++;
+        }
+        return codec.encodeMessage([null]);
+      },
     );
     final fontBytes = interFont.isNotEmpty
         ? ByteData.sublistView(await File(interFont).readAsBytes())
@@ -93,6 +104,78 @@ void main() {
     'pa': 'Pennsylvania',
     'nj': 'NewJersey',
   };
+  for (final (locale, width, scale) in [
+    ('fr', 390.0, 1.0),
+    ('en', 320.0, 1.8),
+    ('cr', 700.0, 1.0),
+  ]) {
+    testWidgets('draw history preserves market, period and slots in $locale',
+        (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = Size(width, 670);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      for (final entry in assets.entries) {
+        final florida = entry.key == 'fl';
+        final eventsBefore = rowEvents;
+        final record = ResultatsRecord.getDocumentFromData({
+          'tirage': entry.key,
+          'periode': florida ? '09:49 PM' : 'MIDDAY',
+          'numeros': florida ? ['00', '009', '', '01'] : ['001', '02'],
+        }, MemoryReference('resultats/history-${entry.key}'));
+        await tester.pumpWidget(MaterialApp(
+          locale: Locale(locale),
+          supportedLocales: const [Locale('fr'), Locale('en'), Locale('cr')],
+          localizationsDelegates: const [
+            FFLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            FallbackMaterialLocalizationDelegate(),
+            FallbackCupertinoLocalizationDelegate(),
+          ],
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(scale)),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: Align(
+                alignment: Alignment.topCenter,
+                child: TirageResultRow(
+                    key: ValueKey(record.reference.path), result: record)),
+          ),
+        ));
+        await tester.pumpAndSettle();
+        tester.element(find.byType(TirageResultRow)).markNeedsBuild();
+        await tester.pump();
+        expect(rowEvents - eventsBefore, florida ? 0 : 1);
+        expect(find.byType(DrawResultChip), findsNWidgets(florida ? 4 : 3));
+        for (final number
+            in florida ? ['00', '009', '-', '01'] : ['001', '02', '-']) {
+          expect(find.text(number), findsOneWidget);
+        }
+        final period = find.text(florida
+            ? '09:49 PM'
+            : locale == 'en'
+                ? 'Midday'
+                : 'Midi');
+        expect(period, findsOneWidget);
+        final logo = tester.widget<Image>(find.byType(Image));
+        expect((logo.image as AssetImage).assetName,
+            'assets/images/${entry.value}.png');
+        expect(logo.fit, BoxFit.contain);
+        final last = find.byType(DrawResultChip).last;
+        expect(
+            tester.getTopRight(last).dx, lessThanOrEqualTo(width - 16 + .01));
+        if (width == 320 && florida) {
+          expect(tester.getTopLeft(last).dy,
+              greaterThan(tester.getBottomLeft(period).dy));
+        }
+        expect(tester.takeException(), isNull, reason: entry.key);
+      }
+    });
+  }
   testWidgets('new lottery assets have transparent backgrounds',
       (tester) async {
     await tester.runAsync(() async {

@@ -74,6 +74,9 @@ Implémentations de référence :
 
 ## Contrat visuel obligatoire : design system CHOLOTO
 
+Pour créer ou faire évoluer une interface, consulter le [design system CHOLOTO](docs/design-system.md).
+Il décrit les choix de l’accueil, les composants à réutiliser et leur adaptation au téléphone et au Web.
+
 Toute nouvelle page, composant, modale, état vide, chargement ou message
 d'erreur doit sembler appartenir à la même application. Avant de modifier une
 interface, examiner la page concernée, les pages voisines et les composants

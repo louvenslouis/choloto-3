@@ -1,0 +1,18 @@
+# Calendrier catholique de Tchala
+
+Le catalogue embarqué dans `assets/jsons/tchala.json` propose 395 célébrations sur les 366 dates possibles de l’année civile. Il rassemble des saints, des bienheureux, des groupes de martyrs et quelques célébrations mariales. Plusieurs noms peuvent partager la même date. Le 24 novembre réunit ainsi André Dũng-Lạc et ses compagnons ainsi que Flora et Marie de Cordoue. [Vatican News](https://www.vaticannews.va/fr/saint-du-jour/11/24/saint-andre-d_ng-lc--pretre--et-ses-compagnons--martyrs.html) · [Nominis, novembre](https://nominis.cef.fr/contenus/saint/calendrier/simple/2026/11.html)
+
+## Choix des dates
+
+Les dates retenues sont des fêtes fixes du calendrier romain ou des commémorations locales attestées. Une Église locale peut choisir une autre date ou déplacer une célébration liturgique une année donnée. Le répertoire sert à retrouver un nom et sa date habituelle. Le calendrier des offices relève du diocèse. Pâques et les autres fêtes mobiles suivent un calcul distinct.
+
+- Les notices du Vatican et le projet Nominis de la Conférence des évêques de France servent de références. Pour les grandes fêtes, Philippe et Jacques figurent au 3 mai, Thérèse d’Avila au 15 octobre et François de Sales au 24 janvier. [Philippe et Jacques](https://www.vaticannews.va/fr/saint-du-jour/05/03.html) · [Thérèse d’Avila](https://www.vaticannews.va/fr/saint-du-jour/10/15.html) · [François de Sales](https://eglise.catholique.fr/saint-du-jour/24/01/saint-francois-de-sales/)
+- Les calendriers mensuels et les notices individuelles de Nominis documentent les fêtes locales. La bienheureuse Alde de Sienne figure au 26 avril, la bienheureuse Delphine de Sabran au 26 novembre et Anastasie de Sirmium au 25 décembre. [Calendriers Nominis](https://nominis.cef.fr/contenus/telechargement.html) · [Alde](https://nominis.cef.fr/contenus/saints/1036/Bienheureuse-Alde.html) · [Delphine](https://nominis.cef.fr/contenus/saint/9545/Bienheureuse-Delphine-de-Sabran.html) · [Anastasie](https://nominis.cef.fr/contenus/saint/9746/Sainte-Anastasie.html)
+- Le 27 juin met en avant Notre-Dame du Perpétuel Secours, patronne d’Haïti. La Conférence épiscopale d’Haïti a retenu cette solennité pour sa journée jubilaire nationale en 2025. [Message des évêques d’Haïti relayé par Vatican News](https://www.vaticannews.va/fr/eglise/news/2024-12/message-eveque-haiti-jubile-2025-paix-noel.html)
+- Les jours complétés incluent Félix de Nole le 14 janvier, le bienheureux Fra Angelico le 18 février, Auguste Chapdelaine le 29 février et Aquila et Priscille le 8 juillet. Nominis mentionne la commémoration de Chapdelaine à la fin de février. L’application le présente le 28 en année ordinaire et le 29 en année bissextile. [Félix](https://nominis.cef.fr/contenus/saint/424/Saint-Felix-de-Nole.html) · [Fra Angelico](https://www.vaticannews.va/fr/saint-du-jour/02/18.html) · [Auguste Chapdelaine](https://nominis.cef.fr/contenus/saint/5894/Bienheureux-Auguste-Chapdelaine.html) · [Aquila et Priscille](https://www.vaticannews.va/fr/saint-du-jour/07/08.html)
+
+## Format de l’asset
+
+`saint`, `saint_en` et `saint_cr` portent les appellations française, anglaise et créole haïtienne. Les traductions des titres et des appellations sont éditoriales. Les noms propres conservent leur graphie quand elle convient dans les trois langues. La lecture des anciens enregistrements utilise `saint` lorsqu’une traduction manque.
+
+`date` conserve le format ISO historique. Le mois et le jour déterminent la récurrence. L’année d’ancrage est 2025 pour les dates ordinaires et 2024 pour le 29 février. Les tests de catalogue vérifient les douze mois, la validité des dates, leur ordre, la couverture annuelle, les traductions et les fêtes simultanées.

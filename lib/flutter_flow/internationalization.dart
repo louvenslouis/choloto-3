@@ -827,6 +827,23 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Aswè',
       'en': 'Evening',
     },
+    'draw_texas': {'fr': 'Texas', 'cr': 'Teksas', 'en': 'Texas'},
+    'draw_maryland': {'fr': 'Maryland', 'cr': 'Maryland', 'en': 'Maryland'},
+    'draw_georgia': {'fr': 'Géorgie', 'cr': 'Jòji', 'en': 'Georgia'},
+    'draw_tennessee': {'fr': 'Tennessee', 'cr': 'Tenèsi', 'en': 'Tennessee'},
+    'draw_pennsylvania': {
+      'fr': 'Pennsylvanie',
+      'cr': 'Pennsilvani',
+      'en': 'Pennsylvania',
+    },
+    'draw_new_jersey': {
+      'fr': 'New Jersey',
+      'cr': 'New Jersey',
+      'en': 'New Jersey',
+    },
+    'draw_morning': {'fr': 'Matin', 'cr': 'Maten', 'en': 'Morning'},
+    'draw_day': {'fr': 'Journée', 'cr': 'Lajounen', 'en': 'Day'},
+    'draw_night': {'fr': 'Nuit', 'cr': 'Lannuit', 'en': 'Night'},
     'home_draw_empty': {
       'fr': 'Aucun résultat',
       'cr': 'Pa gen rezilta',

@@ -23,10 +23,58 @@ void main() {
       data.saintMonths.map((month) => month.monthNumber),
       orderedEquals(List.generate(12, (index) => index + 1)),
     );
+  });
+
+  test('has named celebrations in all languages for every recurring day',
+      () async {
+    final data = await TchalaDataRepository().load();
+    for (final month in data.saintMonths) {
+      final daysInMonth = DateTime.utc(2024, month.monthNumber + 1, 0).day;
+      final days = <int>[];
+      for (final saint in month.saints) {
+        final date = DateTime.parse(saint.date);
+        expect(date.month, month.monthNumber);
+        expect(date.toIso8601String().split('T').first, saint.date);
+        days.add(date.day);
+        expect(saint.name.trim(), isNotEmpty);
+        expect(saint.englishName?.trim() ?? '', isNotEmpty);
+        expect(saint.creoleName?.trim() ?? '', isNotEmpty);
+      }
+      expect(days, orderedEquals([...days]..sort()));
+      expect(days.toSet(), {for (var day = 1; day <= daysInMonth; day++) day});
+    }
+  });
+
+  test('retains multiple feasts and the Haitian patronal celebration',
+      () async {
+    final months = (await TchalaDataRepository().load()).saintMonths;
+    final november24 = months[10]
+        .saints
+        .where((saint) => saint.date.endsWith('-11-24'))
+        .toList();
+    expect(november24.map((s) => s.localizedName('en')), const [
+      'Andrew Dũng-Lạc and companions',
+      'Flora and Mary of Córdoba',
+    ]);
+    expect(november24.first.localizedName('cr'),
+        'Andre Dũng-Lạc ak konpayon li yo');
     expect(
-      data.saintMonths.expand((month) => month.saints),
-      hasLength(264),
-    );
+        months[5]
+            .saints
+            .where((s) => s.date.endsWith('-06-27'))
+            .map((s) => s.localizedName('ht')),
+        contains('Manman Pèpetyèl Sekou'));
+    final francis =
+        months[0].saints.singleWhere((s) => s.name == 'François de Sales');
+    expect(francis.date, endsWith('-01-24'));
+  });
+
+  test('keeps the original name when reading an older saint record', () {
+    final saint =
+        SaintEntry.fromJson(const {'saint': 'Blaise', 'date': '2025-02-03'});
+    for (final locale in const ['fr', 'en', 'cr']) {
+      expect(saint.localizedName(locale), 'Blaise');
+    }
   });
 
   test('caches a single asset load', () async {

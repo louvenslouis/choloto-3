@@ -117,16 +117,35 @@ class SaintMonth {
 
 @immutable
 class SaintEntry {
-  const SaintEntry({required this.name, required this.date});
+  const SaintEntry({
+    required this.name,
+    required this.date,
+    this.englishName,
+    this.creoleName,
+  });
 
   final String name;
   final String date;
+  final String? englishName;
+  final String? creoleName;
+
+  String localizedName(String languageCode) => switch (languageCode) {
+        'en' => englishName ?? name,
+        'cr' || 'ht' => creoleName ?? name,
+        _ => name,
+      };
 
   factory SaintEntry.fromJson(Object? json) {
     final map = _asMap(json, 'saint');
     return SaintEntry(
       name: _asString(map['saint'], 'saint'),
       date: _asString(map['date'], 'date'),
+      englishName: map['saint_en'] == null
+          ? null
+          : _asString(map['saint_en'], 'saint_en'),
+      creoleName: map['saint_cr'] == null
+          ? null
+          : _asString(map['saint_cr'], 'saint_cr'),
     );
   }
 }

@@ -1,13 +1,14 @@
 import 'dart:async';
+import 'package:collection/collection.dart' show ListExtensions;
 
 import '/ads/draw_ad_banner.dart';
 import '/backend/backend.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
+import '/components/home_page_scaffold.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/tirages/fl/fl_widget.dart';
-import '/tirages/new_yorkk/new_yorkk_widget.dart';
+import 'tirage_result_row.dart';
+import 'tirages_header.dart';
 import 'package:flutter/material.dart';
 import 'tirages_model.dart';
 
@@ -43,8 +44,6 @@ class _TiragesWidgetState extends State<TiragesWidget> {
   bool _loadingMore = false;
   bool _loadFailed = false;
   bool _hasMore = true;
-
-  final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -131,168 +130,151 @@ class _TiragesWidgetState extends State<TiragesWidget> {
   }
 
   @override
+  Widget build(BuildContext context) => TiragesView(
+        results: _tirages,
+        loading: _loadingInitialPage,
+        loadFailed: _loadFailed,
+        hasMore: _hasMore,
+        loadingMore: _loadingMore,
+        onRefresh: _refreshTirages,
+        onLoadMore: _loadMoreTirages,
+      );
+}
+
+/// Presentation shared by the tab and the standalone results route.
+class TiragesView extends StatelessWidget {
+  const TiragesView({
+    super.key,
+    required this.results,
+    required this.loading,
+    required this.loadFailed,
+    required this.hasMore,
+    required this.loadingMore,
+    required this.onRefresh,
+    required this.onLoadMore,
+  });
+
+  final List<ResultatsRecord> results;
+  final bool loading;
+  final bool loadFailed;
+  final bool hasMore;
+  final bool loadingMore;
+  final Future<void> Function() onRefresh;
+  final Future<void> Function() onLoadMore;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      child: Scaffold(
-        key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-          automaticallyImplyLeading: false,
-          title: Text(
-            FFLocalizations.of(context).getText(
-              'hfwdp6xo' /* Tirages */,
-            ),
-            style: FlutterFlowTheme.of(context).headlineMedium.override(
-                  fontFamily: 'Google sans flex',
-                  color: FlutterFlowTheme.of(context).primaryText,
-                  fontSize: 22.0,
-                  letterSpacing: 0.0,
-                ),
-          ),
-          actions: [
-            FlutterFlowIconButton(
-              buttonSize: 40.0,
-              icon: Icon(
-                Icons.refresh,
-                color: FlutterFlowTheme.of(context).primaryText,
-                size: 24.0,
-              ),
-              onPressed: _refreshTirages,
-            ),
-          ],
-          centerTitle: false,
-          elevation: 2.0,
-        ),
-        body: SafeArea(
-          top: true,
-          child: _buildTiragesBody(context),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTiragesBody(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final localizations = FFLocalizations.of(context);
-    if (_loadingInitialPage) {
-      return Center(
-        child: CircularProgressIndicator(color: theme.primary),
-      );
-    }
-    if (_loadFailed) {
-      return _TiragesMessage(
-        icon: Icons.cloud_off_outlined,
-        message: localizations.getVariableText(
-          frText: 'Impossible de charger les tirages.',
-          enText: 'Unable to load draw results.',
-          crText: 'Nou pa ka chaje rezilta tiraj yo.',
-        ),
-        onRetry: _refreshTirages,
-      );
-    }
-    if (_tirages.isEmpty) {
-      return _TiragesMessage(
-        icon: Icons.inbox_outlined,
-        message: localizations.getVariableText(
-          frText: 'Aucun tirage disponible pour le moment.',
-          enText: 'No draw results are available right now.',
-          crText: 'Pa gen rezilta tiraj ki disponib kounye a.',
-        ),
-        onRetry: _refreshTirages,
-      );
-    }
-
-    final tiragesByDay = _groupTiragesByDay(_tirages);
-    final results = RefreshIndicator(
-      color: theme.primary,
-      onRefresh: _refreshTirages,
-      child: ListView.builder(
-        padding: EdgeInsets.fromLTRB(
-          theme.designToken.spacing.sm,
-          theme.designToken.spacing.md,
-          theme.designToken.spacing.sm,
-          theme.designToken.spacing.lg,
-        ),
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: tiragesByDay.length + (_hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == tiragesByDay.length) {
-            return Padding(
-              padding: EdgeInsets.only(top: theme.designToken.spacing.md),
-              child: Center(
-                child: FFButtonWidget(
-                  onPressed: _loadingMore ? null : _loadMoreTirages,
-                  text: localizations.getVariableText(
-                    frText: 'Charger plus',
-                    enText: 'Load more',
-                    crText: 'Chaje plis',
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
+    final strings = FFLocalizations.of(context);
+    final days = _groupTiragesByDay(results);
+    final showResults = !loading && !loadFailed && days.isNotEmpty;
+    return Scaffold(
+      backgroundColor: tokens.background.home,
+      body: DecoratedBox(
+        decoration: BoxDecoration(gradient: tokens.background.homeGradient),
+        child: SafeArea(
+          child: Column(children: [
+            Expanded(
+              child: LayoutBuilder(builder: (context, constraints) {
+                final wide = constraints.maxWidth >= kBreakpointMedium;
+                final gutter = wide ? spacing.lg : spacing.md;
+                final inset = max(
+                    gutter,
+                    (constraints.maxWidth - HomePageScaffold.maxContentWidth) /
+                        2);
+                final daysPadding = EdgeInsets.symmetric(horizontal: inset);
+                return RefreshIndicator(
+                  color: theme.primary,
+                  backgroundColor: tokens.home.surface.colors.last,
+                  notificationPredicate: (notice) =>
+                      !loading &&
+                      !loadingMore &&
+                      defaultScrollNotificationPredicate(notice),
+                  onRefresh: onRefresh,
+                  child: CustomScrollView(
+                    key: const PageStorageKey('tirages-scroll'),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverPadding(
+                        padding: EdgeInsets.fromLTRB(inset, gutter, inset,
+                            wide ? spacing.xl : spacing.lg),
+                        sliver: SliverToBoxAdapter(
+                          child: TiragesHeader(
+                              onRefresh: onRefresh,
+                              loading: loading || loadingMore),
+                        ),
+                      ),
+                      if (showResults) ...[
+                        SliverPadding(
+                          padding: daysPadding,
+                          sliver: SliverList.builder(
+                            itemCount: days.length,
+                            itemBuilder: (context, index) => Padding(
+                              padding: EdgeInsets.only(bottom: spacing.lg),
+                              child: _TiragesDay(group: days[index]),
+                            ),
+                          ),
+                        ),
+                        if (hasMore)
+                          SliverToBoxAdapter(
+                            child: Center(
+                              child: FFButtonWidget(
+                                key: const ValueKey('tirages-load-more'),
+                                onPressed: loadingMore ? null : onLoadMore,
+                                text: strings.getVariableText(
+                                  frText: 'Charger plus',
+                                  enText: 'Load more',
+                                  crText: 'Chaje plis',
+                                ),
+                                icon: const Icon(Icons.expand_more_rounded,
+                                    size: 20),
+                                options: FFButtonOptions(
+                                  height: kMinInteractiveDimension,
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: spacing.lg),
+                                  color: tokens.home.surface.colors.last,
+                                  disabledColor:
+                                      tokens.home.surface.colors.last,
+                                  textStyle: theme.labelLarge.copyWith(
+                                      color: theme.primaryText,
+                                      fontWeight: FontWeight.w600),
+                                  borderSide:
+                                      BorderSide(color: tokens.home.panelEdge),
+                                  borderRadius:
+                                      BorderRadius.circular(tokens.radius.full),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ] else
+                        SliverPadding(
+                          padding: daysPadding,
+                          sliver: SliverToBoxAdapter(
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: _TiragesStatus(
+                                  loading: loading,
+                                  loadFailed: loadFailed,
+                                  onRetry: onRefresh),
+                            ),
+                          ),
+                        ),
+                      SliverToBoxAdapter(child: SizedBox(height: spacing.lg)),
+                    ],
                   ),
-                  icon: const Icon(Icons.expand_more_rounded, size: 20),
-                  options: FFButtonOptions(
-                    height: 44,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: theme.designToken.spacing.md,
-                    ),
-                    color: theme.secondaryBackground,
-                    disabledColor: theme.secondaryBackground,
-                    textStyle: theme.labelLarge.copyWith(
-                      color: theme.primaryText,
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      theme.designToken.radius.full,
-                    ),
-                    elevation: 0,
-                  ),
-                  showLoadingIndicator: true,
-                ),
-              ),
-            );
-          }
-
-          final dayGroup = tiragesByDay[index];
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: index == tiragesByDay.length - 1 && !_hasMore
-                  ? 0.0
-                  : theme.designToken.spacing.md,
+                );
+              }),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _TiragesDateSeparator(date: dayGroup.date),
-                SizedBox(height: theme.designToken.spacing.sm),
-                for (var resultIndex = 0;
-                    resultIndex < dayGroup.results.length;
-                    resultIndex++)
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: resultIndex == dayGroup.results.length - 1
-                          ? 0.0
-                          : theme.designToken.spacing.sm,
-                    ),
-                    child: dayGroup.results[resultIndex].tirage == 'fl'
-                        ? FlWidget(infos: dayGroup.results[resultIndex])
-                        : NewYorkkWidget(infos: dayGroup.results[resultIndex]),
-                  ),
-              ],
-            ),
-          );
-        },
+            if (showResults &&
+                Visibility.of(context) &&
+                ModalRoute.isCurrentOf(context) == true)
+              const DrawAdBanner(),
+          ]),
+        ),
       ),
-    );
-    if (!Visibility.of(context) || ModalRoute.isCurrentOf(context) != true) {
-      return results;
-    }
-    return Column(
-      children: [
-        Expanded(child: results),
-        const DrawAdBanner(),
-      ],
     );
   }
 }
@@ -329,99 +311,151 @@ class _TiragesDayGroup {
   final List<ResultatsRecord> results = [];
 }
 
-class _TiragesDateSeparator extends StatelessWidget {
-  const _TiragesDateSeparator({required this.date});
+class _TiragesDay extends StatelessWidget {
+  const _TiragesDay({required this.group});
 
-  final DateTime? date;
+  final _TiragesDayGroup group;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final localizations = FFLocalizations.of(context);
-    final dateText = date == null
-        ? localizations.getVariableText(
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
+    final strings = FFLocalizations.of(context);
+    final date = group.date;
+    final formatted = date == null
+        ? strings.getVariableText(
             frText: 'Date inconnue',
             enText: 'Unknown date',
-            crText: 'Dat enkoni',
-          )
+            crText: 'Dat enkoni')
         : dateTimeFormat(
-            'd MMM y',
+            strings.languageCode == 'en' ? 'EEEE, MMMM d, y' : 'EEEE d MMMM y',
             date,
-            locale: localizations.languageCode,
-          );
-
-    return Row(
-      children: [
-        Expanded(
-          child: Divider(
-            height: 1.0,
-            thickness: 0.7,
-            color: theme.secondaryText.withValues(alpha: 0.35),
+            locale: strings.languageCode);
+    final title = formatted[0].toUpperCase() + formatted.substring(1);
+    return LayoutBuilder(builder: (context, constraints) {
+      // A pair of results must still fit the names and four Florida chips.
+      final wide = constraints.maxWidth >=
+          2 * 440 * MediaQuery.textScalerOf(context).scale(16) / 16;
+      final columns = wide && group.results.length > 1 ? 2 : 1;
+      final separator = BorderSide(color: tokens.home.panelEdge);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            header: true,
+            child: Row(children: [
+              Container(
+                width: spacing.xs,
+                height: wide ? spacing.lg : 20,
+                decoration: BoxDecoration(
+                    color: theme.primary,
+                    borderRadius: BorderRadius.circular(tokens.radius.full)),
+              ),
+              SizedBox(width: spacing.sm),
+              Expanded(
+                  child: Text(title,
+                      style: theme.headlineSmall.override(
+                          fontSize: wide ? 26 : 20,
+                          fontWeight: FontWeight.w800,
+                          lineHeight: 1.15))),
+            ]),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: theme.designToken.spacing.sm,
-          ),
-          child: Text(
-            dateText,
-            style: theme.labelSmall.override(
-              color: theme.secondaryText,
-              fontSize: 11.0,
-              fontWeight: FontWeight.w600,
+          SizedBox(height: spacing.sm),
+          Container(
+            decoration: tokens.home.panel,
+            padding: EdgeInsets.symmetric(horizontal: spacing.xs),
+            child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              border: TableBorder(
+                  horizontalInside: separator, verticalInside: separator),
+              children: [
+                for (final row in group.results.slices(columns))
+                  TableRow(children: [
+                    for (final result in row)
+                      TirageResultRow(
+                        key: ValueKey(result.reference.path),
+                        result: result,
+                      ),
+                    if (row.length < columns) const SizedBox.shrink(),
+                  ]),
+              ],
             ),
           ),
-        ),
-        Expanded(
-          child: Divider(
-            height: 1.0,
-            thickness: 0.7,
-            color: theme.secondaryText.withValues(alpha: 0.35),
-          ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }
 
-class _TiragesMessage extends StatelessWidget {
-  const _TiragesMessage({
-    required this.icon,
-    required this.message,
+class _TiragesStatus extends StatelessWidget {
+  const _TiragesStatus({
+    required this.loading,
+    required this.loadFailed,
     required this.onRetry,
   });
 
-  final IconData icon;
-  final String message;
+  final bool loading;
+  final bool loadFailed;
   final Future<void> Function() onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      color: FlutterFlowTheme.of(context).primary,
-      onRefresh: onRetry,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24.0),
-        children: [
-          SizedBox(height: MediaQuery.sizeOf(context).height * 0.18),
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
+    final strings = FFLocalizations.of(context);
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 520),
+      width: double.infinity,
+      padding: EdgeInsets.all(spacing.xl),
+      decoration: tokens.home.panel,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (loading)
+          CircularProgressIndicator(
+            key: const ValueKey('tirages-loading'),
+            color: theme.primary,
+            semanticsLabel: strings.getVariableText(
+                frText: 'Chargement des tirages',
+                enText: 'Loading draw results',
+                crText: 'Rezilta tiraj yo ap chaje'),
+          )
+        else ...[
           Icon(
-            icon,
-            color: FlutterFlowTheme.of(context).secondaryText,
-            size: 44.0,
-          ),
-          const SizedBox(height: 12.0),
+              loadFailed
+                  ? Icons.cloud_off_rounded
+                  : Icons.confirmation_number_outlined,
+              color: tokens.home.mutedText,
+              size: spacing.xl),
+          SizedBox(height: spacing.md),
           Text(
-            message,
-            textAlign: TextAlign.center,
-            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                  fontFamily: 'Google sans flex',
-                  color: FlutterFlowTheme.of(context).secondaryText,
-                  letterSpacing: 0.0,
-                ),
-          ),
+              loadFailed
+                  ? strings.getVariableText(
+                      frText: 'Impossible de charger les tirages.',
+                      enText: 'Unable to load draw results.',
+                      crText: 'Nou pa ka chaje rezilta tiraj yo.')
+                  : strings.getVariableText(
+                      frText: 'Aucun tirage disponible pour le moment.',
+                      enText: 'No draw results are available right now.',
+                      crText: 'Pa gen rezilta tiraj ki disponib kounye a.'),
+              style: theme.bodyMedium.copyWith(color: tokens.home.mutedText),
+              textAlign: TextAlign.center),
+          if (loadFailed) ...[
+            SizedBox(height: spacing.sm),
+            TextButton.icon(
+              key: const ValueKey('tirages-retry'),
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 20),
+              label: Text(strings.getText('ach_retry')),
+              style: TextButton.styleFrom(
+                  foregroundColor: theme.primary,
+                  minimumSize: const Size(
+                      kMinInteractiveDimension, kMinInteractiveDimension),
+                  textStyle: theme.labelLarge),
+            ),
+          ],
         ],
-      ),
+      ]),
     );
   }
 }
