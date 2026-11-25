@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:ui' as ui;
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:choloto/app_state.dart';
 import 'package:choloto/accomplissements/vip_badge.dart';
@@ -18,6 +20,8 @@ import 'package:choloto/components/vip_casino_card.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/vip/vip/vip_widget.dart';
+import 'package:choloto/vip/universal_v_i_p/universal_v_i_p_widget.dart';
+import 'package:choloto/vip/v_i_pboloto/v_i_pboloto_widget.dart';
 import 'package:choloto/main.dart';
 // Firestore's platform codec also encodes the receipt timestamps.
 // ignore: depend_on_referenced_packages
@@ -125,12 +129,17 @@ final _example = PredictionRecord.getDocumentFromData({
   },
 }, MemoryReference('prediction/local-example'));
 
-PredictionRecord _selection(String fixture, Map<String, List<String>> values) {
+PredictionRecord _selection(String fixture, Map<String, List<String>> values,
+    {Map<String, String> titles = const {}}) {
   return PredictionRecord.getDocumentFromData({
     'date': DateTime(2026, 11, 24),
     'periode': 'Soir',
     'pourcentage': 85,
-    for (final entry in values.entries) entry.key: {'boul': entry.value},
+    for (final entry in values.entries)
+      entry.key: {
+        'boul': entry.value,
+        if (titles.containsKey(entry.key)) 'name': titles[entry.key]
+      },
   }, MemoryReference('prediction/$fixture'));
 }
 
@@ -241,7 +250,11 @@ const _categories = [
   (id: 'extra', field: 'extra', label: 'viphstext', asset: 'extra'),
 ];
 
-void _expectPredictionGrid(WidgetTester tester, int columns) {
+const _singleRows = [1, 1, 1, 1, 1, 1, 1];
+const _compactRows = [2, 2, 2, 1];
+const _wideRows = [2, 2, 3];
+
+void _expectPredictionGrid(WidgetTester tester, List<int> rowSizes) {
   final cards = <Rect>[];
   for (final category in _categories) {
     final tile = find.byKey(ValueKey('vip-prediction-${category.id}'));
@@ -271,18 +284,22 @@ void _expectPredictionGrid(WidgetTester tester, int columns) {
       }
     }
   }
-  for (var i = 0; i < cards.length; i++) {
-    final card = cards[i];
-    expect(card.width, closeTo(cards.first.width, 1));
-    if (i % columns == 0) {
-      expect(card.left, closeTo(cards.first.left, 1));
-      if (i > 0) expect(card.top, greaterThan(cards[i - columns].bottom));
-    } else {
-      expect(card.top, closeTo(cards[i - 1].top, 1));
-      expect(card.bottom, closeTo(cards[i - 1].bottom, 1));
-      expect(card.left, greaterThan(cards[i - 1].right));
+  final panel = tester.getRect(find.byType(VipPredictionPanel));
+  var index = 0;
+  for (final count in rowSizes) {
+    final row = cards.sublist(index, index + count);
+    expect(row.first.left, closeTo(panel.left, 1));
+    expect(row.last.right, closeTo(panel.right, 1));
+    if (index > 0) expect(row.first.top, greaterThan(cards[index - 1].bottom));
+    for (var i = 1; i < row.length; i++) {
+      expect(row[i].left, greaterThan(row[i - 1].right));
+      expect(row[i].top, closeTo(row.first.top, 1));
+      expect(row[i].bottom, closeTo(row.first.bottom, 1));
+      expect(row[i].width, closeTo(row.first.width, 1));
     }
+    index += count;
   }
+  expect(index, cards.length);
 }
 
 Future<void> _save(WidgetTester tester, GlobalKey key, String name) async {
@@ -326,8 +343,20 @@ InlineSpan _replaceInk(InlineSpan original, Color ink) {
   );
 }
 
+String _visibleText(Text widget) =>
+    widget.data ?? widget.textSpan!.toPlainText(includeSemanticsLabels: false);
+
+Finder _publishedValue(String value) {
+  if (RegExp(r'^\d+\s*[xX×]\s*\d+$').hasMatch(value)) {
+    return find.byWidgetPredicate(
+        (widget) => widget is Semantics && widget.properties.label == value);
+  }
+  return find.text(value);
+}
+
 Future<void> _expectIllustrationContrast(
-    WidgetTester tester, RenderRepaintBoundary boundary) async {
+    WidgetTester tester, RenderRepaintBoundary boundary,
+    {Map<String, String> titles = const {}}) async {
   final ink = await _readPixels(tester, boundary);
   final samples = <({
     String description,
@@ -351,7 +380,7 @@ Future<void> _expectIllustrationContrast(
     final painted = raw.alignment
         .resolve(TextDirection.ltr)
         .inscribe(fitted.destination, frame);
-    final title = strings.getText(category.label);
+    final title = titles[category.field] ?? strings.getText(category.label);
     final caption = find.descendant(of: card, matching: find.text(title));
     final captionRect = tester.getRect(caption);
     final cardRect = tester.getRect(card);
@@ -372,6 +401,15 @@ Future<void> _expectIllustrationContrast(
       final transform = paragraph.getTransformTo(boundary);
       final boxes = paragraph.getBoxesForSelection(
           TextSelection(baseOffset: 0, extentOffset: text.length));
+      if (text == title && titles.containsKey(category.field)) {
+        expect(boxes.map((box) => box.top).toSet().length, greaterThan(1),
+            reason: 'The entire custom title should wrap');
+        final merged =
+            find.descendant(of: card, matching: find.byType(MergeSemantics));
+        final announcement = tester.getSemantics(merged).label.split('\n');
+        expect(announcement.first, title);
+        expect(announcement.where((label) => label == title), hasLength(1));
+      }
       if (text != title) {
         expect(tester.getRect(find.byWidget(widget)).bottom,
             lessThanOrEqualTo(captionRect.top),
@@ -379,7 +417,7 @@ Future<void> _expectIllustrationContrast(
       }
       samples.add((
         description: '${category.id} · $text',
-        color: widget.style!.color!,
+        color: paragraph.text.style!.color!,
         paragraph: paragraph,
         original: paragraph.text,
         lines: [
@@ -390,8 +428,8 @@ Future<void> _expectIllustrationContrast(
     }
   }
 
-  // Black ink makes a coverage mask even when a white glyph coincides with
-  // a white highlight. Invisible ink then exposes the actual backdrop under
+  // Black ink makes a coverage mask even when a light glyph coincides with
+  // a bright highlight. Invisible ink then exposes the actual backdrop under
   // that mask without changing the illustration, its shade, or any line break.
   late ({int width, ByteData rgba}) blackInk;
   late ({int width, ByteData rgba}) backdrop;
@@ -423,8 +461,8 @@ Future<void> _expectIllustrationContrast(
       for (var y = line.top.floor(); y < line.bottom.ceil(); y++) {
         for (var x = line.left.floor(); x < line.right.ceil(); x++) {
           final offset = (y * ink.width + x) * 4;
-          // For white text against black ink, one channel gives the glyph's
-          // coverage. Ignore only faint antialiasing at its edge.
+          // The green channel separates the white and gold ink from black.
+          // Ignore only the faint antialiasing at the glyph's edge.
           final coverage = ink.rgba.getUint8(offset + 1) -
               blackInk.rgba.getUint8(offset + 1);
           if (coverage < 24) continue;
@@ -456,6 +494,7 @@ void main() {
   _VipPresentationBinding();
   setupFirebaseCoreMocks();
 
+  Completer<void>? delayMarketFont;
   late ui.Image portrait;
   setUpAll(() async {
     final bytes = portraitFile.isEmpty
@@ -480,7 +519,19 @@ void main() {
     font_testing.assetManifest = _TestFontManifest();
     messenger.setMockMessageHandler('flutter/assets', (message) async {
       final path = utf8.decode(message!.buffer.asUint8List());
-      if (path.startsWith('__test_fonts/')) return fontBytes;
+      if (path.startsWith('__test_fonts/')) {
+        if (path.endsWith('Inter-SemiBold.ttf') && delayMarketFont != null) {
+          await delayMarketFont!.future;
+        }
+        if (interFont.isNotEmpty) {
+          final variant =
+              File('${File(interFont).parent.path}/${path.split('/').last}');
+          if (variant.existsSync()) {
+            return ByteData.sublistView(variant.readAsBytesSync());
+          }
+        }
+        return fontBytes;
+      }
       return ByteData.sublistView(
           File('build/unit_test_assets/$path').readAsBytesSync());
     });
@@ -531,6 +582,41 @@ void main() {
     expect(tester.widget<RawImage>(pixels).image!.isCloneOf(portrait), isTrue);
   }
 
+  testWidgets('cold VIP market columns follow the loaded font in place',
+      (tester) async {
+    _setViewport(tester, const Size(390, 844), Brightness.dark);
+    delayMarketFont = Completer<void>();
+    try {
+      await tester.pumpWidget(_app(Scaffold(
+        body: SingleChildScrollView(
+            child: VipPredictionPanel(prediction: _example)),
+      )));
+    } finally {
+      delayMarketFont!.complete();
+      delayMarketFont = null;
+    }
+    final card = find.byKey(const ValueKey('vip-prediction-favorite'));
+    final mounted = tester.element(card);
+    await tester.pump();
+    await tester.runAsync(() => GoogleFonts.pendingFonts());
+    await tester.pump();
+
+    final market = find.descendant(of: card, matching: find.text('FLO-NY'));
+    final number = find.descendant(of: card, matching: find.text('07'));
+    final label = tester.renderObject<RenderParagraph>(market);
+    final gap = FlutterFlowTheme.of(mounted).designToken.spacing.sm;
+    final measured = TextPainter(
+        text: label.text,
+        textDirection: ui.TextDirection.ltr,
+        textScaler: label.textScaler)
+      ..layout();
+    final expectedOffset = measured.width.ceilToDouble() + gap;
+    measured.dispose();
+    expect(tester.element(card), same(mounted));
+    expect(tester.getTopLeft(number).dx - tester.getTopLeft(market).dx,
+        closeTo(expectedOffset, .1));
+  });
+
   for (final brightness in [Brightness.dark, Brightness.light]) {
     for (final percentage in [null, '100%']) {
       testWidgets(
@@ -559,7 +645,19 @@ void main() {
             findsOneWidget);
         expect(find.byType(VipCasinoPlaque),
             percentage == null ? findsNothing : findsOneWidget);
-        if (percentage != null) expect(find.text(percentage), findsOneWidget);
+        final label = tester.widget<Text>(
+            find.text('Probabilité : mercredi 30 septembre 2026 Soir'));
+        final tokens = FlutterFlowTheme.of(
+                tester.element(find.byType(VipPredictionHeader)))
+            .designToken
+            .vip;
+        expect(
+            label.style!.fontFamily, tokens.typography.supporting.fontFamily);
+        if (percentage != null) {
+          final percent = tester.widget<Text>(find.text(percentage));
+          expect(percent.style,
+              tokens.typography.numeral(18).copyWith(color: tokens.numberText));
+        }
       });
     }
   }
@@ -645,17 +743,13 @@ void main() {
                 '1234',
                 '90'
               ]) {
-                expect(find.text(value), findsOneWidget);
+                expect(_publishedValue(value), findsOneWidget);
               }
               expect(favorite, findsOneWidget);
               expect(soutni, findsOneWidget);
 
               _expectPredictionGrid(
-                  tester,
-                  switch (size.width) {
-                    1440 => 3,
-                    _ => 2,
-                  });
+                  tester, size.width == 1440 ? _wideRows : _compactRows);
             } else {
               final price = find.text(strings.getText('r11k1q8q'));
               final action = find.byKey(const ValueKey('become-vip-button'));
@@ -734,7 +828,7 @@ void main() {
           findsWidgets);
       await tester.tap(find.byKey(const ValueKey('close-vip-medal')));
       await tester.pumpAndSettle();
-      _expectPredictionGrid(tester, 1);
+      _expectPredictionGrid(tester, _singleRows);
       final number = find.text('1234');
       await tester.ensureVisible(number);
       expect(number.hitTestable(), findsOneWidget);
@@ -749,23 +843,258 @@ void main() {
     });
   }
 
-  testWidgets('a wide illustrated prediction panel displays four cards per row',
+  testWidgets('the 152-pixel historical VIP cards use the same type roles',
       (tester) async {
-    _setViewport(tester, const Size(1100, 900), Brightness.dark);
-    await tester.pumpWidget(_app(Scaffold(
-        body: SingleChildScrollView(
-      child: VipPredictionPanel(prediction: _example),
-    ))));
-    await tester.pumpAndSettle();
-    _expectPredictionGrid(tester, 4);
-    expect(tester.takeException(), isNull);
+    _setViewport(tester, const Size(390, 844), Brightness.dark);
+    await tester.pumpWidget(_app(const Center(
+      child: Wrap(children: [
+        SizedBox.square(
+            dimension: 152,
+            child: UniversalVIPWidget(
+                name: 'FAVORI', chiffre: ['07'], icon: Icon(Icons.star))),
+        SizedBox.square(
+            dimension: 152,
+            child: UniversalVIPWidget(
+                name: 'SOUTNI', chiffre: ['04', '68'], icon: Icon(Icons.star))),
+        SizedBox.square(
+            dimension: 152,
+            child: VIPbolotoWidget(name: 'BOLOTO', chiffre: ['87'])),
+      ]),
+    )));
+    await tester.pump();
+    final theme = FlutterFlowTheme.of(
+        tester.element(find.byType(UniversalVIPWidget).first));
+    final vip = theme.designToken.vip;
+    final type = vip.typography;
+    for (final (number, color) in [
+      ('07', vip.numberText),
+      ('04', vip.numberText),
+      ('87', theme.onPrimary)
+    ]) {
+      final value =
+          find.byWidgetPredicate((w) => w is AutoSizeText && w.data == number);
+      final base = type.numeral(32).copyWith(color: color);
+      expect(tester.widget<AutoSizeText>(value).style,
+          number == '87' ? base : base.copyWith(height: 1));
+      final rendered = tester.widget<Text>(find.text(number));
+      expect(rendered.style!.fontSize, inInclusiveRange(25, 32));
+      expect(rendered.style!.fontFeatures,
+          contains(const ui.FontFeature.tabularFigures()));
+    }
+    for (final label in ['FAVORI', 'SOUTNI', 'BOLOTO']) {
+      final rendered = tester.widget<Text>(find.text(label)).style!;
+      final role = type.category(compact: true);
+      expect(rendered.fontSize, role.fontSize);
+      expect(rendered.letterSpacing, role.letterSpacing);
+      expect(rendered.fontVariations, role.fontVariations);
+    }
+    for (final market in ['GG-NY', 'FLO-NY']) {
+      final labels = tester.widgetList<Text>(find.text(market)).toList();
+      expect(labels, hasLength(market == 'GG-NY' ? 1 : 2));
+      for (final label in labels) {
+        expect(label.style, type.market);
+      }
+    }
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  for (final (size, scale) in [
+    (const Size(390, 844), 1.0),
+    (const Size(320, 568), 2.0),
+    (const Size(1440, 900), 1.0),
+  ]) {
+    testWidgets(
+        'VIP typography preserves figure widths at ${size.width} × $scale',
+        (tester) async {
+      _setViewport(tester, size, Brightness.dark);
+      final prediction = _selection('tabular-figures', {
+        'favori': ['07', '81'],
+        'soutni': ['42', '65'],
+        'chif4': ['1111', '8888', '0087'],
+      });
+      final page = _app(_member(prediction: prediction), textScale: scale);
+      await tester.pumpWidget(page);
+      await tester.runAsync(() => GoogleFonts.pendingFonts());
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(page);
+      await tester.pumpAndSettle();
+
+      RenderParagraph paragraph(String content) =>
+          tester.renderObject<RenderParagraph>(find.descendant(
+              of: find.text(content), matching: find.byType(RichText)));
+      final type =
+          FlutterFlowTheme.of(tester.element(find.byType(VipPredictionPanel)))
+              .designToken
+              .vip
+              .typography;
+      void expectRole(TextStyle rendered, TextStyle role) {
+        expect(rendered.fontFamily, role.fontFamily);
+        expect(rendered.fontSize, role.fontSize);
+        expect(rendered.fontWeight, role.fontWeight);
+        expect(rendered.fontVariations, role.fontVariations);
+        expect(rendered.letterSpacing, role.letterSpacing);
+      }
+
+      for (final heading in ['Mika Jean', 'Mardi 24 novembre']) {
+        final style = paragraph(heading).text.style!;
+        expectRole(style, type.heading(style.fontSize!));
+      }
+      final panel = find.byType(VipPredictionPanel);
+      final poster =
+          type.posterTitle(compact: tester.getSize(panel).width / scale < 640);
+      final strings = FFLocalizations.of(tester.element(panel));
+      for (final category in _categories) {
+        final caption = paragraph(strings.getText(category.label)).text.style!;
+        expectRole(caption, poster);
+        expect(caption.color, poster.color);
+      }
+      final numbers = ['1111', '8888', '0087'];
+      final advances = <double>[];
+      for (final value in numbers) {
+        final rendered = paragraph(value);
+        final style = rendered.text.style!;
+        expectRole(style, type.numeral(style.fontSize!));
+        expect(style.fontFamily?.toLowerCase(), 'google sans flex');
+        expect(style.fontFeatures,
+            contains(const ui.FontFeature.tabularFigures()));
+        expect(rendered.didExceedMaxLines, isFalse);
+        final glyphs = [
+          for (var i = 0; i < value.length; i++)
+            rendered
+                .getBoxesForSelection(
+                    TextSelection(baseOffset: i, extentOffset: i + 1))
+                .single
+                .toRect(),
+        ];
+        final em = rendered.textScaler.scale(style.fontSize!);
+        for (final glyph in glyphs) {
+          expect(glyph.width, greaterThan(em * .3), reason: value);
+          expect(glyph.width, closeTo(glyphs.first.width, .05), reason: value);
+          expect(glyph.top, closeTo(glyphs.first.top, .05), reason: value);
+        }
+        for (var i = 1; i < glyphs.length; i++) {
+          expect(glyphs[i].left, closeTo(glyphs[i - 1].right, .05));
+        }
+        advances.add(glyphs.last.right - glyphs.first.left);
+      }
+      expect(advances[1], closeTo(advances.first, .05));
+      expect(advances[2], closeTo(advances.first, .05));
+      final market = paragraph('GG-NY').text.style!;
+      expectRole(market, type.market);
+      expect(market.fontFamily, startsWith('Inter'));
+      expect(market.fontWeight, FontWeight.w600);
+      expect(market.fontSize, greaterThanOrEqualTo(12));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final width in [320.0, 639.0, 640.0, 1100.0]) {
+    testWidgets('prediction cards fill their rows at $width', (tester) async {
+      _setViewport(tester, Size(width, 900), Brightness.dark);
+      await tester.pumpWidget(_app(Scaffold(
+          body: SingleChildScrollView(
+        child: VipPredictionPanel(prediction: _previewSelection),
+      ))));
+      await tester.pumpAndSettle();
+      _expectPredictionGrid(tester, width < 640 ? _compactRows : _wideRows);
+      final first = tester.getRect(find.text('18'));
+      final second = tester.getRect(find.text('72'));
+      final third = tester.getRect(find.text('53'));
+      expect(second.top, closeTo(first.top, 1));
+      expect(second.left, greaterThan(first.right));
+      if (width == 320) {
+        expect(third.top, greaterThan(first.bottom));
+        expect(third.left, closeTo(first.left, 1));
+      } else {
+        expect(third.top, closeTo(first.top, 1));
+        expect(third.left, greaterThan(second.right));
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('decorative prediction separators follow visible data groups',
+      (tester) async {
+    const selections = {
+      'favori': ['07', '81', '16', '42'],
+      'soutni': [' ', '65'],
+      'boloto': ['08', '19', '74', '56'],
+      'mariage': ['12 x 34', '07×09'],
+      'chif3': ['007', '308', '419'],
+      'chif4': ['0087'],
+      'extra': <String>[],
+    };
+    final strings = FFLocalizations(const Locale('fr'));
+    for (final (width, scale) in [(390.0, 1.0), (1440.0, 1.0), (320.0, 2.0)]) {
+      _setViewport(tester, Size(width, 900), Brightness.dark);
+      await tester.pumpWidget(_app(
+          _member(prediction: _selection('separators', selections)),
+          textScale: scale));
+      await tester.pumpAndSettle();
+      for (final category in _categories) {
+        final card = find.byKey(ValueKey('vip-prediction-${category.id}'));
+        Finder within(Finder matcher) =>
+            find.descendant(of: card, matching: matcher);
+        Rect valueRect(String value) =>
+            tester.getRect(within(find.text(value)));
+        final entries = selections[category.field]!
+            .where((v) => v.trim().isNotEmpty)
+            .toList();
+        final spoken = switch (category.id) {
+          'favorite' => ['FLO-NY', '07', 'FLO-NY', '81', '16', '42'],
+          'soutni' => ['FLO-NY', '65'],
+          'extra' => [strings.getText('viphstnos')],
+          _ => entries,
+        };
+        final merged = within(find.byType(MergeSemantics));
+        expect(tester.getSemantics(merged).label.split('\n'),
+            [strings.getText(category.label), ...spoken],
+            reason: category.id);
+
+        final horizontal = within(find.byType(Divider));
+        expect(horizontal, findsNWidgets(category.id == 'favorite' ? 2 : 0));
+        if (category.id == 'favorite') {
+          final markets = within(find.text('FLO-NY'));
+          for (final (index, above, below) in [
+            (0, '07', '81'),
+            (1, '81', '16')
+          ]) {
+            final line = tester.getRect(horizontal.at(index));
+            expect(line.left, closeTo(tester.getRect(markets.first).left, 1));
+            expect(line.right, lessThanOrEqualTo(valueRect(above).right + 1));
+            expect(line.center.dy, greaterThan(valueRect(above).bottom));
+            expect(line.center.dy, lessThan(valueRect(below).top));
+          }
+        }
+
+        final freeValues = switch (category.id) {
+          'favorite' => entries.skip(2),
+          'mariage' || 'soutni' => <String>[],
+          _ => entries,
+        };
+        final values = freeValues.map(valueRect).toList();
+        final vertical = within(find.byType(VerticalDivider));
+        var count = 0;
+        for (var i = 1; i < values.length; i++) {
+          final left = values[i - 1];
+          final right = values[i];
+          if ((right.top - left.top).abs() > 1) continue;
+          final line = tester.getRect(vertical.at(count++));
+          expect(line.center.dx, greaterThan(left.right));
+          expect(line.center.dx, lessThan(right.left));
+          expect(line.center.dy, inInclusiveRange(right.top, right.bottom));
+        }
+        expect(vertical, findsNWidgets(count), reason: category.id);
+      }
+    }
   });
 
   for (final scenario in [
-    (width: 390.0, scale: 1.0, columns: 2, emptyExtra: false),
-    (width: 320.0, scale: 2.0, columns: 1, emptyExtra: false),
-    (width: 320.0, scale: 2.0, columns: 1, emptyExtra: true),
-    (width: 880.0, scale: 1.0, columns: 3, emptyExtra: false),
+    (width: 390.0, scale: 1.0, rows: _compactRows, emptyExtra: false),
+    (width: 320.0, scale: 2.0, rows: _singleRows, emptyExtra: false),
+    (width: 320.0, scale: 2.0, rows: _singleRows, emptyExtra: true),
+    (width: 880.0, scale: 1.0, rows: _wideRows, emptyExtra: false),
   ]) {
     testWidgets(
         'prediction ink stays legible on all illustrations at ${scenario.width} × ${scenario.scale} (empty Extra: ${scenario.emptyExtra})',
@@ -775,6 +1104,10 @@ void main() {
         ..._fullSelection,
         if (scenario.emptyExtra) 'extra': <String>[],
       };
+      final titles = <String, String>{
+        if (scenario.emptyExtra)
+          'soutni': 'Sélection de la Floride et de New York',
+      };
       final key = GlobalKey();
       final page = _app(
           Scaffold(
@@ -782,7 +1115,7 @@ void main() {
               child: RepaintBoundary(
                 key: key,
                 child: VipPredictionPanel(
-                    prediction: _selection('density', values)),
+                    prediction: _selection('density', values, titles: titles)),
               ),
             ),
           ),
@@ -802,13 +1135,28 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpWidget(page);
       await tester.pumpAndSettle();
-      _expectPredictionGrid(tester, scenario.columns);
+      _expectPredictionGrid(tester, scenario.rows);
+      final date = tester.getRect(find.text('Mardi 24 novembre'));
+      final period = tester.getRect(find.text('Soir'));
+      final probability = tester.getRect(find.text('Probabilité'));
+      final percent = tester.getRect(find.text('85%'));
+      expect(period.left, closeTo(date.left, 1));
+      expect(period.top, greaterThanOrEqualTo(date.bottom - 1));
+      expect(percent.top, greaterThanOrEqualTo(probability.bottom - 1));
+      if (scenario.scale == 2) {
+        expect(probability.top, greaterThan(period.bottom));
+        expect(percent.left, closeTo(date.left, 1));
+      } else {
+        expect(probability.left, greaterThan(date.right));
+        expect(probability.top, closeTo(date.top, 1));
+        expect(percent.right, closeTo(probability.right, 1));
+      }
       for (final category in _categories) {
         final card = find.byKey(ValueKey('vip-prediction-${category.id}'));
         final published = values[category.field]!;
         final expected = published.isEmpty ? ['—'] : published;
         for (final value in expected) {
-          expect(find.descendant(of: card, matching: find.text(value)),
+          expect(find.descendant(of: card, matching: _publishedValue(value)),
               findsOneWidget);
         }
       }
@@ -821,22 +1169,100 @@ void main() {
         ];
         final markets =
             find.descendant(of: card, matching: find.textContaining('-NY'));
-        expect(tester.widgetList<Text>(markets).map((label) => label.data),
+        expect(tester.widgetList<Text>(markets).map(_visibleText),
             [category.id == 'soutni' ? 'GG-NY' : 'FLO-NY', 'FLO-NY']);
-        expect(numbers[1].top, closeTo(numbers[0].top, 1));
+        expect(numbers[1].top, greaterThanOrEqualTo(numbers[0].bottom - 1));
+        expect(numbers[1].left, closeTo(numbers[0].left, 1));
+        final firstMarket = tester.getRect(markets.first);
         for (var i = 0; i < 2; i++) {
           final market = tester.getRect(markets.at(i));
-          expect(market.left, closeTo(numbers[i].left, 1));
-          expect(market.top, greaterThanOrEqualTo(numbers[i].bottom - 1));
+          expect(market.left, closeTo(firstMarket.left, 1));
+          expect(market.right, lessThan(numbers[i].left));
+          expect(market.center.dy, closeTo(numbers[i].center.dy, 1));
           for (final unlabelled in numbers.skip(2)) {
-            expect(unlabelled.top, greaterThan(market.bottom),
+            expect(unlabelled.top, greaterThan(numbers[1].bottom),
                 reason: '${category.id}: unlabelled value under a market');
           }
         }
+        expect(numbers[2].left, closeTo(firstMarket.left, 1));
+        expect(numbers[3].top, closeTo(numbers[2].top, 1));
+        expect(numbers[3].left, greaterThan(numbers[2].right));
+      }
+      for (final field in ['boloto', 'chif3']) {
+        final rects = [
+          for (final value in values[field]!) tester.getRect(find.text(value)),
+        ];
+        expect(rects[1].top, closeTo(rects[0].top, 1), reason: field);
+        expect(rects[1].left, greaterThan(rects[0].right), reason: field);
+        expect(rects[2].top, greaterThan(rects[0].bottom), reason: field);
+        expect(rects[2].left, closeTo(rects[0].left, 1), reason: field);
+        expect(rects[3].top, closeTo(rects[2].top, 1), reason: field);
+        expect(rects[3].left, closeTo(rects[1].left, 1), reason: field);
       }
       final boundary =
           key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-      await _expectIllustrationContrast(tester, boundary);
+      await _expectIllustrationContrast(tester, boundary, titles: titles);
+      if (exportDirectory.isNotEmpty && titles.isNotEmpty) {
+        await _save(tester, key, 'titre-personnalise-200');
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final (width, scale) in [(320.0, 1.0), (390.0, 1.0), (320.0, 2.0)]) {
+    testWidgets(
+        'long market values and four-digit selections fit at $width × $scale',
+        (tester) async {
+      _setViewport(tester, Size(width, 844), Brightness.dark);
+      const longValues = ['0000000007', '01-23-45-6'];
+      final prediction = _selection('long-markets', {
+        'favori': longValues,
+        'soutni': longValues.reversed.toList(),
+        'chif4': _fullSelection['chif4']!,
+        'mariage': ['0000000007×09'],
+      });
+      await tester
+          .pumpWidget(_app(_member(prediction: prediction), textScale: scale));
+      await tester.pumpAndSettle();
+      _expectPredictionGrid(tester, scale == 2 ? _singleRows : _compactRows);
+      for (final category in ['favorite', 'soutni']) {
+        final card = find.byKey(ValueKey('vip-prediction-$category'));
+        final labels =
+            find.descendant(of: card, matching: find.textContaining('-NY'));
+        final expected =
+            category == 'favorite' ? longValues : longValues.reversed.toList();
+        for (final (index, value) in expected.indexed) {
+          final findValue =
+              find.descendant(of: card, matching: find.text(value));
+          final number = tester.getRect(findValue);
+          final market = tester.getRect(labels.at(index));
+          final inline = market.right <= number.left &&
+              (market.center.dy - number.center.dy).abs() <= 1;
+          final stacked = market.bottom <= number.top + 1 &&
+              (market.left - number.left).abs() <= 1;
+          expect(inline || stacked, isTrue,
+              reason: '$category · $value · $market → $number');
+        }
+      }
+      final numbers = [
+        for (final value in _fullSelection['chif4']!)
+          tester.getRect(find.text(value)),
+      ];
+      expect(_publishedValue('0000000007×09'), findsOneWidget);
+      expect(tester.widget<Text>(find.text('0008')).style!.fontSize,
+          width == 390 ? 28 : 32);
+      if (width == 390) {
+        expect(numbers[1].top, closeTo(numbers[0].top, 1));
+        expect(numbers[1].left, greaterThan(numbers[0].right));
+        expect(numbers[2].top, greaterThan(numbers[0].bottom));
+        expect(numbers[3].left, closeTo(numbers[1].left, 1));
+        expect(numbers[3].top, closeTo(numbers[2].top, 1));
+      } else {
+        for (var i = 1; i < numbers.length; i++) {
+          expect(numbers[i].top, greaterThan(numbers[i - 1].bottom));
+          expect(numbers[i].left, closeTo(numbers[0].left, 1));
+        }
+      }
       expect(tester.takeException(), isNull);
     });
   }
@@ -846,61 +1272,136 @@ void main() {
       (tester) async {
     _setViewport(tester, const Size(390, 844), Brightness.dark);
     final prediction = _selection('fragmented-marriages', {
-      'mariage': ['12', 'x', '34', '07', '×', '09', '18 x', '20', '45', '60'],
+      'mariage': [
+        '63×81',
+        '12',
+        'x',
+        '34',
+        '07',
+        '×',
+        '09',
+        '18 x',
+        '20',
+        '45',
+        '60'
+      ],
     });
     await tester.pumpWidget(_app(_member(prediction: prediction)));
     await tester.pumpAndSettle();
     final card = find.byKey(const ValueKey('vip-prediction-mariage'));
-    final labels = find.descendant(of: card, matching: find.byType(Text));
-    final texts =
-        tester.widgetList<Text>(labels).map((text) => text.data!).toList();
-    expect(texts.map((t) => t.replaceAll(' ', '')),
-        ['12x34', '07×09', '18x20', '45', '60', 'MARIAGE']);
-    final pairs = labels
-        .evaluate()
-        .where((el) => RegExp(r'[x×]').hasMatch((el.widget as Text).data!))
-        .toList();
-    expect(pairs, hasLength(3));
-    for (var i = 1; i < pairs.length; i++) {
-      final previous = tester.getRect(find.byWidget(pairs[i - 1].widget));
-      final current = tester.getRect(find.byWidget(pairs[i].widget));
-      expect(current.top, greaterThanOrEqualTo(previous.bottom));
+    final firstTerms = <Rect>[];
+    final secondTerms = <Rect>[];
+    final signs = <Rect>[];
+    final type =
+        FlutterFlowTheme.of(tester.element(card)).designToken.vip.typography;
+    const published = ['63×81', '12 x 34', '07 × 09', '18 x 20'];
+    for (final (i, raw) in published.indexed) {
+      final pair = find.descendant(
+          of: card, matching: find.byKey(ValueKey('vip-marriage-pair-$i')));
+      expect(tester.widget<Semantics>(pair).properties.label, raw);
+      expect(find.bySemanticsLabel(RegExp(RegExp.escape(raw))), findsOneWidget);
+      final fields = RegExp(r'^(\d+)\s*([x×])\s*(\d+)$').firstMatch(raw)!;
+      final terms = [
+        for (var part = 1; part <= 3; part++)
+          find.descendant(of: pair, matching: find.text(fields[part]!)),
+      ];
+      final first = tester.getRect(terms[0]);
+      final sign = tester.getRect(terms[1]);
+      final second = tester.getRect(terms[2]);
+      expect(sign.left, greaterThan(first.right));
+      expect(second.left, greaterThan(sign.right));
+      expect(sign.left - first.right, closeTo(second.left - sign.right, 2));
+      final numeric = tester.widget<Text>(terms[0]).style!;
+      expect(
+          tester.widget<Text>(terms[2]).style!.fontWeight, numeric.fontWeight);
+      expect(tester.widget<Text>(terms[1]).style!.fontWeight,
+          type.pairSeparator(numeric).fontWeight);
+      firstTerms.add(first);
+      secondTerms.add(second);
+      signs.add(sign);
+    }
+    for (var i = 1; i < published.length; i++) {
+      expect(firstTerms[i].top, greaterThanOrEqualTo(firstTerms[i - 1].bottom));
+      expect(signs[i].center.dx, closeTo(signs.first.center.dx, 1));
+      expect(secondTerms[i].left, closeTo(secondTerms.first.left, 1));
+    }
+    for (final unpaired in ['45', '60']) {
+      expect(find.descendant(of: card, matching: find.text(unpaired)),
+          findsOneWidget);
     }
     expect(tester.takeException(), isNull);
   });
 
   if (exportDirectory.isNotEmpty) {
     for (final size in [const Size(390, 844), const Size(1440, 900)]) {
-      testWidgets('export representative VIP page at ${size.width}',
+      testWidgets(
+          'export representative VIP typography at 200% and ${size.width}',
           (tester) async {
         _setViewport(tester, size, Brightness.dark);
         final key = GlobalKey();
         await tester.pumpWidget(RepaintBoundary(
           key: key,
-          child: _app(_member(prediction: _previewSelection, hasPhoto: true)),
+          child: _app(_member(prediction: _previewSelection, hasPhoto: true),
+              textScale: 2),
         ));
         await tester.pumpAndSettle();
-        for (final value in ['12 x 34', '07×09', '048', '0087', '04-17-62']) {
-          expect(find.text(value), findsOneWidget);
-        }
-        final mobile = size.width == 390;
-        await _save(
-            tester, key, mobile ? 'composition-mobile' : 'composition-web');
-        if (mobile) {
-          final last = find.byKey(const ValueKey('vip-prediction-extra'));
-          final navigation = find.byType(BottomNavigationBar);
-          final clipped =
-              tester.getRect(last).bottom - tester.getRect(navigation).top;
-          if (clipped > 0) {
-            tester.view.physicalSize =
-                Size(size.width, size.height + clipped.ceil() + 24);
-            await tester.pumpAndSettle();
-          }
-          expect(tester.getRect(last).bottom,
-              lessThanOrEqualTo(tester.getRect(navigation).top));
-          await _save(tester, key, 'composition-mobile-complete');
-        }
+        final firstCard = find.byKey(const ValueKey('vip-prediction-favorite'));
+        await Scrollable.ensureVisible(tester.element(firstCard));
+        await tester.pumpAndSettle();
+        final screen = size.width == 390 ? 'mobile' : 'web';
+        await _save(tester, key, 'composition-$screen-200');
+        expect(
+            find
+                .descendant(of: firstCard, matching: find.text('07'))
+                .hitTestable(),
+            findsOneWidget);
+        expect(tester.takeException(), isNull);
       });
+    }
+    for (final preview in [
+      (
+        name: 'composition',
+        data: _previewSelection,
+        values: ['12 x 34', '07×09', '048', '0087', '04-17-62']
+      ),
+      (
+        name: 'stress',
+        data: _selection('preview-full', _fullSelection),
+        values: ['12 x 34', '07×09', '007', '0008', '02-19-40-76']
+      ),
+    ]) {
+      for (final size in [const Size(390, 844), const Size(1440, 900)]) {
+        testWidgets('export ${preview.name} VIP page at ${size.width}',
+            (tester) async {
+          _setViewport(tester, size, Brightness.dark);
+          final key = GlobalKey();
+          await tester.pumpWidget(RepaintBoundary(
+            key: key,
+            child: _app(_member(prediction: preview.data, hasPhoto: true)),
+          ));
+          await tester.pumpAndSettle();
+          for (final value in preview.values) {
+            expect(_publishedValue(value), findsOneWidget);
+          }
+          final mobile = size.width == 390;
+          final device = mobile ? 'mobile' : 'web';
+          await _save(tester, key, '${preview.name}-$device');
+          if (mobile) {
+            final last = find.byKey(const ValueKey('vip-prediction-extra'));
+            final navigation = find.byType(BottomNavigationBar);
+            final clipped =
+                tester.getRect(last).bottom - tester.getRect(navigation).top;
+            if (clipped > 0) {
+              tester.view.physicalSize =
+                  Size(size.width, size.height + clipped.ceil() + 24);
+              await tester.pumpAndSettle();
+            }
+            expect(tester.getRect(last).bottom,
+                lessThanOrEqualTo(tester.getRect(navigation).top));
+            await _save(tester, key, '${preview.name}-mobile-complete');
+          }
+        });
+      }
     }
   }
 
@@ -922,15 +1423,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Sélection spéciale'), findsOneWidget);
     final market = FFLocalizations(const Locale('fr')).getText('xm4yj0vd');
-    final valueWithMarket = find
-        .ancestor(of: find.text('007'), matching: find.byType(Column))
-        .first;
-    expect(find.descendant(of: valueWithMarket, matching: find.text(market)),
-        findsOneWidget);
+    final card = find.byKey(const ValueKey('vip-prediction-soutni'));
+    final label =
+        tester.getRect(find.descendant(of: card, matching: find.text(market)));
+    final value = tester.getRect(find.text('007'));
+    expect(label.right, lessThan(value.left));
+    expect(label.center.dy, closeTo(value.center.dy, 1));
+    expect(tester.getRect(find.text('08')).top, greaterThan(value.bottom));
     for (final number in ['05', '16', '27', '38', '08', '09']) {
       expect(find.text(number), findsOneWidget);
     }
-    _expectPredictionGrid(tester, 1);
+    _expectPredictionGrid(tester, _singleRows);
     expect(find.text('GG-NY'), findsNothing);
     expect(tester.takeException(), isNull);
   });

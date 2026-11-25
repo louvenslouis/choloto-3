@@ -31,6 +31,7 @@ class VipPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
+    final typography = tokens.vip.typography;
     final strings = FFLocalizations.of(context);
     final spacing = tokens.spacing;
     final name = memberName?.trim();
@@ -45,7 +46,7 @@ class VipPageHeader extends StatelessWidget {
         minimumSize: const Size.square(kMinInteractiveDimension),
         padding: EdgeInsets.symmetric(horizontal: spacing.sm),
         tapTargetSize: MaterialTapTargetSize.padded,
-        textStyle: theme.labelMedium.copyWith(fontWeight: FontWeight.w600),
+        textStyle: typography.action.copyWith(color: theme.primaryText),
       );
       return Tooltip(
         message: tooltip,
@@ -144,10 +145,8 @@ class VipPageHeader extends StatelessWidget {
                 SizedBox(width: spacing.sm),
                 Expanded(
                     child: Text(accountTitle,
-                        style: theme.labelLarge.copyWith(
-                            color: tokens.vip.goldLight,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: .45))),
+                        style: typography.supporting
+                            .copyWith(color: tokens.vip.goldLight))),
               ],
             ]),
             SizedBox(height: spacing.sm),
@@ -156,12 +155,9 @@ class VipPageHeader extends StatelessWidget {
               header: true,
               child: Text(
                 hasName ? name : accountTitle,
-                style: theme.displaySmall.override(
-                    color: theme.onDecorative,
-                    fontSize: width >= 340 ? 36 : 30,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -1,
-                    lineHeight: 1.08),
+                style: typography
+                    .heading(width >= 340 ? 36 : 30)
+                    .copyWith(color: theme.onDecorative),
               )),
         ],
       );
@@ -319,9 +315,9 @@ class VipHeaderAvatar extends StatelessWidget {
             child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(initials,
-                    style: theme.headlineSmall.copyWith(
-                        color: theme.onDecorative,
-                        fontWeight: FontWeight.w700))),
+                    style: theme.designToken.vip.typography
+                        .heading(24)
+                        .copyWith(color: theme.onDecorative))),
           ));
     if (photoUrl.isEmpty) return fallback;
     return CachedNetworkImage(

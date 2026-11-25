@@ -35,7 +35,7 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
           content: Text(
             FFLocalizations.of(context)
                 .getText(isPositive ? 'bngsuccess' : 'bngtryagain'),
-            style: TextStyle(
+            style: theme.designToken.vip.typography.supporting.copyWith(
               color: isPositive ? theme.onPrimary : theme.primaryText,
             ),
           ),
@@ -130,8 +130,7 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                           Text(
                             FFLocalizations.of(context)
                                 .getText('bingo_story_label'),
-                            style: theme.labelLarge
-                                .override(color: theme.primaryText),
+                            style: tokens.vip.typography.heading(16),
                           ),
                           SizedBox(width: tokens.spacing.sm),
                           Expanded(

@@ -7,7 +7,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'v_i_pboloto_model.dart';
 export 'v_i_pboloto_model.dart';
@@ -88,14 +87,7 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                           widget!.name,
                           'null',
                         ),
-                        style: theme.titleSmall.override(
-                          color: theme.primaryText,
-                          fontSize: 15.0,
-                          letterSpacing: 0.4,
-                          fontWeight: FontWeight.w700,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
+                        style: tokens.vip.typography.category(compact: true),
                       ),
                     ),
                   ),
@@ -153,26 +145,9 @@ class _VIPbolotoWidgetState extends State<VIPbolotoWidget> {
                                           textAlign: TextAlign.center,
                                           maxLines: 1,
                                           minFontSize: 25.0,
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.raleway(
-                                                  fontWeight: FontWeight.w900,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color: theme.onPrimary,
-                                                fontSize: 32.0,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.w900,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
+                                          style: tokens.vip.typography
+                                              .numeral(32)
+                                              .copyWith(color: theme.onPrimary),
                                           overflow: TextOverflow.fade,
                                         ),
                                       ),

@@ -398,11 +398,107 @@ class FFHomeMaterials {
   Color get historyAccent => const Color(0xFFD7AEFF);
 }
 
+/// Type roles shared by the member pass, predictions and subscription offer.
+class FFVipTypography {
+  const FFVipTypography(this.theme);
+  final FlutterFlowTheme theme;
+
+  TextStyle heading(double size) => theme.headlineSmall.copyWith(
+        fontSize: size,
+        fontWeight: const FontWeight(730),
+        fontVariations: [FontVariation.opticalSize(size)],
+        letterSpacing: -size * .018,
+        height: 1.12,
+      );
+
+  // The font's width axis narrows each figure without changing its height.
+  // Tabular advances keep leading zeroes and equal-length selections aligned.
+  TextStyle numeral(double size) => theme.displaySmall.copyWith(
+        fontSize: size,
+        fontWeight: const FontWeight(740),
+        fontVariations: [
+          const FontVariation.width(78),
+          FontVariation.opticalSize(size),
+        ],
+        fontFeatures: const [FontFeature.tabularFigures()],
+        letterSpacing: 0,
+        height: 1.12,
+      );
+
+  TextStyle pairSeparator(TextStyle numeral) =>
+      numeral.copyWith(fontWeight: FontWeight.w400, letterSpacing: .4);
+
+  TextStyle category({required bool compact}) {
+    final size = compact ? 15.0 : 18.0;
+    return theme.titleSmall.copyWith(
+      fontSize: size,
+      fontWeight: const FontWeight(680),
+      fontVariations: [FontVariation.opticalSize(size)],
+      letterSpacing: .75,
+      height: 1.18,
+    );
+  }
+
+  TextStyle posterTitle({required bool compact}) {
+    final size = compact ? 18.0 : 23.0;
+    final vip = theme.designToken.vip;
+    return theme.titleSmall.copyWith(
+      color: vip.goldLight,
+      fontSize: size,
+      fontWeight: const FontWeight(850),
+      fontVariations: [
+        FontVariation.opticalSize(size),
+        const FontVariation.width(87),
+        const FontVariation.slant(-10),
+      ],
+      letterSpacing: .45,
+      height: 1.12,
+      shadows: [Shadow(color: vip.illustrationInk, offset: const Offset(0, 1))],
+    );
+  }
+
+  TextStyle get market => GoogleFonts.inter(
+        textStyle: theme.labelSmall,
+        color: theme.primaryText,
+        fontWeight: FontWeight.w600,
+        letterSpacing: .35,
+        height: 1.2,
+      );
+
+  TextStyle get supporting => GoogleFonts.inter(
+        textStyle: theme.bodyMedium,
+        fontWeight: FontWeight.w500,
+        height: 1.35,
+      );
+
+  TextStyle get action => GoogleFonts.inter(
+        textStyle: theme.labelMedium,
+        fontWeight: FontWeight.w600,
+        letterSpacing: .1,
+        height: 1.25,
+      );
+}
+
+// Lighting accents matched to the existing VIP still lifes.
+enum FFVipJewel {
+  tourmaline(Color(0xFFBC438E)),
+  aquamarine(Color(0xFF289DAD)),
+  sapphire(Color(0xFF6576D8)),
+  ruby(Color(0xFFCD476F)),
+  amethyst(Color(0xFF9B5EE0)),
+  emerald(Color(0xFF35A378)),
+  amber(Color(0xFFD98746));
+
+  const FFVipJewel(this.light);
+  final Color light;
+}
+
 // Casino materials requested for VIP. Keep this feature palette here so cards,
 // number plaques and chips share one finish without changing the base themes.
 class FFVipMaterials {
   const FFVipMaterials(this.theme);
   final FlutterFlowTheme theme;
+  FFVipTypography get typography => FFVipTypography(theme);
 
   // Established CHOLOTO VIP purple, also used by the home membership artwork.
   Color get _vipPurple => const Color(0xFF5D2A78);
@@ -416,7 +512,57 @@ class FFVipMaterials {
 
   Color get illustrationInk =>
       Color.lerp(_vipPurple, theme.primaryBackground, .80)!;
-  Color get illustrationShade => illustrationInk.withValues(alpha: .70);
+
+  Color posterGround(FFVipJewel jewel) {
+    final base = Color.lerp(
+        theme.designToken.home.vipAmethyst.colors.first, jewel.light, .35)!;
+    return Color.lerp(base, illustrationInk, .24)!;
+  }
+
+  Color posterShade(FFVipJewel jewel) =>
+      posterGround(jewel).withValues(alpha: .78);
+
+  LinearGradient posterLight(FFVipJewel jewel) {
+    final violet = theme.designToken.home.vipAmethyst.colors.first;
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color.lerp(violet, jewel.light, .46)!.withValues(alpha: .72),
+        posterGround(jewel).withValues(alpha: .42),
+        violet.withValues(alpha: 0),
+      ],
+      stops: const [0, .31, .70],
+    );
+  }
+
+  LinearGradient posterRim(FFVipJewel jewel) => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color.lerp(theme.onDecorative, jewel.light, .45)!,
+          jewel.light.withValues(alpha: .55),
+          illustrationBorder,
+          jewel.light.withValues(alpha: .70),
+          Color.lerp(goldLight, jewel.light, .42)!,
+        ],
+        stops: const [0, .18, .48, .76, 1],
+      );
+
+  LinearGradient titleRibbon(FFVipJewel jewel) {
+    final amethyst = theme.designToken.home.vipAmethyst.colors;
+    return LinearGradient(
+      begin: const Alignment(-.4, -1),
+      end: const Alignment(.4, 1),
+      colors: [
+        Color.lerp(amethyst.first, illustrationInk, .16)!,
+        Color.lerp(amethyst[1], jewel.light, .18)!,
+        Color.lerp(amethyst[2], jewel.light, .15)!,
+        Color.lerp(amethyst.first, illustrationInk, .25)!,
+      ],
+      stops: const [0, .42, .60, 1],
+    );
+  }
 
   /// The engraved member pass and offer share the home amethyst texture.
   BoxDecoration get pass {

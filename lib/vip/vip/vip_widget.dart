@@ -386,13 +386,15 @@ class _VipStatus extends StatelessWidget {
               color: tokens.home.mutedText),
           SizedBox(height: tokens.spacing.sm),
           Text(message!,
-              style: theme.bodyMedium.copyWith(color: tokens.home.mutedText),
+              style: tokens.vip.typography.supporting
+                  .copyWith(color: tokens.home.mutedText),
               textAlign: TextAlign.center),
           if (onRetry != null)
             TextButton(
               key: const ValueKey('vip-prediction-retry'),
               onPressed: onRetry,
               style: TextButton.styleFrom(
+                  textStyle: tokens.vip.typography.action,
                   foregroundColor: tokens.home.amethystGlow,
                   minimumSize: const Size.square(kMinInteractiveDimension)),
               child: Text(strings.getText('viphstrty')),

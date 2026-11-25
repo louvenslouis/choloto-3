@@ -83,6 +83,41 @@ void main() {
         }
       }
     });
+    test('VIP numbers and titles use distinct settings of the bundled face',
+        () {
+      final theme = DarkModeTheme();
+      final type = theme.designToken.vip.typography;
+      for (final size in [25.0, 32.0, 46.0, 60.0]) {
+        final value = type.numeral(size);
+        expect(value.fontFamily, theme.displaySmallFamily);
+        expect(
+            value.fontFeatures, contains(const FontFeature.tabularFigures()));
+        expect(value.fontVariations, contains(FontVariation.opticalSize(size)));
+        expect(value.fontVariations, contains(const FontVariation.width(78)));
+        final separator = type.pairSeparator(value);
+        expect(separator.fontWeight!.value, lessThan(value.fontWeight!.value));
+        expect(separator.fontSize, value.fontSize);
+      }
+      final name = type.heading(36);
+      expect(name.fontFamily, theme.displaySmallFamily);
+      expect(name.fontVariations!.any((axis) => axis.axis == 'wdth'), isFalse);
+      expect(type.category(compact: true).letterSpacing, greaterThan(0));
+      for (final compact in [true, false]) {
+        final poster = type.posterTitle(compact: compact);
+        expect(poster.fontFamily, theme.titleSmallFamily);
+        expect(poster.fontWeight!.value,
+            greaterThan(type.numeral(32).fontWeight!.value));
+        expect(poster.fontVariations, contains(const FontVariation.slant(-10)));
+        expect(poster.fontVariations, contains(const FontVariation.width(87)));
+        for (final jewel in FFVipJewel.values) {
+          for (final surface
+              in theme.designToken.vip.titleRibbon(jewel).colors) {
+            expect(contrast(poster.color!, surface), greaterThanOrEqualTo(4.5),
+                reason: jewel.name);
+          }
+        }
+      }
+    });
     test('engraved VIP pass and poster text keep their contrast', () {
       final theme = DarkModeTheme();
       final vip = theme.designToken.vip;
@@ -91,10 +126,13 @@ void main() {
             greaterThanOrEqualTo(4.5));
         expect(contrast(vip.goldLight, background), greaterThanOrEqualTo(4.5));
       }
-      final brightestTextArea =
-          Color.alphaBlend(vip.illustrationShade, theme.onDecorative);
-      expect(contrast(theme.primaryText, brightestTextArea),
-          greaterThanOrEqualTo(4.5));
+      for (final jewel in FFVipJewel.values) {
+        final brightestTextArea =
+            Color.alphaBlend(vip.posterShade(jewel), theme.onDecorative);
+        expect(contrast(theme.primaryText, brightestTextArea),
+            greaterThanOrEqualTo(4.5),
+            reason: jewel.name);
+      }
     });
     test('amethyst VIP actions and card icons remain legible', () {
       final theme = DarkModeTheme();

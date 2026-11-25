@@ -80,10 +80,9 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
         ),
         title: Text(
           FFLocalizations.of(context).getText('viphstttl'),
-          style: theme.headlineMedium.override(
-            color: theme.onDecorative,
-            fontSize: 22.0,
-          ),
+          style: theme.designToken.vip.typography.heading(22).copyWith(
+                color: theme.onDecorative,
+              ),
         ),
         actions: [
           Padding(
@@ -290,16 +289,14 @@ class _VipDateSelector extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: theme.titleMedium.override(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: theme.designToken.vip.typography.heading(18),
                 ),
                 SizedBox(height: theme.designToken.spacing.xs),
                 Text(
                   '$position / $dateCount',
-                  style: theme.labelSmall.override(
+                  style: theme.designToken.vip.typography.supporting.copyWith(
                     color: theme.secondaryText,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -465,7 +462,7 @@ class _VipHistoryLoading extends StatelessWidget {
             Text(
               FFLocalizations.of(context).getText('viphstlod'),
               textAlign: TextAlign.center,
-              style: theme.bodyMedium,
+              style: theme.designToken.vip.typography.supporting,
             ),
           ],
         ),
@@ -557,13 +554,14 @@ class _VipHistoryMessage extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: theme.titleMedium.override(fontWeight: FontWeight.w700),
+                style: theme.designToken.vip.typography.heading(18),
               ),
               SizedBox(height: theme.designToken.spacing.sm),
               Text(
                 description,
                 textAlign: TextAlign.center,
-                style: theme.bodyMedium.override(color: theme.secondaryText),
+                style: theme.designToken.vip.typography.supporting
+                    .copyWith(color: theme.secondaryText),
               ),
               SizedBox(height: theme.designToken.spacing.lg),
               FilledButton.icon(
@@ -571,9 +569,9 @@ class _VipHistoryMessage extends StatelessWidget {
                 icon: Icon(buttonIcon, color: theme.onPrimary, size: 20.0),
                 label: Text(
                   buttonText,
-                  style: theme.labelLarge.override(
+                  style: theme.designToken.vip.typography.action.copyWith(
                     color: theme.onPrimary,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
                   ),
                 ),
                 style: FilledButton.styleFrom(

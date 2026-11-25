@@ -85,6 +85,7 @@ class _MonthlyOffer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
+    final typography = tokens.vip.typography;
     final spacing = tokens.spacing;
     final strings = FFLocalizations.of(context);
     final accent = tokens.home.amethystGlow;
@@ -96,8 +97,7 @@ class _MonthlyOffer extends StatelessWidget {
     final calendar =
         Icon(Icons.calendar_month_rounded, size: 22, color: theme.onPrimary);
     final duration = Text(strings.getText('bl4kupme'),
-        style: theme.labelMedium
-            .override(color: theme.onPrimary, fontWeight: FontWeight.w700));
+        style: typography.supporting.copyWith(color: theme.onPrimary));
     final stamp = DecoratedBox(
       decoration: BoxDecoration(
         gradient: tokens.home.membership,
@@ -118,12 +118,7 @@ class _MonthlyOffer extends StatelessWidget {
     );
     final price = Text(
       strings.getText('r11k1q8q'),
-      style: theme.headlineMedium.override(
-        color: theme.primaryText,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -.6,
-        lineHeight: 1.08,
-      ),
+      style: typography.numeral(28).copyWith(color: theme.primaryText),
     );
 
     return ClipPath(
@@ -177,9 +172,9 @@ class _MonthlyOffer extends StatelessWidget {
                           padding: EdgeInsets.symmetric(horizontal: spacing.sm),
                           elevation: 0,
                           borderRadius: BorderRadius.circular(tokens.radius.sm),
-                          textStyle: theme.titleMedium.override(
+                          textStyle: typography.action.copyWith(
                             color: theme.onPrimary,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
                           ),
                         ),
                       ),
@@ -281,10 +276,9 @@ class _PlanComparison extends StatelessWidget {
     final strings = FFLocalizations.of(context);
     final freeLabel = strings.getText('juufc32a');
     final vipLabel = strings.getText('zpnlwhem');
-    final labelStyle = theme.labelMedium.override(
-      color: tokens.home.mutedText,
-      fontWeight: FontWeight.w600,
-    );
+    final typography = tokens.vip.typography;
+    final labelStyle =
+        typography.supporting.copyWith(color: tokens.home.mutedText);
     final freeColumn = EdgeInsets.symmetric(horizontal: spacing.sm);
     return Table(
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -304,8 +298,9 @@ class _PlanComparison extends StatelessWidget {
             child: Semantics(
               header: true,
               child: Text(strings.getText('99kfebqb'),
-                  style:
-                      theme.titleMedium.override(fontWeight: FontWeight.w700)),
+                  style: typography
+                      .heading(18)
+                      .copyWith(color: theme.primaryText)),
             ),
           ),
           Padding(
@@ -331,7 +326,7 @@ class _PlanComparison extends StatelessWidget {
               padding: EdgeInsetsDirectional.fromSTEB(
                   0, spacing.sm, spacing.sm, spacing.sm),
               child: Text(strings.getText(labelKey),
-                  style: theme.bodyMedium.override(color: theme.primaryText)),
+                  style: theme.bodyMedium.copyWith(color: theme.primaryText)),
             ),
             Padding(
               padding: freeColumn,

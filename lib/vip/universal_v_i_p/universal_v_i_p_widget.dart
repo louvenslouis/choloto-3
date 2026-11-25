@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'universal_v_i_p_model.dart';
 export 'universal_v_i_p_model.dart';
@@ -103,6 +102,10 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
+    final numberStyle = tokens.vip.typography
+        .numeral(32)
+        .copyWith(color: tokens.vip.numberText, height: 1);
+    final marketStyle = tokens.vip.typography.market;
 
     return VipCasinoCard(
       child: Container(
@@ -128,14 +131,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                           widget!.name,
                           'null',
                         ),
-                        style: theme.titleSmall.override(
-                          color: theme.primaryText,
-                          fontSize: 15.0,
-                          letterSpacing: 0.4,
-                          fontWeight: FontWeight.w700,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
+                        style: tokens.vip.typography.category(compact: true),
                       ),
                     ),
                   ),
@@ -196,42 +192,13 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                             children: [
                                               if (chiffressItem != null &&
                                                   chiffressItem != '')
-                                                Align(
-                                                  alignment:
-                                                      AlignmentDirectional(
-                                                          0.0, 0.0),
+                                                Flexible(
                                                   child: AutoSizeText(
                                                     chiffressItem,
                                                     textAlign: TextAlign.center,
                                                     maxLines: 1,
                                                     minFontSize: 25.0,
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .raleway(
-                                                            fontWeight:
-                                                                FontWeight.w900,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: tokens
-                                                              .vip.numberText,
-                                                          fontSize: 32.0,
-                                                          lineHeight: 1.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w900,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                    style: numberStyle,
                                                     overflow: TextOverflow.fade,
                                                   ),
                                                 ),
@@ -281,23 +248,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                               .getText(
                                                             'xm4yj0vd' /* FLO-NY */,
                                                           ),
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                color: theme
-                                                                    .primaryText,
-                                                                fontSize: 11.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
+                                                          style: marketStyle,
                                                         ),
                                                       ),
                                                     ],
@@ -322,42 +273,13 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                             children: [
                                               if (chiffressItem != null &&
                                                   chiffressItem != '')
-                                                Align(
-                                                  alignment:
-                                                      AlignmentDirectional(
-                                                          0.0, 0.0),
+                                                Flexible(
                                                   child: AutoSizeText(
                                                     chiffressItem,
                                                     textAlign: TextAlign.center,
                                                     maxLines: 1,
                                                     minFontSize: 25.0,
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .raleway(
-                                                            fontWeight:
-                                                                FontWeight.w900,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: tokens
-                                                              .vip.numberText,
-                                                          fontSize: 32.0,
-                                                          lineHeight: 1.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w900,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                    style: numberStyle,
                                                     overflow: TextOverflow.fade,
                                                   ),
                                                 ),
@@ -385,22 +307,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                                         return '-';
                                                       }
                                                     }(),
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          color:
-                                                              theme.primaryText,
-                                                          fontSize: 11.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                    style: marketStyle,
                                                   ),
                                                 ),
                                               ),
@@ -423,31 +330,7 @@ class _UniversalVIPWidgetState extends State<UniversalVIPWidget>
                                               textAlign: TextAlign.center,
                                               maxLines: 1,
                                               minFontSize: 25.0,
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    font: GoogleFonts.raleway(
-                                                      fontWeight:
-                                                          FontWeight.w900,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
-                                                    color:
-                                                        tokens.vip.numberText,
-                                                    fontSize: 32.0,
-                                                    lineHeight: 1.0,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.w900,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontStyle,
-                                                  ),
+                                              style: numberStyle,
                                               overflow: TextOverflow.fade,
                                             ),
                                           ),

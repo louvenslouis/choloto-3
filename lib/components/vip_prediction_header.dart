@@ -28,11 +28,7 @@ class VipPredictionHeader extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: theme.bodyMedium.override(
-                  color: theme.primaryText,
-                  fontWeight: FontWeight.w500,
-                  lineHeight: 1.35,
-                ),
+                style: tokens.vip.typography.supporting,
               ),
             ),
             if (percentage != null) ...[
@@ -48,10 +44,9 @@ class VipPredictionHeader extends StatelessWidget {
                       SizedBox(width: tokens.spacing.xs),
                       Text(
                         percentage!,
-                        style: theme.titleMedium.override(
-                          color: tokens.vip.numberText,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: tokens.vip.typography.numeral(18).copyWith(
+                              color: tokens.vip.numberText,
+                            ),
                       ),
                     ],
                   ),

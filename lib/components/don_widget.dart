@@ -51,7 +51,7 @@ class DonWidget extends StatelessWidget {
               ),
               Text(
                 FFLocalizations.of(context).getText('don_moncash_title'),
-                style: theme.headlineMedium,
+                style: tokens.vip.typography.heading(28),
               ),
               Text(
                 FFLocalizations.of(context).getText('don_moncash_instruction'),
@@ -82,10 +82,9 @@ class DonWidget extends StatelessWidget {
                           SizedBox(height: tokens.spacing.xs),
                           Text(
                             _moncashNumber,
-                            style: theme.titleLarge.override(
-                              color: tokens.home.amethystGlow,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: tokens.vip.typography
+                                .numeral(22)
+                                .copyWith(color: tokens.home.amethystGlow),
                           ),
                         ],
                       ),
