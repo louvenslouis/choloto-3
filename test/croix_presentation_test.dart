@@ -12,6 +12,7 @@ import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core_platform_interface/test.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -150,6 +151,8 @@ void _viewport(WidgetTester tester, Size size, Brightness system) {
 }
 
 Finder _slot(int index) => find.byKey(ValueKey('croix-slot-$index'));
+final _waveTrigger = find.byKey(const ValueKey('croix-wave-trigger'));
+final _waveRing = find.byKey(const ValueKey('croix-wave-ring'));
 
 void _expectFooter(image.Image jpeg, int top, double scale) {
   final background = jpeg.getPixel(2, (top + jpeg.height) ~/ 2);
@@ -265,9 +268,9 @@ Future<void> _export(WidgetTester tester, GlobalKey key, String name) async {
     final picture = await boundary.toImage();
     try {
       final bytes = await picture.toByteData(format: ui.ImageByteFormat.png);
-      await Directory(_output).create(recursive: true);
-      await File('$_output/$name.png')
-          .writeAsBytes(Uint8List.sublistView(bytes!));
+      final file = File('$_output/$name.png');
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(Uint8List.sublistView(bytes!));
     } finally {
       picture.dispose();
     }
@@ -307,6 +310,121 @@ void main() {
   });
 
   final published = _record(_numbers, date: DateTime(2026, 11, 25));
+  testWidgets(
+      'The wave reaches adjacent values before the corners, settles and replays',
+      (tester) async {
+    _viewport(tester, const Size(390, 844), Brightness.dark);
+    final key = GlobalKey();
+    await tester
+        .pumpWidget(_screen(Stream.value([published]), captureKey: key));
+    await tester.pumpAndSettle();
+    final context = tester.element(_waveTrigger);
+    await tester.runAsync(() => Future.wait([
+          precacheImage(const AssetImage(CrossWidget.artworkAsset), context),
+          precacheImage(const AssetImage(CrossWidget.textureAsset), context),
+        ]));
+    await tester.pumpAndSettle();
+    final origin = tester.getCenter(_waveTrigger);
+    const adjacent = [1, 3, 5, 7];
+    const corners = [0, 2, 6, 8];
+    Offset position(int slot) => tester.getCenter(find.text(_numbers[slot]));
+    final rest = {
+      for (final slot in [...adjacent, ...corners]) slot: position(slot)
+    };
+    void expectAtRest(Iterable<int> slots) {
+      for (final slot in slots) {
+        expect((position(slot) - rest[slot]!).distance, lessThan(.1));
+      }
+    }
+
+    void expectPushed(Iterable<int> slots) {
+      for (final slot in slots) {
+        expect((position(slot) - origin).distance,
+            greaterThan((rest[slot]! - origin).distance + .75),
+            reason: 'Published value ${_numbers[slot]} moves away from the X');
+      }
+    }
+
+    expect(_waveRing, findsNothing);
+    if (_output.isNotEmpty) await _export(tester, key, 'frames/000');
+    await tester.tap(_waveTrigger);
+    await tester.pump();
+    var elapsed = 0;
+    final timings = {
+      120,
+      230,
+      400,
+      860,
+      if (_output.isNotEmpty)
+        for (var t = 40; t <= 840; t += 40) t,
+    }.toList()
+      ..sort();
+    for (final t in timings) {
+      await tester.pump(Duration(milliseconds: t - elapsed));
+      elapsed = t;
+      if (t == 120) {
+        expect(_waveRing, findsOneWidget);
+        expectAtRest(rest.keys);
+      } else if (t == 230) {
+        expectPushed(adjacent);
+        expectAtRest(corners);
+      } else if (t == 400) {
+        expectPushed(corners);
+      }
+      if (_output.isNotEmpty) {
+        await _export(tester, key, 'frames/${t.toString().padLeft(3, '0')}');
+      }
+    }
+    expectAtRest(rest.keys);
+    expect(tester.getCenter(_waveTrigger), origin);
+    await tester.tap(_waveTrigger);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 230));
+    expectPushed(adjacent);
+    await tester.tap(_waveTrigger);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(_waveRing, findsOneWidget);
+    expectAtRest(rest.keys);
+    await tester.pump(const Duration(milliseconds: 110));
+    expectPushed(adjacent);
+    await tester.pumpAndSettle();
+    expect(_waveRing, findsNothing);
+    expectAtRest(rest.keys);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'An incomplete board keeps its empty slots, and respects reduced motion',
+      (tester) async {
+    _viewport(tester, const Size(390, 844), Brightness.dark);
+    final sparse = _record(['', '14', ' ', '', 'HIDDEN', '45']);
+    await tester.pumpWidget(_screen(Stream.value([sparse])));
+    await tester.pumpAndSettle();
+    final first = find.text('14');
+    final idle = tester.getCenter(first);
+    await tester.tap(_waveTrigger);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 230));
+    expect((tester.getCenter(first) - idle).distance, greaterThan(.75));
+    for (final i in [0, 2, 3, 6, 7, 8]) {
+      expect(find.descendant(of: _slot(i), matching: find.byType(Text)),
+          findsNothing);
+    }
+    expect(find.text('HIDDEN'), findsNothing);
+    await tester.pumpAndSettle();
+    final dispatcher = tester.binding.platformDispatcher;
+    dispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(dispatcher.clearAccessibilityFeaturesTestValue);
+    await tester.pump();
+    await tester.tap(_waveTrigger);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 230));
+    expect(_waveRing, findsNothing);
+    expect(tester.getCenter(first), idle);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('Back exits direct and pushed visits to Croix', (tester) async {
     final router = GoRouter(initialLocation: '/croix', routes: [
       GoRoute(path: '/', builder: (_, __) => const SizedBox(key: Key('home'))),
@@ -369,6 +487,13 @@ void main() {
           }[language]!;
           final dateLabel =
               find.descendant(of: board, matching: find.text(date));
+          expect(
+              find.bySemanticsLabel({
+                'fr': 'Animer la croix',
+                'en': 'Animate the cross',
+                'cr': 'Anime kwa a',
+              }[language]!),
+              findsOneWidget);
           final shareLabel = find.text({
             'fr': 'Partager le visuel',
             'en': 'Share image',
@@ -531,7 +656,7 @@ void main() {
       }
       // Real rasterization completes outside the widget test's fake clock.
       for (var attempt = 0;
-          attempt < 40 && sheet.captures.length == previousCount;
+          attempt < 90 && sheet.captures.length == previousCount;
           attempt++) {
         await tester.runAsync(
             () => Future<void>.delayed(const Duration(milliseconds: 12)));
@@ -548,7 +673,15 @@ void main() {
       expect(sheet.origin!.isEmpty, isFalse);
     }
 
+    final number = find.text('14');
+    final restingPosition = tester.getCenter(number);
+    await tester.tap(_waveTrigger);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 230));
+    expect((tester.getCenter(number) - restingPosition).distance,
+        greaterThan(.75));
     await share(0);
+    expect(tester.getCenter(number), restingPosition);
     _expectSharedPoster(tester, sheet.captures.single);
     if (_output.isNotEmpty) {
       await tester.runAsync(() async {
@@ -557,16 +690,26 @@ void main() {
             .writeAsBytes(sheet.captures.single);
       });
     }
-    tester.view.physicalSize = const Size(320, 640);
+    // Withdraw and republish the same values to take an independent, idle
+    // capture at the original size. The cold share must be identical to it.
+    records.add([]);
+    await tester.pumpAndSettle();
+    records.add([published]);
     await tester.pumpAndSettle();
     await share(1);
-    expect(sheet.captures[0], isNot(orderedEquals(sheet.captures[1])));
+    expect(listEquals(sheet.captures[0], sheet.captures[1]), isTrue,
+        reason: 'Sharing during the wave must deliver the unanimated poster');
+
+    tester.view.physicalSize = const Size(320, 640);
+    await tester.pumpAndSettle();
+    await share(2);
+    expect(sheet.captures[1], isNot(orderedEquals(sheet.captures[2])));
     records.add([
       _record(['99', ..._numbers.skip(1)], date: published.date)
     ]);
     await tester.pumpAndSettle();
-    await share(2);
-    expect(sheet.captures[2], isNot(orderedEquals(sheet.captures[1])));
+    await share(3);
+    expect(sheet.captures[3], isNot(orderedEquals(sheet.captures[2])));
     expect(tester.takeException(), isNull);
   });
 }

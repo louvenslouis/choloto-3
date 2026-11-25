@@ -326,6 +326,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Kwa a pa disponib.',
       'en': 'The cross is unavailable.',
     },
+    'croix_wave_action': {
+      'fr': 'Animer la croix',
+      'cr': 'Anime kwa a',
+      'en': 'Animate the cross',
+    },
     'croix_share_image': {
       'fr': 'Partager le visuel',
       'cr': 'Pataje imaj la',

@@ -67,7 +67,7 @@ L’offre mensuelle prend la forme d’un billet améthyste avec des encoches et
 
 ## Page Croix de la chance
 
-Le fond de l’affiche reprend le jaune CHOLOTO et le grain du métal brossé. Le titre et la date complète sont imprimés en noir, dans l’axe du X doré de l’accueil. Les huit nombres blancs se lisent sur des médaillons anthracite. Chacun conserve sa place autour du X, même lorsqu’une case est vide. Le bouton jaune « Partager le visuel » exporte l’affiche en JPEG. Une bande sombre au bas de l’image partagée porte la signature « app.choloto.com ». [Affiche de la Croix](../lib/components/cross_widget.dart) · [Matière de la carte](../lib/components/cross_poster_surface.dart)
+Le fond de l’affiche reprend le jaune CHOLOTO et le grain du métal brossé. Le titre et la date complète sont imprimés en noir, dans l’axe du X doré de l’accueil. Les huit nombres blancs se lisent sur des médaillons anthracite. Toucher le X lance une onde qui secoue brièvement chaque médaillon à son passage. Les cases vides gardent leur place. L’affiche reste immobile lorsque la réduction des animations est activée et dans le JPEG partagé. Le bouton jaune « Partager le visuel » exporte l’affiche en JPEG. Une bande sombre au bas de l’image partagée porte la signature « app.choloto.com ». [Affiche de la Croix](../lib/components/cross_widget.dart) · [Matière de la carte](../lib/components/cross_poster_surface.dart)
 
 ## Page Tchala
 

@@ -27,7 +27,10 @@ class CroixWidget extends StatefulWidget {
 
 class _CroixWidgetState extends State<CroixWidget> {
   final _crossCaptureKey = GlobalKey();
+  final _crossKey = GlobalKey<CrossWidgetState>();
   late Stream<List<CroixRecord>> _records;
+  ModalRoute<dynamic>? _route;
+  int _visit = 0;
   bool _isSharing = false;
   Completer<void>? _preparation;
   int _subscription = 0;
@@ -51,6 +54,18 @@ class _CroixWidgetState extends State<CroixWidget> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _route = ModalRoute.of(context);
+    if (_route?.isCurrent == false) {
+      // A pending tap belongs to this visit, even if a covering route is
+      // dismissed again before rasterization finishes.
+      _visit++;
+      _cancelPreparation();
+    }
+  }
+
+  @override
   void didUpdateWidget(CroixWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.records != oldWidget.records) _restartRecords();
@@ -68,15 +83,20 @@ class _CroixWidgetState extends State<CroixWidget> {
     super.dispose();
   }
 
+  void _cancelPreparation() {
+    _preparation?.complete();
+    _preparation = null;
+  }
+
   // Different records and layouts can arrive while an earlier JPEG is encoding.
   void _prepareWhenNeeded(Object? signature) {
     if (_currentVisualSignature != signature) {
       _currentVisualSignature = signature;
       _preparedJpegBytes = null;
-      _preparation?.complete();
-      _preparation = null;
+      _cancelPreparation();
     }
     if (signature == null ||
+        _route?.isCurrent == false ||
         _preparation != null ||
         _preparedJpegBytes != null) {
       return;
@@ -93,19 +113,33 @@ class _CroixWidgetState extends State<CroixWidget> {
 
   Future<void> _prepareCroixVisual(Completer<void> preparation) async {
     try {
-      await Future.wait([
-        precacheImage(const AssetImage(CrossWidget.artworkAsset), context),
-        precacheImage(const AssetImage(CrossWidget.textureAsset), context),
+      await Future.any<void>([
+        preparation.future,
+        Future.wait([
+          precacheImage(const AssetImage(CrossWidget.artworkAsset), context),
+          precacheImage(const AssetImage(CrossWidget.textureAsset), context),
+        ]),
       ]);
-      if (_preparation != preparation) return;
+      while (mounted && _preparation == preparation) {
+        final cross = _crossKey.currentState;
+        if (cross == null || _route?.isCurrent == false) return;
+        if (cross.waveIsAnimating) {
+          await Future.any([cross.waveSettled, preparation.future]);
+          if (_preparation != preparation) return;
+        }
 
-      final nextFrame = Completer<void>();
-      WidgetsBinding.instance.addPostFrameCallback((_) => nextFrame.complete());
-      WidgetsBinding.instance.scheduleFrame();
-      await nextFrame.future;
-      if (_preparation != preparation) return;
-      final bytes = await _captureCroixJpeg();
-      if (_preparation == preparation) _preparedJpegBytes = bytes;
+        // The controller can settle before the resting frame reaches the layer.
+        final binding = WidgetsBinding.instance;
+        final painted = binding.endOfFrame;
+        binding.scheduleFrame();
+        await Future.any([painted, preparation.future]);
+        if (_preparation != preparation || _route?.isCurrent == false) return;
+        if (_crossKey.currentState != cross || cross.waveIsAnimating) continue;
+
+        final bytes = await _captureCroixJpeg();
+        if (_preparation == preparation) _preparedJpegBytes = bytes;
+        return;
+      }
     } catch (error, stackTrace) {
       debugPrint('Croix preparation failed: $error\n$stackTrace');
     } finally {
@@ -181,13 +215,18 @@ class _CroixWidgetState extends State<CroixWidget> {
   }
 
   Future<void> _shareCroix(BuildContext shareContext) async {
-    if (_isSharing || _currentVisualSignature == null) return;
+    if (_isSharing ||
+        _route?.isCurrent == false ||
+        _currentVisualSignature == null) {
+      return;
+    }
     _isSharing = true;
-    final route = ModalRoute.of(shareContext);
+    final visit = _visit;
     bool canShare() =>
         mounted &&
         shareContext.mounted &&
-        route?.isCurrent != false &&
+        _route?.isCurrent != false &&
+        _visit == visit &&
         _currentVisualSignature != null;
     try {
       logFirebaseEvent('CROIX_PAGE_share_ICN_ON_TAP');
@@ -289,7 +328,8 @@ class _CroixWidgetState extends State<CroixWidget> {
             ));
             return RepaintBoundary(
               key: _crossCaptureKey,
-              child: CrossWidget(numbers: record.numeros, date: record.date),
+              child: CrossWidget(
+                  key: _crossKey, numbers: record.numeros, date: record.date),
             );
           });
         }

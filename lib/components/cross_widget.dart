@@ -1,14 +1,19 @@
+import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/internationalization.dart';
 import 'cross_poster_heading.dart';
 import 'cross_poster_surface.dart';
 
 export 'cross_model.dart';
 
-class CrossWidget extends StatelessWidget {
+part 'cross_wave.dart';
+
+class CrossWidget extends StatefulWidget {
   const CrossWidget({super.key, this.numbers, this.date});
 
   static const artworkAsset = 'assets/images/home/lucky_cross_3d_x.png';
@@ -17,13 +22,129 @@ class CrossWidget extends StatelessWidget {
   final List<String>? numbers;
   final DateTime? date;
 
+  @override
+  State<CrossWidget> createState() => CrossWidgetState();
+}
+
+class CrossWidgetState extends State<CrossWidget>
+    with SingleTickerProviderStateMixin {
+  final _gridKey = GlobalKey();
+  final _rowKeys = List.generate(3, (_) => GlobalKey());
+  late final AnimationController _controller;
+  _CrossWave? _wave;
+  Completer<void>? _settled;
+
+  bool get waveIsAnimating => _wave != null;
+  Future<void> get waveSettled => _settled?.future ?? Future<void>.value();
+  bool get _motionEnabled =>
+      !MediaQuery.disableAnimationsOf(context) &&
+      TickerMode.valuesOf(context).enabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 820),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) setState(_clearWave);
+      });
+  }
+
+  void _clearWave() {
+    _wave = null;
+    _settled?.complete();
+    _settled = null;
+  }
+
+  void _stopWave() {
+    if (_wave == null) return;
+    _controller.stop();
+    _clearWave();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_motionEnabled) _stopWave();
+  }
+
+  @override
+  void didUpdateWidget(CrossWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_wave != null &&
+        (oldWidget.date != widget.date ||
+            !listEquals(oldWidget.numbers, widget.numbers))) {
+      _stopWave();
+    }
+  }
+
+  @override
+  void dispose() {
+    _stopWave();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _triggerWave() {
+    if (!_motionEnabled) return;
+    final grid = _gridKey.currentContext!.findRenderObject()! as RenderBox;
+    final cellWidth = grid.size.width / 3;
+    final centers = <Offset>[];
+    // A long value can wrap and change its row's height.
+    for (final key in _rowKeys) {
+      final row = key.currentContext!.findRenderObject()! as RenderBox;
+      final y =
+          row.localToGlobal(Offset(0, row.size.height / 2), ancestor: grid).dy;
+      for (var column = 0; column < 3; column++) {
+        centers.add(Offset((column + .5) * cellWidth, y));
+      }
+    }
+    setState(() {
+      _wave = _CrossWave(centers, cellWidth * .42);
+      _settled ??= Completer<void>();
+    });
+    _controller.forward(from: 0);
+  }
+
   Widget? _slot(int index, double cellWidth) {
-    if (index == 4) return _CrossEmblem(size: cellWidth * .9);
-    final entries = numbers;
+    if (index == 4) {
+      final theme = FlutterFlowTheme.of(context);
+      return Semantics(
+        button: true,
+        label: FFLocalizations.of(context).getText('croix_wave_action'),
+        child: Stack(
+          children: [
+            _CrossEmblem(size: cellWidth * .9),
+            Positioned.fill(
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  key: const ValueKey('croix-wave-trigger'),
+                  onTap: _triggerWave,
+                  customBorder: const CircleBorder(),
+                  splashFactory: NoSplash.splashFactory,
+                  highlightColor: theme.onPrimary.withValues(alpha: 0),
+                  focusColor: theme.primaryText.withValues(alpha: .2),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    final entries = widget.numbers;
     if (entries == null || index >= entries.length) return null;
     final value = entries[index];
     if (value.trim().isEmpty) return null;
-    return _NumberMedallion(value: value, cellWidth: cellWidth);
+    final medallion = _NumberMedallion(value: value, cellWidth: cellWidth);
+    final wave = _wave;
+    if (wave == null) return medallion;
+    return AnimatedBuilder(
+      animation: _controller,
+      child: medallion,
+      builder: (_, child) => wave.shake(index, _controller.value, child!),
+    );
   }
 
   @override
@@ -42,35 +163,50 @@ class CrossWidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CrossPosterHeading(date: date),
+              CrossPosterHeading(date: widget.date),
               Padding(
                 padding: EdgeInsets.fromLTRB(
                     spacing.sm, spacing.sm, spacing.sm, spacing.md),
-                child: Column(
+                child: Stack(
+                  key: _gridKey,
                   children: [
-                    for (var row = 0; row < 3; row++)
-                      CustomPaint(
-                        painter: _CrossSpokes(
-                          row: row,
-                          diagonal: theme.onPrimary.withValues(alpha: .43),
-                          axis: theme.onPrimary.withValues(alpha: .21),
-                        ),
-                        child: Row(
-                          children: [
-                            for (var index = row * 3;
-                                index < row * 3 + 3;
-                                index++)
-                              Expanded(
-                                child: ConstrainedBox(
-                                  key: ValueKey('croix-slot-$index'),
-                                  constraints: BoxConstraints(
-                                      minHeight: cellWidth * .81),
-                                  child: Center(child: _slot(index, cellWidth)),
-                                ),
-                              ),
-                          ],
+                    if (_wave case final wave?)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: CustomPaint(
+                            key: const ValueKey('croix-wave-ring'),
+                            painter: _CrossWavePainter(wave, _controller,
+                                theme.onPrimary, tokens.vip.goldLight),
+                          ),
                         ),
                       ),
+                    Column(children: [
+                      for (var row = 0; row < 3; row++)
+                        CustomPaint(
+                          painter: _CrossSpokes(
+                            row: row,
+                            diagonal: theme.onPrimary.withValues(alpha: .43),
+                            axis: theme.onPrimary.withValues(alpha: .21),
+                          ),
+                          child: Row(
+                            key: _rowKeys[row],
+                            children: [
+                              for (var index = row * 3;
+                                  index < row * 3 + 3;
+                                  index++)
+                                Expanded(
+                                  child: ConstrainedBox(
+                                    key: ValueKey('croix-slot-$index'),
+                                    constraints: BoxConstraints(
+                                        minHeight: cellWidth * .81),
+                                    child:
+                                        Center(child: _slot(index, cellWidth)),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                    ]),
                   ],
                 ),
               ),
