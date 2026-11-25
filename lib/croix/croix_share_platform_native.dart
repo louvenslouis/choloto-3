@@ -8,7 +8,9 @@ Future<bool> deliverPreparedCroixJpeg(
   required String fileName,
   required String subject,
   Rect? sharePositionOrigin,
+  bool Function()? isCurrent,
 }) async {
+  if (isCurrent?.call() == false) return false;
   await Share.shareXFiles(
     [
       XFile.fromData(

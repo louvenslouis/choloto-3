@@ -1,6 +1,8 @@
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/main.dart';
+import 'package:choloto/autres/home/home_widget.dart';
+import 'package:choloto/services/push_notification_service.dart';
 import 'package:choloto/auth/base_auth_user_provider.dart';
 import 'package:choloto/flutter_flow/nav/nav.dart';
 import 'package:choloto/tchala/tchala_data_repository.dart';
@@ -122,6 +124,28 @@ void main() {
     expect(pages.last, isA<TchalaWidget>());
     expect(find.byKey(const ValueKey('home-desktop-navigation')), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'a visitor following a Bingo push gets the Home tab with that story',
+      (tester) async {
+    final notifier = AppStateNotifier.createForTesting()
+      ..user = _Visitor()
+      ..stopShowingSplashImage();
+    final router = createRouter(notifier);
+    addTearDown(router.dispose);
+    final link = webPushRoute({'type': 'new_bingo', 'bingoId': 'tirage & 1'},
+        signedInUid: null)!;
+    final matches = router.configuration.findMatch(link);
+    final route = matches.last.route as GoRoute;
+    final state = router.configuration.buildTopLevelGoRouterState(matches);
+    await tester.pumpWidget(const SizedBox());
+    final context = tester.element(find.byType(SizedBox));
+    expect(await route.redirect!(context, state), isNull);
+    final page = route.pageBuilder!(context, state) as MaterialPage;
+    final shell = page.child as NavBarPage;
+    expect(shell.initialPage, 'Home');
+    expect((shell.page as HomeWidget).bingoId, 'tirage & 1');
   });
 
   testWidgets(

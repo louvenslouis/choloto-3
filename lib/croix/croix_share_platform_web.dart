@@ -1,4 +1,5 @@
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -11,42 +12,47 @@ Future<bool> deliverPreparedCroixJpeg(
   required String fileName,
   required String subject,
   Rect? sharePositionOrigin,
+  bool Function()? isCurrent,
 }) {
-  final file = web.File(
-    <JSUint8Array>[jpegBytes.toJS].toJS,
-    fileName,
-    web.FilePropertyBag(type: 'image/jpeg'),
-  );
-  final shareData = web.ShareData(
-    files: <web.File>[file].toJS,
-    title: subject,
-  );
+  if (isCurrent?.call() == false) return Future.value(false);
 
-  try {
-    if (!web.window.navigator.canShare(shareData)) {
-      downloadCroixJpeg(jpegBytes, fileName: fileName);
-      return Future.value(true);
-    }
-
-    // Calling navigator.share here, before returning a Future, preserves the
-    // transient user activation required by Chrome on Android.
-    final sharePromise = web.window.navigator.share(shareData);
-    return _completeBrowserShare(
-      sharePromise,
-      jpegBytes,
-      fileName: fileName,
-    );
-  } catch (_) {
+  bool download() {
+    if (isCurrent?.call() == false) return false;
     downloadCroixJpeg(jpegBytes, fileName: fileName);
-    return Future.value(true);
+    return true;
   }
+
+  final navigator = web.window.navigator;
+  // userActivation is optional even on browsers that implement Web Share.
+  final activation =
+      navigator.getProperty<web.UserActivation?>('userActivation'.toJS);
+  if (activation?.isActive == false) {
+    return Future.value(download());
+  }
+  try {
+    final file = web.File(
+      <JSUint8Array>[jpegBytes.toJS].toJS,
+      fileName,
+      web.FilePropertyBag(type: 'image/jpeg'),
+    );
+    final shareData = web.ShareData(
+      files: <web.File>[file].toJS,
+      title: subject,
+    );
+    if (navigator.canShare(shareData)) {
+      // Start the share sheet in the tap handler whenever the cached JPEG is ready.
+      return _completeBrowserShare(navigator.share(shareData), download);
+    }
+  } catch (_) {
+    // Browsers without the Web Share API still support a JPEG download.
+  }
+  return Future.value(download());
 }
 
 Future<bool> _completeBrowserShare(
   JSPromise<JSAny?> sharePromise,
-  Uint8List jpegBytes, {
-  required String fileName,
-}) async {
+  bool Function() download,
+) async {
   try {
     await sharePromise.toDart;
     return false;
@@ -54,10 +60,8 @@ Future<bool> _completeBrowserShare(
     if (error.name == 'AbortError') {
       return false;
     }
-    downloadCroixJpeg(jpegBytes, fileName: fileName);
-    return true;
+    return download();
   } catch (_) {
-    downloadCroixJpeg(jpegBytes, fileName: fileName);
-    return true;
+    return download();
   }
 }

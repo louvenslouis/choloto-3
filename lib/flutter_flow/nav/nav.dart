@@ -207,8 +207,19 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: HomeWidget.routeName,
           path: HomeWidget.routePath,
-          builder: (context, params) =>
-              params.isEmpty ? NavBarPage(initialPage: 'Home') : HomeWidget(),
+          builder: (context, params) {
+            final bingoId = params.state.uri.queryParameters['bingoId'];
+            if (bingoId != null) {
+              return NavBarPage(
+                key: ValueKey(('bingo', bingoId)),
+                initialPage: 'Home',
+                page: HomeWidget(inTabShell: true, bingoId: bingoId),
+              );
+            }
+            return params.isEmpty
+                ? NavBarPage(initialPage: 'Home')
+                : const HomeWidget();
+          },
         ),
         FFRoute(
           name: AccomplissementsWidget.routeName,

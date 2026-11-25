@@ -11,11 +11,13 @@ Future<bool> deliverPreparedCroixJpeg(
   required String fileName,
   required String subject,
   Rect? sharePositionOrigin,
+  bool Function()? isCurrent,
 }) {
   return platform.deliverPreparedCroixJpeg(
     jpegBytes,
     fileName: fileName,
     subject: subject,
     sharePositionOrigin: sharePositionOrigin,
+    isCurrent: isCurrent,
   );
 }

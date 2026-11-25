@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/croix/croix_page_layout.dart';
 import 'draw_ad_eligibility.dart';
 
 typedef PrepareCroixAd = VoidCallback Function(
@@ -90,45 +90,35 @@ class _CroixAdGateState extends State<CroixAdGate> {
     final token = theme.designToken;
     final strings = FFLocalizations.of(context);
     final show = _show;
-    return Scaffold(
-      backgroundColor: theme.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: theme.secondaryBackground,
-        foregroundColor: theme.primaryText,
-        leading: BackButton(onPressed: context.safePop),
-        title: Text(strings.getText('63dg2p5g'), style: theme.titleLarge),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(token.spacing.md),
-            child: show == null
-                ? CircularProgressIndicator(color: theme.primary)
-                : FFButtonWidget(
-                    showLoadingIndicator: false,
-                    options: FFButtonOptions(
-                      color: theme.primary,
-                      textStyle:
-                          theme.titleSmall.copyWith(color: theme.onPrimary),
-                      maxLines: 2,
-                      height: 48,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: token.spacing.md),
-                      borderRadius: BorderRadius.circular(token.radius.md),
-                    ),
-                    onPressed: () {
-                      if (_show == null) return;
-                      setState(() => _show = null);
-                      show();
-                    },
-                    text: strings.getVariableText(
-                      frText: 'Voir une pub pour ouvrir la Croix',
-                      enText: 'Watch an ad to open the Lucky Cross',
-                      crText: 'Gade yon piblisite pou ouvri Kwa Lachans',
-                    ),
+    return CroixPageLayout(
+      child: CroixStatusCard(
+        child: show == null
+            ? null
+            : FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.onPrimary,
+                  foregroundColor: theme.primary,
+                  minimumSize: const Size(48, 48),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: token.spacing.md, vertical: token.spacing.sm),
+                  textStyle: theme.titleSmall,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(token.radius.md)),
+                ),
+                onPressed: () {
+                  if (_show == null) return;
+                  setState(() => _show = null);
+                  show();
+                },
+                child: Text(
+                  strings.getVariableText(
+                    frText: 'Voir une pub pour ouvrir la Croix',
+                    enText: 'Watch an ad to open the Lucky Cross',
+                    crText: 'Gade yon piblisite pou ouvri Kwa Lachans',
                   ),
-          ),
-        ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
       ),
     );
   }

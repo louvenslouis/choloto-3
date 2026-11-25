@@ -150,6 +150,7 @@ String _haitianCreoleDateFormat(String format, DateTime dateTime) {
       return '$day $shortMonth $year';
     case 'MMMM y':
       return '$month $year';
+    case 'yMMMMEEEEd':
     case 'EEEE d MMMM y':
       return '$weekday $day $month $year';
     default:

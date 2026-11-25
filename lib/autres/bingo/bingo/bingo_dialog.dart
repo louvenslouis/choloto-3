@@ -11,11 +11,13 @@ import 'bingo_comment_service.dart';
 import 'bingo_public_comments_sheet.dart';
 import 'bingo_reaction_service.dart';
 import 'bingo_reaction_button.dart';
+import 'bingo_story_button.dart';
 import 'bingo_widget.dart';
 
 const bingoStatusAspectRatio = cholotoStoryAspectRatio;
 const bingoStatusMobileBreakpoint = cholotoStoryMobileBreakpoint;
 const bingoStatusDuration = Duration(seconds: 15);
+
 // Original 400x400 card, including its 4px Card margin and 10px side padding.
 const bingoCardPresentationSize = Size(428.0, 408.0);
 
@@ -985,6 +987,19 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
           ),
     );
   }
+}
+
+Future<BingoRecord?> readActiveBingoForNotification(
+    DocumentReference ref) async {
+  final snapshot = await ref.get(const GetOptions(source: Source.server));
+  if (!snapshot.exists) return null;
+  final bingo = BingoRecord.fromSnapshot(snapshot);
+  final active = isBingoActive(
+    bingoDate: bingo.date,
+    expiration: bingo.expiration,
+    now: getCurrentTimestamp,
+  );
+  return active ? bingo : null;
 }
 
 Future<T?> showBingoDialog<T>({

@@ -21,121 +21,37 @@ exports.onUserDeleted = functions
     let userRef = firestore.doc("user/" + user.uid);
   });
 
-const invalidWebPushTokenCodes = new Set([
-  "messaging/invalid-registration-token",
-  "messaging/registration-token-not-registered",
-]);
+const {createWebPushSender} = require("./web_push");
+const {createPublicationHandlers} = require("./publication_notifications");
+const {createMemberNotificationHandlers} = require("./member_notifications");
+const {createGuestBingoPush} = require("./guest_bingo_push");
 
-const predictionMessages = {
-  fr: {
-    title: "Nouvelle prédiction disponible",
-    body: "Touchez pour consulter la nouvelle prédiction VIP.",
-  },
-  en: {
-    title: "New prediction available",
-    body: "Tap to view the new VIP prediction.",
-  },
-  cr: {
-    title: "Nouvo prediksyon disponib",
-    body: "Peze pou w gade nouvo prediksyon VIP la.",
-  },
-};
+const sender = createWebPushSender({
+  firestore: admin.firestore(),
+  messaging: admin.messaging(),
+  logger: functions.logger,
+});
+const guestBingo = createGuestBingoPush({
+  messaging: admin.messaging(),
+  sendToSubscribers: sender.sendToSubscribers,
+});
+const publications = createPublicationHandlers(sender.sendToSubscribers, guestBingo.sendBingoToAll);
+const member = createMemberNotificationHandlers({send: sender.sendToUser});
+const notifications = functions.region("northamerica-northeast1")
+  .runWith({memory: "256MB", timeoutSeconds: 120}).firestore;
 
-/** Announces a new prediction to browsers registered by the web app. */
-exports.onPredictionCreated = functions
-  .region("northamerica-northeast1")
-  .runWith({memory: "256MB", timeoutSeconds: 120})
-  .firestore.document("prediction/{predictionId}")
-  .onCreate(async (_snapshot, context) => {
-    const tokenSnapshot = await admin
-      .firestore()
-      .collectionGroup("webPushTokens")
-      .get();
-    const tokenEntriesByToken = new Map();
-    tokenSnapshot.docs.forEach((document) => {
-      const token = document.get("token");
-      if (typeof token !== "string" || !token) {
-        return;
-      }
-      const existingEntry = tokenEntriesByToken.get(token);
-      const locale = predictionMessages[document.get("locale")]
-        ? document.get("locale")
-        : "fr";
-      if (existingEntry) {
-        existingEntry.documents.push(document);
-      } else {
-        tokenEntriesByToken.set(token, {
-          token,
-          locale,
-          documents: [document],
-        });
-      }
-    });
-    const tokenEntries = [...tokenEntriesByToken.values()];
+exports.registerGuestBingoPush = functions.region("northamerica-northeast1")
+  .runWith({memory: "256MB", timeoutSeconds: 30, maxInstances: 3})
+  .https.onCall(guestBingo.register);
 
-    if (tokenEntries.length === 0) {
-      functions.logger.info("Prediction push skipped: no web subscribers", {
-        predictionId: context.params.predictionId,
-      });
-      return;
-    }
-
-    let successCount = 0;
-    let failureCount = 0;
-    const invalidTokenDocuments = [];
-
-    for (const [locale, localizedMessage] of Object.entries(
-      predictionMessages,
-    )) {
-      const localizedEntries = tokenEntries.filter(
-        (entry) => entry.locale === locale,
-      );
-      for (let index = 0; index < localizedEntries.length; index += 500) {
-        const batch = localizedEntries.slice(index, index + 500);
-        const response = await admin.messaging().sendEachForMulticast({
-          tokens: batch.map((entry) => entry.token),
-          data: {
-            type: "new_prediction",
-            route: "vip",
-            predictionId: context.params.predictionId,
-            locale,
-            title: localizedMessage.title,
-            body: localizedMessage.body,
-          },
-          webpush: {
-            headers: {
-              TTL: "86400",
-              Urgency: "high",
-            },
-          },
-        });
-
-        successCount += response.successCount;
-        failureCount += response.failureCount;
-        response.responses.forEach((result, responseIndex) => {
-          if (
-            result.error &&
-            invalidWebPushTokenCodes.has(result.error.code)
-          ) {
-            invalidTokenDocuments.push(
-              ...batch[responseIndex].documents.map(
-                (document) => document.ref,
-              ),
-            );
-          }
-        });
-      }
-    }
-
-    await Promise.all(
-      invalidTokenDocuments.map((document) => document.delete()),
-    );
-
-    functions.logger.info("Prediction push sent", {
-      predictionId: context.params.predictionId,
-      subscriberCount: tokenEntries.length,
-      successCount,
-      failureCount,
-      removedInvalidTokens: invalidTokenDocuments.length,
-    });
-  });
+exports.onPredictionCreated = notifications.document("prediction/{predictionId}")
+  .onCreate(publications.onPredictionCreated);
+exports.onCroixCreated = notifications.document("croix/{croixId}")
+  .onCreate(publications.onCroixCreated);
+exports.onBingoCreated = notifications.document("bingo/{bingoId}")
+  .onCreate(publications.onBingoCreated);
+exports.onAssistantReplyCreated = notifications
+  .document("support_conversations/{userId}/messages/{messageId}")
+  .onCreate(member.onAssistantReplyCreated);
+exports.onAccountActivated = notifications.document("user/{userId}")
+  .onUpdate(member.onAccountActivated);

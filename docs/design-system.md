@@ -65,6 +65,10 @@ Favori et Soutni occupent la première rangée. Chacune aligne les marchés à g
 
 L’offre mensuelle prend la forme d’un billet améthyste avec des encoches et un cachet doré autour de la durée. Il regroupe les tarifs, le bouton « Devenir VIP » et l’assistance. Une carte saphir distincte compare les accès gratuits et VIP. [Offre mensuelle](../lib/settings/devenir_v_i_p/devenir_v_i_p_widget.dart)
 
+## Page Croix de la chance
+
+Le fond de l’affiche reprend le jaune CHOLOTO et le grain du métal brossé. Le titre et la date complète sont imprimés en noir, dans l’axe du X doré de l’accueil. Les huit nombres blancs se lisent sur des médaillons anthracite. Chacun conserve sa place autour du X, même lorsqu’une case est vide. Le bouton jaune « Partager le visuel » exporte l’affiche en JPEG. Une bande sombre au bas de l’image partagée porte la signature « app.choloto.com ». [Affiche de la Croix](../lib/components/cross_widget.dart) · [Matière de la carte](../lib/components/cross_poster_surface.dart)
+
 ## Page Tchala
 
 Le livre vert du raccourci de l’accueil identifie les symboles. Le calendrier ivoire et or identifie les saints. Les deux illustrations occupent le même bandeau saphir que sur Tirages. La sélection des onglets reprend le jaune de la navigation. Chaque symbole associe ses noms aux jetons dorés utilisés pour les résultats. Les jetons reviennent à la ligne quand l’espace manque. [Bandeau partagé](../lib/components/illustrated_page_header.dart) · [Page Tchala](../lib/tchala/tchala_widget.dart)

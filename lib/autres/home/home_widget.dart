@@ -25,9 +25,10 @@ import 'home_model.dart';
 export 'home_model.dart';
 
 class HomeWidget extends StatefulWidget {
-  const HomeWidget({super.key, this.inTabShell = false});
+  const HomeWidget({super.key, this.inTabShell = false, this.bingoId});
 
   final bool inTabShell;
+  final String? bingoId;
 
   static String routeName = 'Home';
   static String routePath = '/home';
@@ -181,13 +182,32 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   }) async {
     await _applyBingoRecords(
       records,
-      showAutomaticDialog: showAutomaticDialog,
+      showAutomaticDialog: showAutomaticDialog && widget.bingoId == null,
     );
     if (showAutomaticDialog) await _finishHomeDialogInitialization();
   }
 
   Future<void> _finishHomeDialogInitialization() async {
     if (!mounted || _homeDialogsReady) return;
+    final id = widget.bingoId;
+    if (id != null && id.trim().isNotEmpty && !id.contains('/')) {
+      try {
+        final bingo = await readActiveBingoForNotification(
+            BingoRecord.collection.doc(id));
+        if (!mounted) return;
+        if (bingo != null && ModalRoute.of(context)?.isCurrent == true) {
+          await showBingoDialog(context: context, bingos: [bingo]);
+          if (!mounted) return;
+          if (FFAppState().bingo.doc == bingo.reference) {
+            FFAppState().updateBingoStruct((current) => current..vue = true);
+            safeSetState(() {});
+          }
+        }
+      } catch (error) {
+        debugPrint('Bingo notification could not be opened: $error');
+      }
+      if (!mounted) return;
+    }
     _homeDialogsReady = true;
     await _maybeShowSubscriptionExpirationReminder();
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -92,62 +93,75 @@ class _MyAppState extends State<MyApp> {
     _router = createRouter(_appStateNotifier);
     unawaited(
       PushNotificationService.instance.initialize(
-        onOpenPrediction: () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              _router.goNamed(VipWidget.routeName);
-            }
-          });
-        },
-        onForegroundPrediction: (title, body) {
+        onOpen: _openPushNotification,
+        onForeground: (message) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final notificationContext = appNavigatorKey.currentContext;
-            if (notificationContext == null) {
+            final route = PushNotificationService.instance.routeFor(message);
+            if (!mounted || notificationContext == null || route == null) {
               return;
             }
             final localizations = FFLocalizations.of(notificationContext);
-            final localizedTitle = title.isNotEmpty
-                ? title
-                : localizations.getVariableText(
-                    frText: 'Nouvelle prédiction disponible',
-                    enText: 'New prediction available',
-                    crText: 'Nouvo prediksyon disponib',
-                  );
-            final localizedBody = body.isNotEmpty
-                ? body
-                : localizations.getVariableText(
-                    frText:
-                        'Touchez pour consulter la nouvelle prédiction VIP.',
-                    enText: 'Tap to view the new VIP prediction.',
-                    crText: 'Peze pou w gade nouvo prediksyon VIP la.',
-                  );
+            String title =
+                message.data['title'] is String ? message.data['title'] : '';
+            String body =
+                message.data['body'] is String ? message.data['body'] : '';
+            if (message.data['type'] == 'new_prediction') {
+              if (title.isEmpty) {
+                title = localizations.getVariableText(
+                  frText: 'Nouvelle prédiction disponible',
+                  enText: 'New prediction available',
+                  crText: 'Nouvo prediksyon disponib',
+                );
+              }
+              if (body.isEmpty) {
+                body = localizations.getVariableText(
+                  frText: 'Touchez pour consulter la nouvelle prédiction VIP.',
+                  enText: 'Tap to view the new VIP prediction.',
+                  crText: 'Peze pou w gade nouvo prediksyon VIP la.',
+                );
+              }
+            }
+            final content =
+                [title, body].where((text) => text.isNotEmpty).join('\n');
+            if (content.isEmpty) return;
             ScaffoldMessenger.of(notificationContext).showSnackBar(
               SnackBar(
-                content: Text('$localizedTitle\n$localizedBody'),
+                content: Text(content),
                 action: SnackBarAction(
                   label: localizations.getVariableText(
                     frText: 'Voir',
                     enText: 'View',
                     crText: 'Gade',
                   ),
-                  onPressed: () => _router.goNamed(VipWidget.routeName),
+                  onPressed: () => _openPushNotification(message),
                 ),
               ),
             );
           });
+          WidgetsBinding.instance.ensureVisualUpdate();
         },
       ),
     );
     _authenticatedUserSubscription = authenticatedUserStream.listen((_) {});
     _firebaseUserSubscription = cholotoFirebaseUserStream().listen((user) {
       _appStateNotifier.update(user);
-      if (user.loggedIn && !user.isAnonymous) {
-        unawaited(
-          PushNotificationService.instance.syncAuthorizedSubscription(),
-        );
-      }
+      unawaited(PushNotificationService.instance.syncAuthorizedSubscription());
     });
     _jwtTokenSubscription = jwtTokenStream.listen((_) {});
+  }
+
+  void _openPushNotification(RemoteMessage message) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final route = PushNotificationService.instance.routeFor(message);
+      if (!mounted || route == null) return;
+      if (message.data['type'] == 'new_bingo') {
+        unawaited(_router.push<void>(route));
+      } else {
+        _router.go(route);
+      }
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   @override

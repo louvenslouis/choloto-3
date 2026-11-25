@@ -316,6 +316,25 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Kwa Lachans',
       'en': 'Lucky Cross',
     },
+    'croix_empty': {
+      'fr': 'Aucune croix publiée.',
+      'cr': 'Poko gen kwa ki pibliye.',
+      'en': 'No cross published yet.',
+    },
+    'croix_unavailable': {
+      'fr': 'La croix est indisponible.',
+      'cr': 'Kwa a pa disponib.',
+      'en': 'The cross is unavailable.',
+    },
+    'croix_share_image': {
+      'fr': 'Partager le visuel',
+      'cr': 'Pataje imaj la',
+      'en': 'Share image',
+    },
+    'croix_share_domain': {
+      for (final language in FFLocalizations.languages())
+        language: 'app.choloto.com',
+    },
     'croixsharetitle': {
       'fr': 'Partager la Croix de la Chance',
       'cr': 'Pataje Kwa Lachans',

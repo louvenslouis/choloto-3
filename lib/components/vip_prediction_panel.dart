@@ -1,10 +1,11 @@
-import 'dart:ui' as ui show Gradient, TextDirection;
+import 'dart:ui' as ui show Gradient;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
 
 import '/backend/schema/prediction_record.dart';
 import '/backend/schema/structs/predictions_struct.dart';
+import '/components/jewel_poster.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/internationalization.dart' show kTranslationsMap;
@@ -265,11 +266,6 @@ class _PredictionCard extends StatelessWidget {
     final small = width < 200 * textScaler.scale(16) / 16;
     final inset = small ? spacing.sm + spacing.xs : spacing.md;
     final contentWidth = width - 2 * inset;
-    final frame = _PosterFrame(
-      radius: tokens.radius.md,
-      bevel: spacing.md,
-      rim: tokens.vip.posterRim(category.jewel),
-    );
     final shade = tokens.vip.posterShade(category.jewel);
     var multipleSize = small ? 32.0 : 40.0;
     if (small &&
@@ -328,150 +324,57 @@ class _PredictionCard extends StatelessWidget {
 
     return SizedBox(
       width: width,
-      child: ClipPath(
-        clipper: ShapeBorderClipper(shape: frame),
-        child: DecoratedBox(
-          position: DecorationPosition.foreground,
-          decoration: ShapeDecoration(shape: frame),
-          child: Stack(
-            fit: StackFit.passthrough,
-            children: [
-              Positioned.fill(child: _PredictionArtwork(category: category)),
-              ConstrainedBox(
-                constraints: BoxConstraints(minHeight: minimumHeight),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(0, inset, inset, spacing.sm),
-                  child: MergeSemantics(
-                    child: Semantics(
-                      label: label,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(left: inset),
-                            child: _TextShade(
-                                inset: inset,
-                                ink: shade,
-                                compact: small,
-                                child: selection),
-                          ),
-                          Padding(
-                            padding:
-                                EdgeInsets.only(top: spacing.sm + spacing.xs),
-                            child: ExcludeSemantics(
-                              child: CustomPaint(
-                                painter: _TitleRibbon(
-                                  face: tokens.vip.titleRibbon(category.jewel),
-                                  trim: tokens.vip.gold,
-                                  bevel: spacing.sm + spacing.xs,
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.fromLTRB(
-                                      inset,
-                                      spacing.xs,
-                                      spacing.md + spacing.xs,
-                                      spacing.xs),
-                                  child: Text(label, style: titleStyle),
-                                ),
+      child: JewelPosterFrame(
+        rim: tokens.vip.posterRim(category.jewel),
+        child: Stack(
+          fit: StackFit.passthrough,
+          children: [
+            Positioned.fill(child: _PredictionArtwork(category: category)),
+            ConstrainedBox(
+              constraints: BoxConstraints(minHeight: minimumHeight),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, inset, inset, spacing.sm),
+                child: MergeSemantics(
+                  child: Semantics(
+                    label: label,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: inset),
+                          child: _TextShade(
+                              inset: inset,
+                              ink: shade,
+                              compact: small,
+                              child: selection),
+                        ),
+                        Padding(
+                          padding:
+                              EdgeInsets.only(top: spacing.sm + spacing.xs),
+                          child: ExcludeSemantics(
+                            child: JewelPosterRibbon(
+                              jewel: category.jewel,
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(inset, spacing.xs,
+                                    spacing.md + spacing.xs, spacing.xs),
+                                child: Text(label, style: titleStyle),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
-
-// Three rounded corners and one cut shoulder recall the bevel on the name ribbon.
-class _PosterFrame extends ShapeBorder {
-  const _PosterFrame(
-      {required this.radius, required this.bevel, required this.rim});
-  final double radius;
-  final double bevel;
-  final Gradient rim;
-
-  @override
-  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
-
-  @override
-  Path getOuterPath(Rect rect, {ui.TextDirection? textDirection}) {
-    final r = min(radius, rect.shortestSide / 2);
-    final cut = min(bevel, rect.shortestSide / 2);
-    final round = Radius.circular(r);
-    return Path()
-      ..moveTo(rect.left + r, rect.top)
-      ..lineTo(rect.right - cut, rect.top)
-      ..lineTo(rect.right, rect.top + cut)
-      ..lineTo(rect.right, rect.bottom - r)
-      ..arcToPoint(Offset(rect.right - r, rect.bottom), radius: round)
-      ..lineTo(rect.left + r, rect.bottom)
-      ..arcToPoint(Offset(rect.left, rect.bottom - r), radius: round)
-      ..lineTo(rect.left, rect.top + r)
-      ..arcToPoint(Offset(rect.left + r, rect.top), radius: round)
-      ..close();
-  }
-
-  @override
-  Path getInnerPath(Rect rect, {ui.TextDirection? textDirection}) =>
-      getOuterPath(rect.deflate(1.5));
-
-  @override
-  void paint(Canvas canvas, Rect rect, {ui.TextDirection? textDirection}) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..shader = rim.createShader(rect);
-    canvas.drawPath(getOuterPath(rect.deflate(.75)), paint);
-    // One short inner facet catches the light at the cut, clear of the values.
-    final shoulder = Path()
-      ..moveTo(rect.right - bevel * 1.65, rect.top + 4)
-      ..lineTo(rect.right - bevel - 2, rect.top + 4)
-      ..lineTo(rect.right - 4, rect.top + bevel + 2)
-      ..lineTo(rect.right - 4, rect.top + bevel * 1.65);
-    canvas.drawPath(shoulder, paint..strokeWidth = .7);
-  }
-
-  @override
-  ShapeBorder scale(double t) =>
-      _PosterFrame(radius: radius * t, bevel: bevel * t, rim: rim);
-}
-
-class _TitleRibbon extends CustomPainter {
-  const _TitleRibbon(
-      {required this.face, required this.trim, required this.bevel});
-  final Gradient face;
-  final Gradient trim;
-  final double bevel;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final bounds = Offset.zero & size;
-    // The bevel stays narrow when a translated title wraps onto several lines.
-    Path ribbon(double right, double bottom) => Path()
-      ..moveTo(0, 0)
-      ..lineTo(right, 0)
-      ..lineTo(max(0.0, right - bevel), bottom)
-      ..lineTo(0, bottom)
-      ..close();
-    final paint = Paint()..shader = trim.createShader(bounds);
-    canvas.drawPath(ribbon(size.width, size.height), paint);
-    paint.shader = face.createShader(bounds);
-    canvas.drawPath(ribbon(size.width - 2.5, size.height - 1), paint);
-  }
-
-  @override
-  bool shouldRepaint(_TitleRibbon old) =>
-      face != old.face || trim != old.trim || bevel != old.bevel;
 }
 
 // Wide market rows and tall selections share the same uncropped still life.
@@ -537,50 +440,13 @@ class _PredictionArtwork extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: tokens.vip.posterLight(category.jewel),
                 ),
-                child:
-                    CustomPaint(painter: _FoilEngraving(tokens.vip.goldLight))),
+                child: CustomPaint(
+                    painter: JewelPosterEngraving(tokens.vip.goldLight))),
           ),
         ],
       );
     });
   }
-}
-
-// A small fan of engraved lines fades out before reaching the still life.
-class _FoilEngraving extends CustomPainter {
-  const _FoilEngraving(this.foil);
-  final Color foil;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final width = size.width * .57;
-    final height = min(size.height, width);
-    final baseline = size.height - height * .24;
-    final path = Path();
-    for (var i = 0; i < 5; i++) {
-      final y = baseline - i * 3;
-      path.moveTo(0, y);
-      path.cubicTo(width * .35, y + height * .06, width * .56, y - height * .32,
-          width, y - height * .27);
-    }
-    canvas.drawPath(
-        path,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = .65
-          ..shader = ui.Gradient.linear(Offset.zero, Offset(width, 0), [
-            foil.withValues(alpha: .12),
-            foil.withValues(alpha: .31),
-            foil.withValues(alpha: 0),
-          ], const [
-            0,
-            .42,
-            1
-          ]));
-  }
-
-  @override
-  bool shouldRepaint(_FoilEngraving old) => foil != old.foil;
 }
 
 // The child supplies its true size, including every wrapped row and market

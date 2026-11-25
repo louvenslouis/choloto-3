@@ -68,11 +68,6 @@ class _ParametresWidgetState extends State<ParametresWidget> {
           enText: 'Notifications could not be synchronized.',
           crText: 'Nou pa ka senkronize notifikasyon yo.',
         ),
-      PushNotificationStatus.signInRequired => localizations.getVariableText(
-          frText: 'Connectez-vous avant d’activer les notifications.',
-          enText: 'Sign in before enabling notifications.',
-          crText: 'Konekte anvan ou aktive notifikasyon yo.',
-        ),
       PushNotificationStatus.permissionDenied => localizations.getVariableText(
           frText:
               'Autorisation refusée. Modifiez les réglages de votre navigateur.',
@@ -82,9 +77,9 @@ class _ParametresWidgetState extends State<ParametresWidget> {
               'Otorizasyon refize. Modifye paramèt notifikasyon navigatè ou a.',
         ),
       PushNotificationStatus.enabled => localizations.getVariableText(
-          frText: 'Notifications de prédictions activées.',
-          enText: 'Prediction notifications enabled.',
-          crText: 'Notifikasyon prediksyon yo aktive.',
+          frText: 'Notifications activées.',
+          enText: 'Notifications enabled.',
+          crText: 'Notifikasyon yo aktive.',
         ),
       PushNotificationStatus.activationFailed => localizations.getVariableText(
           frText: 'Activation des notifications impossible.',
@@ -92,9 +87,9 @@ class _ParametresWidgetState extends State<ParametresWidget> {
           crText: 'Nou pa ka aktive notifikasyon yo.',
         ),
       PushNotificationStatus.disabled => localizations.getVariableText(
-          frText: 'Notifications de prédictions désactivées.',
-          enText: 'Prediction notifications disabled.',
-          crText: 'Notifikasyon prediksyon yo dezaktive.',
+          frText: 'Notifications désactivées.',
+          enText: 'Notifications disabled.',
+          crText: 'Notifikasyon yo dezaktive.',
         ),
       PushNotificationStatus.deactivationFailed =>
         localizations.getVariableText(
@@ -415,22 +410,7 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                                 enText: 'Updating…',
                                 crText: 'Mizajou ap fèt…',
                               )
-                            : service.enabled
-                                ? FFLocalizations.of(context).getVariableText(
-                                    frText:
-                                        'Vous serez alerté à chaque nouvelle prédiction.',
-                                    enText:
-                                        'You will be alerted for every new prediction.',
-                                    crText:
-                                        'W ap resevwa alèt pou chak nouvo prediksyon.',
-                                  )
-                                : _notificationStatusText(service.status) ??
-                                    FFLocalizations.of(context).getVariableText(
-                                      frText:
-                                          'Activez les alertes dans ce navigateur.',
-                                      enText: 'Enable alerts in this browser.',
-                                      crText: 'Aktive alèt nan navigatè sa a.',
-                                    );
+                            : _notificationStatusText(service.status);
 
                         return Material(
                           color: Colors.transparent,
@@ -441,9 +421,9 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                             ),
                             title: Text(
                               FFLocalizations.of(context).getVariableText(
-                                frText: 'Nouvelles prédictions',
-                                enText: 'New predictions',
-                                crText: 'Nouvo prediksyon',
+                                frText: 'Notifications',
+                                enText: 'Notifications',
+                                crText: 'Notifikasyon',
                               ),
                               style: FlutterFlowTheme.of(context)
                                   .titleLarge
@@ -452,16 +432,18 @@ class _ParametresWidgetState extends State<ParametresWidget> {
                                     letterSpacing: 0.0,
                                   ),
                             ),
-                            subtitle: Text(
-                              subtitle,
-                              style: FlutterFlowTheme.of(context)
-                                  .labelMedium
-                                  .override(
-                                    color:
-                                        FlutterFlowTheme.of(context).alternate,
-                                    letterSpacing: 0.0,
+                            subtitle: subtitle == null
+                                ? null
+                                : Text(
+                                    subtitle,
+                                    style: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .override(
+                                          color: FlutterFlowTheme.of(context)
+                                              .alternate,
+                                          letterSpacing: 0.0,
+                                        ),
                                   ),
-                            ),
                             value: service.enabled,
                             onChanged: service.supported && !service.busy
                                 ? _toggleWebNotifications

@@ -242,6 +242,24 @@ expectStatus(
   'public bingo read',
 );
 expectStatus(
+  await firestoreRequest('bingo/public-bingo', {token: other.token}),
+  200,
+  'member outside the publication can open the same bingo',
+);
+expectStatus(
+  await firestoreRequest('bingo/removed-publication'),
+  404,
+  'a signed-out visitor can detect a missing bingo from a notification',
+);
+const publicBingoStories = await fetch(`${documentsUrl}:runQuery`, {
+  method: 'POST', headers: {'content-type': 'application/json'},
+  body: JSON.stringify({structuredQuery: {
+    from: [{collectionId: 'bingo'}], orderBy: [{field: {fieldPath: 'date'}, direction: 'DESCENDING'}],
+  }}),
+});
+assert.equal(publicBingoStories.status, 200, 'signed-out home story query');
+assert.ok((await publicBingoStories.json()).some((row) => row.document?.name.endsWith('/bingo/public-bingo')));
+expectStatus(
   await firestoreRequest('bingo/malformed-bingo', {
     method: 'PATCH',
     token: admin.token,
@@ -698,6 +716,43 @@ expectStatus(
   200,
   'admin prediction read',
 );
+
+// Both dashboards create a new document with a server timestamp on publication.
+// Opening an announcement queries the latest dated document in the matching screen.
+for (const [collectionId, fields, reader] of [
+  ['croix', {numeros: stringArray(['11', '12', '13', '21', '0', '22', '31', '32', '33'])}],
+  ['prediction', {
+    periode: stringValue('Soir'),
+    pourcentage: integerValue(80),
+    favori: mapValue({name: stringValue('FAVORI'), boul: stringArray(['12', '34'])}),
+  }, owner.token],
+]) {
+  const path = `${collectionId}/dashboard-publication`;
+  const name = referenceValue(path).referenceValue;
+  const publish = (actor) => firestoreCommit([{
+    update: {name, fields: {...fields, created_by: stringValue(actor?.uid ?? admin.uid)}},
+    currentDocument: {exists: false},
+    updateTransforms: [{fieldPath: 'date', setToServerValue: 'REQUEST_TIME'}],
+  }], {token: actor?.token});
+  expectStatus(await publish(), 403, `signed-out ${collectionId} publication`);
+  expectStatus(await publish(other), 403, `non-admin ${collectionId} publication`);
+  expectStatus(await publish(admin), 200, `dashboard ${collectionId} publication`);
+
+  const response = await fetch(`${documentsUrl}:runQuery`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      ...(reader ? {authorization: `Bearer ${reader}`} : {}),
+    },
+    body: JSON.stringify({structuredQuery: {
+      from: [{collectionId}],
+      orderBy: [{field: {fieldPath: 'date'}, direction: 'DESCENDING'}],
+      limit: 1,
+    }}),
+  });
+  assert.equal(response.status, 200, `latest ${collectionId} query`);
+  assert.equal((await response.json())[0].document.name, name);
+}
 
 // User documents keep the existing self-only access model. The first read of a
 // missing profile must be allowed and return not-found: released clients use
