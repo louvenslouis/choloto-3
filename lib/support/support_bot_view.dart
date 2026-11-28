@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '/flutter_flow/flutter_flow_theme.dart';
+import '/settings/parametres/settings_choice_sheet.dart';
 import 'support_bot.dart';
 import 'support_text.dart';
 
@@ -62,6 +64,9 @@ class _SupportBotViewState extends State<SupportBotView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
     return StreamBuilder<SupportBotConfig>(
       stream: widget.config,
       builder: (context, snapshot) {
@@ -73,9 +78,10 @@ class _SupportBotViewState extends State<SupportBotView>
           _selected = null;
         }
         if (config == null && !snapshot.hasError) {
-          return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()));
+          return Padding(
+              padding: EdgeInsets.all(spacing.md),
+              child: Center(
+                  child: CircularProgressIndicator(color: theme.primary)));
         }
         if (config != null && _path.any((id) => config.node(id) == null)) {
           _path.clear();
@@ -91,165 +97,168 @@ class _SupportBotViewState extends State<SupportBotView>
         final paymentUnavailable =
             paymentId.isNotEmpty && payment?.enabled != true;
         if (widget.awaitingImageReview) {
-          return Card(
-              child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Semantics(
-                      liveRegion: true,
-                      child: Text(supportText(context, 'botImageWaiting')))));
+          return _SupportBotPanel(
+              child: Semantics(
+                  liveRegion: true,
+                  child: Text(supportText(context, 'botImageWaiting'))));
         }
         final choices =
             config?.children(current?.id ?? '') ?? <SupportBotNode>[];
-        return Card(
-            child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(children: [
-                      const Icon(Icons.smart_toy_outlined, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                          child: Text(supportText(context, 'botTitle'),
-                              style: Theme.of(context).textTheme.titleSmall))
-                    ]),
-                    const SizedBox(height: 12),
-                    if (config == null)
-                      Text(supportText(context, 'botUnavailable')),
-                    if (config != null) ...[
-                      if (_path.isNotEmpty)
-                        Text(
-                            _path
-                                .map((id) => config.node(id)!.label)
-                                .join(' › '),
-                            style: Theme.of(context).textTheme.labelSmall),
-                      const SizedBox(height: 8),
-                      Semantics(
-                          liveRegion: true,
-                          child: Text(requiresLogin
-                              ? supportText(context, 'botLoginRequired')
-                              : paymentUnavailable
-                                  ? supportText(
-                                      context, 'botPaymentUnavailable')
-                                  : current?.answer ?? config.greeting)),
-                      if (!requiresLogin &&
-                          !paymentUnavailable &&
-                          payment != null)
-                        Container(
-                            key: const ValueKey('bot-payment-details'),
-                            margin: const EdgeInsets.symmetric(vertical: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: Theme.of(context).dividerColor),
-                                borderRadius: BorderRadius.circular(12)),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(payment.name,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium),
-                                  const SizedBox(height: 8),
-                                  SelectableText(
-                                      '${supportText(context, 'botPaymentPrice')}: ${payment.price}'),
-                                  Text(
-                                      '${supportText(context, 'botPaymentDuration')}: ${payment.months} ${supportText(context, 'botPaymentMonths')}'),
-                                  const SizedBox(height: 8),
-                                  SelectableText(
-                                      '${supportText(context, 'botPaymentAccount')}: ${payment.account}'),
-                                  SelectableText(
-                                      '${supportText(context, 'botPaymentRecipient')}: ${payment.recipient}'),
-                                ])),
-                      if (requiresLogin)
-                        FilledButton.icon(
-                            onPressed: widget.onSignIn,
-                            icon: const Icon(Icons.login),
-                            label: Text(supportText(context, 'botSignIn'))),
-                      if (!requiresLogin &&
-                          !paymentUnavailable &&
-                          current?.requestsImage == true)
-                        OutlinedButton.icon(
-                            key: const ValueKey('bot-image'),
-                            onPressed: current?.requestsPaymentProof == true
-                                ? widget.onPaymentProof
-                                : widget.onRequestImage,
-                            icon:
-                                const Icon(Icons.add_photo_alternate_outlined),
-                            label: Text(supportText(
-                                context,
-                                current?.requestsPaymentProof == true
-                                    ? 'botSendPaymentProof'
-                                    : 'botSendImage'))),
-                      if (!_contacted) ...[
-                        const SizedBox(height: 8),
-                        ...(requiresLogin || current?.requestsImage == true
-                                ? <SupportBotNode>[]
-                                : choices)
-                            .map((n) => CheckboxListTile(
-                                  key: ValueKey('bot-choice-${n.id}'),
-                                  contentPadding: EdgeInsets.zero,
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                  title: Text(n.label),
-                                  value: _selected == n.id,
-                                  onChanged: _busy
-                                      ? null
-                                      : (checked) => setState(() => _selected =
-                                          checked == true ? n.id : null),
-                                )),
-                        if (choices.isNotEmpty &&
-                            !requiresLogin &&
-                            current?.requestsImage != true)
-                          FilledButton(
-                              key: const ValueKey('bot-continue'),
-                              onPressed: _selected == null || _busy
-                                  ? null
-                                  : () => setState(() {
-                                        _path.add(_selected!);
-                                        _selected = null;
-                                      }),
-                              child: Text(supportText(context, 'botContinue'))),
-                        if (_path.isNotEmpty)
-                          Wrap(
-                              alignment: WrapAlignment.spaceBetween,
-                              children: [
-                                TextButton(
-                                    onPressed: _busy
-                                        ? null
-                                        : () => setState(() {
-                                              _path.removeLast();
-                                              _selected = null;
-                                            }),
-                                    child:
-                                        Text(supportText(context, 'botBack'))),
-                                TextButton(
-                                    onPressed: _busy
-                                        ? null
-                                        : () => setState(() {
-                                              _path.clear();
-                                              _selected = null;
-                                            }),
-                                    child: Text(
-                                        supportText(context, 'botRestart'))),
-                              ]),
-                      ],
-                    ],
-                    if (_error != null)
-                      Text(_error!,
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.error)),
-                    if (_contacted)
-                      Text(supportText(context, 'botContacted'))
-                    else
-                      TextButton.icon(
-                          key: const ValueKey('bot-contact'),
-                          onPressed: _busy ? null : () => _contact(config),
-                          icon: const Icon(Icons.support_agent),
-                          label: Text(supportText(context, 'botContact'))),
-                  ],
-                )));
+        return _SupportBotPanel(
+            child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(children: [
+              Icon(Icons.smart_toy_outlined,
+                  size: 20, color: tokens.home.mutedText),
+              SizedBox(width: spacing.sm),
+              Expanded(
+                  child: Text(supportText(context, 'botTitle'),
+                      style: theme.titleMedium))
+            ]),
+            SizedBox(height: spacing.md),
+            if (config == null) Text(supportText(context, 'botUnavailable')),
+            if (config != null) ...[
+              if (_path.isNotEmpty)
+                Text(_path.map((id) => config.node(id)!.label).join(' › '),
+                    style: theme.labelSmall
+                        .copyWith(color: tokens.home.mutedText)),
+              SizedBox(height: spacing.sm),
+              Semantics(
+                  liveRegion: true,
+                  child: Text(requiresLogin
+                      ? supportText(context, 'botLoginRequired')
+                      : paymentUnavailable
+                          ? supportText(context, 'botPaymentUnavailable')
+                          : current?.answer ?? config.greeting)),
+              if (!requiresLogin && !paymentUnavailable && payment != null)
+                Container(
+                    key: const ValueKey('bot-payment-details'),
+                    margin: EdgeInsets.symmetric(vertical: spacing.md),
+                    padding: EdgeInsets.all(spacing.md),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: tokens.home.panelEdge),
+                        borderRadius: BorderRadius.circular(tokens.radius.md)),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(payment.name, style: theme.titleMedium),
+                          SizedBox(height: spacing.sm),
+                          SelectableText(
+                              '${supportText(context, 'botPaymentPrice')}: ${payment.price}'),
+                          Text(
+                              '${supportText(context, 'botPaymentDuration')}: ${payment.months} ${supportText(context, 'botPaymentMonths')}'),
+                          SizedBox(height: spacing.sm),
+                          SelectableText(
+                              '${supportText(context, 'botPaymentAccount')}: ${payment.account}'),
+                          SelectableText(
+                              '${supportText(context, 'botPaymentRecipient')}: ${payment.recipient}'),
+                        ])),
+              if (requiresLogin)
+                FilledButton.icon(
+                    onPressed: widget.onSignIn,
+                    icon: const Icon(Icons.login),
+                    label: Text(supportText(context, 'botSignIn'))),
+              if (!requiresLogin &&
+                  !paymentUnavailable &&
+                  current?.requestsImage == true)
+                OutlinedButton.icon(
+                    key: const ValueKey('bot-image'),
+                    onPressed: current?.requestsPaymentProof == true
+                        ? widget.onPaymentProof
+                        : widget.onRequestImage,
+                    icon: const Icon(Icons.add_photo_alternate_outlined),
+                    label: Text(supportText(
+                        context,
+                        current?.requestsPaymentProof == true
+                            ? 'botSendPaymentProof'
+                            : 'botSendImage'))),
+              if (!_contacted) ...[
+                SizedBox(height: spacing.sm),
+                ...(requiresLogin || current?.requestsImage == true
+                        ? <SupportBotNode>[]
+                        : choices)
+                    .map((n) => SettingsChoiceTile(
+                          key: ValueKey('bot-choice-${n.id}'),
+                          label: n.label,
+                          selected: _selected == n.id,
+                          onTap: _busy
+                              ? null
+                              : () => setState(() =>
+                                  _selected = _selected == n.id ? null : n.id),
+                        )),
+                if (choices.isNotEmpty &&
+                    !requiresLogin &&
+                    current?.requestsImage != true)
+                  FilledButton(
+                      key: const ValueKey('bot-continue'),
+                      onPressed: _selected == null || _busy
+                          ? null
+                          : () => setState(() {
+                                _path.add(_selected!);
+                                _selected = null;
+                              }),
+                      child: Text(supportText(context, 'botContinue'))),
+                if (_path.isNotEmpty)
+                  Wrap(alignment: WrapAlignment.spaceBetween, children: [
+                    TextButton(
+                        onPressed: _busy
+                            ? null
+                            : () => setState(() {
+                                  _path.removeLast();
+                                  _selected = null;
+                                }),
+                        child: Text(supportText(context, 'botBack'))),
+                    TextButton(
+                        onPressed: _busy
+                            ? null
+                            : () => setState(() {
+                                  _path.clear();
+                                  _selected = null;
+                                }),
+                        child: Text(supportText(context, 'botRestart'))),
+                  ]),
+              ],
+            ],
+            if (_error != null)
+              Text(_error!,
+                  style: theme.bodyMedium.copyWith(color: theme.error)),
+            if (_contacted)
+              Text(supportText(context, 'botContacted'))
+            else
+              TextButton.icon(
+                  key: const ValueKey('bot-contact'),
+                  onPressed: _busy ? null : () => _contact(config),
+                  icon: const Icon(Icons.support_agent),
+                  label: Text(supportText(context, 'botContact'))),
+          ],
+        ));
       },
     );
+  }
+}
+
+class _SupportBotPanel extends StatelessWidget {
+  const _SupportBotPanel({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
+    final material = Theme.of(context);
+    return Theme(
+        data: material.copyWith(
+            textTheme:
+                material.textTheme.copyWith(labelLarge: theme.labelLarge)),
+        child: Material(
+          type: MaterialType.transparency,
+          child: Ink(
+            decoration: tokens.home.panel,
+            padding: EdgeInsets.all(tokens.spacing.md),
+            child:
+                DefaultTextStyle.merge(style: theme.bodyMedium, child: child),
+          ),
+        ));
   }
 }

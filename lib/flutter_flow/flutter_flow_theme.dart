@@ -330,6 +330,47 @@ class FFDesignTokens {
   FFBackgrounds get background => FFBackgrounds(theme);
   FFVipMaterials get vip => FFVipMaterials(theme);
   FFHomeMaterials get home => FFHomeMaterials(theme);
+  FFBingoTicketMaterials get bingo => FFBingoTicketMaterials(theme);
+}
+
+/// The letterpress on the lacquered Bingo story ticket.
+class FFBingoTicketMaterials {
+  const FFBingoTicketMaterials(this.theme);
+  final FlutterFlowTheme theme;
+
+  TextStyle numeral(double size) => theme.displayLarge.copyWith(
+        fontSize: size,
+        height: 1,
+        letterSpacing: -size * .025,
+        fontWeight: FontWeight.w900,
+        fontFeatures: const [FontFeature.tabularFigures()],
+        fontVariations: [
+          const FontVariation.width(93),
+          const FontVariation.slant(-10),
+          FontVariation.opticalSize(size),
+        ],
+      );
+
+  LinearGradient get goldFace => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          theme.onDecorative,
+          theme.designToken.vip.goldLight,
+          theme.warning,
+          theme.designToken.home.membership.colors.first,
+        ],
+      );
+
+  List<Shadow> get relief => [
+        Shadow(
+            color: theme.onPrimary.withValues(alpha: .82),
+            offset: const Offset(1, 3),
+            blurRadius: 3),
+        Shadow(
+            color: theme.designToken.vip.goldShade,
+            offset: const Offset(0, 1.5)),
+      ];
 }
 
 /// Sapphire glass, brushed gold and amethyst from the home artwork.

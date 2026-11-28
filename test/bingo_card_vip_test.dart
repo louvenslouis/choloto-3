@@ -7,6 +7,7 @@ import 'package:choloto/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.da
 import 'package:choloto/autres/bingo/bingo/bingo_reaction_button.dart';
 import 'package:choloto/autres/bingo/stackbingo/stackbingo_widget.dart';
 import 'package:choloto/components/vip_prediction_header.dart';
+import 'package:choloto/components/draw_result_chip.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -258,7 +259,11 @@ void main() {
           await tester
               .runAsync(() async => Future<void>.delayed(Duration.zero));
           await tester.pump(const Duration(seconds: 1));
-          expect(find.text('12'), findsOneWidget);
+          expect(
+              tester.widget<DrawResultChip>(find.byType(DrawResultChip)).value,
+              '12');
+          expect(find.text('Florida'), findsOneWidget);
+          expect(find.textContaining('Soir'), findsOneWidget);
           expect(tester.takeException(), isNull);
           await capture('expanded');
           await tester.tap(find.byType(BingoReactionButton));

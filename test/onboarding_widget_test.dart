@@ -1,6 +1,7 @@
 import 'package:choloto/components/welcome_widget.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -27,8 +28,17 @@ Widget _onboardingApp({
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    final loader = FontLoader('Google sans flex')
+      ..addFont(rootBundle.load(
+        'assets/fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf',
+      ));
+    await loader.load();
+  });
+
   const onboardingKeys = [
-    'onboarding_eyebrow',
+    'onboarding_welcome_intro',
     'onboarding_title',
     'onboarding_description',
     'onboarding_feature_results',
@@ -67,24 +77,19 @@ void main() {
           await tester.pumpAndSettle();
 
           final localizations = FFLocalizations(locale);
+          expect(find.byKey(const ValueKey('onboarding-drum')), findsOneWidget);
           expect(
-            find.text(localizations.getText('onboarding_title')),
-            findsOneWidget,
-          );
+              find.textContaining(
+                  localizations.getText('onboarding_welcome_intro'),
+                  findRichText: true),
+              findsOneWidget);
           expect(
-            find.byKey(const ValueKey('onboarding-hero')),
-            findsOneWidget,
-          );
+              find.text(localizations.getText('onboarding_title'),
+                  findRichText: true),
+              findsNothing);
           expect(
-            find.byKey(const ValueKey('onboarding-copy-overlay')),
-            findsOneWidget,
-          );
-          final blurMask = tester.widget<ShaderMask>(
-            find.byKey(const ValueKey('onboarding-blur-opacity-mask')),
-          );
-          expect(blurMask.blendMode, BlendMode.dstIn);
-          expect(find.byType(BackdropFilter), findsOneWidget);
-          expect(find.byType(SingleChildScrollView), findsNothing);
+              find.text(localizations.getText('3vjw7hwm'), findRichText: true),
+              findsNothing);
           expect(
             find.byKey(const ValueKey('onboarding-google-button')),
             findsOneWidget,
@@ -137,7 +142,12 @@ void main() {
           find.byKey(const ValueKey('onboarding-content')),
           findsOneWidget,
         );
-        expect(find.byType(SingleChildScrollView), findsNothing);
+        expect(
+            tester
+                .state<ScrollableState>(find.byType(Scrollable))
+                .position
+                .maxScrollExtent,
+            0);
         final panelRect = tester.getRect(
           find.byKey(const ValueKey('onboarding-wide-panel')),
         );
@@ -167,7 +177,12 @@ void main() {
       find.byKey(const ValueKey('onboarding-wide-panel')),
       findsOneWidget,
     );
-    expect(find.byType(SingleChildScrollView), findsNothing);
+    expect(
+        tester
+            .state<ScrollableState>(find.byType(Scrollable))
+            .position
+            .maxScrollExtent,
+        0);
     final guestButtonRect = tester.getRect(
       find.byKey(const ValueKey('onboarding-guest-button')),
     );

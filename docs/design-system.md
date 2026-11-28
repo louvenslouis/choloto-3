@@ -37,7 +37,7 @@ La grille passe à deux colonnes dès que le contenu dispose de **656** de large
 
 **Bulles de story.** Bingo et YouTube partagent un cercle de 72 et le même cadrage. Une story à découvrir a un anneau doré de 4, une story vue un anneau acier de 2. Le compteur apparaît à partir de deux contenus. Le chargement et l’action de réessai occupent chacun un emplacement de même taille. Une rangée vide disparaît. Cette direction artistique porte sur les bulles d’entrée. Le contenu et les interactions de chaque lecteur suivent leur propre interface. [Bulle](../lib/components/home_story_bubble.dart) · [Rangée](../lib/components/home_stories_rail.dart)
 
-**Carte Abonnement VIP.** Le titre et le bouton occupent la gauche. La médaille peut dépasser légèrement du cadre à droite. Toute la carte ouvre l’espace VIP. Lorsque l’abonnement a expiré, un bandeau compact placé avant les stories donne accès au renouvellement. Sa surface entière est activable et son accent améthyste le rattache à l’abonnement. [Carte VIP](../lib/components/home_feature_section.dart) · [Bandeau de renouvellement](../lib/components/rappel_fin_abonnement_widget.dart)
+**Carte Abonnement VIP.** Le titre et le bouton occupent la gauche. La médaille peut dépasser légèrement du cadre à droite. Toute la carte ouvre l’espace VIP. Lorsque l’abonnement a expiré, un bandeau compact placé avant les stories donne accès au renouvellement. Sa surface saphir est entièrement activable. La médaille améthyste identifie le VIP et le lien doré invite au renouvellement. Avant l’échéance, le rappel en fenêtre reprend la matière améthyste du pass et le bouton jaune. Les cartes de suivi de l’abonnement et du paiement reprennent le panneau saphir des résultats. [Carte VIP](../lib/components/home_feature_section.dart) · [Bandeau de renouvellement](../lib/components/rappel_fin_abonnement_widget.dart)
 
 **Cartes Derniers tirages et Croix de la chance.** Utiliser le même composant, les mêmes marges et la même matière pour les deux entrées. Le ticket est incliné. Le X remplit davantage son cadre carré, il est donc affiché à **92 %** de l’échelle du ticket pour donner aux deux illustrations un poids visuel comparable. Sur un petit écran, les titres peuvent passer sur deux lignes. [Carte et relief des illustrations](../lib/components/home_feature_card.dart)
 
@@ -47,9 +47,9 @@ La grille passe à deux colonnes dès que le contenu dispose de **656** de large
 | :---: | :---: | :---: | :---: |
 | <img src="../assets/images/home/shortcut_video.webp" width="64" alt="Bouton de lecture rouge en relief"> | <img src="../assets/images/home/shortcut_saints.webp" width="64" alt="Calendrier ivoire et or"> | <img src="../assets/images/home/shortcut_tchala.webp" width="64" alt="Livre vert à fermoir doré"> | <img src="../assets/images/home/shortcut_history.webp" width="64" alt="Montre à gousset violette et or"> |
 
-**Derniers résultats.** New York et Floride partagent un panneau avec un séparateur fin. Chaque ligne présente le logo du marché, son nom, la période, la date et les numéros sur des jetons dorés. L’en-tête réunit le titre, l’actualisation et l’accès à tous les tirages. Si la largeur manque, les jetons passent sous le nom du marché. Le chargement, l’absence de résultat et l’indisponibilité s’affichent dans la ligne concernée. [Panneau des résultats](../lib/components/tirages_home_widget.dart)
+**Derniers résultats.** New York et Floride partagent un panneau avec un séparateur fin. Chaque ligne présente le logo du marché, son nom, la période, la date et les numéros sur des jetons dorés. L’en-tête réunit le titre, l’actualisation et l’accès à tous les tirages. Les lignes utilisent les mêmes marges à gauche et à droite. Si la largeur manque, les jetons passent sous le nom du marché. Le chargement, l’absence de résultat et l’indisponibilité s’affichent dans la ligne concernée. [Panneau des résultats](../lib/components/tirages_home_widget.dart)
 
-**Assistance.** Le bouton circulaire flotte en bas à droite, au-dessus de la navigation mobile. Sa cible mesure 48. Une pastille rouge apparaît pour les messages d’assistance en attente, avec un affichage plafonné à `99+`. Le lecteur d’écran reçoit le nombre réel. En portrait compact, les lignes de résultats réservent 56 à droite pour que le dernier jeton reste lisible. [Bouton et pastille](../lib/components/home_header_actions.dart) · [Disposition des résultats](../lib/components/tirages_home_widget.dart)
+**Assistance.** Le bouton circulaire flotte en bas à droite, au-dessus de la navigation mobile. Sa cible mesure 48. Une pastille rouge apparaît pour les messages d’assistance en attente, avec un affichage plafonné à `99+`. Le lecteur d’écran reçoit le nombre réel. [Bouton et pastille](../lib/components/home_header_actions.dart) · [Disposition des résultats](../lib/components/tirages_home_widget.dart)
 
 ## Paramètres
 
@@ -61,7 +61,7 @@ Dans Compte, le téléphone et la date de naissance sont modifiables depuis les 
 
 ## Page Tirages
 
-Le ticket doré de l’accueil identifie la page à droite de l’en-tête saphir. Le titre et l’actualisation sont réunis à gauche. Chaque date ouvre un panneau de lecture. À gauche du résultat figurent le logo du marché, son nom et la période. À droite, les numéros reprennent le même jeton que sur l’accueil. Les logos à lettrage foncé disposent d’un fond clair pour rester lisibles sur le saphir.
+L’en-tête saphir réunit le titre et le bouton d’actualisation à gauche. Chaque date ouvre un panneau de lecture. À gauche du résultat figurent le logo du marché, son nom et la période. À droite, les numéros reprennent le même jeton que sur l’accueil. Les logos à lettrage foncé disposent d’un fond clair pour rester lisibles sur le saphir.
 
 L’historique se lit de haut en bas sur téléphone. Sur grand écran, les résultats d’une journée occupent deux colonnes et se lisent de gauche à droite. Un texte agrandi peut ramener la grille à une colonne et faire passer les jetons sous le nom du marché. L’onglet Tirages reprend la navigation basse ou l’en-tête horizontal de l’accueil selon la largeur. [Page Tirages](../lib/tirages/tirages/tirages_widget.dart) · [Ligne de résultat](../lib/tirages/tirages/tirage_result_row.dart) · [Jeton partagé](../lib/components/draw_result_chip.dart)
 
@@ -79,9 +79,23 @@ Favori et Soutni occupent la première rangée. Chacune aligne les marchés à g
 
 L’offre mensuelle prend la forme d’un billet améthyste avec des encoches et un cachet doré autour de la durée. Il regroupe les tarifs, le bouton « Devenir VIP » et l’assistance. Une carte saphir distincte compare les accès gratuits et VIP. [Offre mensuelle](../lib/settings/devenir_v_i_p/devenir_v_i_p_widget.dart)
 
+Dans la carte Bingo dépliée du VIP, les résultats défilent dans les mêmes tuiles saphir que les détails du calendrier Bingo. Le jeton doré précède le marché, le lot et la période. Le lecteur de stories conserve ses propres cartes.
+
+Dans la story BINGO, les cinq boules occupent le fond de l’affiche. Le billet noir à tranche dorée est détouré pour défiler indépendamment. Son numéro en Google Sans Flex utilise des chiffres tabulaires, une face ivoire-or et une ombre en relief. Numéro, lot et marché tiennent côte à côte si leur largeur mesurée le permet. Sinon le résultat occupe la largeur du billet et les détails passent en dessous. Les zéros et caractères de liaison du tirage sont conservés. Le compteur apparaît à partir de deux résultats. [Billet adaptatif](../lib/autres/bingo/stackbingo/bingo_story_result_ticket.dart)
+
+## Accomplissements et assistance
+
+Dans Accomplissements, la série de jours, les statistiques et les badges utilisent le panneau saphir des résultats. Le compteur de jours et la progression reprennent l’or CHOLOTO. L’illustration du trophée et les illustrations de badges gardent leur place. Après les badges de 3, 7, 14 et 30 jours, chaque nouveau seuil triple (90, 270, 810…). La collection expose les paliers gagnés et le prochain à atteindre. Le record conserve les badges après une interruption, tandis que la série en cours détermine les jours restants.
+
+L’assistant guidé et la carte de contact du suivi d’abonnement reprennent le panneau saphir. La sélection d’une réponse utilise la même ligne à coche que les préférences. L’action de contact du suivi d’abonnement est dorée.
+
 ## Page Croix de la chance
 
 Le fond de l’affiche reprend le jaune CHOLOTO et le grain du métal brossé. Le titre et la date complète sont imprimés en noir, dans l’axe du X doré de l’accueil. Les huit nombres blancs se lisent sur des médaillons anthracite. Toucher le X lance une onde qui secoue brièvement chaque médaillon à son passage. Les cases vides gardent leur place. L’affiche reste immobile lorsque la réduction des animations est activée et dans le JPEG partagé. Le bouton jaune « Partager le visuel » exporte l’affiche en JPEG. Une bande sombre au bas de l’image partagée porte la signature « app.choloto.com ». [Affiche de la Croix](../lib/components/cross_widget.dart) · [Matière de la carte](../lib/components/cross_poster_surface.dart)
+
+## Page YouTube
+
+L’en-tête saphir réunit la flèche de retour et le titre YouTube. Sur téléphone, la première vidéo dispose d’une grande vignette et les suivantes se lisent en lignes compactes. La grille passe à deux puis trois colonnes selon la largeur disponible et la taille du texte. Les vignettes gardent un format 16:9. [Page YouTube](../lib/youtube/youtube_widget.dart)
 
 ## Page Tchala
 

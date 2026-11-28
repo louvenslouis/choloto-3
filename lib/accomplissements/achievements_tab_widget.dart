@@ -157,38 +157,37 @@ class _StreakHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
-    final radius = theme.designToken.radius;
-    final nextTarget = nextStreakTarget(snapshot.longestStreak);
-    final allStreakBadgesUnlocked = snapshot.longestStreak >= 30;
-    final remaining = allStreakBadgesUnlocked
-        ? 0
-        : mathMax(0, nextTarget - snapshot.currentStreak);
-    final progress = allStreakBadgesUnlocked
+    final nextTarget = nextStreakTarget(snapshot.bestStreak);
+    final remaining =
+        nextTarget == null ? 0 : nextTarget - snapshot.currentStreak;
+    final progress = nextTarget == null
         ? 1.0
         : (snapshot.currentStreak / nextTarget).clamp(0.0, 1.0);
 
+    final goalLabel = nextTarget == null
+        ? FFLocalizations.of(context).getText('ach_all_streak_unlocked')
+        : FFLocalizations.of(context)
+            .getText(remaining == 1
+                ? 'ach_streak_one_day_left'
+                : 'ach_streak_days_left')
+            .replaceAll('{remaining}', '$remaining')
+            .replaceAll('{target}', '$nextTarget');
     return Semantics(
       container: true,
       excludeSemantics: true,
       label: FFLocalizations.of(context).getText('ach_streak_semantics'),
       value:
-          '${snapshot.currentStreak} ${FFLocalizations.of(context).getText('ach_days_in_a_row')}',
+          '${snapshot.currentStreak} ${FFLocalizations.of(context).getText('ach_days_in_a_row')}. $goalLabel',
       child: Container(
-        decoration: BoxDecoration(
-          color: theme.primary,
-          borderRadius: BorderRadius.circular(radius.lg),
-          boxShadow: [theme.designToken.shadow.md],
-        ),
+        decoration: theme.designToken.home.panel,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 680.0;
             final content = _StreakHeroContent(
               snapshot: snapshot,
               now: now,
-              nextTarget: nextTarget,
-              remaining: remaining,
+              goalLabel: goalLabel,
               progress: progress,
-              allStreakBadgesUnlocked: allStreakBadgesUnlocked,
             );
             final illustration = ExcludeSemantics(
               child: Image.asset(
@@ -199,7 +198,7 @@ class _StreakHero extends StatelessWidget {
                 errorBuilder: (_, __, ___) => Icon(
                   Icons.emoji_events_rounded,
                   size: wide ? 160.0 : 112.0,
-                  color: theme.onPrimary,
+                  color: theme.primary,
                 ),
               ),
             );
@@ -237,18 +236,14 @@ class _StreakHeroContent extends StatelessWidget {
   const _StreakHeroContent({
     required this.snapshot,
     required this.now,
-    required this.nextTarget,
-    required this.remaining,
+    required this.goalLabel,
     required this.progress,
-    required this.allStreakBadgesUnlocked,
   });
 
   final AchievementSnapshot snapshot;
   final DateTime now;
-  final int nextTarget;
-  final int remaining;
+  final String goalLabel;
   final double progress;
-  final bool allStreakBadgesUnlocked;
 
   @override
   Widget build(BuildContext context) {
@@ -261,7 +256,7 @@ class _StreakHeroContent extends StatelessWidget {
         Text(
           FFLocalizations.of(context).getText('ach_streak_title'),
           style: theme.titleMedium.override(
-            color: theme.onPrimary,
+            color: theme.primaryText,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -274,7 +269,7 @@ class _StreakHeroContent extends StatelessWidget {
               '${snapshot.currentStreak}',
               key: const ValueKey('current-streak-value'),
               style: theme.displaySmall.override(
-                color: theme.onPrimary,
+                color: theme.primary,
                 fontSize: 48.0,
                 fontWeight: FontWeight.w700,
               ),
@@ -283,15 +278,15 @@ class _StreakHeroContent extends StatelessWidget {
               padding: EdgeInsets.only(bottom: spacing.sm),
               child: Text(
                 FFLocalizations.of(context).getText('ach_days_in_a_row'),
-                style: theme.titleLarge.override(color: theme.onPrimary),
+                style: theme.titleLarge.override(color: theme.primaryText),
               ),
             ),
           ],
         ),
         Text(
-          '${FFLocalizations.of(context).getText('ach_best_streak')} ${snapshot.longestStreak}',
+          '${FFLocalizations.of(context).getText('ach_best_streak')} ${snapshot.bestStreak}',
           style: theme.bodyMedium.override(
-            color: theme.onPrimary.withValues(alpha: 0.72),
+            color: theme.designToken.home.mutedText,
           ),
         ),
         SizedBox(height: spacing.md),
@@ -305,17 +300,15 @@ class _StreakHeroContent extends StatelessWidget {
           child: LinearProgressIndicator(
             value: progress,
             minHeight: spacing.sm,
-            backgroundColor: theme.onPrimary.withValues(alpha: 0.16),
-            valueColor: AlwaysStoppedAnimation<Color>(theme.onPrimary),
+            backgroundColor: theme.designToken.home.edge,
+            valueColor: AlwaysStoppedAnimation<Color>(theme.primary),
           ),
         ),
         SizedBox(height: spacing.sm),
         Text(
-          allStreakBadgesUnlocked
-              ? FFLocalizations.of(context).getText('ach_all_streak_unlocked')
-              : '$remaining ${FFLocalizations.of(context).getText('ach_days_until_badge')} $nextTarget',
+          goalLabel,
           style: theme.labelMedium.override(
-            color: theme.onPrimary,
+            color: theme.primaryText,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -361,7 +354,7 @@ class _RecentActivityRow extends StatelessWidget {
                 FFLocalizations.of(context)
                     .getText(_weekdayKeys[day.weekday - 1]),
                 style: theme.labelSmall.override(
-                  color: theme.onPrimary.withValues(alpha: 0.72),
+                  color: theme.designToken.home.mutedText,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -370,16 +363,16 @@ class _RecentActivityRow extends StatelessWidget {
                 width: 32.0,
                 height: 32.0,
                 decoration: BoxDecoration(
-                  color: active
-                      ? theme.onPrimary
-                      : theme.onPrimary.withValues(alpha: 0.12),
+                  color: active ? theme.primary : theme.designToken.home.edge,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
                 child: Icon(
                   active ? Icons.check_rounded : Icons.remove_rounded,
                   size: 18.0,
-                  color: active ? theme.primary : theme.onPrimary,
+                  color: active
+                      ? theme.onPrimary
+                      : theme.designToken.home.mutedText,
                 ),
               ),
             ],
@@ -398,11 +391,7 @@ class _TrackingStartedNotice extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     return Container(
       padding: EdgeInsets.all(theme.designToken.spacing.md),
-      decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(theme.designToken.radius.md),
-        boxShadow: [theme.designToken.shadow.sm],
-      ),
+      decoration: theme.designToken.home.panel,
       child: Row(
         children: [
           Icon(Icons.auto_awesome_rounded, color: theme.primary),
@@ -429,7 +418,7 @@ class _AchievementCompletionStatus extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final localizations = FFLocalizations.of(context);
     final spacing = theme.designToken.spacing;
-    final total = achievementDefinitions.length;
+    final total = achievementsFor(snapshot.bestStreak).length;
     final unlocked = unlockedAchievementCount(snapshot);
     final progress = achievementCompletionValue(snapshot);
     final complete = unlocked == total;
@@ -449,7 +438,7 @@ class _AchievementCompletionStatus extends StatelessWidget {
                 value: value,
                 strokeWidth: spacing.sm,
                 strokeCap: StrokeCap.round,
-                backgroundColor: theme.alternate.withValues(alpha: 0.28),
+                backgroundColor: theme.designToken.home.edge,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   complete ? theme.success : theme.primary,
                 ),
@@ -468,7 +457,8 @@ class _AchievementCompletionStatus extends StatelessWidget {
               Text(
                 localizations.getText('ach_badges_count_label'),
                 textAlign: TextAlign.center,
-                style: theme.labelSmall.override(color: theme.secondaryText),
+                style: theme.labelSmall
+                    .override(color: theme.designToken.home.mutedText),
               ),
             ],
           ),
@@ -486,7 +476,8 @@ class _AchievementCompletionStatus extends StatelessWidget {
         SizedBox(height: spacing.xs),
         Text(
           localizations.getText('ach_completion_desc'),
-          style: theme.bodyMedium.override(color: theme.secondaryText),
+          style: theme.bodyMedium
+              .override(color: theme.designToken.home.mutedText),
         ),
         SizedBox(height: spacing.sm),
         Container(
@@ -538,11 +529,7 @@ class _AchievementCompletionStatus extends StatelessWidget {
       child: Container(
         key: const ValueKey('achievement-completion-status'),
         padding: EdgeInsets.all(spacing.md),
-        decoration: BoxDecoration(
-          color: theme.secondaryBackground,
-          borderRadius: BorderRadius.circular(theme.designToken.radius.md),
-          boxShadow: [theme.designToken.shadow.sm],
-        ),
+        decoration: theme.designToken.home.panel,
         child: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth < 420.0) {
@@ -587,7 +574,8 @@ class _SectionTitle extends StatelessWidget {
         SizedBox(height: theme.designToken.spacing.xs),
         Text(
           FFLocalizations.of(context).getText(subtitleKey),
-          style: theme.bodyMedium.override(color: theme.secondaryText),
+          style: theme.bodyMedium
+              .override(color: theme.designToken.home.mutedText),
         ),
       ],
     );
@@ -663,11 +651,7 @@ class _OverviewCard extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     return Container(
       padding: EdgeInsets.all(theme.designToken.spacing.md),
-      decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(theme.designToken.radius.md),
-        boxShadow: [theme.designToken.shadow.sm],
-      ),
+      decoration: theme.designToken.home.panel,
       child: Row(
         children: [
           Container(
@@ -688,7 +672,8 @@ class _OverviewCard extends StatelessWidget {
                 Text(data.value, style: theme.headlineSmall),
                 Text(
                   FFLocalizations.of(context).getText(data.labelKey),
-                  style: theme.labelMedium.override(color: theme.secondaryText),
+                  style: theme.labelMedium
+                      .override(color: theme.designToken.home.mutedText),
                 ),
               ],
             ),
@@ -720,7 +705,7 @@ class _BadgeGrid extends StatelessWidget {
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: achievementDefinitions
+          children: achievementsFor(snapshot.bestStreak)
               .map(
                 (definition) => SizedBox(
                   width: cardWidth,
@@ -753,21 +738,24 @@ class _AchievementBadgeCard extends StatelessWidget {
     final progress = definition.progress(snapshot);
     final localizations = FFLocalizations.of(context);
 
+    final title = localizations
+        .getText(definition.titleKey)
+        .replaceAll('{days}', '${definition.target}');
+    final description = localizations
+        .getText(definition.descriptionKey)
+        .replaceAll('{days}', '${definition.target}');
+
     return Semantics(
       container: true,
       excludeSemantics: true,
-      label: localizations.getText(definition.titleKey),
+      label: title,
       value: unlocked
           ? localizations.getText('ach_unlocked')
           : '${localizations.getText('ach_locked')}, $progress ${localizations.getText('ach_progress_of')} ${definition.target}',
       child: Container(
         key: ValueKey('achievement-${definition.id}'),
         padding: EdgeInsets.all(theme.designToken.spacing.sm),
-        decoration: BoxDecoration(
-          color: theme.secondaryBackground,
-          borderRadius: BorderRadius.circular(theme.designToken.radius.md),
-          boxShadow: [theme.designToken.shadow.sm],
-        ),
+        decoration: theme.designToken.home.panel,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -808,7 +796,7 @@ class _AchievementBadgeCard extends StatelessWidget {
             ),
             SizedBox(height: theme.designToken.spacing.sm),
             Text(
-              localizations.getText(definition.titleKey),
+              title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -816,11 +804,12 @@ class _AchievementBadgeCard extends StatelessWidget {
             ),
             SizedBox(height: theme.designToken.spacing.xs),
             Text(
-              localizations.getText(definition.descriptionKey),
+              description,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: theme.labelSmall.override(color: theme.secondaryText),
+              style: theme.labelSmall
+                  .override(color: theme.designToken.home.mutedText),
             ),
             SizedBox(height: theme.designToken.spacing.sm),
             ClipRRect(
@@ -829,7 +818,7 @@ class _AchievementBadgeCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 minHeight: theme.designToken.spacing.xs,
                 value: definition.progressValue(snapshot),
-                backgroundColor: theme.alternate.withValues(alpha: 0.28),
+                backgroundColor: theme.designToken.home.edge,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   unlocked ? theme.success : theme.primary,
                 ),
@@ -842,7 +831,8 @@ class _AchievementBadgeCard extends StatelessWidget {
                   : '$progress / ${definition.target}',
               textAlign: TextAlign.center,
               style: theme.labelSmall.override(
-                color: unlocked ? theme.success : theme.secondaryText,
+                color:
+                    unlocked ? theme.success : theme.designToken.home.mutedText,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -894,11 +884,7 @@ class AchievementAccessState extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 520.0),
           child: Container(
             padding: EdgeInsets.all(theme.designToken.spacing.lg),
-            decoration: BoxDecoration(
-              color: theme.secondaryBackground,
-              borderRadius: BorderRadius.circular(theme.designToken.radius.lg),
-              boxShadow: [theme.designToken.shadow.sm],
-            ),
+            decoration: theme.designToken.home.panel,
             child: Column(
               children: [
                 Icon(icon, color: theme.primary, size: 48.0),
@@ -912,7 +898,8 @@ class AchievementAccessState extends StatelessWidget {
                 Text(
                   FFLocalizations.of(context).getText(descriptionKey),
                   textAlign: TextAlign.center,
-                  style: theme.bodyMedium.override(color: theme.secondaryText),
+                  style: theme.bodyMedium
+                      .override(color: theme.designToken.home.mutedText),
                 ),
                 if (actionKey != null && onAction != null) ...[
                   SizedBox(height: theme.designToken.spacing.lg),
@@ -938,5 +925,3 @@ class AchievementAccessState extends StatelessWidget {
     );
   }
 }
-
-int mathMax(int a, int b) => a > b ? a : b;

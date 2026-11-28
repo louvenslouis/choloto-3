@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/src/google_fonts_base.dart' as font_testing;
 import 'package:image/image.dart' as img;
 import 'package:choloto/support/support_bot.dart';
+import 'package:choloto/settings/parametres/settings_choice_sheet.dart';
 import 'package:choloto/support/support_bot_view.dart';
 import 'package:choloto/support/support_chat_view.dart';
 import 'package:choloto/support/support_conversation.dart';
@@ -192,8 +193,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-      'exclusive checkbox choices navigate, return and send context once',
+  testWidgets('exclusive choices navigate, return and send context once',
       (tester) async {
     final sent = <String>[];
     await tester.pumpWidget(app(Stream.value(config), (text) async {
@@ -211,9 +211,9 @@ void main() {
     await tester.pump();
     expect(
         tester
-            .widget<CheckboxListTile>(
+            .widget<SettingsChoiceTile>(
                 find.byKey(const ValueKey('bot-choice-renew')))
-            .value,
+            .selected,
         false);
     await tester.tap(find.text('Continuer'));
     await tester.pumpAndSettle();

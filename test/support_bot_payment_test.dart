@@ -55,6 +55,7 @@ void main() {
                 }))));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const ValueKey('bot-image')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('bot-image')));
     await tester.pumpAndSettle();
     expect(payments, 1);
@@ -95,6 +96,7 @@ void main() {
     expect(find.byKey(const ValueKey('bot-image')), findsOneWidget);
     expect(find.text('Envoyer la preuve de paiement'), findsOneWidget);
     await tester.ensureVisible(find.byKey(const ValueKey('bot-image')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('bot-image')));
     expect(paymentProofOpens, 1);
     expect(imagePicks, 0);

@@ -86,17 +86,21 @@ class BingoStatusFrame extends StatelessWidget {
     String localized(String key, String fallback) =>
         localizations?.getText(key) ?? fallback;
     final navigationEnabled = onPreviousStory != null || onNextStory != null;
-    Widget present(Widget content, {Key? key}) => Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: SizedBox(
-              key: key,
-              width: bingoCardPresentationSize.width,
-              height: bingoCardPresentationSize.height,
-              child: content,
-            ),
-          ),
-        );
+    Widget present(Widget content, {Key? key}) {
+      final box = SizedBox(
+        key: key,
+        width: bingoCardPresentationSize.width,
+        height: bingoCardPresentationSize.height,
+        child: content,
+      );
+      // Lay out live ticket text at the actual phone width. Custom story
+      // content uses the original fixed canvas and scale-down behavior.
+      return Center(
+        child: content is BingoWidget || content is BingoStackLayer
+            ? box
+            : FittedBox(fit: BoxFit.scaleDown, child: box),
+      );
+    }
 
     return StoryViewerShell(
       frameKey: const ValueKey('bingo-status-frame'),
@@ -976,6 +980,7 @@ class _BingoStatusDialogBodyState extends State<_BingoStatusDialogBody>
       onResume: _resumeProgress,
       foregroundChild: hasInteractiveStack
           ? BingoStackLayer(
+              key: ValueKey('bingo-story-tickets-$_currentIndex'),
               dataStack: story.dataStack,
             )
           : null,

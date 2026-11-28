@@ -4,7 +4,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'bingo_model.dart';
@@ -25,114 +24,68 @@ class BingoWidget extends StatefulWidget {
 }
 
 class _BingoWidgetState extends State<BingoWidget>
-    with TickerProviderStateMixin {
-  late BingoModel _model;
-
-  late AnimationController tapconfetiController;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
+    with SingleTickerProviderStateMixin {
+  late final BingoModel _model;
+  late final AnimationController _confetti;
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => BingoModel());
-
-    tapconfetiController = AnimationController(vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    _confetti = AnimationController(vsync: this);
   }
 
   @override
   void dispose() {
+    _confetti.dispose();
     _model.maybeDispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-    final dataStack = widget.dataStack ?? FFAppState().bingo.dataStack;
-
-    return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 10.0, 0.0),
-      child: InkWell(
-        splashColor: Colors.transparent,
-        focusColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        onTap: () async {
-          logFirebaseEvent('BINGO_COMP_Card_99wwwxl3_ON_TAP');
-          await Future.wait([
-            () async {
-              logFirebaseEvent('Card_lottie_animation');
-              await tapconfetiController.forward();
-              tapconfetiController.reset();
-            }(),
-            SystemSound.play(SystemSoundType.click),
-          ]);
-        },
-        child: Card(
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          color: FlutterFlowTheme.of(context).secondaryBackground,
-          elevation: 2.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24.0),
-          ),
-          child: Container(
-            width: 400.0,
-            height: 400.0,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: Image.asset(
-                  'assets/images/bg_bingo_-_Moyenne.jpeg',
-                ).image,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Lottie.asset(
-                  'assets/jsons/Confetti.json',
-                  width: MediaQuery.sizeOf(context).width * 1.0,
-                  height: MediaQuery.sizeOf(context).height * 1.0,
-                  fit: BoxFit.contain,
-                  repeat: false,
-                  animate: true,
+    final data =
+        widget.dataStack ?? context.watch<FFAppState>().bingo.dataStack;
+    final theme = FlutterFlowTheme.of(context);
+    final animate = !MediaQuery.disableAnimationsOf(context);
+    return _BingoCardBounds(
+      child: Material(
+        color: theme.secondaryBackground,
+        borderRadius: BorderRadius.circular(theme.designToken.radius.lg),
+        clipBehavior: Clip.antiAlias,
+        child: GestureDetector(
+          onTap: () {
+            logFirebaseEvent('BINGO_COMP_Card_99wwwxl3_ON_TAP');
+            SystemSound.play(SystemSoundType.click);
+            if (animate && _confetti.duration != null) {
+              _confetti.forward(from: 0);
+            }
+          },
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset('assets/images/bingo/story_backdrop.webp',
+                  fit: BoxFit.contain, excludeFromSemantics: true),
+              if (animate) ...[
+                IgnorePointer(
+                  child: Lottie.asset('assets/jsons/Confetti.json',
+                      fit: BoxFit.contain, repeat: false),
                 ),
-                Lottie.asset(
-                  'assets/jsons/Confetti.json',
-                  width: MediaQuery.sizeOf(context).width * 1.0,
-                  height: MediaQuery.sizeOf(context).height * 1.0,
-                  fit: BoxFit.contain,
-                  controller: tapconfetiController,
-                  onLoaded: (composition) =>
-                      tapconfetiController.duration = composition.duration,
+                IgnorePointer(
+                  child: Lottie.asset('assets/jsons/Confetti.json',
+                      fit: BoxFit.contain,
+                      controller: _confetti,
+                      onLoaded: (composition) =>
+                          _confetti.duration = composition.duration),
                 ),
-                Align(
-                  alignment: AlignmentDirectional(0.0, -0.85),
-                  child: Lottie.asset(
-                    'assets/jsons/Bingo_Animation.json',
-                    width: MediaQuery.sizeOf(context).width * 1.65,
-                    height: 170.0,
-                    fit: BoxFit.contain,
-                    animate: true,
-                  ),
-                ),
-                if (widget.showStackLayer)
-                  _BingoStackContent(
-                    dataStack: dataStack,
-                    stack: wrapWithModel(
-                      model: _model.stackbingoModel,
-                      updateCallback: () => safeSetState(() {}),
-                      child: StackbingoWidget(dataStack: dataStack),
-                    ),
-                  ),
               ],
-            ),
+              if (widget.showStackLayer)
+                wrapWithModel(
+                  model: _model.stackbingoModel,
+                  updateCallback: () {},
+                  child: StackbingoWidget(dataStack: data),
+                ),
+            ],
           ),
         ),
       ),
@@ -140,110 +93,35 @@ class _BingoWidgetState extends State<BingoWidget>
   }
 }
 
-/// The stacked Bingo lot rendered independently from the card background.
-///
-/// Bingo Stories use this layer above their left/right navigation targets so
-/// the card swiper receives the gesture first. The presentation dimensions
-/// mirror the original Card margin and horizontal padding exactly.
+/// The dialog places the ticket above its navigation targets so a gesture
+/// starting on the ticket turns the lot while one on the balls turns the story.
 class BingoStackLayer extends StatelessWidget {
-  const BingoStackLayer({
-    super.key,
-    required this.dataStack,
-  });
-
+  const BingoStackLayer({super.key, required this.dataStack});
   final List<DataStackStruct> dataStack;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: SizedBox(
-            width: 400.0,
-            height: 400.0,
-            child: _BingoStackContent(
-              dataStack: dataStack,
-              stack: StackbingoWidget(
-                dataStack: dataStack,
-                storySwipeMode: true,
-              ),
-            ),
-          ),
+  Widget build(BuildContext context) => _BingoCardBounds(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(
+              FlutterFlowTheme.of(context).designToken.radius.lg),
+          child: StackbingoWidget(dataStack: dataStack),
         ),
       );
 }
 
-class _BingoStackContent extends StatelessWidget {
-  const _BingoStackContent({
-    required this.dataStack,
-    required this.stack,
-  });
-
-  final List<DataStackStruct> dataStack;
-  final Widget stack;
+/// Backdrop and gesture layers share the same square even on short screens.
+class _BingoCardBounds extends StatelessWidget {
+  const _BingoCardBounds({required this.child});
+  final Widget child;
 
   @override
-  Widget build(BuildContext context) => Stack(
-        fit: StackFit.expand,
-        children: [
-          Align(
-            alignment: const AlignmentDirectional(0.0, 1.0),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(bottom: 30.0),
-              child: SizedBox(
-                width: MediaQuery.sizeOf(context).width,
-                height: 125.3,
-                child: stack,
-              ),
-            ),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
+            child: AspectRatio(aspectRatio: 1, child: child),
           ),
-          if (dataStack.length > 1)
-            IgnorePointer(
-              child: Align(
-                alignment: const AlignmentDirectional(-0.01, 0.34),
-                child: SizedBox(
-                  width: 75.0,
-                  height: 50.0,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'x${dataStack.length}',
-                        style:
-                            FlutterFlowTheme.of(context).displayLarge.override(
-                          font: GoogleFonts.raleway(
-                            fontWeight: FontWeight.w900,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .displayLarge
-                                .fontStyle,
-                          ),
-                          color: Colors.white,
-                          fontSize: 20.0,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w900,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .displayLarge
-                              .fontStyle,
-                          shadows: [
-                            Shadow(
-                              color: FlutterFlowTheme.of(context).secondaryText,
-                              offset: const Offset(1.0, 1.0),
-                              blurRadius: 2.0,
-                            )
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.swipe_sharp,
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        size: 12.0,
-                      ),
-                    ].divide(const SizedBox(width: 10.0)),
-                  ),
-                ),
-              ),
-            ),
-        ],
+        ),
       );
 }

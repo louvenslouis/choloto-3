@@ -1,4 +1,5 @@
-import '/components/page_header_app_bar.dart';
+import 'dart:math' as math;
+import '/components/home_page_scaffold.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -11,7 +12,10 @@ import 'youtube_model.dart';
 export 'youtube_model.dart';
 
 class YoutubeWidget extends StatefulWidget {
-  const YoutubeWidget({super.key});
+  const YoutubeWidget({super.key, this.loadVideos = loadYoutubeVideos});
+
+  final Future<List<YoutubeItemStruct>> Function(
+      {required String fallbackTitle}) loadVideos;
 
   static String routeName = 'youtube';
   static String routePath = '/youtube';
@@ -21,9 +25,7 @@ class YoutubeWidget extends StatefulWidget {
 }
 
 class _YoutubeWidgetState extends State<YoutubeWidget> {
-  static const String _channelUrl =
-      'https://www.youtube.com/channel/UC6N0qcctRmlaUEYdzhR0-Hw';
-
+  Future<void>? _refresh;
   late YoutubeModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -39,7 +41,10 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadVideos());
   }
 
-  Future<void> _loadVideos({bool showLoader = true}) async {
+  Future<void> _loadVideos({bool showLoader = true}) =>
+      _refresh ??= _fetchVideos(showLoader).whenComplete(() => _refresh = null);
+
+  Future<void> _fetchVideos(bool showLoader) async {
     if (!mounted) {
       return;
     }
@@ -54,7 +59,7 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
     logFirebaseEvent('youtube_backend_call');
 
     try {
-      final videos = await loadYoutubeVideos(fallbackTitle: fallbackTitle);
+      final videos = await widget.loadVideos(fallbackTitle: fallbackTitle);
 
       if (!mounted) {
         return;
@@ -117,430 +122,235 @@ class _YoutubeWidgetState extends State<YoutubeWidget> {
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
 
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      child: Scaffold(
-        key: scaffoldKey,
-        backgroundColor: theme.primaryBackground,
-        appBar: PageHeaderAppBar(
-          automaticallyImplyLeading: false,
-          leading: FlutterFlowIconButton(
-            borderColor: Colors.transparent,
-            borderRadius: theme.designToken.radius.full,
-            borderWidth: 1.0,
-            buttonSize: 60.0,
-            icon: Icon(
-              Icons.arrow_back_rounded,
-              color: theme.info,
-              size: 28.0,
-            ),
-            onPressed: () async {
-              logFirebaseEvent('YOUTUBE_arrow_back_rounded_ICN_ON_TAP');
-              logFirebaseEvent('IconButton_navigate_back');
-              context.pop();
-            },
-          ),
-          title: Text(
-            FFLocalizations.of(context).getText('ho2ij0yt'),
-            style: theme.headlineMedium.override(
-              fontFamily: 'Google sans flex',
-              color: theme.info,
-              fontSize: 22.0,
-              letterSpacing: 0.0,
-            ),
-          ),
-          actions: [
-            Padding(
-              padding: EdgeInsetsDirectional.only(
-                end: theme.designToken.spacing.sm,
-              ),
-              child: FlutterFlowIconButton(
-                borderColor: Colors.transparent,
-                borderRadius: theme.designToken.radius.sm,
-                buttonSize: 44.0,
-                showLoadingIndicator: true,
-                icon: Icon(
-                  Icons.refresh_rounded,
-                  color: theme.info,
-                  size: 24.0,
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
+    final videos = _model.videos;
+    return Scaffold(
+      key: scaffoldKey,
+      backgroundColor: theme.primaryBackground,
+      body: SafeArea(
+        child: LayoutBuilder(builder: (context, bounds) {
+          final inset = math.max(spacing.md,
+              (bounds.maxWidth - HomePageScaffold.maxContentWidth) / 2);
+          final width = bounds.maxWidth - inset * 2;
+          final scaledWidth =
+              width / (MediaQuery.textScalerOf(context).scale(16) / 16);
+          final columns = scaledWidth >= 1000
+              ? 3
+              : scaledWidth >= 600
+                  ? 2
+                  : 1;
+          return RefreshIndicator(
+            color: theme.primary,
+            backgroundColor: tokens.home.surface.colors.last,
+            onRefresh: () => _loadVideos(showLoader: false),
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                PinnedHeaderSliver(child: _buildHeader(context, inset)),
+                SliverPadding(
+                  padding:
+                      EdgeInsets.fromLTRB(inset, spacing.sm, inset, spacing.sm),
+                  sliver:
+                      SliverToBoxAdapter(child: _buildSectionHeader(context)),
                 ),
-                onPressed:
-                    _isLoading ? null : () => _loadVideos(showLoader: false),
-              ),
-            ),
-          ],
-          centerTitle: false,
-        ),
-        body: SafeArea(
-          top: true,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760.0),
-              child: RefreshIndicator(
-                color: theme.primary,
-                backgroundColor: theme.secondaryBackground,
-                onRefresh: () => _loadVideos(showLoader: false),
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        theme.designToken.spacing.md,
-                        theme.designToken.spacing.md,
-                        theme.designToken.spacing.md,
-                        0.0,
-                      ),
-                      sliver: SliverToBoxAdapter(
-                        child: _buildChannelCard(context),
+                if (_hasError && videos.isNotEmpty)
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(inset, 0, inset, spacing.md),
+                    sliver:
+                        SliverToBoxAdapter(child: _buildRefreshError(context)),
+                  ),
+                if (videos.isEmpty)
+                  SliverToBoxAdapter(
+                    child: _isLoading
+                        ? _buildLoadingState(context)
+                        : _hasError
+                            ? _buildErrorState(context)
+                            : _buildEmptyState(context),
+                  )
+                else
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(inset, 0, inset, spacing.lg),
+                    sliver: SliverList.separated(
+                      itemCount: (videos.length / columns).ceil(),
+                      separatorBuilder: (_, __) => SizedBox(height: spacing.md),
+                      itemBuilder: (context, row) => Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var col = 0; col < columns; col++) ...[
+                            if (col > 0) SizedBox(width: spacing.md),
+                            Expanded(
+                              child: row * columns + col >= videos.length
+                                  ? const SizedBox.shrink()
+                                  : _buildVideoCard(
+                                      context, videos[row * columns + col],
+                                      isLatest: row == 0 && col == 0,
+                                      compact: columns == 1 &&
+                                          row > 0 &&
+                                          scaledWidth >= 270),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    if (_isLoading && _model.videos.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: _buildLoadingState(context),
-                      )
-                    else if (_hasError && _model.videos.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: _buildErrorState(context),
-                      )
-                    else if (_model.videos.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: _buildEmptyState(context),
-                      )
-                    else ...[
-                      if (_hasError)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            theme.designToken.spacing.md,
-                            theme.designToken.spacing.md,
-                            theme.designToken.spacing.md,
-                            0.0,
-                          ),
-                          sliver: SliverToBoxAdapter(
-                            child: _buildRefreshError(context),
-                          ),
-                        ),
-                      SliverPadding(
-                        padding: EdgeInsets.fromLTRB(
-                          theme.designToken.spacing.md,
-                          theme.designToken.spacing.lg,
-                          theme.designToken.spacing.md,
-                          theme.designToken.spacing.sm,
-                        ),
-                        sliver: SliverToBoxAdapter(
-                          child: _buildSectionHeader(context),
-                        ),
-                      ),
-                      SliverPadding(
-                        padding: EdgeInsets.fromLTRB(
-                          theme.designToken.spacing.md,
-                          0.0,
-                          theme.designToken.spacing.md,
-                          theme.designToken.spacing.md,
-                        ),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) => Padding(
-                              padding: EdgeInsets.only(
-                                bottom: theme.designToken.spacing.md,
-                              ),
-                              child: _buildVideoCard(
-                                context,
-                                _model.videos[index],
-                                isLatest: index == 0,
-                              ),
-                            ),
-                            childCount: _model.videos.length,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+                  ),
+              ],
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildChannelCard(BuildContext context) {
+  Widget _buildHeader(BuildContext context, double inset) {
     final theme = FlutterFlowTheme.of(context);
-
-    return Container(
-      padding: EdgeInsets.all(theme.designToken.spacing.md),
-      decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(theme.designToken.radius.md),
-        border: Border.all(color: theme.alternate.applyAlpha(0.14)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 56.0,
-                height: 56.0,
-                padding: EdgeInsets.all(theme.designToken.spacing.sm),
-                decoration: BoxDecoration(
-                  color: theme.primaryBackground,
-                  borderRadius:
-                      BorderRadius.circular(theme.designToken.radius.sm),
-                ),
-                child: Image.asset(
-                  'assets/images/youtube_-_Moyenne.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              SizedBox(width: theme.designToken.spacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      FFLocalizations.of(context).getText('ytch4nel'),
-                      style: theme.titleMedium,
-                    ),
-                    SizedBox(height: theme.designToken.spacing.xs),
-                    Text(
-                      FFLocalizations.of(context).getText('ytintr01'),
-                      style: theme.bodySmall.override(
-                        color: theme.secondaryText,
-                        lineHeight: 1.35,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: theme.designToken.spacing.md),
-          FFButtonWidget(
-            text: FFLocalizations.of(context).getText('ytchnbtn'),
-            icon: Icon(
-              Icons.subscriptions_outlined,
-              color: theme.onPrimary,
-              size: 20.0,
-            ),
-            onPressed: () async {
-              logFirebaseEvent('YOUTUBE_PAGE_ChannelButton_ON_TAP');
-              await launchURL(_channelUrl);
-            },
-            options: FFButtonOptions(
-              height: 44.0,
-              color: theme.primary,
-              textStyle: theme.labelLarge.override(
-                color: theme.onPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-              elevation: 0.0,
-              borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
-            ),
-          ),
-        ],
+    final tokens = theme.designToken;
+    final strings = FFLocalizations.of(context);
+    return ColoredBox(
+      color: theme.primaryBackground,
+      child: DecoratedBox(
+        decoration: tokens.background.pageHeader(),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+              horizontal: inset, vertical: tokens.spacing.sm),
+          child: Row(children: [
+            BackButton(
+                color: theme.primaryText,
+                onPressed: () {
+                  logFirebaseEvent('YOUTUBE_arrow_back_rounded_ICN_ON_TAP');
+                  logFirebaseEvent('IconButton_navigate_back');
+                  context.safePop();
+                }),
+            Expanded(
+                child: Semantics(
+                    header: true,
+                    child: Text(strings.getText('youtube_story_label'),
+                        style: theme.headlineMedium
+                            .copyWith(fontWeight: FontWeight.w700)))),
+          ]),
+        ),
       ),
     );
   }
 
   Widget _buildSectionHeader(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
+    final tokens = theme.designToken;
     final count = _model.videos.length;
-    final countLabel = count == 1
-        ? FFLocalizations.of(context).getText('ytvidone')
-        : FFLocalizations.of(context).getText('ytvidmul');
-
-    return Row(
-      children: [
-        Expanded(
+    final strings = FFLocalizations.of(context);
+    return Row(children: [
+      Expanded(
+          child: Semantics(
+              header: true,
+              child:
+                  Text(strings.getText('ytlatest'), style: theme.titleLarge))),
+      if (count > 0)
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: tokens.spacing.sm),
           child: Text(
-            FFLocalizations.of(context).getText('ytlatest'),
-            style: theme.titleLarge,
-          ),
+              '$count ${strings.getText(count == 1 ? 'ytvidone' : 'ytvidmul')}',
+              style: theme.labelMedium.copyWith(color: tokens.home.mutedText)),
         ),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: theme.designToken.spacing.sm,
-            vertical: theme.designToken.spacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: theme.primary.applyAlpha(0.14),
-            borderRadius: BorderRadius.circular(theme.designToken.radius.full),
-          ),
-          child: Text(
-            '$count $countLabel',
-            style: theme.labelSmall.override(
-              color: theme.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
+      IconButton(
+        tooltip: strings.getVariableText(
+            frText: 'Actualiser les vidéos',
+            enText: 'Refresh videos',
+            crText: 'Rafrechi videyo yo'),
+        onPressed: _isLoading ? null : () => _loadVideos(showLoader: false),
+        icon: Icon(Icons.refresh_rounded, color: tokens.home.mutedText),
+      ),
+    ]);
   }
 
-  Widget _buildVideoCard(
-    BuildContext context,
-    YoutubeItemStruct video, {
-    required bool isLatest,
-  }) {
+  Widget _buildVideoCard(BuildContext context, YoutubeItemStruct video,
+      {required bool isLatest, required bool compact}) {
     final theme = FlutterFlowTheme.of(context);
-    final publishedLabel = _publishedLabel(context, video.pubDate);
+    final tokens = theme.designToken;
+    final published = _publishedLabel(context, video.pubDate);
+    final radius = BorderRadius.circular(tokens.radius.md);
+    final details = Padding(
+      padding: EdgeInsets.all(compact ? tokens.spacing.sm : tokens.spacing.md),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(video.title,
+            style: theme.titleMedium,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis),
+        if (published.isNotEmpty) ...[
+          SizedBox(height: tokens.spacing.xs),
+          Text(published,
+              style: theme.labelMedium.copyWith(color: tokens.home.mutedText)),
+        ],
+      ]),
+    );
 
+    final thumbnail = AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Stack(fit: StackFit.expand, children: [
+        ColoredBox(
+          color: tokens.home.surface.colors.first,
+          child: Center(
+              child: Icon(Icons.video_library_outlined,
+                  color: tokens.home.mutedText, size: compact ? 24 : 36)),
+        ),
+        if (video.thumbnail.isNotEmpty)
+          CachedNetworkImage(
+              imageUrl: video.thumbnail,
+              fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => const SizedBox.shrink()),
+        if (isLatest)
+          PositionedDirectional(
+              top: tokens.spacing.sm,
+              start: tokens.spacing.sm,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                    color: theme.primary,
+                    borderRadius: BorderRadius.circular(tokens.radius.full)),
+                child: Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: tokens.spacing.sm,
+                        vertical: tokens.spacing.xs),
+                    child: Text(FFLocalizations.of(context).getText('ytnewest'),
+                        style: theme.labelSmall.copyWith(
+                            color: theme.onPrimary,
+                            fontWeight: FontWeight.w700))),
+              )),
+        Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: EdgeInsets.all(tokens.spacing.sm),
+              child: DecoratedBox(
+                  decoration: BoxDecoration(
+                      color: tokens.background.home, shape: BoxShape.circle),
+                  child: Icon(Icons.play_arrow_rounded,
+                      size: compact ? 24 : 32, color: theme.primaryText)),
+            )),
+      ]),
+    );
     return Semantics(
       button: true,
-      label:
-          '${FFLocalizations.of(context).getText('ytwatch1')}: ${video.title}',
+      enabled: video.link.isNotEmpty,
+      label: [
+        FFLocalizations.of(context).getText('ytwatch1'),
+        video.title,
+        published
+      ].where((part) => part.isNotEmpty).join(', '),
       child: Material(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(theme.designToken.radius.md),
+        color: theme.primaryBackground,
+        borderRadius: radius,
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: video.link.isEmpty ? null : () => _openVideo(video),
-          splashColor: theme.primary.applyAlpha(0.12),
-          highlightColor: theme.primary.applyAlpha(0.06),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CachedNetworkImage(
-                      imageUrl: video.thumbnail,
-                      fadeInDuration: const Duration(milliseconds: 180),
-                      fadeOutDuration: const Duration(milliseconds: 100),
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: theme.primaryBackground,
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: 28.0,
-                          height: 28.0,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(theme.primary),
-                          ),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: theme.primaryBackground,
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: theme.secondaryText,
-                          size: 40.0,
-                        ),
-                      ),
-                    ),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.38),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: Container(
-                        width: 52.0,
-                        height: 52.0,
-                        decoration: BoxDecoration(
-                          color: theme.primary,
-                          shape: BoxShape.circle,
-                          boxShadow: [theme.designToken.shadow.md],
-                        ),
-                        child: Icon(
-                          Icons.play_arrow_rounded,
-                          color: theme.onPrimary,
-                          size: 32.0,
-                        ),
-                      ),
-                    ),
-                    if (isLatest)
-                      PositionedDirectional(
-                        top: theme.designToken.spacing.sm,
-                        start: theme.designToken.spacing.sm,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: theme.designToken.spacing.sm,
-                            vertical: theme.designToken.spacing.xs,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.primary,
-                            borderRadius: BorderRadius.circular(
-                              theme.designToken.radius.full,
-                            ),
-                          ),
-                          child: Text(
-                            FFLocalizations.of(context).getText('ytnewest'),
-                            style: theme.labelSmall.override(
-                              color: theme.onPrimary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(theme.designToken.spacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      video.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.titleMedium.override(lineHeight: 1.25),
-                    ),
-                    SizedBox(height: theme.designToken.spacing.sm),
-                    Row(
-                      children: [
-                        if (publishedLabel.isNotEmpty) ...[
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            color: theme.secondaryText,
-                            size: 16.0,
-                          ),
-                          SizedBox(width: theme.designToken.spacing.sm),
-                          Expanded(
-                            child: Text(
-                              publishedLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.labelMedium.override(
-                                color: theme.secondaryText,
-                              ),
-                            ),
-                          ),
-                        ] else
-                          const Spacer(),
-                        SizedBox(width: theme.designToken.spacing.sm),
-                        Icon(
-                          Icons.open_in_new_rounded,
-                          color: theme.primary,
-                          size: 19.0,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        child: Ink(
+          decoration: tokens.home.panel,
+          child: InkWell(
+            onTap: video.link.isEmpty ? null : () => _openVideo(video),
+            child: ExcludeSemantics(
+                child: compact
+                    ? Row(children: [
+                        SizedBox(width: 112, child: thumbnail),
+                        Expanded(child: details)
+                      ])
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [thumbnail, details])),
           ),
         ),
       ),

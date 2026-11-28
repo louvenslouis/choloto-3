@@ -324,8 +324,10 @@ void main() {
               );
               expect(
                   tester.getRect(chip).right,
-                  lessThanOrEqualTo(
-                      supportRect.left - homeTheme.designToken.spacing.sm));
+                  closeTo(
+                      tester.getRect(draws).right -
+                          homeTheme.designToken.spacing.md,
+                      0.01));
             }
           }
           final badge =
@@ -372,8 +374,7 @@ void main() {
               image.dispose();
             });
           }
-          // On short phones the complete list is one scroll away. Neither row
-          // may be covered by the support entry or by the navigation bar.
+          // Scrolling brings each final number into view above the floating controls.
           for (final number in ['64', '32']) {
             final chip = find.text(number);
             await tester.ensureVisible(chip);

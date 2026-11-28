@@ -1,5 +1,5 @@
 import '/backend/backend.dart';
-import '/components/draw_result_chip.dart';
+import '/autres/bingo/bingo_result_tile.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
@@ -655,75 +655,11 @@ class _BingoDaySheet extends StatelessWidget {
                   itemCount: entries.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8.0),
                   itemBuilder: (context, index) =>
-                      _BingoDetailTile(entry: entries[index], index: index),
+                      BingoResultTile(entry: entries[index], index: index),
                 ),
               ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _BingoDetailTile extends StatelessWidget {
-  const _BingoDetailTile({required this.entry, required this.index});
-
-  final DataStackStruct entry;
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final title = entry.tirage.isEmpty
-        ? FFLocalizations.of(context).getVariableText(
-            frText: 'Bingo ${index + 1}',
-            enText: 'Bingo ${index + 1}',
-            crText: 'Bingo ${index + 1}',
-          )
-        : entry.tirage;
-    final details = [entry.valeur, entry.periode]
-        .where((value) => value.trim().isNotEmpty)
-        .join('  •  ');
-
-    return Container(
-      padding: const EdgeInsets.all(12.0),
-      decoration: theme.designToken.home.panel,
-      child: Row(
-        children: [
-          DrawResultChip(
-              value: entry.boul.isEmpty ? '—' : entry.boul, size: 48),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.titleMedium.override(
-                    fontFamily: 'Google sans flex',
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.0,
-                  ),
-                ),
-                if (details.isNotEmpty) ...[
-                  const SizedBox(height: 3.0),
-                  Text(
-                    details,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.labelMedium.override(
-                      fontFamily: 'Google sans flex',
-                      color: theme.designToken.home.mutedText,
-                      letterSpacing: 0.0,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -26,6 +26,8 @@ class AchievementSnapshot {
   final int memberDays;
   final bool hasCompleteProfile;
 
+  int get bestStreak => math.max(currentStreak, longestStreak);
+
   int get totalDeclarations => reportedWins + reportedMisses;
 
   double get winRate => totalDeclarations == 0
@@ -33,7 +35,7 @@ class AchievementSnapshot {
       : reportedWins / math.max(1, totalDeclarations);
 
   int progressFor(AchievementKind kind) => switch (kind) {
-        AchievementKind.streak => longestStreak,
+        AchievementKind.streak => bestStreak,
         AchievementKind.winner => reportedWins,
         AchievementKind.participation => totalDeclarations,
         AchievementKind.loyalty => memberDays,
@@ -59,8 +61,12 @@ class AchievementDefinition {
   final int target;
   final String assetPath;
 
-  int progress(AchievementSnapshot snapshot) => snapshot.progressFor(kind);
-  bool isUnlocked(AchievementSnapshot snapshot) => progress(snapshot) >= target;
+  bool isUnlocked(AchievementSnapshot snapshot) =>
+      snapshot.progressFor(kind) >= target;
+  int progress(AchievementSnapshot snapshot) =>
+      kind == AchievementKind.streak && !isUnlocked(snapshot)
+          ? snapshot.currentStreak
+          : snapshot.progressFor(kind);
   double progressValue(AchievementSnapshot snapshot) =>
       (progress(snapshot) / target).clamp(0.0, 1.0);
 }
@@ -175,23 +181,46 @@ const achievementDefinitions = <AchievementDefinition>[
   ),
 ];
 
+/// Show earned streak badges and the first locked milestone after day 30.
+Iterable<AchievementDefinition> achievementsFor(int bestStreak) sync* {
+  for (final badge in achievementDefinitions) {
+    yield badge;
+    if (badge.id != 'streak_30') continue;
+
+    var target = badge.target;
+    while (target <= bestStreak) {
+      final next = target * 3;
+      // Stop if a malformed historical counter exceeds exact integer arithmetic.
+      if (next <= target || next ~/ 3 != target) break;
+      target = next;
+      yield AchievementDefinition(
+        id: 'streak_$target',
+        titleKey: 'ach_streak_extended_title',
+        descriptionKey: 'ach_streak_extended_desc',
+        kind: AchievementKind.streak,
+        target: target,
+        assetPath: streakBadgeAsset,
+      );
+    }
+  }
+}
+
 int unlockedAchievementCount(AchievementSnapshot snapshot) =>
-    achievementDefinitions
+    achievementsFor(snapshot.bestStreak)
         .where((definition) => definition.isUnlocked(snapshot))
         .length;
 
 double achievementCompletionValue(AchievementSnapshot snapshot) =>
-    achievementDefinitions.isEmpty
-        ? 0.0
-        : unlockedAchievementCount(snapshot) / achievementDefinitions.length;
+    unlockedAchievementCount(snapshot) /
+    achievementsFor(snapshot.bestStreak).length;
 
-int nextStreakTarget(int longestStreak) {
-  for (final target in const [3, 7, 14, 30]) {
-    if (longestStreak < target) {
-      return target;
+int? nextStreakTarget(int bestStreak) {
+  for (final badge in achievementsFor(bestStreak)) {
+    if (badge.kind == AchievementKind.streak && badge.target > bestStreak) {
+      return badge.target;
     }
   }
-  return 30;
+  return null;
 }
 
 int membershipDays(DateTime? createdTime, DateTime now) {

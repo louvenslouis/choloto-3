@@ -178,6 +178,47 @@ void main() {
       expect(nextStreakTarget(snapshot.longestStreak), 14);
     });
 
+    test('triples each streak target after the monthly badge', () {
+      for (final (record, next) in [
+        (29, 30),
+        (30, 90),
+        (89, 90),
+        (90, 270),
+        (269, 270),
+        (270, 810),
+        (810, 2430),
+        (2430, 7290),
+      ]) {
+        expect(nextStreakTarget(record), next);
+      }
+    });
+
+    test('a past record earns each badge once and a new streak starts fresh',
+        () {
+      const snapshot =
+          AchievementSnapshot(currentStreak: 1, longestStreak: 270);
+      final streaks = achievementsFor(snapshot.bestStreak)
+          .where((badge) => badge.kind == AchievementKind.streak)
+          .toList();
+      expect(
+          streaks
+              .where((badge) => badge.isUnlocked(snapshot))
+              .map((badge) => badge.target),
+          [3, 7, 14, 30, 90, 270]);
+      expect(streaks.last.target, 810);
+      expect(streaks.last.progress(snapshot), 1);
+      expect(unlockedAchievementCount(snapshot), 6);
+      expect(achievementCompletionValue(snapshot), 6 / 16);
+    });
+
+    test(
+        'an active series also counts when a historical profile lacks its record',
+        () {
+      const snapshot = AchievementSnapshot(currentStreak: 90);
+      expect(nextStreakTarget(snapshot.bestStreak), 270);
+      expect(unlockedAchievementCount(snapshot), 5);
+    });
+
     test('calculates membership days without inventing a future history', () {
       expect(
         membershipDays(DateTime(2026, 8, 1), DateTime(2026, 8, 14)),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:choloto/components/page_header_app_bar.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/payments/payment_requests_widget.dart';
@@ -10,6 +11,8 @@ import 'package:choloto/payments/vip_payment_options.dart';
 import 'package:choloto/settings/customerservice/customerservice_widget.dart';
 import 'package:choloto/settings/devenir_v_i_p/devenir_v_i_p_widget.dart';
 import 'package:choloto/support/support_bot.dart';
+// ignore: depend_on_referenced_packages
+import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core_platform_interface/test.dart';
@@ -21,6 +24,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 // ignore: implementation_imports
 import 'package:google_fonts/src/google_fonts_base.dart' as font_testing;
+
+class _SignedOutAuth extends FirebaseAuthPlatform {
+  @override
+  FirebaseAuthPlatform delegateFor(
+          {required FirebaseApp app, Persistence? persistence}) =>
+      this;
+  @override
+  FirebaseAuthPlatform setInitialValues(
+          {Object? currentUser, String? languageCode}) =>
+      this;
+  @override
+  Stream<UserPlatform?> authStateChanges() => const Stream.empty();
+}
 
 class _TestFontManifest extends Fake implements AssetManifest {
   @override
@@ -97,6 +113,7 @@ void main() {
   setupFirebaseCoreMocks();
   setUpAll(() async {
     await Firebase.initializeApp();
+    FirebaseAuthPlatform.instance = _SignedOutAuth();
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMessageHandler(
@@ -225,7 +242,7 @@ void main() {
       GoRoute(
         name: PaymentRequestsWidget.routeName,
         path: PaymentRequestsWidget.routePath,
-        builder: (_, __) => const Scaffold(body: Text('native-subscription')),
+        builder: (_, __) => const PaymentRequestsWidget(),
       ),
       GoRoute(
         name: CustomerserviceWidget.routeName,
@@ -263,7 +280,21 @@ void main() {
     await tester.ensureVisible(find.byKey(const ValueKey('become-vip-button')));
     await tester.tap(find.byKey(const ValueKey('become-vip-button')));
     await tester.pumpAndSettle();
-    expect(find.text('native-subscription'), findsOneWidget);
+    final header = find.byType(PageHeaderAppBar);
+    final amethyst = find.descendant(
+      of: header,
+      matching: find.byWidgetPredicate((widget) =>
+          widget is DecoratedBox &&
+          widget.decoration ==
+              DarkModeTheme().designToken.background.pageHeader(vip: true)),
+    );
+    expect(tester.getRect(amethyst), tester.getRect(header));
+    expect(find.descendant(of: header, matching: find.text('Abonnement')),
+        findsOneWidget);
+    await tester.tap(find.descendant(
+        of: header, matching: find.byIcon(Icons.arrow_back_rounded)));
+    await tester.pumpAndSettle();
+    expect(find.byType(DevenirVIPWidget), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

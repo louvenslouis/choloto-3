@@ -37,17 +37,39 @@ class SettingsChoiceSheet<T> extends StatelessWidget {
             ]),
           ),
           for (final option in options.entries)
-            ListTile(
+            SettingsChoiceTile(
+              label: option.value,
               selected: selected == option.key,
-              selectedColor: theme.primary,
-              title: Text(option.value, style: theme.bodyLarge),
-              trailing: selected == option.key
-                  ? Icon(Icons.check_rounded, color: theme.primary)
-                  : null,
               onTap: () => onSelected(option.key),
             ),
         ]),
       ),
+    );
+  }
+}
+
+class SettingsChoiceTile extends StatelessWidget {
+  const SettingsChoiceTile(
+      {super.key,
+      required this.label,
+      required this.selected,
+      required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    return ListTile(
+      selected: selected,
+      enabled: onTap != null,
+      selectedColor: theme.primary,
+      title: Text(label, style: theme.bodyLarge),
+      trailing:
+          selected ? Icon(Icons.check_rounded, color: theme.primary) : null,
+      onTap: onTap,
     );
   }
 }

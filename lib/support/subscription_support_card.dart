@@ -15,11 +15,7 @@ class SubscriptionSupportCard extends StatelessWidget {
     return Container(
       key: const ValueKey('subscription-support-card'),
       padding: EdgeInsets.all(tokens.spacing.md),
-      decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        border: Border.all(color: theme.primary.withValues(alpha: .35)),
-      ),
+      decoration: tokens.home.panel,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -27,11 +23,11 @@ class SubscriptionSupportCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: theme.primary.withValues(alpha: .16),
+              color: tokens.home.surface.colors.last,
               borderRadius: BorderRadius.circular(tokens.radius.md),
             ),
             child: Icon(Icons.support_agent_rounded,
-                color: theme.primary, size: 26),
+                color: tokens.home.mutedText, size: 26),
           ),
           SizedBox(width: tokens.spacing.md),
           Expanded(
@@ -43,7 +39,8 @@ class SubscriptionSupportCard extends StatelessWidget {
                 SizedBox(height: tokens.spacing.xs),
                 Text(
                   supportText(context, 'subscriptionBody'),
-                  style: theme.bodyMedium.override(color: theme.secondaryText),
+                  style:
+                      theme.bodyMedium.override(color: tokens.home.mutedText),
                 ),
                 SizedBox(height: tokens.spacing.sm),
                 TextButton.icon(
@@ -51,6 +48,7 @@ class SubscriptionSupportCard extends StatelessWidget {
                   onPressed: onOpen,
                   style: TextButton.styleFrom(
                     foregroundColor: theme.primary,
+                    textStyle: theme.labelLarge,
                     padding: EdgeInsets.symmetric(
                       horizontal: tokens.spacing.sm,
                       vertical: tokens.spacing.sm,

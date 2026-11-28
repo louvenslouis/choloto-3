@@ -1,8 +1,7 @@
-import '/components/page_header_app_bar.dart';
+import '/components/subscription_page_header.dart';
 import '/payments/payment_requests_widget.dart';
 import '/payments/payment_text.dart';
 import '/auth/firebase_auth/auth_util.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/settings/customerservice/customerservice_widget.dart';
@@ -75,30 +74,7 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: theme.primaryBackground,
-        appBar: PageHeaderAppBar(
-          vip: true,
-          automaticallyImplyLeading: false,
-          leading: FlutterFlowIconButton(
-            borderRadius: tokens.radius.sm,
-            buttonSize: 40.0,
-            icon: Icon(
-              Icons.arrow_back_rounded,
-              color: theme.primaryText,
-              size: 24.0,
-            ),
-            onPressed: context.safePop,
-          ),
-          title: Text(
-            FFLocalizations.of(context).getText('eywbwq85'),
-            style: theme.headlineMedium.override(
-              fontFamily: 'Google sans flex',
-              color: theme.primaryText,
-              fontSize: 22.0,
-              letterSpacing: 0.0,
-            ),
-          ),
-          centerTitle: false,
-        ),
+        appBar: subscriptionPageHeader(context),
         body: SafeArea(
           top: false,
           child: AuthUserStreamWidget(

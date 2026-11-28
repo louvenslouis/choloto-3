@@ -1,3 +1,4 @@
+import '/components/vip_membership_medal.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -137,32 +138,14 @@ class _SubscriptionStatusCard extends StatelessWidget {
     return Container(
       key: const ValueKey('subscription-status-card'),
       padding: EdgeInsets.all(tokens.spacing.lg),
-      decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(tokens.radius.lg),
-        border: Border.all(color: theme.primary.withValues(alpha: 0.28)),
-        boxShadow: [tokens.shadow.sm],
-      ),
+      decoration: tokens.home.panel,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 48.0,
-                height: 48.0,
-                decoration: BoxDecoration(
-                  color: theme.primary,
-                  borderRadius: BorderRadius.circular(tokens.radius.md),
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.workspace_premium_rounded,
-                  color: theme.onPrimary,
-                  size: 26.0,
-                ),
-              ),
+              const VipMembershipMedal(size: 48),
               SizedBox(width: tokens.spacing.md),
               Expanded(
                 child: Column(
@@ -171,16 +154,13 @@ class _SubscriptionStatusCard extends StatelessWidget {
                     Text(
                       FFLocalizations.of(context)
                           .getText('subscription_plan_name'),
-                      style: theme.headlineSmall.override(
-                        fontFamily: 'Google sans flex',
-                        letterSpacing: 0.0,
-                      ),
+                      style: tokens.vip.typography.heading(22),
                     ),
                     SizedBox(height: tokens.spacing.xs),
                     Text(
                       dateLabel,
                       style: theme.bodyMedium.override(
-                        color: theme.secondaryText,
+                        color: tokens.home.mutedText,
                         letterSpacing: 0.0,
                       ),
                     ),
@@ -197,12 +177,13 @@ class _SubscriptionStatusCard extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.14),
+              border: Border.all(color: statusColor.withValues(alpha: .65)),
               borderRadius: BorderRadius.circular(tokens.radius.full),
             ),
             child: Text(
               FFLocalizations.of(context).getText(statusKey),
               style: theme.labelMedium.override(
-                color: statusColor,
+                color: theme.primaryText,
                 letterSpacing: 0.0,
                 fontWeight: FontWeight.w600,
               ),

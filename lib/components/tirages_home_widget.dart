@@ -246,28 +246,17 @@ class _DrawSurfaceState extends State<_DrawSurface>
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final strings = FFLocalizations.of(context);
-    final viewport = MediaQuery.sizeOf(context);
-    final phonePortrait =
-        viewport.width < kBreakpointSmall && viewport.height > viewport.width;
     return LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxWidth;
       final wide = width >= 520;
       final horizontal = wide ? tokens.spacing.lg : tokens.spacing.md;
-      // The phone panel and support FAB share their trailing screen inset.
-      final endInset = phonePortrait
-          ? kMinInteractiveDimension + tokens.spacing.sm
-          : horizontal;
       final vertical =
           wide ? tokens.spacing.md : tokens.spacing.sm + tokens.spacing.xs;
       final logoSize = wide ? 56.0 : 40.0;
       final spacing = wide ? tokens.spacing.md : tokens.spacing.sm;
       return Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(
-          horizontal,
-          vertical,
-          endInset,
-          vertical,
-        ),
+        padding:
+            EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
         child: Builder(
           builder: (context) {
             final subtitle = record == null
@@ -363,7 +352,7 @@ class _DrawSurfaceState extends State<_DrawSurface>
               ],
             );
             final numberWidth = chipSize * count + chipGap * (count - 1);
-            final inline = width - horizontal - endInset - numberWidth >=
+            final inline = width - 2 * horizontal - numberWidth >=
                 logoSize + spacing + tokens.spacing.sm + textScale.scale(80);
             return inline
                 ? Row(children: [

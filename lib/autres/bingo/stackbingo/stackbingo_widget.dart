@@ -1,21 +1,16 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import '/autres/bingo/bingo_result_tile.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_swipeable_stack.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:math';
-import 'dart:ui';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'package:simple_gradient_text/simple_gradient_text.dart';
-import 'bingo_value_icon.dart';
+import 'bingo_story_result_ticket.dart';
 import 'stackbingo_model.dart';
 export 'stackbingo_model.dart';
 
@@ -23,31 +18,73 @@ class StackbingoWidget extends StatefulWidget {
   const StackbingoWidget({
     super.key,
     this.dataStack,
-    this.storySwipeMode = false,
+    this.vipResults = false,
   });
 
   final List<DataStackStruct>? dataStack;
-  final bool storySwipeMode;
+  final bool vipResults;
 
   @override
   State<StackbingoWidget> createState() => _StackbingoWidgetState();
 }
 
-class _StackbingoWidgetState extends State<StackbingoWidget>
-    with TickerProviderStateMixin {
-  late StackbingoModel _model;
+class _StackbingoWidgetState extends State<StackbingoWidget> {
+  late final StackbingoModel _model;
+  late final _entrance = AnimationInfo(
+    trigger: AnimationTrigger.onPageLoad,
+    effectsBuilder: () => [
+      MoveEffect(
+        curve: Curves.elasticOut,
+        delay: 100.ms,
+        duration: 800.ms,
+        begin: const Offset(0, -15),
+        end: Offset.zero,
+      ),
+    ],
+  );
+  Timer? _rotation;
+  double? _dragStart;
+  double _distance = 0;
+  int _front = 0;
 
-  final animationsMap = <String, AnimationInfo>{};
-  double? _storyDragStartX;
-  double _storyDragDistance = 0;
-  DateTime? _lastStoryInteraction;
+  @override
+  void initState() {
+    super.initState();
+    _model = createModel(context, () => StackbingoModel());
+  }
 
-  void _finishStoryDrag([DragEndDetails? details]) {
-    final distance = _storyDragDistance;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scheduleRotation();
+  }
+
+  @override
+  void didUpdateWidget(StackbingoWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.dataStack?.length != oldWidget.dataStack?.length) {
+      _front = 0;
+      _scheduleRotation();
+    }
+  }
+
+  void _scheduleRotation() {
+    _rotation?.cancel();
+    if ((widget.dataStack?.length ?? 0) < 2 ||
+        MediaQuery.disableAnimationsOf(context) ||
+        _dragStart != null) {
+      return;
+    }
+    _rotation = Timer(
+        const Duration(seconds: 3), _model.swipeableStackController.swipeRight);
+  }
+
+  void _finishDrag([DragEndDetails? details]) {
+    final distance = _distance;
     final velocity = details?.primaryVelocity ?? 0;
-    _storyDragStartX = null;
-    _storyDragDistance = 0;
-    _lastStoryInteraction = DateTime.now();
+    _dragStart = null;
+    _distance = 0;
+    _scheduleRotation();
     if (details == null || (distance.abs() < 18 && velocity.abs() < 160)) {
       return;
     }
@@ -60,342 +97,134 @@ class _StackbingoWidgetState extends State<StackbingoWidget>
   }
 
   @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => StackbingoModel());
-
-    // On component load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      logFirebaseEvent('STACKBINGO_COMP_stackbingo_ON_INIT_STATE');
-      final dataStack = widget.dataStack;
-      while (mounted && dataStack != null && dataStack.length > 1) {
-        logFirebaseEvent('stackbingo_wait__delay');
-        await Future.delayed(
-          Duration(
-            milliseconds: 3000,
-          ),
-        );
-        if (!mounted) return;
-        // Let a manual Story swipe finish, then leave time to read its card.
-        if (widget.storySwipeMode &&
-            (_storyDragStartX != null ||
-                (_lastStoryInteraction != null &&
-                    DateTime.now().difference(_lastStoryInteraction!) <
-                        const Duration(seconds: 3)))) {
-          continue;
-        }
-        logFirebaseEvent('stackbingo_swipeable_stack');
-        _model.swipeableStackController.swipeRight();
-      }
-    });
-
-    animationsMap.addAll({
-      'swipeableStackOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          MoveEffect(
-            curve: Curves.elasticOut,
-            delay: 100.0.ms,
-            duration: 800.0.ms,
-            begin: Offset(0.0, -15.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
-  }
-
-  @override
   void dispose() {
+    _rotation?.cancel();
     _model.maybeDispose();
-
     super.dispose();
+  }
+
+  Widget _story(List<DataStackStruct> entries) {
+    if (entries.isEmpty) return const SizedBox.shrink();
+    if (entries.length == 1) {
+      return BingoStoryResultTicket(entry: entries.single, count: 1);
+    }
+    final reducedMotion = MediaQuery.disableAnimationsOf(context);
+    // Ignore the swiper's full-square pan recognizer. Only the ticket intercepts
+    // a drag; the fixed BINGO balls remain part of story/page navigation.
+    return Stack(fit: StackFit.expand, children: [
+      IgnorePointer(
+        child: CardSwiper(
+          key: ValueKey((entries.length, reducedMotion)),
+          controller: _model.swipeableStackController,
+          initialIndex: _front,
+          cardsCount: entries.length,
+          numberOfCardsDisplayed: math.min(3, entries.length),
+          scale: 1,
+          padding: EdgeInsets.zero,
+          backCardOffset: Offset.zero,
+          duration:
+              reducedMotion ? Duration.zero : const Duration(milliseconds: 200),
+          onSwipe: (_, next, __) {
+            if (next != null && mounted) {
+              setState(() => _front = next);
+              _scheduleRotation();
+            }
+            return true;
+          },
+          cardBuilder: (_, index, __, ___) {
+            final depth = (index - _front) % entries.length;
+            return ExcludeSemantics(
+              excluding: depth > 0,
+              child: Transform.rotate(
+                alignment: const Alignment(-.8, .72),
+                angle: depth * .035,
+                child: BingoStoryResultTicket(
+                  entry: entries[index],
+                  count: depth == 0 ? entries.length : 1,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      Align(
+        alignment: Alignment.bottomCenter,
+        child: FractionallySizedBox(
+          widthFactor: 1,
+          heightFactor: .56,
+          child: Semantics(
+            onIncrease: _model.swipeableStackController.swipeRight,
+            onDecrease: _model.swipeableStackController.swipeLeft,
+            child: GestureDetector(
+              key: const ValueKey('bingo-story-ticket-gesture'),
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragDown: (details) {
+                _rotation?.cancel();
+                _dragStart = details.globalPosition.dx;
+                _distance = 0;
+              },
+              onHorizontalDragUpdate: (details) {
+                _distance = details.globalPosition.dx -
+                    (_dragStart ?? details.globalPosition.dx);
+              },
+              onHorizontalDragEnd: _finishDrag,
+              onHorizontalDragCancel: _finishDrag,
+            ),
+          ),
+        ),
+      ),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.sizeOf(context).width * 0.95,
-      height: 126.0,
-      decoration: BoxDecoration(),
+    if (!widget.vipResults && widget.dataStack != null) {
+      return _story(widget.dataStack!);
+    }
+    final theme = FlutterFlowTheme.of(context);
+    return SizedBox(
+      width: double.infinity,
+      height: widget.vipResults
+          ? 56 + MediaQuery.textScalerOf(context).scale(72)
+          : null,
       child: StreamBuilder<List<BingoRecord>>(
         stream: widget.dataStack == null
             ? queryBingoRecord(
-                queryBuilder: (bingoRecord) =>
-                    bingoRecord.orderBy('date', descending: true),
+                queryBuilder: (query) =>
+                    query.orderBy('date', descending: true),
                 singleRecord: true,
               )
             : null,
-        initialData: widget.dataStack == null ? null : const [],
         builder: (context, snapshot) {
-          // Customize what your widget looks like when it's loading.
           if (widget.dataStack == null && !snapshot.hasData) {
             return Center(
-              child: SizedBox(
-                width: 50.0,
-                height: 50.0,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-              ),
-            );
+                child: CircularProgressIndicator(color: theme.primary));
           }
-          final swipeableStackBingoRecordList = snapshot.data ?? const [];
-          // Return an empty Container when the item does not exist.
-          if (widget.dataStack == null &&
-              swipeableStackBingoRecordList.isEmpty) {
-            return Container();
-          }
-          final swipeableStackBingoRecord =
-              swipeableStackBingoRecordList.isNotEmpty
-                  ? swipeableStackBingoRecordList.first
-                  : null;
-
-          return Builder(
-            builder: (context) {
-              final datastacklist = widget.dataStack?.toList() ??
-                  swipeableStackBingoRecord?.dataStack.toList() ??
-                  [];
-
-              final stack = FlutterFlowSwipeableStack(
-                onSwipeFn: (datastacklistIndex) {},
-                onLeftSwipe: (datastacklistIndex) {},
-                onRightSwipe: (datastacklistIndex) {},
-                onUpSwipe: (datastacklistIndex) {},
-                onDownSwipe: (datastacklistIndex) {},
-                itemBuilder: (context, datastacklistIndex) {
-                  final datastacklistItem = datastacklist[datastacklistIndex];
-                  return Card(
-                    clipBehavior: Clip.antiAliasWithSaveLayer,
-                    color: FlutterFlowTheme.of(context).onDecorative,
-                    elevation: 4.0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20.0),
-                        border: Border.all(
-                          color: FlutterFlowTheme.of(context).primary,
-                          width: 4.0,
-                        ),
-                      ),
-                      child: Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(3.0, 6.0, 3.0, 6.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            GradientText(
-                              valueOrDefault<String>(
-                                datastacklistItem.boul,
-                                '-',
-                              ),
-                              textAlign: TextAlign.center,
-                              style: FlutterFlowTheme.of(context)
-                                  .displayLarge
-                                  .override(
-                                    font: GoogleFonts.raleway(
-                                      fontWeight: FontWeight.w900,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .displayLarge
-                                          .fontStyle,
-                                    ),
-                                    color: Color(0xFFFF3900),
-                                    fontSize: 40.0,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FontWeight.w900,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .displayLarge
-                                        .fontStyle,
-                                  ),
-                              colors: [Color(0xFFED2800), Color(0xFFF7681C)],
-                              gradientDirection: GradientDirection.ltr,
-                              gradientType: GradientType.linear,
-                            ),
-                            SizedBox(
-                              height: 40.0,
-                              child: VerticalDivider(
-                                thickness: 2.0,
-                                color: FlutterFlowTheme.of(context).alternate,
-                              ),
-                            ),
-                            Column(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                if (datastacklistItem.periode != null &&
-                                    datastacklistItem.periode != '')
-                                  Builder(
-                                    builder: (context) {
-                                      final iconAsset = bingoValueIconAsset(
-                                          datastacklistItem.valeur);
-
-                                      if (iconAsset != null) {
-                                        return ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(0.0),
-                                          child: Image.asset(
-                                            iconAsset,
-                                            height: 24.0,
-                                            fit: BoxFit.contain,
-                                          ),
-                                        );
-                                      }
-
-                                      return const SizedBox.shrink();
-                                    },
-                                  ),
-                                AutoSizeText(
-                                  datastacklistItem.valeur,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        font: GoogleFonts.changaOne(
-                                          fontWeight: FontWeight.normal,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .onPrimary,
-                                        fontSize: 16.0,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.normal,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 40.0,
-                              child: VerticalDivider(
-                                thickness: 2.0,
-                                color: FlutterFlowTheme.of(context).alternate,
-                              ),
-                            ),
-                            Column(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                if (datastacklistItem.periode != null &&
-                                    datastacklistItem.periode != '')
-                                  Builder(
-                                    builder: (context) {
-                                      if (datastacklistItem.periode == 'Midi') {
-                                        return ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(0.0),
-                                          child: Image.asset(
-                                            'assets/images/sun.png',
-                                            height: 24.0,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        );
-                                      } else if (datastacklistItem.periode ==
-                                          'Soir') {
-                                        return ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          child: Image.asset(
-                                            'assets/images/moon.png',
-                                            height: 24.0,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        );
-                                      } else {
-                                        return Icon(
-                                          Icons.arrow_back,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          size: 0.0,
-                                        );
-                                      }
-                                    },
-                                  ),
-                                AutoSizeText(
-                                  datastacklistItem.tirage,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        font: GoogleFonts.changaOne(
-                                          fontWeight: FontWeight.normal,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .onPrimary,
-                                        fontSize: 16.0,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.normal,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                itemCount: datastacklist.length,
-                controller: _model.swipeableStackController,
-                loop: true,
-                cardDisplayCount: 3,
-                scale: 1.0,
-                backCardOffset: const Offset(0.0, 4.0),
-                threshold: widget.storySwipeMode ? 0.18 : null,
-                allowedSwipeDirection: widget.storySwipeMode
-                    ? AllowedSwipeDirection.symmetric(horizontal: true)
-                    : null,
-              ).animateOnPageLoad(
-                  animationsMap['swipeableStackOnPageLoadAnimation']!);
-              if (!widget.storySwipeMode || datastacklist.length <= 1) {
-                return stack;
-              }
-
-              // The swiper only hit-tests its moving front card. In Stories,
-              // reserve the full small stack (including padding/rear cards)
-              // for horizontal gestures, independently of Story navigation.
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onHorizontalDragDown: (details) {
-                  _storyDragStartX = details.globalPosition.dx;
-                  _storyDragDistance = 0;
-                },
-                onHorizontalDragUpdate: (details) {
-                  _storyDragDistance = details.globalPosition.dx -
-                      (_storyDragStartX ?? details.globalPosition.dx);
-                },
-                onHorizontalDragEnd: _finishStoryDrag,
-                onHorizontalDragCancel: _finishStoryDrag,
-                child: IgnorePointer(child: stack),
-              );
-            },
+          final entries = widget.dataStack ??
+              snapshot.data?.firstOrNull?.dataStack ??
+              const <DataStackStruct>[];
+          if (entries.isEmpty) return const SizedBox.shrink();
+          if (!widget.vipResults) return _story(entries);
+          final stack = FlutterFlowSwipeableStack(
+            key: ValueKey(entries.length),
+            itemBuilder: (_, index) =>
+                BingoResultTile(entry: entries[index], index: index),
+            itemCount: entries.length,
+            controller: _model.swipeableStackController,
+            onSwipeFn: (_) {},
+            onLeftSwipe: (_) {},
+            onRightSwipe: (_) {},
+            onUpSwipe: (_) {},
+            onDownSwipe: (_) {},
+            loop: true,
+            cardDisplayCount: 3,
+            cardPadding: EdgeInsets.all(theme.designToken.spacing.sm),
+            scale: 1,
+            backCardOffset: const Offset(0, 4),
           );
+          return MediaQuery.disableAnimationsOf(context)
+              ? stack
+              : stack.animateOnPageLoad(_entrance);
         },
       ),
     );

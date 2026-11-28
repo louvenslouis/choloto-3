@@ -2,6 +2,7 @@ import 'package:choloto/accomplissements/achievement_progress.dart';
 import 'package:choloto/accomplissements/achievements_tab_widget.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -58,6 +59,19 @@ const _snapshot = AchievementSnapshot(
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('bundles the streak illustration and achievement badges', () async {
+    final assets =
+        (await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets();
+    expect(
+        assets,
+        containsAll({
+          'assets/images/achievements/achievements_hero_3d.png',
+          ...achievementDefinitions.map((definition) => definition.assetPath),
+        }));
+  });
+
   test('counts completed badges for the global progress circle', () {
     expect(unlockedAchievementCount(_snapshot), 7);
     expect(
@@ -126,6 +140,36 @@ void main() {
         matching: find.byType(Scrollable),
       ),
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('earning day 90 adds its badge and reveals the 270-day goal',
+      (tester) async {
+    Future<void> show(int day) async {
+      await tester.pumpWidget(_app(
+          child: AchievementDashboard(
+        snapshot: AchievementSnapshot(currentStreak: day, longestStreak: day),
+        now: DateTime(2026, 11, 28),
+      )));
+      await tester.pumpAndSettle();
+    }
+
+    await show(89);
+    expect(
+        find.text('Encore 1 jour pour le badge des 90 jours'), findsOneWidget);
+    expect(find.text('4/14'), findsOneWidget);
+    expect(find.byKey(const ValueKey('achievement-streak_270')), findsNothing);
+    await show(90);
+    expect(find.text('Encore 180 jours pour le badge des 270 jours'),
+        findsOneWidget);
+    expect(find.text('5/15'), findsOneWidget);
+    expect(
+        find.descendant(
+            of: find.byKey(const ValueKey('achievement-streak_90')),
+            matching: find.text('Légende · 90 jours')),
+        findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('achievement-streak_270')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

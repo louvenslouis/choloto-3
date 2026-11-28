@@ -38,7 +38,8 @@ class PaymentSurface extends StatelessWidget {
         padding: EdgeInsets.all(t.designToken.spacing.md),
         decoration: BoxDecoration(
             color: t.secondaryBackground,
-            borderRadius: BorderRadius.circular(t.designToken.radius.md)),
+            borderRadius: BorderRadius.circular(t.designToken.radius.md),
+            boxShadow: [t.designToken.shadow.sm]),
         child: child);
   }
 }

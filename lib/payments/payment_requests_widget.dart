@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '/components/page_header_app_bar.dart';
+import '/components/subscription_page_header.dart';
 import '/auth/firebase_auth/auth_util.dart';
-import '/flutter_flow/internationalization.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/settings/customerservice/customerservice_widget.dart';
 import '/support/support_bot.dart';
@@ -23,10 +22,7 @@ class PaymentRequestsWidget extends StatelessWidget {
     final t = FlutterFlowTheme.of(context);
     return Scaffold(
         backgroundColor: t.primaryBackground,
-        appBar: PageHeaderAppBar(
-            foregroundColor: t.primaryText,
-            title: Text(FFLocalizations.of(context).getText('eywbwq85'),
-                style: t.headlineSmall)),
+        appBar: subscriptionPageHeader(context),
         body: SafeArea(child: AuthUserStreamWidget(builder: (context) {
           if (!loggedIn) {
             return Center(
@@ -65,7 +61,11 @@ class _PaymentRequestsBodyState extends State<_PaymentRequestsBody> {
         child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),
             child: ListView(
-                padding: EdgeInsets.all(t.designToken.spacing.md),
+                padding: EdgeInsets.fromLTRB(
+                    t.designToken.spacing.md,
+                    t.designToken.spacing.sm,
+                    t.designToken.spacing.md,
+                    t.designToken.spacing.xl),
                 children: [
                   VipPaymentOptions(
                     config: _paymentOptions,

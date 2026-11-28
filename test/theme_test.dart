@@ -97,6 +97,17 @@ void main() {
       expect(taps, 4);
     });
 
+    test('Bingo ticket numbers remain tabular and gold on lacquer', () {
+      final theme = DarkModeTheme();
+      final ticket = theme.designToken.bingo;
+      expect(ticket.numeral(72).fontFeatures,
+          contains(const FontFeature.tabularFigures()));
+      expect(ticket.numeral(72).fontWeight, FontWeight.w900);
+      for (final color in ticket.goldFace.colors) {
+        expect(contrast(color, theme.secondaryBackground), greaterThan(4.5));
+      }
+    });
+
     test('VIP casino materials retain readable text on dark surfaces', () {
       final theme = DarkModeTheme();
       final materials = theme.designToken.vip;

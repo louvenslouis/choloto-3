@@ -229,6 +229,8 @@ void main() {
           final strings = FFLocalizations(Locale(language));
           final view = find.byType(TiragesView);
           final header = find.byType(IllustratedPageHeader);
+          expect(find.descendant(of: header, matching: find.byType(Image)),
+              findsNothing);
           final surface = find.descendant(
               of: header,
               matching: find.byWidgetPredicate(

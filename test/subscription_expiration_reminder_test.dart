@@ -1,5 +1,6 @@
 import 'package:choloto/components/rappel_fin_abonnement_widget.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
+import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -244,6 +245,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    final reminder = find.byType(RappelFinAbonnementWidget);
+    final surface = tester.widget<Ink>(find
+        .descendant(
+          of: reminder,
+          matching: find.byWidgetPredicate(
+              (w) => w is Ink && w.decoration is BoxDecoration),
+        )
+        .first);
+    expect(surface.decoration,
+        FlutterFlowTheme.of(tester.element(reminder)).designToken.vip.pass);
     await tester.tap(
       find.byKey(const ValueKey('subscription-reminder-renew')),
     );
@@ -293,6 +304,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     final banner = find.byKey(const ValueKey('expired-subscription-card'));
+    expect(tester.widget<DecoratedBox>(banner).decoration,
+        FlutterFlowTheme.of(tester.element(banner)).designToken.home.panel);
     expect(tester.getSize(banner).height, kMinInteractiveDimension);
     final title = find.text('Votre abonnement VIP a expiré');
     final action = find.text('Renouveler');

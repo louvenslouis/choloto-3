@@ -8,13 +8,13 @@ class IllustratedPageHeader extends StatelessWidget {
       {super.key,
       required this.title,
       required this.inset,
-      required this.asset,
-      required this.fallback,
+      this.asset,
+      this.fallback = Icons.image_outlined,
       this.artworkKey,
       this.action});
   final String title;
   final double inset;
-  final String asset;
+  final String? asset;
   final IconData fallback;
   final Key? artworkKey;
   final Widget? action;
@@ -31,7 +31,8 @@ class IllustratedPageHeader extends StatelessWidget {
         final width = constraints.maxWidth;
         final wide = width >= 600;
         final textScale = MediaQuery.textScalerOf(context).scale(32) / 32;
-        final showArtwork = width / textScale >= 230;
+        final imageAsset = asset;
+        final showArtwork = imageAsset != null && width / textScale >= 230;
         final artworkSize =
             wide ? 96.0 : (width * .22).clamp(56.0, 80.0).toDouble();
         final titleStyle = wide ? theme.displaySmall : theme.headlineMedium;
@@ -47,8 +48,8 @@ class IllustratedPageHeader extends StatelessWidget {
                 bottom: spacing.xs,
                 child: IgnorePointer(
                   child: HomeRaisedArtwork(
-                    asset: asset,
-                    imageKey: artworkKey ?? ValueKey(asset),
+                    asset: imageAsset,
+                    imageKey: artworkKey ?? ValueKey(imageAsset),
                     width: artworkSize,
                     fallback: fallback,
                     foreground: tokens.vip.goldLight,

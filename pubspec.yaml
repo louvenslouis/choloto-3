@@ -173,6 +173,8 @@ flutter:
   assets:
     - assets/fonts/
     - assets/images/
+    - assets/images/bingo/
+    - assets/images/achievements/
     - assets/images/home/
     - assets/images/vip_badges/
     - assets/images/vip_predictions/

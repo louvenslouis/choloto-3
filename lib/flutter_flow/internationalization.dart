@@ -1167,10 +1167,15 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Pi bon rekò :',
       'en': 'Best streak:',
     },
-    'ach_days_until_badge': {
-      'fr': 'jours avant le badge de',
-      'cr': 'jou anvan badj',
-      'en': 'days until the',
+    'ach_streak_days_left': {
+      'fr': 'Encore {remaining} jours pour le badge des {target} jours',
+      'cr': 'Rete {remaining} jou pou badj {target} jou a',
+      'en': '{remaining} days until the {target}-day badge',
+    },
+    'ach_streak_one_day_left': {
+      'fr': 'Encore 1 jour pour le badge des {target} jours',
+      'cr': 'Rete 1 jou pou badj {target} jou a',
+      'en': '1 day until the {target}-day badge',
     },
     'ach_all_streak_unlocked': {
       'fr': 'Tous les badges de série sont débloqués !',
@@ -1294,6 +1299,16 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': '30 jours connectés d’affilée',
       'cr': '30 jou konekte youn apre lòt',
       'en': 'Log in 30 days in a row',
+    },
+    'ach_streak_extended_title': {
+      'fr': 'Légende · {days} jours',
+      'cr': 'Lejand · {days} jou',
+      'en': 'Legend · {days} days',
+    },
+    'ach_streak_extended_desc': {
+      'fr': '{days} jours connectés d’affilée',
+      'cr': '{days} jou konekte youn apre lòt',
+      'en': 'Log in {days} days in a row',
     },
     'ach_winner_1_title': {
       'fr': 'Premier gain',
@@ -2068,6 +2083,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // Welcome
   {
+    'onboarding_welcome_intro': {
+      'fr': 'Bienvenue dans',
+      'cr': 'Byenvini nan',
+      'en': 'Welcome to',
+    },
     'onboarding_eyebrow': {
       'fr': 'Bienvenue dans CHOLOTO',
       'cr': 'Byenvini nan CHOLOTO',

@@ -1,3 +1,4 @@
+import '/flutter_flow/flutter_flow_theme.dart';
 import 'package:flutter/material.dart';
 import '/payments/payment_request.dart';
 import '/payments/payment_text.dart';
@@ -26,37 +27,56 @@ class SupportPaymentNotice extends StatelessWidget {
             return const SizedBox.shrink();
           }
           final approved = request.status == 'approved';
+          final theme = FlutterFlowTheme.of(context);
+          final tokens = theme.designToken;
+          final accent = approved ? theme.success : theme.warning;
           return Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: tokens.spacing.md,
+              vertical: tokens.spacing.sm,
+            ),
             child: Semantics(
-                liveRegion: true,
-                child: Card(
-                  key: ValueKey(
-                      'support-payment-${request.id}-${request.status}'),
-                  child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                                approved
-                                    ? Icons.check_circle_outline
-                                    : Icons.hourglass_top,
-                                size: 22),
-                            const SizedBox(width: 10),
-                            Expanded(
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                  Text(paymentText(context,
-                                      approved ? 'congratulations' : 'sent')),
-                                  if (approved && request.newEndSub != null)
-                                    Text(
-                                        '${paymentText(context, 'until')} ${paymentDateLabel(context, request.newEndSub!)}'),
-                                ])),
-                          ])),
-                )),
+              liveRegion: true,
+              child: Container(
+                key:
+                    ValueKey('support-payment-${request.id}-${request.status}'),
+                padding: EdgeInsets.all(tokens.spacing.md),
+                decoration: tokens.home.panel,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      approved
+                          ? Icons.check_circle_outline
+                          : Icons.hourglass_top,
+                      color: accent,
+                      size: 24,
+                    ),
+                    SizedBox(width: tokens.spacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            paymentText(
+                                context, approved ? 'congratulations' : 'sent'),
+                            style: theme.titleSmall,
+                          ),
+                          if (approved && request.newEndSub != null) ...[
+                            SizedBox(height: tokens.spacing.xs),
+                            Text(
+                              '${paymentText(context, 'until')} ${paymentDateLabel(context, request.newEndSub!)}',
+                              style: theme.bodyMedium
+                                  .copyWith(color: tokens.home.mutedText),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         },
       );

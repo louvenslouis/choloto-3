@@ -1,3 +1,4 @@
+import '/components/vip_membership_medal.dart';
 import '/components/page_header_app_bar.dart';
 import '/components/vip_prediction_header.dart';
 import '/auth/firebase_auth/auth_util.dart';
@@ -126,7 +127,8 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return _VipHistoryMessage(
-                    icon: Icons.cloud_off_rounded,
+                    leading: Icon(Icons.cloud_off_rounded,
+                        color: theme.primary, size: 32),
                     title: FFLocalizations.of(context).getText('viphsterr'),
                     description:
                         FFLocalizations.of(context).getText('viphsterd'),
@@ -479,7 +481,8 @@ class _VipHistoryEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _VipHistoryMessage(
-      icon: Icons.history_toggle_off_rounded,
+      leading: Icon(Icons.history_toggle_off_rounded,
+          color: FlutterFlowTheme.of(context).primary, size: 32),
       title: FFLocalizations.of(context).getText('viphstemp'),
       description: FFLocalizations.of(context).getText('viphstemd'),
       buttonText: FFLocalizations.of(context).getText('viphstrty'),
@@ -495,7 +498,7 @@ class _VipHistoryAccessDenied extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _VipHistoryMessage(
-      icon: Icons.workspace_premium_rounded,
+      leading: const VipMembershipMedal(size: 64),
       title: FFLocalizations.of(context).getText('viphstacc'),
       description: FFLocalizations.of(context).getText('viphstacd'),
       buttonText: FFLocalizations.of(context).getText('viphstbak'),
@@ -507,7 +510,7 @@ class _VipHistoryAccessDenied extends StatelessWidget {
 
 class _VipHistoryMessage extends StatelessWidget {
   const _VipHistoryMessage({
-    required this.icon,
+    required this.leading,
     required this.title,
     required this.description,
     required this.buttonText,
@@ -515,7 +518,7 @@ class _VipHistoryMessage extends StatelessWidget {
     required this.onPressed,
   });
 
-  final IconData icon;
+  final Widget leading;
   final String title;
   final String description;
   final String buttonText;
@@ -533,23 +536,11 @@ class _VipHistoryMessage extends StatelessWidget {
           width: double.infinity,
           constraints: const BoxConstraints(maxWidth: 520.0),
           padding: EdgeInsets.all(theme.designToken.spacing.xl),
-          decoration: BoxDecoration(
-            color: theme.secondaryBackground,
-            borderRadius: BorderRadius.circular(theme.designToken.radius.md),
-            boxShadow: [theme.designToken.shadow.md],
-          ),
+          decoration: theme.designToken.home.panel,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 64.0,
-                height: 64.0,
-                decoration: BoxDecoration(
-                  color: theme.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: theme.primary, size: 30.0),
-              ),
+              leading,
               SizedBox(height: theme.designToken.spacing.md),
               Text(
                 title,
@@ -561,7 +552,7 @@ class _VipHistoryMessage extends StatelessWidget {
                 description,
                 textAlign: TextAlign.center,
                 style: theme.designToken.vip.typography.supporting
-                    .copyWith(color: theme.secondaryText),
+                    .copyWith(color: theme.designToken.home.mutedText),
               ),
               SizedBox(height: theme.designToken.spacing.lg),
               FilledButton.icon(
@@ -576,10 +567,10 @@ class _VipHistoryMessage extends StatelessWidget {
                 ),
                 style: FilledButton.styleFrom(
                   backgroundColor: theme.primary,
-                  minimumSize: const Size(0.0, 44.0),
+                  minimumSize: const Size(0, kMinInteractiveDimension),
                   shape: RoundedRectangleBorder(
                     borderRadius:
-                        BorderRadius.circular(theme.designToken.radius.sm),
+                        BorderRadius.circular(theme.designToken.radius.full),
                   ),
                 ),
               ),

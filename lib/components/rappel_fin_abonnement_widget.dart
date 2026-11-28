@@ -1,3 +1,4 @@
+import 'vip_membership_medal.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -38,8 +39,9 @@ class RappelFinAbonnementWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final spacing = theme.designToken.spacing;
-    final radius = theme.designToken.radius;
+    final tokens = theme.designToken;
+    final spacing = tokens.spacing;
+    final radius = tokens.radius;
     final localizations = FFLocalizations.of(context);
     final formattedExpiration = dateTimeFormat(
       'yMMMd',
@@ -49,136 +51,120 @@ class RappelFinAbonnementWidget extends StatelessWidget {
 
     return Material(
       key: const ValueKey('subscription-expiration-reminder'),
-      color: theme.secondaryBackground,
-      borderRadius: BorderRadius.circular(radius.md),
+      type: MaterialType.transparency,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420.0),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(spacing.md),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 48.0,
-                      height: 48.0,
-                      decoration: BoxDecoration(
-                        color: theme.primary,
-                        borderRadius: BorderRadius.circular(radius.full),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.notifications_active_outlined,
-                        color: theme.onPrimary,
-                        size: 24.0,
-                      ),
-                    ),
-                    SizedBox(width: spacing.md),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(top: spacing.xs),
-                        child: Text(
-                          localizations.getText(
-                            'subscription_expiration_reminder_title',
+        child: Ink(
+          decoration: tokens.vip.pass,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(spacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const VipMembershipMedal(size: 56),
+                      Tooltip(
+                        message: localizations.getText(
+                          'subscription_expiration_reminder_close',
+                        ),
+                        child: FlutterFlowIconButton(
+                          key: const ValueKey('subscription-reminder-close'),
+                          buttonSize: 48.0,
+                          borderRadius: radius.full,
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: tokens.home.mutedText,
+                            size: 24.0,
                           ),
-                          style: theme.titleLarge,
+                          onPressed: onDismiss,
                         ),
                       ),
+                    ],
+                  ),
+                  SizedBox(height: spacing.md),
+                  Text(
+                    localizations
+                        .getText('subscription_expiration_reminder_title'),
+                    style: tokens.vip.typography.heading(24),
+                  ),
+                  SizedBox(height: spacing.md),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: spacing.md,
+                      vertical: spacing.sm,
                     ),
-                    Tooltip(
-                      message: localizations.getText(
-                        'subscription_expiration_reminder_close',
-                      ),
-                      child: FlutterFlowIconButton(
-                        key: const ValueKey('subscription-reminder-close'),
-                        buttonSize: 48.0,
-                        borderRadius: radius.full,
-                        icon: Icon(
-                          Icons.close_rounded,
-                          color: theme.secondaryText,
-                          size: 24.0,
-                        ),
-                        onPressed: onDismiss,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: spacing.md),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: spacing.md,
-                    vertical: spacing.sm,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.accent1,
-                    borderRadius: BorderRadius.circular(radius.sm),
-                  ),
-                  child: Text(
-                    '${localizations.getText('subscription_expiration_reminder_date')} '
-                    '$formattedExpiration',
-                    style: theme.labelLarge.override(
-                      color: theme.primaryText,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                SizedBox(height: spacing.md),
-                Text(
-                  localizations.getText(
-                    'subscription_expiration_reminder_message',
-                  ),
-                  style: theme.bodyMedium,
-                ),
-                SizedBox(height: spacing.lg),
-                FFButtonWidget(
-                  key: const ValueKey('subscription-reminder-renew'),
-                  onPressed: onRenew,
-                  text: localizations.getText(
-                    'subscription_expiration_reminder_renew',
-                  ),
-                  icon: Icon(
-                    Icons.workspace_premium_outlined,
-                    color: theme.onPrimary,
-                    size: 20.0,
-                  ),
-                  options: FFButtonOptions(
-                    width: double.infinity,
-                    height: 48.0,
-                    color: theme.primary,
-                    textStyle: theme.titleSmall.override(
-                      color: theme.onPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    elevation: 0.0,
-                    borderRadius: BorderRadius.circular(radius.sm),
-                  ),
-                ),
-                SizedBox(height: spacing.xs),
-                TextButton(
-                  key: const ValueKey('subscription-reminder-later'),
-                  onPressed: onDismiss,
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48.0),
-                    foregroundColor: theme.secondaryText,
-                    shape: RoundedRectangleBorder(
+                    decoration: BoxDecoration(
+                      color: tokens.vip.illustrationInk.withValues(alpha: .65),
                       borderRadius: BorderRadius.circular(radius.sm),
                     ),
+                    child: Text(
+                      '${localizations.getText('subscription_expiration_reminder_date')} '
+                      '$formattedExpiration',
+                      style: theme.labelLarge.override(
+                        color: theme.primaryText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                  child: Text(
+                  SizedBox(height: spacing.md),
+                  Text(
                     localizations.getText(
-                      'subscription_expiration_reminder_later',
+                      'subscription_expiration_reminder_message',
                     ),
-                    style: theme.labelLarge.override(
-                      color: theme.secondaryText,
-                      fontWeight: FontWeight.w600,
+                    style: theme.bodyMedium,
+                  ),
+                  SizedBox(height: spacing.lg),
+                  FFButtonWidget(
+                    key: const ValueKey('subscription-reminder-renew'),
+                    onPressed: onRenew,
+                    text: localizations.getText(
+                      'subscription_expiration_reminder_renew',
+                    ),
+                    icon: Icon(
+                      Icons.workspace_premium_outlined,
+                      color: theme.onPrimary,
+                      size: 20.0,
+                    ),
+                    options: FFButtonOptions(
+                      width: double.infinity,
+                      height: 48.0,
+                      color: theme.primary,
+                      textStyle: theme.titleSmall.override(
+                        color: theme.onPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      elevation: 0.0,
+                      borderRadius: BorderRadius.circular(radius.full),
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: spacing.xs),
+                  TextButton(
+                    key: const ValueKey('subscription-reminder-later'),
+                    onPressed: onDismiss,
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48.0),
+                      foregroundColor: tokens.home.mutedText,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(radius.sm),
+                      ),
+                    ),
+                    child: Text(
+                      localizations.getText(
+                        'subscription_expiration_reminder_later',
+                      ),
+                      style: theme.labelLarge.override(
+                        color: tokens.home.mutedText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -203,58 +189,57 @@ class ExpiredSubscriptionCard extends StatelessWidget {
     final localizations = FFLocalizations.of(context);
     final radius = BorderRadius.circular(tokens.radius.md);
 
-    return Material(
+    return DecoratedBox(
       key: const ValueKey('expired-subscription-card'),
-      color: tokens.home.surface.colors.last,
-      shape: RoundedRectangleBorder(
-        borderRadius: radius,
-        side: BorderSide(color: tokens.home.edge),
-      ),
-      child: Semantics(
-        button: true,
-        child: InkWell(
-          key: const ValueKey('expired-subscription-renew'),
-          onTap: onRenew,
-          borderRadius: radius,
-          child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(minHeight: kMinInteractiveDimension),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: spacing.md,
-                vertical: spacing.sm,
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.schedule_rounded, color: theme.warning, size: 20),
-                  SizedBox(width: spacing.sm),
-                  Expanded(
-                    child: OverflowBar(
-                      alignment: MainAxisAlignment.spaceBetween,
-                      overflowAlignment: OverflowBarAlignment.start,
-                      spacing: spacing.md,
-                      overflowSpacing: spacing.xs,
-                      children: [
-                        Text(
-                          localizations
-                              .getText('subscription_expired_card_title'),
-                          style: theme.titleSmall,
-                        ),
-                        Text(
-                          localizations
-                              .getText('subscription_expired_card_renew'),
-                          style: theme.labelLarge.copyWith(
-                            color: tokens.home.amethystGlow,
-                            fontWeight: FontWeight.w700,
+      decoration: tokens.home.panel,
+      child: Material(
+        type: MaterialType.transparency,
+        child: Semantics(
+          button: true,
+          child: InkWell(
+            key: const ValueKey('expired-subscription-renew'),
+            onTap: onRenew,
+            borderRadius: radius,
+            child: ConstrainedBox(
+              constraints:
+                  const BoxConstraints(minHeight: kMinInteractiveDimension),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: spacing.md,
+                  vertical: spacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    const VipMembershipMedal(size: 28),
+                    SizedBox(width: spacing.sm),
+                    Expanded(
+                      child: OverflowBar(
+                        alignment: MainAxisAlignment.spaceBetween,
+                        overflowAlignment: OverflowBarAlignment.start,
+                        spacing: spacing.md,
+                        overflowSpacing: spacing.xs,
+                        children: [
+                          Text(
+                            localizations
+                                .getText('subscription_expired_card_title'),
+                            style: theme.titleSmall,
                           ),
-                        ),
-                      ],
+                          Text(
+                            localizations
+                                .getText('subscription_expired_card_renew'),
+                            style: theme.labelLarge.copyWith(
+                              color: tokens.vip.goldLight,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(width: spacing.sm),
-                  Icon(Icons.chevron_right_rounded,
-                      color: tokens.home.amethystGlow),
-                ],
+                    SizedBox(width: spacing.sm),
+                    Icon(Icons.chevron_right_rounded,
+                        color: tokens.vip.goldLight),
+                  ],
+                ),
               ),
             ),
           ),

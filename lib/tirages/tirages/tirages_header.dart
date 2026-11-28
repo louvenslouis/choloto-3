@@ -27,9 +27,6 @@ class TiragesHeader extends StatelessWidget {
       key: const ValueKey('tirages-header'),
       inset: inset,
       title: strings.getText('hfwdp6xo'),
-      asset: 'assets/images/home/draw_ticket.webp',
-      artworkKey: const ValueKey('tirages-header-ticket'),
-      fallback: Icons.confirmation_number_rounded,
       action: Tooltip(
         message: strings.getText('home_draw_refresh'),
         child: FlutterFlowIconButton(

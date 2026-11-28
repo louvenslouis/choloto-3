@@ -170,7 +170,7 @@ class _BingoCardVIPWidgetState extends State<BingoCardVIPWidget> {
                       wrapWithModel(
                         model: _model.stackbingoModel,
                         updateCallback: () => safeSetState(() {}),
-                        child: const StackbingoWidget(),
+                        child: const StackbingoWidget(vipResults: true),
                       ),
                       if (loggedIn) ...[
                         SizedBox(height: tokens.spacing.sm),
