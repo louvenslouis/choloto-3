@@ -1,4 +1,5 @@
 import 'package:choloto/app_state.dart';
+import 'package:choloto/components/page_header_app_bar.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/main.dart' show MyApp;
@@ -37,6 +38,63 @@ void main() {
       final y = b.computeLuminance();
       return (x > y ? x + 0.05 : y + 0.05) / (x > y ? y + 0.05 : x + 0.05);
     }
+
+    test('page headers fade vertically into each dark page surface', () {
+      final theme = DarkModeTheme();
+      final tokens = theme.designToken;
+      for (final vip in [false, true]) {
+        final decoration = tokens.background.pageHeader(vip: vip);
+        final gradient = decoration.gradient! as LinearGradient;
+        expect(gradient.begin, Alignment.topCenter);
+        expect(gradient.end, Alignment.bottomCenter);
+        expect(gradient.colors.first.a, greaterThan(0));
+        expect(gradient.colors.last.a, 0);
+        expect(decoration.border, isNull);
+        expect(decoration.borderRadius, isNull);
+        for (final base in [
+          tokens.background.home,
+          theme.primaryBackground,
+          theme.secondaryBackground
+        ]) {
+          for (final color in gradient.colors) {
+            expect(contrast(theme.primaryText, Color.alphaBlend(color, base)),
+                greaterThanOrEqualTo(4.5));
+          }
+        }
+      }
+      expect(tokens.background.pageHeader(),
+          isNot(tokens.background.pageHeader(vip: true)));
+    });
+
+    testWidgets(
+        'secondary page header fills the toolbar and preserves its actions',
+        (tester) async {
+      final tokens = DarkModeTheme().designToken;
+      var taps = 0;
+      for (final vip in [false, true]) {
+        await tester.pumpWidget(MaterialApp(
+          theme: DarkModeTheme().materialTheme,
+          home: Scaffold(
+              appBar: PageHeaderAppBar(
+            vip: vip,
+            title: const Text('Page'),
+            leading: BackButton(onPressed: () => taps++),
+            actions: [
+              IconButton(
+                  icon: const Icon(Icons.refresh), onPressed: () => taps++)
+            ],
+          )),
+        ));
+        final surface = find.byWidgetPredicate((w) =>
+            w is DecoratedBox &&
+            w.decoration == tokens.background.pageHeader(vip: vip));
+        expect(tester.getRect(surface),
+            tester.getRect(find.byType(PageHeaderAppBar)));
+        await tester.tap(find.byType(BackButton));
+        await tester.tap(find.byIcon(Icons.refresh));
+      }
+      expect(taps, 4);
+    });
 
     test('VIP casino materials retain readable text on dark surfaces', () {
       final theme = DarkModeTheme();

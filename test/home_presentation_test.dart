@@ -227,6 +227,12 @@ void main() {
           await tester.pump(const Duration(milliseconds: 800));
           expect(find.text('À la une'), findsNothing);
           final homeTheme = DarkModeTheme();
+          final headerSurface = find.byWidgetPredicate((w) =>
+              w is DecoratedBox &&
+              w.decoration == homeTheme.designToken.background.pageHeader());
+          expect(tester.getSize(headerSurface).width, width);
+          expect(tester.getSize(headerSurface).height,
+              greaterThanOrEqualTo(kToolbarHeight));
           if (width < 600) {
             expect(
               tester

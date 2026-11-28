@@ -642,6 +642,19 @@ class FFBackgrounds {
 
   Color get home => FFHomeMaterials._ink;
 
+  BoxDecoration pageHeader({bool vip = false}) {
+    final tone = vip
+        ? theme.designToken.home.vipAmethyst.colors.first
+        : FFHomeMaterials._sapphire;
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [tone.withValues(alpha: .82), tone.withValues(alpha: 0)],
+      ),
+    );
+  }
+
   LinearGradient get homeGradient => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,

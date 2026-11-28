@@ -19,6 +19,10 @@ Les titres utilisent **Google Sans Flex** à partir des styles `display`, `headl
 
 Les dimensions sont exprimées en pixels logiques Flutter. L’échelle d’espacement est **4, 8, 16, 24, 32**. Les rayons sont **8, 16, 24** et `full` pour les cercles et pilules. Les cartes illustrées emploient le rayon 24. Les panneaux de lecture emploient le rayon 16. L’ombre des objets suit leur silhouette, ce qui préserve le relief sur une surface peu éclairée.
 
+## En-têtes de page
+
+Le dégradé vertical couvre toute la largeur de l’en-tête et s’efface au bas de celui-ci. Le saphir identifie les pages générales, l’améthyste les pages VIP et d’abonnement. Les titres, les illustrations et les commandes s’alignent sur les marges du contenu. Sur ordinateur, l’accueil intègre la marque et la navigation à son en-tête. [Fond partagé](../lib/flutter_flow/flutter_flow_theme.dart) · [Barre de titre](../lib/components/page_header_app_bar.dart)
+
 ## Composition de l’accueil
 
 | | Téléphone | Grand écran |
@@ -49,13 +53,15 @@ La grille passe à deux colonnes dès que le contenu dispose de **656** de large
 
 ## Page Tirages
 
-Le ticket doré de l’accueil identifie la page dans un bandeau saphir qui réunit le titre et l’actualisation. Chaque date ouvre un panneau de lecture. À gauche du résultat figurent le logo du marché, son nom et la période. À droite, les numéros reprennent le même jeton que sur l’accueil. Les logos à lettrage foncé disposent d’un fond clair pour rester lisibles sur le saphir.
+Le ticket doré de l’accueil identifie la page à droite de l’en-tête saphir. Le titre et l’actualisation sont réunis à gauche. Chaque date ouvre un panneau de lecture. À gauche du résultat figurent le logo du marché, son nom et la période. À droite, les numéros reprennent le même jeton que sur l’accueil. Les logos à lettrage foncé disposent d’un fond clair pour rester lisibles sur le saphir.
 
 L’historique se lit de haut en bas sur téléphone. Sur grand écran, les résultats d’une journée occupent deux colonnes et se lisent de gauche à droite. Un texte agrandi peut ramener la grille à une colonne et faire passer les jetons sous le nom du marché. L’onglet Tirages reprend la navigation basse ou l’en-tête horizontal de l’accueil selon la largeur. [Page Tirages](../lib/tirages/tirages/tirages_widget.dart) · [Ligne de résultat](../lib/tirages/tirages/tirage_result_row.dart) · [Jeton partagé](../lib/components/draw_result_chip.dart)
 
 ## Page VIP
 
-La carte de membre améthyste réunit le nom, le portrait cerclé d’or et la médaille d’ancienneté. Une rosace gravée entoure la médaille. Les initiales remplacent une photo absente ou indisponible. Toucher le portrait ouvre le profil, toucher la médaille affiche le rang et les jours VIP cumulés. L’historique et le pourboire occupent le bas de la carte. Sur téléphone, elle précède les prédictions. Sur grand écran, elle prend place à leur gauche. [En-tête VIP](../lib/components/vip_page_header.dart) · [Médaille du membre](../lib/accomplissements/member_vip_badge.dart)
+Le portrait cerclé d’or, le nom et la médaille d’ancienneté composent l’en-tête. Une rosace améthyste à larges mailles, bordée d’un double filet doré, entoure la médaille. Le nom du membre apparaît en premier. Le nom de son badge s’affiche juste en dessous en améthyste dès que le rang est connu. Les initiales remplacent une photo absente ou indisponible. Toucher le portrait ouvre le profil, toucher la médaille affiche le rang et les jours VIP cumulés. Le fond de l’en-tête passe de l’améthyste en haut au transparent en bas. Sur téléphone, cet en-tête précède les prédictions. Sur grand écran, il prend place à leur gauche. [En-tête VIP](../lib/components/vip_page_header.dart) · [Médaille du membre](../lib/accomplissements/member_vip_badge.dart)
+
+Deux boutons flottent au bas de la page VIP, au-dessus de la navigation mobile. À gauche, une montre à gousset accompagne « Historique ». À droite, une tasse et des pièces accompagnent « Pourboire ». Si le texte agrandi manque de place, chaque illustration conserve son libellé accessible. [Boutons flottants VIP](../lib/components/vip_floating_actions.dart)
 
 La typographie de la page et de l’historique partage les rôles de `vip.typography`. Google Sans Flex donne aux noms de membre et aux titres de page leur largeur naturelle. Pour les prédictions, la même police utilise des chiffres tabulaires et un dessin plus étroit. Une valeur courte et isolée peut ainsi être plus grande, et chaque chiffre d’une série garde la même avance, y compris le zéro initial. Dans un mariage, le signe de liaison a une graisse plus légère que les deux nombres. Les sept cartes illustrées inscrivent leur titre en lettres grasses, resserrées et inclinées, sur un ruban améthyste bordé d’or. Le ruban part du bord gauche et s’ajuste au nom, même sur plusieurs lignes. Les marchés et les commandes utilisent Inter semi-gras. [Rôles typographiques](../lib/flutter_flow/flutter_flow_theme.dart)
 
@@ -71,7 +77,7 @@ Le fond de l’affiche reprend le jaune CHOLOTO et le grain du métal brossé. L
 
 ## Page Tchala
 
-Le livre vert du raccourci de l’accueil identifie les symboles. Le calendrier ivoire et or identifie les saints. Les deux illustrations occupent le même bandeau saphir que sur Tirages. La sélection des onglets reprend le jaune de la navigation. Chaque symbole associe ses noms aux jetons dorés utilisés pour les résultats. Les jetons reviennent à la ligne quand l’espace manque. [Bandeau partagé](../lib/components/illustrated_page_header.dart) · [Page Tchala](../lib/tchala/tchala_widget.dart)
+Le livre vert du raccourci de l’accueil identifie les symboles. Le calendrier ivoire et or identifie les saints. Les deux illustrations occupent la droite du même en-tête dégradé que sur Tirages. La sélection des onglets reprend le jaune de la navigation. Chaque symbole associe ses noms aux jetons dorés utilisés pour les résultats. Les jetons reviennent à la ligne quand l’espace manque. [Bandeau partagé](../lib/components/illustrated_page_header.dart) · [Page Tchala](../lib/tchala/tchala_widget.dart)
 
 Le calendrier donne la priorité à la célébration du jour, ou à la prochaine date répertoriée. L’agenda regroupe les saints fêtés le même jour et permet de changer de mois. Sur téléphone, choisir un autre mois donne directement accès à sa liste. Sur grand écran, les prochaines fêtes et l’agenda mensuel se lisent côte à côte. Une recherche par nom ou par date porte sur toute l’année. [Calendrier des saints](../lib/tchala/saints_calendar.dart) · [Choix des dates et sources](saints-calendar.md)
 

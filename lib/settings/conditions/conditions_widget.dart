@@ -1,3 +1,4 @@
+import '/components/page_header_app_bar.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -53,8 +54,7 @@ class _ConditionsWidgetState extends State<ConditionsWidget> {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: theme.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: theme.secondaryBackground,
+      appBar: PageHeaderAppBar(
         automaticallyImplyLeading: false,
         leading: FlutterFlowIconButton(
           borderColor: Colors.transparent,
@@ -81,7 +81,6 @@ class _ConditionsWidgetState extends State<ConditionsWidget> {
           ),
         ),
         centerTitle: false,
-        elevation: 2.0,
       ),
       body: SafeArea(
         child: Scrollbar(

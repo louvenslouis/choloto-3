@@ -7,11 +7,13 @@ class IllustratedPageHeader extends StatelessWidget {
   const IllustratedPageHeader(
       {super.key,
       required this.title,
+      required this.inset,
       required this.asset,
       required this.fallback,
       this.artworkKey,
       this.action});
   final String title;
+  final double inset;
   final String asset;
   final IconData fallback;
   final Key? artworkKey;
@@ -22,40 +24,24 @@ class IllustratedPageHeader extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final tokens = theme.designToken;
     final spacing = tokens.spacing;
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      final wide = width >= 600;
-      final narrow = width < 320;
-      final textScale = MediaQuery.textScalerOf(context).scale(32) / 32;
-      final showArtwork = width / textScale >= 230;
-      final inset = wide ? spacing.xl : spacing.md;
-      final artworkSize =
-          wide ? 136.0 : (width * .27).clamp(64.0, 104.0).toDouble();
-      final titleStyle = wide
-          ? theme.displayMedium
-          : narrow
-              ? theme.headlineMedium
-              : theme.displaySmall;
+    return Container(
+      decoration: tokens.background.pageHeader(),
+      padding: EdgeInsets.symmetric(horizontal: inset),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final wide = width >= 600;
+        final textScale = MediaQuery.textScalerOf(context).scale(32) / 32;
+        final showArtwork = width / textScale >= 230;
+        final artworkSize =
+            wide ? 96.0 : (width * .22).clamp(56.0, 80.0).toDouble();
+        final titleStyle = wide ? theme.displaySmall : theme.headlineMedium;
 
-      return Container(
-        decoration: BoxDecoration(
-          gradient: tokens.home.hero,
-          image: const DecorationImage(
-            image: AssetImage('assets/images/home/sapphire.webp'),
-            fit: BoxFit.cover,
-            alignment: Alignment.centerRight,
-            opacity: .67,
-          ),
-          borderRadius: BorderRadius.circular(tokens.radius.lg),
-          border:
-              Border.all(color: tokens.home.heroGlow.withValues(alpha: .36)),
-        ),
-        child: Stack(
+        return Stack(
           alignment: AlignmentDirectional.centerStart,
           children: [
             if (showArtwork)
               PositionedDirectional(
-                end: inset,
+                end: 0,
                 width: artworkSize,
                 top: spacing.xs,
                 bottom: spacing.xs,
@@ -70,12 +56,12 @@ class IllustratedPageHeader extends StatelessWidget {
                 ),
               ),
             ConstrainedBox(
-              constraints: BoxConstraints(minHeight: wide ? 144 : 110),
+              constraints: BoxConstraints(minHeight: wide ? 112 : 96),
               child: Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(
-                  inset,
+                  0,
                   spacing.md,
-                  inset + (showArtwork ? artworkSize + spacing.xs : 0),
+                  showArtwork ? artworkSize + spacing.sm : 0,
                   spacing.md,
                 ),
                 child: Align(
@@ -92,7 +78,7 @@ class IllustratedPageHeader extends StatelessWidget {
                           title,
                           style: titleStyle.override(
                             color: theme.primaryText,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w700,
                             letterSpacing: -1.1,
                             lineHeight: 1.05,
                           ),
@@ -105,8 +91,8 @@ class IllustratedPageHeader extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 }

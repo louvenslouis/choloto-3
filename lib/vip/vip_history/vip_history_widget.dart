@@ -1,3 +1,4 @@
+import '/components/page_header_app_bar.dart';
 import '/components/vip_prediction_header.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
@@ -60,9 +61,9 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
     final theme = FlutterFlowTheme.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF3E0066),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF650BB0),
+      backgroundColor: theme.designToken.background.home,
+      appBar: PageHeaderAppBar(
+        vip: true,
         automaticallyImplyLeading: false,
         leading: FlutterFlowIconButton(
           borderColor: theme.primaryText.withValues(alpha: 0.0),
@@ -107,7 +108,6 @@ class _VipHistoryWidgetState extends State<VipHistoryWidget> {
           ),
         ],
         centerTitle: false,
-        elevation: 0.0,
       ),
       body: SafeArea(
         top: true,

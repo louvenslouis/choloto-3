@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '/components/page_header_app_bar.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/internationalization.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -22,8 +23,7 @@ class PaymentRequestsWidget extends StatelessWidget {
     final t = FlutterFlowTheme.of(context);
     return Scaffold(
         backgroundColor: t.primaryBackground,
-        appBar: AppBar(
-            backgroundColor: t.primaryBackground,
+        appBar: PageHeaderAppBar(
             foregroundColor: t.primaryText,
             title: Text(FFLocalizations.of(context).getText('eywbwq85'),
                 style: t.headlineSmall)),

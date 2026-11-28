@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'home_header_actions.dart';
+import 'page_header_app_bar.dart';
 
 class HomePageScaffold extends StatelessWidget {
   const HomePageScaffold({
@@ -56,6 +57,7 @@ class HomePageScaffold extends StatelessWidget {
                               ? tokens.background.home
                               : tokens.background.home.withValues(alpha: 0)),
                       surfaceTintColor: tokens.background.home,
+                      flexibleSpace: const PageHeaderBackdrop(),
                       automaticallyImplyLeading: false,
                       titleSpacing: sideInset,
                       title: const HomeHeaderBrand(),

@@ -171,7 +171,9 @@ void main() {
                 time: daysOfVip(days),
                 active: active,
                 showCollection: collection,
-                expandedMedal: expandedSize != null);
+                expandedBuilder: expandedSize == null
+                    ? null
+                    : (_, medal) => medal ?? const SizedBox.shrink());
             return tester.pumpWidget(MaterialApp(
               theme: ThemeData(brightness: brightness, useMaterial3: false),
               locale: locale,

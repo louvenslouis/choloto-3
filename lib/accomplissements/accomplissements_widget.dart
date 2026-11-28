@@ -1,3 +1,4 @@
+import '/components/page_header_app_bar.dart';
 import '/accomplissements/achievements_tab_widget.dart';
 import '/autres/calendrier/calendrier/calendrier_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -56,8 +57,7 @@ class _AccomplissementsWidgetState extends State<AccomplissementsWidget>
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        appBar: PageHeaderAppBar(
           automaticallyImplyLeading: false,
           leading: FlutterFlowIconButton(
             borderColor: Colors.transparent,
@@ -88,7 +88,6 @@ class _AccomplissementsWidgetState extends State<AccomplissementsWidget>
           ),
           actions: [],
           centerTitle: false,
-          elevation: 2.0,
         ),
         body: SafeArea(
           top: true,

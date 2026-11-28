@@ -219,20 +219,25 @@ Widget _member(
         VoidCallback? onTip,
         VoidCallback? onBack}) =>
     VipPageView(
-      memberName: name,
-      avatar: VipHeaderAvatar(name: name, photoUrl: hasPhoto ? photoUrl : ''),
-      memberMedal: const VipBadgeView(
+      onHistory: onHistory ?? _noAction,
+      onTip: onTip ?? _noAction,
+      headerBuilder: (inset) => VipBadgeView(
         tiers: defaultVipBadges,
-        time: (elapsed: Duration(days: 90), days: 90, partial: false),
+        time: (elapsed: const Duration(days: 90), days: 90, partial: false),
         active: true,
         showCollection: false,
-        expandedMedal: true,
+        expandedBuilder: (badgeName, medal) => VipPageHeader(
+          inset: inset,
+          memberName: name,
+          avatar:
+              VipHeaderAvatar(name: name, photoUrl: hasPhoto ? photoUrl : ''),
+          badgeName: badgeName,
+          memberMedal: medal,
+          onProfile: onProfile ?? _noAction,
+          onBack: onBack,
+        ),
       ),
       content: VipPredictionPanel(prediction: prediction ?? _example),
-      onProfile: onProfile ?? _noAction,
-      onTip: onTip ?? _noAction,
-      onBack: onBack,
-      onHistory: onHistory ?? _noAction,
     );
 
 const _categories = [
@@ -617,6 +622,61 @@ void main() {
         closeTo(expectedOffset, .1));
   });
 
+  testWidgets(
+      'VIP header fades vertically from amethyst to the page background',
+      (tester) async {
+    _setViewport(tester, const Size(390, 844), Brightness.dark);
+    final key = GlobalKey();
+    final tokens = DarkModeTheme().designToken;
+    final background = tokens.background.home;
+    await tester.pumpWidget(_app(Scaffold(
+      backgroundColor: background,
+      body: RepaintBoundary(
+        key: key,
+        child: ColoredBox(
+          color: background,
+          child: const VipPageHeader(
+            inset: 16,
+            memberName: 'Mika Jean',
+            avatar: VipHeaderAvatar(name: 'Mika Jean', photoUrl: ''),
+            onProfile: _noAction,
+          ),
+        ),
+      ),
+    )));
+    await tester.pumpAndSettle();
+    final boundary =
+        key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    final pixels = await _readPixels(tester, boundary);
+    final header = tester.getRect(find.byType(VipPageHeader));
+    Color pixelAt(Offset point) {
+      final local = boundary.globalToLocal(point);
+      final offset = (local.dy.floor() * pixels.width + local.dx.floor()) * 4;
+      return Color.fromARGB(
+        pixels.rgba.getUint8(offset + 3),
+        pixels.rgba.getUint8(offset),
+        pixels.rgba.getUint8(offset + 1),
+        pixels.rgba.getUint8(offset + 2),
+      );
+    }
+
+    final x = header.left + 2;
+    final start = pixelAt(Offset(x, header.top + 1));
+    final middle = pixelAt(Offset(x, header.center.dy));
+    final end = pixelAt(Offset(x, header.bottom - 1));
+    // Raster dithering can vary a channel by one level across the same row.
+    expect(pixelAt(Offset(header.right - 2, header.top + 1)),
+        isSameColorAs(start, threshold: .005));
+    expect(pixelAt(Offset(header.right - 2, header.center.dy)),
+        isSameColorAs(middle, threshold: .005));
+    expect(start.b, greaterThan(start.r));
+    expect(start.r, greaterThan(start.g));
+    expect(start.computeLuminance(), greaterThan(middle.computeLuminance()));
+    expect(middle.computeLuminance(), greaterThan(end.computeLuminance()));
+    expect(
+        end.computeLuminance(), closeTo(background.computeLuminance(), .001));
+  });
+
   for (final brightness in [Brightness.dark, Brightness.light]) {
     for (final percentage in [null, '100%']) {
       testWidgets(
@@ -662,6 +722,43 @@ void main() {
     }
   }
 
+  testWidgets(
+      'VIP action pills stay in opposite corners while the final card scrolls clear',
+      (tester) async {
+    _setViewport(tester, const Size(320, 568), Brightness.dark);
+    final opened = <String>[];
+    await tester.pumpWidget(_app(_member(
+      onHistory: () => opened.add('history'),
+      onTip: () => opened.add('tip'),
+    )));
+    await tester.pumpAndSettle();
+    final history = find.byKey(const ValueKey('vip-history-button'));
+    final tip = find.byKey(const ValueKey('vip-tip-button'));
+    final left = tester.getRect(history);
+    final right = tester.getRect(tip);
+    final nav = tester.getRect(find.byType(BottomNavigationBar));
+    expect(tester.getRect(find.text('Historique')).center.dx,
+        lessThan(nav.center.dx));
+    expect(tester.getRect(find.text('Pourboire')).center.dx,
+        greaterThan(nav.center.dx));
+    expect(left.left, closeTo(16, 1));
+    expect(right.right, closeTo(nav.right - 16, 1));
+    expect(left.bottom, closeTo(right.bottom, .01));
+    expect(left.bottom, closeTo(nav.top - kFloatingActionButtonMargin, 1));
+    await tester.drag(
+        find.byKey(const PageStorageKey('vip-scroll')), const Offset(0, -1600));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(history), left);
+    expect(tester.getRect(tip), right);
+    final last =
+        tester.getRect(find.byKey(const ValueKey('vip-prediction-extra')));
+    expect(last.bottom, lessThan(left.top));
+    await tester.tap(history);
+    await tester.tap(tip);
+    expect(opened, ['history', 'tip']);
+    expect(tester.takeException(), isNull);
+  });
+
   const viewports = [
     Size(320, 568),
     Size(390, 844),
@@ -670,6 +767,10 @@ void main() {
   ];
   for (final language in ['fr', 'en', 'cr']) {
     final strings = FFLocalizations(Locale(language));
+    final badgeLabel = strings.getVariableText(
+        frText: 'Membre Discipliné',
+        enText: 'Disciplined Member',
+        crText: 'Manm Disipline');
     for (final brightness in Brightness.values) {
       for (final size in viewports) {
         for (final member in [false, true]) {
@@ -686,13 +787,28 @@ void main() {
                   language: language),
             ));
             await tester.pumpAndSettle();
-            final title = find.text(strings.getText('gfj3b9xn'));
+            final title =
+                find.text(member ? 'Mika Jean' : strings.getText('gfj3b9xn'));
             expect(title, findsOneWidget);
             expect(Theme.of(tester.element(title)).brightness, Brightness.dark);
             expect(find.byKey(const ValueKey('vip-page-medal')),
                 member ? findsNothing : findsOneWidget);
+            final frame = find.byKey(const ValueKey('vip-medal-frame'));
+            final medal = find.descendant(
+                of: frame,
+                matching: find.byKey(ValueKey(
+                  member ? 'vip-medal-3' : 'vip-page-medal',
+                )));
+            expect(medal, findsOneWidget);
+            expect(tester.getCenter(frame), tester.getCenter(medal));
+            expect(tester.getSize(frame).width,
+                greaterThan(tester.getSize(medal).width));
             if (member) {
-              expect(find.text('Mika Jean'), findsOneWidget);
+              final badge = find.text(badgeLabel);
+              expect(badge, findsOneWidget);
+              expect(tester.getRect(badge).top,
+                  greaterThan(tester.getRect(title).bottom));
+              expect(find.text(strings.getText('gfj3b9xn')), findsNothing);
               if (hasPhoto) {
                 expectPortrait(tester);
               } else {
@@ -707,15 +823,15 @@ void main() {
               expect(tester.getSize(button).shortestSide,
                   greaterThanOrEqualTo(48));
             }
-            final pass = tester.getRect(find.byType(VipPageHeader));
+            final header = tester.getRect(find.byType(VipPageHeader));
             final section = tester.getRect(member
                 ? find.byType(VipPredictionPanel)
                 : find.byKey(const ValueKey('vip-monthly-offer-card')));
             if (size.width >= 810) {
-              expect(pass.right, lessThan(section.left));
-              expect(pass.top, closeTo(section.top, 1));
+              expect(header.right, lessThan(section.left));
+              expect(section.top, inInclusiveRange(header.top, header.bottom));
             } else {
-              expect(pass.bottom, lessThan(section.top));
+              expect(header.bottom, lessThan(section.top));
             }
             if (size.width < 767) {
               final tabs = tester.widget<BottomNavigationBar>(
@@ -814,6 +930,12 @@ void main() {
           language: language,
           textScale: 2));
       await tester.pumpAndSettle();
+      final badgeTitle = find.text(badgeLabel);
+      expect(
+          tester.getRect(badgeTitle).top,
+          greaterThan(tester
+              .getRect(find.text('Marie-Claire Jean-Baptiste Desrosiers'))
+              .bottom));
       for (final name in ['history', 'tip', 'profile', 'back']) {
         final button = find.byKey(ValueKey('vip-$name-button'));
         await tester.ensureVisible(button);
@@ -824,8 +946,12 @@ void main() {
       await tester.ensureVisible(medal);
       await tester.tap(medal);
       await tester.pumpAndSettle();
-      expect(find.text(vipBadgeName(strings, defaultVipBadges[2].name)),
-          findsWidgets);
+      expect(
+          find.descendant(
+              of: find.byType(BottomSheet),
+              matching:
+                  find.text(vipBadgeName(strings, defaultVipBadges[2].name))),
+          findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('close-vip-medal')));
       await tester.pumpAndSettle();
       _expectPredictionGrid(tester, _singleRows);
@@ -1497,6 +1623,8 @@ void main() {
     // The active profile can read its renewal history, badge and prediction.
     expect(listeners.length, greaterThanOrEqualTo(2));
     expect(find.text('Member Intake'), findsOneWidget);
+    expect(find.text('Compte VIP'), findsNothing);
+    expect(find.text('Nouveau Membre'), findsNothing);
     expectPortrait(tester);
     Future<void> broadcast(Iterable<String> ids, ByteData event) async {
       for (final id in ids.toList()) {
@@ -1512,7 +1640,11 @@ void main() {
           'vip_badges/config',
           {
             'tiers': [
-              for (final t in defaultVipBadges) {'name': t.name, 'days': t.days}
+              for (final t in defaultVipBadges)
+                {
+                  'name': t.days == 30 ? 'Club Soleil CHOLOTO' : t.name,
+                  'days': t.days
+                }
             ]
           },
           [false, false]
@@ -1534,6 +1666,7 @@ void main() {
       }
     }
     expect(predictionListener, isNotNull);
+    expect(find.text('Nouveau Membre'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     // Both receipt listeners receive the same confirmed payment. The badge uses
     // elapsed days, so this 45-day interval earns the 30-day tier.
@@ -1558,6 +1691,9 @@ void main() {
           [false, false],
         ]));
     expect(find.byKey(const ValueKey('vip-medal-2')), findsOneWidget);
+    expect(find.text('Nouveau Membre'), findsNothing);
+    expect(tester.getRect(find.text('Club Soleil')).top,
+        greaterThan(tester.getRect(find.text('Member Intake')).bottom));
     await broadcast(
         [predictionListener!],
         codec.encodeErrorEnvelope(

@@ -1,3 +1,4 @@
+import '/components/page_header_app_bar.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/accomplissements/member_vip_badge.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -81,72 +82,23 @@ class _ProfilWidgetState extends State<ProfilWidget> {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-      appBar: AppBar(
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+      appBar: PageHeaderAppBar(
         automaticallyImplyLeading: false,
-        actions: const [],
-        flexibleSpace: FlexibleSpaceBar(
-          title: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 14.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 8.0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            12.0, 0.0, 0.0, 0.0),
-                        child: FlutterFlowIconButton(
-                          borderColor: Colors.transparent,
-                          borderRadius: 30.0,
-                          borderWidth: 1.0,
-                          buttonSize: 50.0,
-                          icon: Icon(
-                            Icons.arrow_back_rounded,
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            size: 30.0,
-                          ),
-                          onPressed: () async {
-                            logFirebaseEvent(
-                                'PROFIL_arrow_back_rounded_ICN_ON_TAP');
-                            logFirebaseEvent('IconButton_navigate_back');
-                            context.pop();
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            24.0, 0.0, 0.0, 0.0),
-                        child: Text(
-                          FFLocalizations.of(context).getText(
-                            'xpn42xty' /* Modifie ton Profil */,
-                          ),
-                          style: FlutterFlowTheme.of(context)
-                              .headlineMedium
-                              .override(
-                                fontFamily: 'Google sans flex',
-                                color: FlutterFlowTheme.of(context).primaryText,
-                                fontSize: 22.0,
-                                letterSpacing: 0.0,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          centerTitle: true,
-          expandedTitleScale: 1.0,
+        centerTitle: false,
+        leading: FlutterFlowIconButton(
+          buttonSize: kMinInteractiveDimension,
+          icon: Icon(Icons.arrow_back_rounded,
+              color: FlutterFlowTheme.of(context).primaryText),
+          onPressed: () async {
+            logFirebaseEvent('PROFIL_arrow_back_rounded_ICN_ON_TAP');
+            logFirebaseEvent('IconButton_navigate_back');
+            context.pop();
+          },
         ),
-        elevation: 0.0,
+        title: Text(
+          FFLocalizations.of(context).getText('xpn42xty'),
+          style: FlutterFlowTheme.of(context).titleLarge,
+        ),
       ),
       body: SafeArea(
         top: true,

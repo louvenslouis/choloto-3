@@ -1,3 +1,4 @@
+import '/components/page_header_app_bar.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -130,8 +131,7 @@ class _ParametresWidgetState extends State<ParametresWidget> {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+        appBar: PageHeaderAppBar(
           automaticallyImplyLeading: true,
           leading: FlutterFlowIconButton(
             borderRadius: 8.0,
@@ -160,7 +160,6 @@ class _ParametresWidgetState extends State<ParametresWidget> {
           ),
           actions: [],
           centerTitle: false,
-          elevation: 2.0,
         ),
         body: SafeArea(
           top: true,

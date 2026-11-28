@@ -12,6 +12,7 @@ import 'auth/firebase_auth/auth_util.dart';
 
 import 'backend/firebase/firebase_config.dart';
 import 'components/home_header_actions.dart';
+import '/components/page_header_app_bar.dart';
 import 'components/home_page_scaffold.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
@@ -306,7 +307,10 @@ class _NavBarPageState extends State<NavBarPage> {
       elevation: 0,
       scrolledUnderElevation: 0,
       backgroundColor: tokens.background.home,
-      shape: Border(bottom: BorderSide(color: tokens.home.edge)),
+      flexibleSpace: selectedIndex == 0 ? const PageHeaderBackdrop() : null,
+      shape: selectedIndex == 0
+          ? null
+          : Border(bottom: BorderSide(color: tokens.home.edge)),
       titleSpacing: compact ? tokens.spacing.md : tokens.spacing.lg,
       title: Center(
         child: ConstrainedBox(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/components/page_header_app_bar.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -146,8 +147,7 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
     final theme = FlutterFlowTheme.of(context);
     return Scaffold(
       backgroundColor: theme.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: theme.primaryBackground,
+      appBar: PageHeaderAppBar(
         automaticallyImplyLeading: false,
         leading: FlutterFlowIconButton(
           borderRadius: theme.designToken.radius.sm,
@@ -158,7 +158,6 @@ class _CustomerserviceWidgetState extends State<CustomerserviceWidget> {
         ),
         title: Text(supportText(context, 'title'), style: theme.titleLarge),
         centerTitle: true,
-        elevation: 0,
       ),
       body: SafeArea(
         top: false,

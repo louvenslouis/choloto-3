@@ -198,10 +198,10 @@ class TiragesView extends StatelessWidget {
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       SliverPadding(
-                        padding: EdgeInsets.fromLTRB(inset, gutter, inset,
-                            wide ? spacing.xl : spacing.lg),
+                        padding: EdgeInsets.only(bottom: spacing.md),
                         sliver: SliverToBoxAdapter(
                           child: TiragesHeader(
+                              inset: inset,
                               onRefresh: onRefresh,
                               loading: loading || loadingMore),
                         ),

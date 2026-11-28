@@ -8,11 +8,13 @@ import '/flutter_flow/internationalization.dart';
 class TiragesHeader extends StatelessWidget {
   const TiragesHeader({
     super.key,
+    required this.inset,
     required this.onRefresh,
     required this.loading,
   });
 
   final VoidCallback onRefresh;
+  final double inset;
   final bool loading;
 
   @override
@@ -23,6 +25,7 @@ class TiragesHeader extends StatelessWidget {
 
     return IllustratedPageHeader(
       key: const ValueKey('tirages-header'),
+      inset: inset,
       title: strings.getText('hfwdp6xo'),
       asset: 'assets/images/home/draw_ticket.webp',
       artworkKey: const ValueKey('tirages-header-ticket'),
@@ -33,16 +36,13 @@ class TiragesHeader extends StatelessWidget {
           key: const ValueKey('tirages-refresh'),
           buttonSize: kMinInteractiveDimension,
           borderRadius: tokens.radius.full,
-          borderColor: tokens.home.edge,
-          borderWidth: 1,
-          fillColor: tokens.background.home.withValues(alpha: .65),
-          disabledColor: tokens.background.home.withValues(alpha: .65),
-          disabledIconColor: tokens.home.mutedText,
+          disabledIconColor: tokens.home.mutedText.withValues(alpha: .45),
           hoverColor: tokens.home.surface.colors.first,
-          hoverIconColor: theme.primary,
+          hoverIconColor: theme.primaryText,
           focusBorderSide: BorderSide(color: theme.primary, width: 2),
           focusBorderRadius: BorderRadius.circular(tokens.radius.full),
-          icon: Icon(Icons.refresh_rounded, color: theme.primaryText),
+          icon: Icon(Icons.refresh_rounded,
+              size: 18, color: tokens.home.mutedText),
           onPressed: loading ? null : onRefresh,
         ),
       ),

@@ -13,16 +13,19 @@ typedef _BadgeHistory = ({
   List<SubscriptionTransaction> receipts
 });
 
+typedef ExpandedVipBadgeBuilder = Widget Function(
+    String? badgeName, Widget? medal);
+
 class MemberVipBadge extends StatefulWidget {
   MemberVipBadge({
     required this.user,
     this.showCollection = false,
-    this.expandedMedal = false,
+    this.expandedBuilder,
   }) : super(key: ValueKey(user.reference.path));
 
   final UserRecord user;
   final bool showCollection;
-  final bool expandedMedal;
+  final ExpandedVipBadgeBuilder? expandedBuilder;
   @override
   State<MemberVipBadge> createState() => _MemberVipBadgeState();
 }
@@ -88,19 +91,20 @@ class _MemberVipBadgeState extends State<MemberVipBadge> {
             onboarded: user.onboardingCompletedAt,
             now: now,
           );
-          if (snapshot.hasError) {
-            if (!active) return const SizedBox.shrink();
+          final expanded = widget.expandedBuilder;
+          if (snapshot.hasError && active) {
             final l = FFLocalizations.of(context);
             final label = l.getVariableText(
                 frText: 'Recharger le badge',
                 enText: 'Reload badge',
                 crText: 'Rechaje badj la');
             void retry() => setState(() => _stream = _watch());
-            if (!widget.showCollection || widget.expandedMedal) {
-              return IconButton(
+            if (!widget.showCollection || expanded != null) {
+              final button = IconButton(
                   icon: const Icon(Icons.refresh_rounded),
                   onPressed: retry,
                   tooltip: label);
+              return expanded?.call(null, button) ?? button;
             }
             return TextButton.icon(
                 icon: const Icon(Icons.refresh_rounded),
@@ -108,7 +112,9 @@ class _MemberVipBadgeState extends State<MemberVipBadge> {
                 label: Text(label));
           }
           final data = snapshot.data;
-          if (data == null) return const SizedBox.shrink();
+          if (snapshot.hasError || data == null) {
+            return expanded?.call(null, null) ?? const SizedBox.shrink();
+          }
           final time = verifiedVipTime(
               history: data.receipts,
               expiry: user.endSub,
@@ -121,7 +127,7 @@ class _MemberVipBadgeState extends State<MemberVipBadge> {
               time: time,
               active: active,
               showCollection: widget.showCollection,
-              expandedMedal: widget.expandedMedal);
+              expandedBuilder: expanded);
         },
       );
 }
@@ -133,12 +139,12 @@ class VipBadgeView extends StatefulWidget {
       required this.time,
       required this.active,
       required this.showCollection,
-      this.expandedMedal = false});
+      this.expandedBuilder});
   final List<VipBadgeTier> tiers;
   final VerifiedVipTime time;
   final bool active;
   final bool showCollection;
-  final bool expandedMedal;
+  final ExpandedVipBadgeBuilder? expandedBuilder;
 
   @override
   State<VipBadgeView> createState() => _VipBadgeViewState();
@@ -177,11 +183,12 @@ class _VipBadgeViewState extends State<VipBadgeView> {
   Widget build(BuildContext context) {
     final tiers = widget.tiers;
     final rank = _rank;
+    final expanded = widget.expandedBuilder;
     if (rank == null) {
       _closeDetails();
-      return const SizedBox.shrink();
+      return expanded?.call(null, null) ?? const SizedBox.shrink();
     }
-    final showCollection = widget.showCollection && !widget.expandedMedal;
+    final showCollection = widget.showCollection && expanded == null;
     final theme = FlutterFlowTheme.of(context);
     final spacing = theme.designToken.spacing;
     final imageSize = showCollection ? 48.0 : 24.0;
@@ -249,12 +256,14 @@ class _VipBadgeViewState extends State<VipBadgeView> {
       );
     }
 
-    if (widget.expandedMedal) {
-      return LayoutBuilder(builder: (context, constraints) {
+    if (expanded != null) {
+      final name = vipBadgeName(FFLocalizations.of(context), tiers[rank].name,
+          short: true);
+      return expanded(name, LayoutBuilder(builder: (context, constraints) {
         final side = constraints.biggest.shortestSide;
         return medal(rank,
             expandedSize: side.isFinite ? side : kMinInteractiveDimension);
-      });
+      }));
     }
     if (!showCollection) return medal(rank);
     return Padding(

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:choloto/components/illustrated_page_header.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/main.dart';
@@ -170,6 +171,17 @@ void main() {
           await tester.pumpWidget(
               RepaintBoundary(key: key, child: _app(language: lang)));
           await _settlePage(tester);
+          final header = find.byType(IllustratedPageHeader);
+          final surface = find.descendant(
+              of: header,
+              matching: find.byWidgetPredicate(
+                (w) =>
+                    w is DecoratedBox &&
+                    w.decoration ==
+                        DarkModeTheme().designToken.background.pageHeader(),
+              ));
+          expect(tester.getSize(surface).width, size.width);
+
           expect(Theme.of(tester.element(tabBar)).brightness, Brightness.dark);
           expect(tester.widget<TabBar>(tabBar).controller!.index, 0);
           final primary =

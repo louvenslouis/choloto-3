@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:choloto/components/illustrated_page_header.dart';
 import 'package:choloto/backend/schema/resultats_record.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
@@ -227,6 +228,17 @@ void main() {
           await tester.pumpAndSettle();
           final strings = FFLocalizations(Locale(language));
           final view = find.byType(TiragesView);
+          final header = find.byType(IllustratedPageHeader);
+          final surface = find.descendant(
+              of: header,
+              matching: find.byWidgetPredicate(
+                (w) =>
+                    w is DecoratedBox &&
+                    w.decoration ==
+                        DarkModeTheme().designToken.background.pageHeader(),
+              ));
+          expect(tester.getSize(surface).width, size.width);
+
           expect(Theme.of(tester.element(view)).brightness, Brightness.dark);
           if (size.width < 767) {
             expect(

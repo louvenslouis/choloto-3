@@ -46,9 +46,11 @@ int? vipBadgeIndex(List<VipBadgeTier> tiers, VerifiedVipTime time,
   return tiers.lastIndexWhere((tier) => tier.days <= time.days);
 }
 
-String vipBadgeName(FFLocalizations l, String name) {
+String vipBadgeName(FFLocalizations l, String name, {bool short = false}) {
   final index = defaultVipBadges.indexWhere((tier) => tier.name == name);
-  if (index < 0) return name;
+  if (index < 0) {
+    return short ? name.replaceFirst(RegExp(r'\s+CHOLOTO$'), '') : name;
+  }
   const en = [
     'New CHOLOTO Member',
     'Initiated CHOLOTO Member',
@@ -69,7 +71,11 @@ String vipBadgeName(FFLocalizations l, String name) {
     'Manm Lejand CHOLOTO',
     'Manm Tenò CHOLOTO'
   ];
-  return l.getVariableText(frText: name, enText: en[index], crText: cr[index]);
+  final label =
+      l.getVariableText(frText: name, enText: en[index], crText: cr[index]);
+  return short
+      ? label.split(' ').where((word) => word != 'CHOLOTO').join(' ')
+      : label;
 }
 
 bool _signupExpiry(DateTime? date, DateTime? created, DateTime? onboarded) =>

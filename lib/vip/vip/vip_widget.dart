@@ -9,6 +9,7 @@ import '/autres/bingo/bingo_card_v_i_p/bingo_card_v_i_p_widget.dart';
 import '/backend/backend.dart';
 import '/components/don_widget.dart';
 import '/components/home_page_scaffold.dart';
+import '/components/vip_floating_actions.dart';
 import '/components/vip_motion.dart';
 import '/components/vip_page_header.dart';
 import '/components/vip_prediction_panel.dart';
@@ -172,24 +173,31 @@ class _VipWidgetState extends State<VipWidget> {
               ? profilePhoto
               : currentUser?.photoUrl?.trim() ?? '';
       return VipPageView(
-        memberName: name,
-        memberMedal: profile == null
-            ? null
-            : MemberVipBadge(user: profile, expandedMedal: true),
-        avatar: VipHeaderAvatar(name: name ?? '', photoUrl: photo),
-        onProfile: () {
-          logFirebaseEvent('VIP_PAGE_Card_elizvnyh_ON_TAP');
-          logFirebaseEvent('Card_navigate_to');
-          context.pushNamed(ProfilWidget.routeName);
-        },
         onHistory: () {
           logFirebaseEvent('VIP_HISTORY_FAB_ON_TAP');
           context.pushNamed(VipHistoryWidget.routeName);
         },
         onTip: _showTip,
-        onBack: ModalRoute.of(context)?.canPop == true
-            ? () => context.safePop()
-            : null,
+        headerBuilder: (inset) {
+          Widget header(String? badgeName, Widget? medal) => VipPageHeader(
+                inset: inset,
+                memberName: name,
+                badgeName: badgeName,
+                memberMedal: medal,
+                avatar: VipHeaderAvatar(name: name ?? '', photoUrl: photo),
+                onProfile: () {
+                  logFirebaseEvent('VIP_PAGE_Card_elizvnyh_ON_TAP');
+                  logFirebaseEvent('Card_navigate_to');
+                  context.pushNamed(ProfilWidget.routeName);
+                },
+                onBack: ModalRoute.of(context)?.canPop == true
+                    ? () => context.safePop()
+                    : null,
+              );
+          return profile == null
+              ? header(null, null)
+              : MemberVipBadge(user: profile, expandedBuilder: header);
+        },
         bingo: bingo.hasDate() &&
                 bingo.hasExpiration() &&
                 bingo.expiration! >= getCurrentTimestamp
@@ -209,25 +217,17 @@ class VipPageView extends StatelessWidget {
   const VipPageView({
     super.key,
     required this.content,
-    required this.avatar,
-    required this.onProfile,
+    required this.headerBuilder,
     required this.onHistory,
     required this.onTip,
-    this.onBack,
-    this.memberName,
-    this.memberMedal,
     this.bingo,
   });
 
   final Widget content;
-  final Widget avatar;
-  final String? memberName;
-  final Widget? memberMedal;
-  final VoidCallback onProfile;
+  final Widget Function(double inset) headerBuilder;
+  final Widget? bingo;
   final VoidCallback onHistory;
   final VoidCallback onTip;
-  final VoidCallback? onBack;
-  final Widget? bingo;
 
   @override
   Widget build(BuildContext context) {
@@ -237,48 +237,66 @@ class VipPageView extends StatelessWidget {
     final gutter = wide ? spacing.lg : spacing.md;
     return Scaffold(
       backgroundColor: tokens.background.home,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: SafeArea(
+        top: false,
+        bottom: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+              maxWidth: HomePageScaffold.maxContentWidth + 2 * gutter),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: gutter),
+            child: VipFloatingActions(onHistory: onHistory, onTip: onTip),
+          ),
+        ),
+      ),
       body: DecoratedBox(
         decoration: BoxDecoration(gradient: tokens.background.homeGradient),
         child: SafeArea(
           child: SizedBox.expand(
             child: SingleChildScrollView(
               key: const PageStorageKey('vip-scroll'),
-              padding: EdgeInsets.fromLTRB(gutter, gutter, gutter, spacing.xl),
+              padding: EdgeInsets.only(
+                bottom: VipFloatingActions.height +
+                    kFloatingActionButtonMargin +
+                    spacing.md,
+              ),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                      maxWidth: HomePageScaffold.maxContentWidth),
+                  constraints: BoxConstraints(
+                      maxWidth: HomePageScaffold.maxContentWidth + 2 * gutter),
                   child: LayoutBuilder(builder: (context, bounds) {
                     final scale =
                         MediaQuery.textScalerOf(context).scale(16) / 16;
-                    final split =
-                        bounds.maxWidth >= 744 * scale.clamp(1.0, 2.0);
-                    final passWidth = split
-                        ? (bounds.maxWidth * .30).clamp(264.0, 376.0).toDouble()
+                    final contentWidth = bounds.maxWidth - 2 * gutter;
+                    final split = contentWidth >= 744 * scale.clamp(1.0, 2.0);
+                    final headerWidth = split
+                        ? (contentWidth * .30).clamp(264.0, 376.0).toDouble() +
+                            2 * gutter
                         : bounds.maxWidth;
-                    final gap = split || wide ? spacing.xl : spacing.lg;
+                    // The header already includes the first part of the desktop gutter.
+                    final gap = split
+                        ? spacing.xl - gutter
+                        : wide
+                            ? spacing.xl
+                            : spacing.lg;
                     return Flex(
                       direction: split ? Axis.horizontal : Axis.vertical,
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
-                            width: passWidth,
+                            width: headerWidth,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                VipPageHeader(
-                                  avatar: avatar,
-                                  memberName: memberName,
-                                  memberMedal: memberMedal,
-                                  onProfile: onProfile,
-                                  onHistory: onHistory,
-                                  onTip: onTip,
-                                  onBack: onBack,
-                                ).vipEntrance(),
+                                headerBuilder(gutter).vipEntrance(),
                                 if (bingo != null) ...[
                                   SizedBox(height: spacing.md),
-                                  bingo!,
+                                  Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: gutter),
+                                      child: bingo!),
                                 ],
                               ],
                             )),
@@ -286,9 +304,13 @@ class VipPageView extends StatelessWidget {
                             width: split ? gap : 0, height: split ? 0 : gap),
                         SizedBox(
                             width: split
-                                ? bounds.maxWidth - passWidth - gap
+                                ? bounds.maxWidth - headerWidth - gap
                                 : bounds.maxWidth,
-                            child: content),
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(split ? 0 : gutter,
+                                  split ? gutter : 0, gutter, 0),
+                              child: content,
+                            )),
                       ],
                     );
                   }),

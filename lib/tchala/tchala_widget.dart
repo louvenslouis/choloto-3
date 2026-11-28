@@ -142,71 +142,82 @@ class _TchalaWidgetState extends State<TchalaWidget>
               gutter, (bounds.maxWidth - HomePageScaffold.maxContentWidth) / 2);
           final showHeader = bounds.maxHeight >= 410 &&
               MediaQuery.viewInsetsOf(context).bottom == 0;
-          return Padding(
-              padding: EdgeInsets.fromLTRB(
-                  inset, showHeader ? gutter : spacing.xs, inset, 0),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (showHeader) ...[
-                      IllustratedPageHeader(
-                        title: saints
-                            ? strings.getVariableText(
-                                frText: 'Calendrier des saints',
-                                enText: 'Saints calendar',
-                                crText: 'Kalandriye sen yo')
-                            : strings.getText('40q38tw9'),
-                        asset: saints
-                            ? 'assets/images/home/shortcut_saints.webp'
-                            : 'assets/images/home/shortcut_tchala.webp',
-                        fallback: saints
-                            ? Icons.calendar_month_rounded
-                            : Icons.menu_book_rounded,
-                      ),
-                      SizedBox(height: spacing.md),
-                    ],
-                    if (inlineTools)
-                      Row(children: [
-                        Expanded(flex: 2, child: tabs),
-                        SizedBox(width: spacing.md),
-                        Expanded(flex: 3, child: search)
-                      ])
-                    else ...[
-                      if (bounds.maxHeight > 230 ||
-                          !_searchFocusNode.hasFocus) ...[
-                        tabs,
-                        SizedBox(height: spacing.sm),
-                      ],
-                      search,
-                    ],
-                    SizedBox(height: showHeader ? spacing.md : spacing.xs),
-                    Expanded(
-                        child: FutureBuilder<TchalaData>(
-                            future: _data,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return Center(
-                                    child: CircularProgressIndicator(
-                                        color: theme.primary));
-                              }
-                              if (snapshot.hasError || !snapshot.hasData) {
-                                return _LoadError(onRetry: _retryLoading);
-                              }
-                              final data = snapshot.requireData;
-                              return TabBarView(
-                                  controller: _tabController,
-                                  children: [
-                                    _TchalaList(
-                                        entries: data.symbols,
-                                        query: _searchControllers[0].text),
-                                    SaintsCalendar(
-                                        months: data.saintMonths,
-                                        query: _searchControllers[1].text,
-                                        today: widget.today),
-                                  ]);
-                            })),
-                  ]));
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showHeader) ...[
+                  IllustratedPageHeader(
+                    inset: inset,
+                    title: saints
+                        ? strings.getVariableText(
+                            frText: 'Calendrier des saints',
+                            enText: 'Saints calendar',
+                            crText: 'Kalandriye sen yo')
+                        : strings.getText('40q38tw9'),
+                    asset: saints
+                        ? 'assets/images/home/shortcut_saints.webp'
+                        : 'assets/images/home/shortcut_tchala.webp',
+                    fallback: saints
+                        ? Icons.calendar_month_rounded
+                        : Icons.menu_book_rounded,
+                  ),
+                  SizedBox(height: spacing.md),
+                ],
+                Expanded(
+                    child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            inset, showHeader ? 0 : spacing.xs, inset, 0),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (inlineTools)
+                                Row(children: [
+                                  Expanded(flex: 2, child: tabs),
+                                  SizedBox(width: spacing.md),
+                                  Expanded(flex: 3, child: search)
+                                ])
+                              else ...[
+                                if (bounds.maxHeight > 230 ||
+                                    !_searchFocusNode.hasFocus) ...[
+                                  tabs,
+                                  SizedBox(height: spacing.sm),
+                                ],
+                                search,
+                              ],
+                              SizedBox(
+                                  height: showHeader ? spacing.md : spacing.xs),
+                              Expanded(
+                                  child: FutureBuilder<TchalaData>(
+                                      future: _data,
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState !=
+                                            ConnectionState.done) {
+                                          return Center(
+                                              child: CircularProgressIndicator(
+                                                  color: theme.primary));
+                                        }
+                                        if (snapshot.hasError ||
+                                            !snapshot.hasData) {
+                                          return _LoadError(
+                                              onRetry: _retryLoading);
+                                        }
+                                        final data = snapshot.requireData;
+                                        return TabBarView(
+                                            controller: _tabController,
+                                            children: [
+                                              _TchalaList(
+                                                  entries: data.symbols,
+                                                  query: _searchControllers[0]
+                                                      .text),
+                                              SaintsCalendar(
+                                                  months: data.saintMonths,
+                                                  query: _searchControllers[1]
+                                                      .text,
+                                                  today: widget.today),
+                                            ]);
+                                      })),
+                            ]))),
+              ]);
         })),
       ),
     );

@@ -1,3 +1,4 @@
+import '/components/page_header_app_bar.dart';
 import '/payments/payment_requests_widget.dart';
 import '/payments/payment_text.dart';
 import '/auth/firebase_auth/auth_util.dart';
@@ -74,8 +75,8 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: theme.primaryBackground,
-        appBar: AppBar(
-          backgroundColor: theme.primaryBackground,
+        appBar: PageHeaderAppBar(
+          vip: true,
           automaticallyImplyLeading: false,
           leading: FlutterFlowIconButton(
             borderRadius: tokens.radius.sm,
@@ -97,7 +98,6 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
             ),
           ),
           centerTitle: false,
-          elevation: 0.0,
         ),
         body: SafeArea(
           top: false,
