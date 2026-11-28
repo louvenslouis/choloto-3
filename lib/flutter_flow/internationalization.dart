@@ -270,10 +270,90 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'cr': 'Vèsyon',
       'en': 'Version',
     },
-    'cp8c72u7': {
-      'fr': '260920001',
-      'cr': '0.09.4',
-      'en': '0.09.4',
+    'settings_language_fr': {
+      'fr': "Français",
+      'en': "Français",
+      'cr': "Français",
+    },
+    'settings_language_en': {
+      'fr': "English",
+      'en': "English",
+      'cr': "English",
+    },
+    'settings_language_cr': {
+      'fr': "Kreyòl ayisyen",
+      'en': "Kreyòl ayisyen",
+      'cr': "Kreyòl ayisyen",
+    },
+    'settings_preferences': {
+      'fr': "Préférences",
+      'en': "Preferences",
+      'cr': "Preferans",
+    },
+    'settings_account': {
+      'fr': "Compte",
+      'en': "Account",
+      'cr': "Kont",
+    },
+    'settings_help': {
+      'fr': "Aide et informations",
+      'en': "Help and information",
+      'cr': "Èd ak enfòmasyon",
+    },
+    'settings_market': {
+      'fr': "Premier tirage sur l’accueil",
+      'en': "First draw on the home screen",
+      'cr': "Premye tiraj sou paj dakèy la",
+    },
+    'settings_size': {
+      'fr': "Taille du texte",
+      'en': "Text size",
+      'cr': "Gwosè tèks",
+    },
+    'settings_system': {
+      'fr': "Selon l’appareil",
+      'en': "Device setting",
+      'cr': "Dapre aparèy la",
+    },
+    'settings_large': {
+      'fr': "Grand",
+      'en': "Large",
+      'cr': "Gwo",
+    },
+    'settings_extra_large': {
+      'fr': "Très grand",
+      'en': "Extra large",
+      'cr': "Gwo anpil",
+    },
+    'settings_motion': {
+      'fr': "Animations",
+      'en': "Animations",
+      'cr': "Animasyon",
+    },
+    'settings_reduced': {
+      'fr': "Réduites",
+      'en': "Reduced",
+      'cr': "Redui",
+    },
+    'settings_unavailable': {
+      'fr': 'Indisponible',
+      'en': 'Unavailable',
+      'cr': 'Pa disponib',
+    },
+    'settings_save_error': {
+      'fr': "Impossible d’enregistrer ce réglage.",
+      'en': "Couldn’t save this setting.",
+      'cr': "Nou pa ka anrejistre preferans sa a.",
+    },
+    'settings_version_copied': {
+      'fr': "Version copiée",
+      'en': "Version copied",
+      'cr': "Vèsyon an kopye",
+    },
+    'settings_copy_error': {
+      'fr': "Impossible de copier la version.",
+      'en': "Couldn’t copy the version.",
+      'cr': "Nou pa ka kopye vèsyon an.",
     },
     '7yrcsutm': {
       'fr': 'Se déconnecter',
@@ -540,6 +620,76 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'fr': 'Modifie ton Profil',
       'cr': 'Modifye pwofil ou',
       'en': 'Edit your profile',
+    },
+    'profile_birthday': {
+      'fr': 'Date de naissance',
+      'en': 'Date of birth',
+      'cr': 'Dat nesans',
+    },
+    'birth_day': {
+      'fr': 'Jour',
+      'en': 'Day',
+      'cr': 'Jou',
+    },
+    'birth_month': {
+      'fr': 'Mois',
+      'en': 'Month',
+      'cr': 'Mwa',
+    },
+    'birth_year': {
+      'fr': 'Année',
+      'en': 'Year',
+      'cr': 'Ane',
+    },
+    'birth_invalid': {
+      'fr': 'Vérifiez la date de naissance. Elle doit être valide et ne peut pas être dans le futur.',
+      'en': 'Enter a valid birth date that is today or earlier.',
+      'cr': 'Verifye dat nesans lan. Li dwe valab epi li pa ka nan lavni.',
+    },
+    'birth_age_range': {
+      'fr': 'Vous devez avoir entre 18 et 100 ans inclus.',
+      'en': 'You must be between 18 and 100 years old, inclusive.',
+      'cr': 'Ou dwe gen omwen 18 an epi ou pa ka gen plis pase 100 an.',
+    },
+    'push_categories': {
+      'fr': 'Types de notifications Web',
+      'en': 'Web notification types',
+      'cr': 'Kalite notifikasyon sou entènèt',
+    },
+    'push_browser': {
+      'fr': 'Notifications sur ce navigateur',
+      'en': 'Notifications in this browser',
+      'cr': 'Notifikasyon nan navigatè sa a',
+    },
+    'push_browser_bingo': {
+      'fr': 'Alertes BINGO sur ce navigateur',
+      'en': 'BINGO alerts in this browser',
+      'cr': 'Alèt BINGO nan navigatè sa a',
+    },
+    'push_new_bingo': {
+      'fr': 'Nouveaux BINGO',
+      'en': 'New BINGO results',
+      'cr': 'Nouvo BINGO',
+    },
+    'push_new_croix': {
+      'fr': 'Croix de la chance',
+      'en': 'Lucky Cross',
+      'cr': 'Kwa Lachans',
+    },
+    'push_new_prediction': {
+      'fr': 'Prédictions VIP',
+      'en': 'VIP predictions',
+      'cr': 'Prediksyon VIP',
+    },
+    'push_assistant_reply': {
+      'fr': 'Réponses de l’assistance',
+      'en': 'Support replies',
+      'cr': 'Repons ekip sipò a',
+    },
+    'push_account_activated': {
+      'fr': 'Activation VIP',
+      'en': 'VIP activation',
+      'cr': 'Aktivasyon VIP',
     },
     'profile_phone_label': {
       'fr': 'Numéro de téléphone',

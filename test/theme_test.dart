@@ -3,6 +3,7 @@ import 'package:choloto/components/page_header_app_bar.dart';
 import 'package:choloto/flutter_flow/flutter_flow_theme.dart';
 import 'package:choloto/flutter_flow/internationalization.dart';
 import 'package:choloto/main.dart' show MyApp;
+import 'package:choloto/settings/device_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core_platform_interface/test.dart';
@@ -263,6 +264,13 @@ void main() {
         expect(palette.secondaryBackground, const Color(0xFF1C1C1E));
         expect(palette.primaryText, const Color(0xFFFFFFFF));
       }
+      final device = FFAppState().devicePreferences;
+      await device.setSize(ReadingSize.extraLarge);
+      await device.setReduceMotion(true);
+      await tester.pumpAndSettle();
+      final navigator = tester.element(find.byType(Navigator).first);
+      expect(MediaQuery.textScalerOf(navigator).scale(10), 14);
+      expect(MediaQuery.disableAnimationsOf(navigator), isTrue);
     });
   });
 }

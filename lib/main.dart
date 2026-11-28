@@ -202,6 +202,16 @@ class _MyAppState extends State<MyApp> {
       ],
       theme: DarkModeTheme().materialTheme,
       themeMode: ThemeMode.dark,
+      builder: (context, child) {
+        final preferences = FFAppState().devicePreferences;
+        return ListenableBuilder(
+          listenable: preferences,
+          builder: (context, _) => MediaQuery(
+            data: preferences.applyTo(MediaQuery.of(context)),
+            child: child!,
+          ),
+        );
+      },
       routerConfig: _router,
     );
   }

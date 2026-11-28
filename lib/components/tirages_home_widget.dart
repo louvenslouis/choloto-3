@@ -7,6 +7,7 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
+import '/settings/device_preferences.dart';
 import 'draw_result_chip.dart';
 import 'tirages_home_model.dart';
 export 'tirages_home_model.dart';
@@ -104,27 +105,38 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
           SizedBox(height: tokens.spacing.xs),
           DecoratedBox(
             decoration: tokens.home.panel,
-            child: Column(children: [
-              _marketRow(
-                future: _model.newYork,
-                title: strings.getText('home_draw_new_york'),
-                asset: 'assets/images/New_york.png',
-                maxNumbers: 3,
-              ),
-              Divider(
-                height: 1,
-                thickness: 1,
-                indent: tokens.spacing.md,
-                endIndent: tokens.spacing.md,
-                color: tokens.home.panelEdge,
-              ),
-              _marketRow(
-                future: _model.florida,
-                title: strings.getText('home_draw_florida'),
-                asset: 'assets/images/Florida.png',
-                maxNumbers: 4,
-              ),
-            ]),
+            child: ListenableBuilder(
+              listenable: FFAppState().devicePreferences,
+              builder: (context, _) {
+                final newYork = _marketRow(
+                  key: const ValueKey(HomeDrawMarket.ny),
+                  future: _model.newYork,
+                  title: strings.getText('home_draw_new_york'),
+                  asset: 'assets/images/New_york.png',
+                  maxNumbers: 3,
+                );
+                final florida = _marketRow(
+                  key: const ValueKey(HomeDrawMarket.fl),
+                  future: _model.florida,
+                  title: strings.getText('home_draw_florida'),
+                  asset: 'assets/images/Florida.png',
+                  maxNumbers: 4,
+                );
+                final floridaFirst =
+                    FFAppState().devicePreferences.market == HomeDrawMarket.fl;
+                return Column(children: [
+                  floridaFirst ? florida : newYork,
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: tokens.spacing.md,
+                    endIndent: tokens.spacing.md,
+                    color: tokens.home.panelEdge,
+                  ),
+                  floridaFirst ? newYork : florida,
+                ]);
+              },
+            ),
           ),
         ],
       );
@@ -133,12 +145,14 @@ class _TiragesHomeWidgetState extends State<TiragesHomeWidget> {
 }
 
 Widget _marketRow({
+  required Key key,
   required Future<List<ResultatsRecord>> future,
   required String title,
   required String asset,
   required int maxNumbers,
 }) =>
     FutureBuilder<List<ResultatsRecord>>(
+      key: key,
       future: future,
       builder: (context, snapshot) => _DrawSurface(
         title: title,

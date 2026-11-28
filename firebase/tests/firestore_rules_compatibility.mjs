@@ -973,6 +973,31 @@ expectStatus(
   'foreign user document creation through spoofed uid field',
 );
 
+// Settings start from an existing owner profile, including historical profiles without uid.
+for (const member of [legacy, owner]) {
+  const path = `user/${member.uid}`;
+  const before = JSON.parse((await firestoreRequest(path, {token: member.token})).body).fields;
+  const changes = [
+    [{phone_number: stringValue('+50937000000')}, ['phone_number']],
+    [{birthday: timestampValue('1996-02-29T12:00:00Z')}, ['birthday']],
+    [{web_push_preferences: mapValue({new_croix: boolValue(false)})}, ['web_push_preferences.new_croix']],
+    [{web_push_preferences: mapValue({assistant_reply: boolValue(false)})}, ['web_push_preferences.assistant_reply']],
+  ];
+  for (const [fields, updateMaskFields] of changes) {
+    for (const [token, status] of [[other.token, 403], [undefined, 403], [member.token, 200]]) {
+      expectStatus(await firestoreRequest(path, {method: 'PATCH', token, fields, updateMaskFields}),
+        status, 'private settings update ' + updateMaskFields[0]);
+    }
+  }
+  const saved = JSON.parse((await firestoreRequest(path, {token: member.token})).body).fields;
+  assert.deepEqual(saved.uid, before.uid);
+  assert.deepEqual(saved.end_sub, before.end_sub);
+  assert.equal(saved.phone_number.stringValue, '+50937000000');
+  assert.equal(Date.parse(saved.birthday.timestampValue), Date.parse('1996-02-29T12:00:00Z'));
+  assert.deepEqual(saved.web_push_preferences.mapValue.fields,
+    {new_croix: boolValue(false), assistant_reply: boolValue(false)});
+}
+
 // Email authentication follows the same released-client profile sequence:
 // authenticate, read the missing canonical document, create it with the email,
 // then complete end_sub and device before navigating home.

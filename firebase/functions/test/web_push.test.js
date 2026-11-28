@@ -7,20 +7,26 @@ const notice = {
   messages: {fr: {title: "Croix", body: "Disponible"}},
 };
 
-function registration(token, onDelete = assert.fail) {
-  const fields = {token, locale: "fr", userId: "owner"};
+function registration(token, onDelete = assert.fail, uid = "owner") {
+  const fields = {token, locale: "fr", userId: uid};
   return {
     get: (key) => fields[key], updateTime: 123,
-    ref: {delete: (precondition) => {
+    ref: {parent: {parent: {id: uid}}, delete: (precondition) => {
       assert.deepEqual(precondition, {lastUpdateTime: 123});
       return onDelete();
     }},
   };
 }
 
-function fixture(docs, sendEachForMulticast) {
+function fixture(docs, sendEachForMulticast, muted = []) {
   return createWebPushSender({
-    firestore: {collectionGroup: (name) => {
+    firestore: {collection: (name) => {
+      assert.equal(name, "user");
+      return {where: (field, op, value) => {
+        assert.deepEqual([field, op, value], ["web_push_preferences.new_croix", "==", false]);
+        return {select: () => ({get: async () => ({docs: muted.map((id) => ({id}))})})};
+      }};
+    }, collectionGroup: (name) => {
       assert.equal(name, "webPushTokens");
       return {get: async () => ({docs})};
     }},
@@ -70,4 +76,15 @@ test("retries only temporary failures and removes only unchanged invalid registr
   await sender.sendToSubscribers(notice);
   assert.deepEqual(calls, [["ok", "temporary", "config", "invalid"], ["temporary"]]);
   assert.deepEqual(removed, ["old"]);
+});
+
+test("a muted account skips every browser and duplicate, preserving other accounts", async () => {
+  const docs = [registration("shared"), registration("other"),
+    registration("shared", assert.fail, "muted"), registration("second", assert.fail, "muted")];
+  const delivered = [];
+  await fixture(docs, async ({tokens}) => {
+    delivered.push(...tokens);
+    return {responses: tokens.map(() => ({success: true}))};
+  }, ["muted"]).sendToSubscribers(notice);
+  assert.deepEqual(delivered, ["other"]);
 });

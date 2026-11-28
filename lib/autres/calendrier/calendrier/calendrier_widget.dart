@@ -1,4 +1,5 @@
 import '/backend/backend.dart';
+import '/components/draw_result_chip.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
@@ -7,11 +8,22 @@ import 'calendrier_model.dart';
 export 'calendrier_model.dart';
 
 class CalendrierWidget extends StatefulWidget {
-  const CalendrierWidget({super.key});
+  const CalendrierWidget({super.key, this.watchMonth = _watchMonth});
+
+  final Stream<List<BingoRecord>> Function(DateTime start, DateTime end)
+      watchMonth;
 
   @override
   State<CalendrierWidget> createState() => _CalendrierWidgetState();
 }
+
+Stream<List<BingoRecord>> _watchMonth(DateTime start, DateTime end) =>
+    queryBingoRecord(
+      queryBuilder: (query) => query
+          .where('date', isGreaterThanOrEqualTo: start)
+          .where('date', isLessThan: end)
+          .orderBy('date'),
+    );
 
 class _CalendrierWidgetState extends State<CalendrierWidget> {
   late CalendrierModel _model;
@@ -124,27 +136,11 @@ class _CalendrierWidgetState extends State<CalendrierWidget> {
         DateTime(_displayedMonth.year, _displayedMonth.month + 1);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: theme.alternate.withValues(alpha: 0.7)),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 18.0,
-            color: Colors.black.withValues(alpha: 0.06),
-            offset: const Offset(0.0, 6.0),
-          ),
-        ],
-      ),
+      decoration: theme.designToken.home.panel,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 10.0),
         child: StreamBuilder<List<BingoRecord>>(
-          stream: queryBingoRecord(
-            queryBuilder: (query) => query
-                .where('date', isGreaterThanOrEqualTo: startOfMonth)
-                .where('date', isLessThan: startOfNextMonth)
-                .orderBy('date'),
-          ),
+          stream: widget.watchMonth(startOfMonth, startOfNextMonth),
           builder: (context, snapshot) {
             final bingosByDay = <int, List<BingoRecord>>{};
             for (final bingo in snapshot.data ?? const <BingoRecord>[]) {
@@ -193,7 +189,7 @@ class _CalendrierWidgetState extends State<CalendrierWidget> {
                             textAlign: TextAlign.center,
                             style: theme.labelSmall.override(
                               fontFamily: 'Google sans flex',
-                              color: theme.secondaryText,
+                              color: theme.designToken.home.mutedText,
                               fontSize: 11.0,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5,
@@ -226,7 +222,7 @@ class _CalendrierWidgetState extends State<CalendrierWidget> {
                       textAlign: TextAlign.center,
                       style: theme.labelSmall.override(
                         fontFamily: 'Google sans flex',
-                        color: theme.secondaryText,
+                        color: theme.designToken.home.mutedText,
                         letterSpacing: 0.0,
                       ),
                     ),
@@ -360,7 +356,7 @@ class _MonthButton extends StatelessWidget {
       tooltip: tooltip,
       visualDensity: VisualDensity.compact,
       style: IconButton.styleFrom(
-        backgroundColor: theme.primaryBackground,
+        backgroundColor: theme.designToken.background.home,
         foregroundColor: theme.primaryText,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
@@ -449,10 +445,8 @@ class _DayTile extends StatelessWidget {
     final entries = _entries;
     final hasBingo = records.isNotEmpty;
     final displayedCount = entries.isEmpty ? records.length : entries.length;
-    final colors = hasBingo
-        ? const [Color(0xFFFFA726), Color(0xFFFF7043)]
-        : [theme.primaryBackground, theme.primaryBackground];
-    final foregroundColor = hasBingo ? Colors.white : theme.primaryText;
+    final tokens = theme.designToken;
+    final foregroundColor = hasBingo ? theme.onPrimary : theme.primaryText;
 
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 180),
@@ -464,29 +458,16 @@ class _DayTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(11.0),
           child: Ink(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: colors,
-              ),
+              color: hasBingo ? null : tokens.background.home,
+              gradient: hasBingo ? tokens.home.membership : null,
               borderRadius: BorderRadius.circular(11.0),
               border: Border.all(
                 color: _isToday
-                    ? theme.primary
-                    : hasBingo
-                        ? Colors.white.withValues(alpha: 0.24)
-                        : theme.alternate.withValues(alpha: 0.7),
+                    ? (hasBingo ? theme.onPrimary : theme.primary)
+                    : (hasBingo ? tokens.vip.goldLight : tokens.home.panelEdge),
                 width: _isToday ? 2.0 : 1.0,
               ),
-              boxShadow: hasBingo
-                  ? [
-                      BoxShadow(
-                        blurRadius: 7.0,
-                        color: const Color(0xFFFF7043).withValues(alpha: 0.24),
-                        offset: const Offset(0.0, 3.0),
-                      ),
-                    ]
-                  : null,
+              boxShadow: hasBingo ? [tokens.shadow.sm] : null,
             ),
             child: Padding(
               padding: const EdgeInsets.all(4.0),
@@ -521,7 +502,7 @@ class _DayTile extends StatelessWidget {
                               width: 4.0,
                               height: 4.0,
                               decoration: BoxDecoration(
-                                color: theme.alternate,
+                                color: tokens.home.edge,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -534,14 +515,14 @@ class _DayTile extends StatelessWidget {
                         vertical: 1.0,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.18),
+                        color: tokens.background.home,
                         borderRadius: BorderRadius.circular(20.0),
                       ),
                       child: Text(
                         '×$displayedCount',
                         style: theme.labelSmall.override(
                           fontFamily: 'Google sans flex',
-                          color: Colors.white,
+                          color: tokens.vip.goldLight,
                           fontSize: 9.0,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.0,
@@ -587,7 +568,7 @@ class _BingoDaySheet extends StatelessWidget {
           maxHeight: MediaQuery.sizeOf(context).height * 0.72,
         ),
         decoration: BoxDecoration(
-          color: theme.secondaryBackground,
+          gradient: theme.designToken.home.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(26.0)),
         ),
         child: Column(
@@ -598,7 +579,7 @@ class _BingoDaySheet extends StatelessWidget {
               width: 42.0,
               height: 4.0,
               decoration: BoxDecoration(
-                color: theme.alternate,
+                color: theme.designToken.home.edge,
                 borderRadius: BorderRadius.circular(20.0),
               ),
             ),
@@ -611,9 +592,7 @@ class _BingoDaySheet extends StatelessWidget {
                     height: 46.0,
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFFA726), Color(0xFFFF7043)],
-                      ),
+                      gradient: theme.designToken.home.membership,
                       borderRadius: BorderRadius.circular(14.0),
                     ),
                     child: Image.asset('assets/images/bingo-2.png'),
@@ -636,7 +615,7 @@ class _BingoDaySheet extends StatelessWidget {
                           countLabel,
                           style: theme.labelMedium.override(
                             fontFamily: 'Google sans flex',
-                            color: theme.secondaryText,
+                            color: theme.designToken.home.mutedText,
                             letterSpacing: 0.0,
                           ),
                         ),
@@ -655,7 +634,7 @@ class _BingoDaySheet extends StatelessWidget {
                 ],
               ),
             ),
-            Divider(height: 1.0, color: theme.alternate),
+            Divider(height: 1.0, color: theme.designToken.home.panelEdge),
             if (entries.isEmpty)
               Padding(
                 padding: const EdgeInsets.all(28.0),
@@ -708,41 +687,11 @@ class _BingoDetailTile extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: theme.primaryBackground,
-        borderRadius: BorderRadius.circular(15.0),
-        border: Border.all(color: theme.alternate.withValues(alpha: 0.75)),
-      ),
+      decoration: theme.designToken.home.panel,
       child: Row(
         children: [
-          Container(
-            width: 48.0,
-            height: 48.0,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFA726),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 7.0,
-                  color: const Color(0xFFFFA726).withValues(alpha: 0.3),
-                  offset: const Offset(0.0, 3.0),
-                ),
-              ],
-            ),
-            child: Text(
-              entry.boul.isEmpty ? '—' : entry.boul,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: theme.titleMedium.override(
-                fontFamily: 'Google sans flex',
-                color: Colors.white,
-                fontSize: entry.boul.length > 3 ? 13.0 : 17.0,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.0,
-              ),
-            ),
-          ),
+          DrawResultChip(
+              value: entry.boul.isEmpty ? '—' : entry.boul, size: 48),
           const SizedBox(width: 12.0),
           Expanded(
             child: Column(
@@ -766,7 +715,7 @@ class _BingoDetailTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.labelMedium.override(
                       fontFamily: 'Google sans flex',
-                      color: theme.secondaryText,
+                      color: theme.designToken.home.mutedText,
                       letterSpacing: 0.0,
                     ),
                   ),
@@ -792,7 +741,8 @@ class _CalendarError extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.cloud_off_rounded, color: theme.secondaryText, size: 28.0),
+          Icon(Icons.cloud_off_rounded,
+              color: theme.designToken.home.mutedText, size: 28.0),
           const SizedBox(height: 8.0),
           Text(
             FFLocalizations.of(context).getVariableText(

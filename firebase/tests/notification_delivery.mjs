@@ -133,5 +133,30 @@ for (const bingoId of [manual.id, suggested.id]) {
     assert.ok(ttl > 0 && ttl <= 3600, 'queued BINGO expires with the story');
   }
 }
+// Run each sender against the real emulator after the account changes its choices.
+// Await the sender itself so a negative assertion cannot pass before delivery completes.
+const {createWebPushSender} = require('./web_push');
+const received = [];
+const sender = createWebPushSender({firestore: db, logger: {info() {}}, messaging: {
+  sendEachForMulticast: async ({tokens}) => {
+    received.push(...tokens);
+    return {responses: tokens.map(() => ({success: true}))};
+  },
+}});
+for (const type of ['new_bingo', 'new_croix', 'new_prediction', 'assistant_reply', 'account_activated']) {
+  const targeted = type === 'assistant_reply' || type === 'account_activated';
+  const send = () => (targeted ? sender.sendToUser : sender.sendToSubscribers)({
+    eventId: 'preferences', userId: owner.id, data: {type},
+    messages: {fr: {title: 'test', body: 'test'}},
+  });
+  await owner.update({[`web_push_preferences.${type}`]: false});
+  received.length = 0;
+  await send();
+  assert.deepEqual(received.sort(), targeted ? [] : ['legacy-token', 'other-token'], type);
+  await owner.update({[`web_push_preferences.${type}`]: true});
+  received.length = 0;
+  await send();
+  assert.deepEqual(received.sort(), targeted ? ['member-token'] : ['legacy-token', 'member-token', 'other-token'], type);
+}
 console.log('All five notifications passed, including manual and suggested Bingo for members and guests.');
 await admin.app().delete();

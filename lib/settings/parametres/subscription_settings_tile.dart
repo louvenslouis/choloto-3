@@ -1,7 +1,6 @@
-import '/flutter_flow/flutter_flow_theme.dart';
+import 'settings_tile.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class SubscriptionSettingsTile extends StatelessWidget {
   const SubscriptionSettingsTile({
@@ -36,35 +35,11 @@ class SubscriptionSettingsTile extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    return Material(
-      color: theme.secondaryBackground,
-      borderRadius: BorderRadius.circular(theme.designToken.radius.sm),
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        key: const ValueKey('subscription-settings-menu'),
-        leading: FaIcon(FontAwesomeIcons.award, color: theme.alternate),
-        title: Text(
-          FFLocalizations.of(context).getText('eywbwq85'),
-          style: theme.titleLarge,
-        ),
-        subtitle: expiration == null
-            ? null
-            : Text(
-                _statusText(context, expiration!),
-                style: theme.labelMedium.override(color: theme.primaryText),
-              ),
-        trailing: Icon(
-          Icons.arrow_right_rounded,
-          color: theme.primaryText,
-        ),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: theme.designToken.spacing.md,
-          vertical: theme.designToken.spacing.xs,
-        ),
+  Widget build(BuildContext context) => SettingsTile(
+        tileKey: const ValueKey('subscription-settings-menu'),
+        icon: Icons.workspace_premium_outlined,
+        title: FFLocalizations.of(context).getText('eywbwq85'),
+        detail: expiration == null ? null : _statusText(context, expiration!),
         onTap: onTap,
-      ),
-    );
-  }
+      );
 }

@@ -10,6 +10,8 @@ import 'package:choloto/components/home_page_scaffold.dart';
 import 'package:choloto/components/home_header_actions.dart';
 import 'package:choloto/components/home_stories_rail.dart';
 import 'package:choloto/app_state.dart';
+import 'package:choloto/settings/device_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:choloto/backend/schema/resultats_record.dart';
 import 'package:choloto/components/tirages_home_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -122,6 +124,33 @@ void main() {
         requestFn: () async => [
               record('fl', ['516', '09', '32'])
             ]);
+  });
+
+  testWidgets(
+      'home results follow the preferred market without mixing its numbers',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await FFAppState().initializePersistedState();
+    await tester.pumpWidget(const MaterialApp(
+      locale: Locale('en'),
+      supportedLocales: [Locale('en')],
+      localizationsDelegates: [
+        FFLocalizationsDelegate(),
+        ...GlobalMaterialLocalizations.delegates,
+      ],
+      home: Scaffold(body: TiragesHomeWidget()),
+    ));
+    // The cached draw futures were populated in setUp outside the widget clock.
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+    final ny = find.byKey(const ValueKey(HomeDrawMarket.ny));
+    final fl = find.byKey(const ValueKey(HomeDrawMarket.fl));
+    expect(tester.getTopLeft(ny).dy, lessThan(tester.getTopLeft(fl).dy));
+    await FFAppState().devicePreferences.setMarket(HomeDrawMarket.fl);
+    await tester.pump();
+    expect(tester.getTopLeft(fl).dy, lessThan(tester.getTopLeft(ny).dy));
+    expect(find.descendant(of: fl, matching: find.text('516')), findsOneWidget);
+    expect(find.descendant(of: ny, matching: find.text('427')), findsOneWidget);
   });
 
   for (final language in ['fr', 'en', 'cr']) {

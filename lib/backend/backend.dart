@@ -632,6 +632,15 @@ Future<void> completeUserRegistration({
   await userRecord.set(userData, SetOptions(merge: true));
 }
 
+// Bind an open editor to its original profile even if the session changes.
+Future<void> updateOwnProfile(
+    UserRecord profile, Map<String, dynamic> fields) async {
+  if (!loggedIn || currentUserUid != profile.reference.id) {
+    throw StateError('Profile changed');
+  }
+  await profile.reference.update(fields);
+}
+
 Future updateUserDocument({String? email}) async {
   await currentUserDocument?.reference
       .update(createUserRecordData(email: email));

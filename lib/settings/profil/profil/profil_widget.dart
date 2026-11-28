@@ -6,8 +6,8 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'profil_model.dart';
+import '../profile_contact_fields.dart';
 export 'profil_model.dart';
 
 class ProfileAvatar extends StatelessWidget {
@@ -79,6 +79,7 @@ class _ProfilWidgetState extends State<ProfilWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = FlutterFlowTheme.of(context).designToken;
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
@@ -117,205 +118,93 @@ class _ProfilWidgetState extends State<ProfilWidget> {
                 badge: MemberVipBadge(user: user),
               ));
             }),
-            AuthUserStreamWidget(
-              builder: (context) => InkWell(
-                splashColor: Colors.transparent,
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                onTap: () async {
-                  logFirebaseEvent('PROFIL_PAGE_username_ON_TAP');
-                  logFirebaseEvent('username_action_block');
-                  await _model.edit(
-                    context,
-                    champ: 1,
-                  );
-                },
-                child: Material(
-                  color: Colors.transparent,
-                  child: ListTile(
-                    title: Text(
-                      currentUserDisplayName,
-                      style: FlutterFlowTheme.of(context).titleLarge.override(
-                            fontFamily: 'Google sans flex',
-                            letterSpacing: 0.0,
-                          ),
-                    ),
-                    subtitle: Text(
-                      FFLocalizations.of(context).getText(
-                        'c8eoezku' /* Modifier */,
-                      ),
-                      style: FlutterFlowTheme.of(context).labelMedium.override(
-                            font: GoogleFonts.inter(
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .labelMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .labelMedium
-                                  .fontStyle,
-                            ),
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .fontStyle,
-                          ),
-                    ),
-                    trailing: Icon(
-                      Icons.create,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      size: 24.0,
-                    ),
-                    tileColor: FlutterFlowTheme.of(context).secondaryBackground,
-                    dense: false,
-                    contentPadding: const EdgeInsetsDirectional.fromSTEB(
-                        12.0, 0.0, 12.0, 0.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            InkWell(
-              splashColor: Colors.transparent,
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              onTap: () async {
-                logFirebaseEvent('PROFIL_PAGE_email_ON_TAP');
-                logFirebaseEvent('email_action_block');
-                await _model.edit(
-                  context,
-                  champ: 2,
-                );
-              },
+            DecoratedBox(
+              decoration: tokens.home.panel,
               child: Material(
-                color: Colors.transparent,
-                child: ListTile(
-                  title: Text(
-                    currentUserEmail,
-                    style: FlutterFlowTheme.of(context).titleLarge.override(
-                          fontFamily: 'Google sans flex',
-                          letterSpacing: 0.0,
-                        ),
-                  ),
-                  subtitle: Text(
-                    FFLocalizations.of(context).getText(
-                      'vkfordrl' /* Modifier */,
-                    ),
-                    style: FlutterFlowTheme.of(context).labelMedium.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .fontStyle,
+                type: MaterialType.transparency,
+                borderRadius: BorderRadius.circular(tokens.radius.md),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    Stack(
+                      children: [
+                        AuthUserStreamWidget(
+                          builder: (context) => _ProfileEditTile(
+                            value: currentUserDisplayName,
+                            editLabel:
+                                FFLocalizations.of(context).getText('c8eoezku'),
+                            onTap: () async {
+                              logFirebaseEvent('PROFIL_PAGE_username_ON_TAP');
+                              logFirebaseEvent('username_action_block');
+                              await _model.edit(context, champ: 1);
+                            },
                           ),
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .labelMedium
-                              .fontWeight,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .labelMedium
-                              .fontStyle,
                         ),
-                  ),
-                  trailing: Icon(
-                    Icons.create,
-                    color: FlutterFlowTheme.of(context).secondaryText,
-                    size: 24.0,
-                  ),
-                  tileColor: FlutterFlowTheme.of(context).secondaryBackground,
-                  dense: false,
-                  contentPadding: const EdgeInsetsDirectional.fromSTEB(
-                      12.0, 0.0, 12.0, 0.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
+                        Positioned(
+                          bottom: 0,
+                          left: tokens.spacing.md,
+                          right: tokens.spacing.md,
+                          child: IgnorePointer(
+                            child: Divider(
+                                height: 1, color: tokens.home.panelEdge),
+                          ),
+                        ),
+                      ],
+                    ),
+                    _ProfileEditTile(
+                      value: currentUserEmail,
+                      editLabel:
+                          FFLocalizations.of(context).getText('vkfordrl'),
+                      onTap: () async {
+                        logFirebaseEvent('PROFIL_PAGE_email_ON_TAP');
+                        logFirebaseEvent('email_action_block');
+                        await _model.edit(context, champ: 2);
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
-            AuthUserStreamWidget(
-              builder: (context) {
-                final phoneNumber = currentPhoneNumber;
-                final hasPhoneNumber = phoneNumber.isNotEmpty;
-
-                return InkWell(
-                  key: const ValueKey('profile-phone-tile'),
-                  splashColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  onTap: () async {
-                    logFirebaseEvent('PROFIL_PAGE_phone_ON_TAP');
-                    await _model.edit(context, champ: 3);
-                  },
-                  child: Material(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.phone_outlined,
-                        color: FlutterFlowTheme.of(context).primary,
-                      ),
-                      title: Text(
-                        hasPhoneNumber
-                            ? phoneNumber
-                            : FFLocalizations.of(context)
-                                .getText('profile_phone_label'),
-                        style: FlutterFlowTheme.of(context).titleLarge.override(
-                              fontFamily: 'Google sans flex',
-                              letterSpacing: 0.0,
-                            ),
-                      ),
-                      subtitle: Text(
-                        FFLocalizations.of(context).getText(
-                          hasPhoneNumber
-                              ? 'profile_phone_edit'
-                              : 'profile_phone_add',
-                        ),
-                        style:
-                            FlutterFlowTheme.of(context).labelMedium.override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .labelMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .labelMedium
-                                        .fontStyle,
-                                  ),
-                                  letterSpacing: 0.0,
-                                ),
-                      ),
-                      trailing: Icon(
-                        hasPhoneNumber ? Icons.create : Icons.add,
-                        color: FlutterFlowTheme.of(context).secondaryText,
-                        size: 24.0,
-                      ),
-                      tileColor:
-                          FlutterFlowTheme.of(context).secondaryBackground,
-                      contentPadding: const EdgeInsetsDirectional.fromSTEB(
-                        12.0,
-                        0.0,
-                        12.0,
-                        0.0,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          FlutterFlowTheme.of(context).designToken.radius.sm,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+            AuthUserStreamWidget(builder: (context) {
+              final profile = currentUserDocument;
+              if (!loggedIn) return const SizedBox.shrink();
+              return ProfileContactFields(
+                profile:
+                    profile != null && profile.reference.id == currentUserUid
+                        ? profile
+                        : null,
+              );
+            }),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProfileEditTile extends StatelessWidget {
+  const _ProfileEditTile({
+    required this.value,
+    required this.editLabel,
+    required this.onTap,
+  });
+
+  final String value;
+  final String editLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final muted = theme.designToken.home.mutedText;
+    return ListTile(
+      title: Text(value, style: theme.titleLarge),
+      subtitle:
+          Text(editLabel, style: theme.labelMedium.copyWith(color: muted)),
+      trailing: Icon(Icons.create, color: muted, size: 24),
+      dense: false,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      onTap: onTap,
     );
   }
 }

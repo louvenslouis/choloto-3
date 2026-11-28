@@ -51,6 +51,14 @@ La grille passe à deux colonnes dès que le contenu dispose de **656** de large
 
 **Assistance.** Le bouton circulaire flotte en bas à droite, au-dessus de la navigation mobile. Sa cible mesure 48. Une pastille rouge apparaît pour les messages d’assistance en attente, avec un affichage plafonné à `99+`. Le lecteur d’écran reçoit le nombre réel. En portrait compact, les lignes de résultats réservent 56 à droite pour que le dernier jeton reste lisible. [Bouton et pastille](../lib/components/home_header_actions.dart) · [Disposition des résultats](../lib/components/tirages_home_widget.dart)
 
+## Paramètres
+
+Les préférences, le compte et l’aide utilisent les panneaux saphir et l’en-tête partagé. Les sections s’empilent sur téléphone. Sur grand écran, les préférences occupent la colonne de gauche. Chaque réglage affiche sa valeur actuelle et une coche identifie le choix actif dans le sélecteur.
+
+Les préférences sont propres à l’appareil. Le marché choisi apparaît en premier dans les derniers résultats de l’accueil. New York et la Floride restent tous deux visibles. Les tailles de lecture « Grand » et « Très grand » appliquent un minimum de 120 % et 140 % tout en respectant un agrandissement système supérieur. Les animations peuvent également suivre l’appareil ou être réduites dans l’application. [Paramètres](../lib/settings/parametres/parametres_widget.dart) · [Préférences locales](../lib/settings/device_preferences.dart)
+
+Dans Compte, le téléphone et la date de naissance sont modifiables depuis les paramètres et le profil. Les membres peuvent choisir les cinq types de notifications Web pour leurs navigateurs inscrits. Le commutateur du navigateur contrôle la réception sur cet appareil. Un visiteur sans compte peut s’inscrire aux alertes BINGO.
+
 ## Page Tirages
 
 Le ticket doré de l’accueil identifie la page à droite de l’en-tête saphir. Le titre et l’actualisation sont réunis à gauche. Chaque date ouvre un panneau de lecture. À gauche du résultat figurent le logo du marché, son nom et la période. À droite, les numéros reprennent le même jeton que sur l’accueil. Les logos à lettrage foncé disposent d’un fond clair pour rester lisibles sur le saphir.

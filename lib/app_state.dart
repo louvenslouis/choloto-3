@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'flutter_flow/request_manager.dart';
+import 'settings/device_preferences.dart';
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/schema/enums/enums.dart';
@@ -21,8 +22,11 @@ class FFAppState extends ChangeNotifier {
     _instance = FFAppState._internal();
   }
 
+  final devicePreferences = DevicePreferences();
+
   Future initializePersistedState() async {
     prefs = await SharedPreferences.getInstance();
+    devicePreferences.restore(prefs);
     _safeInit(() {
       if (prefs.containsKey('ff_okay')) {
         try {

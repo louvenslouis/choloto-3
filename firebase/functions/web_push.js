@@ -25,12 +25,24 @@ async function removeInvalidRegistration(document) {
 function createWebPushSender({firestore, messaging, logger}) {
   async function deliver(query, notification, recipientUid) {
     const {eventId, data, messages} = notification;
-    const snapshot = await query.get();
+    const field = `web_push_preferences.${data.type}`;
+    const users = firestore.collection("user");
+    if (recipientUid && (await users.doc(recipientUid).get()).get(field) === false) return;
+    const [snapshot, muted] = await Promise.all([
+      query.get(),
+      recipientUid ? null : users.where(field, "==", false).select().get(),
+    ]);
+    const mutedOwners = new Set(muted?.docs.map((doc) => doc.id));
+    const mutedTokens = new Set();
     const byToken = new Map();
     for (const document of snapshot.docs) {
       const token = document.get("token");
       if (typeof token !== "string" || !token.trim()) continue;
       if (recipientUid && document.get("userId") !== recipientUid) continue;
+      if (mutedOwners.has(document.ref.parent.parent?.id ?? document.get("userId"))) {
+        mutedTokens.add(token);
+        continue;
+      }
       const entry = byToken.get(token);
       if (entry) {
         entry.documents.push(document);
@@ -41,6 +53,8 @@ function createWebPushSender({firestore, messaging, logger}) {
       }
     }
 
+    // A duplicate registration must not undo a browser owner's explicit opt-out.
+    for (const token of mutedTokens) byToken.delete(token);
     let sent = 0;
     const failures = {};
     for (const locale of Object.keys(messages)) {
